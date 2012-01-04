@@ -73,8 +73,10 @@ has action_stack =>
   ( isa => 'ArrayRef', is => 'ro', writer => '_set_action_stack' );
 
 has exit_code => ( isa => 'Int', is => 'ro', writer => '_set_exit_code' );
+
 has process =>
   ( isa => 'Win32::Process', is => 'ro', writer => '_set_process' );
+has win32_timeout => ( isa => 'Int', is => 'ro', default => '5000' );
 
 sub BUILD {
 
@@ -144,19 +146,28 @@ sub run {
         }
     );
 
-    while ( $condition->check() ) {
+    do {
 
-        exit(0) if ($SIG_CAUGHT);
+        exit if ($SIG_CAUGHT);
 
       READ: while (<$rdr>) {
 
-            exit(0) if ($SIG_CAUGHT);
+            exit if ($SIG_CAUGHT);
 
             s/\r\n//;
 
+# :TRICKY:29/06/2011 21:23:11:: bufferization in srvrmgr.exe ruins the day: the prompt will never come out unless a little push is given
+            if (/^\d+ rows returned\./) {
+
+                syswrite $wtr, "\n";
+                last;
+
+            }
+
             # prompt was returned, end of output
             # first execution should bring only informations about Siebel
-            if (/^srvrmgr(\:\w+)?>\s$/) {
+            if (/^srvrmgr(\:\w+)?>\s$/)
+            {    # :TODO:4/1/2012 11:26:28:: make this regex previously compiled
 
                 unless ( defined($prompt) ) {
 
@@ -164,54 +175,40 @@ sub run {
 
                 }
 
-                # do not add the prompt if there is no meaningful output to read
-                if (    ( scalar(@input_buffer) > 1 )
-                    and ( defined($prompt) ) )
-                {
-
-                    push( @input_buffer, $prompt );
-
-                }
-                else {
-
-                    last READ;
-                }
-
-                # below is the place for a Action object
-
-                my $action = Siebel::Srvrmgr::Daemon::ActionFactory->create(
-                    $self->action_stack()->[ $condition->get_cmd_counter() ],
-                    {
-                        parser => Siebel::Srvrmgr::ListParser->new(
-                            { default_prompt => $prompt }
-                        )
-                    }
-                );
-
-                $action->do(\@input_buffer);
-
-                # calling the parser
-                #            $parser->parse( \@input_buffer );
-
-                #            print $temp Dumper($parser);
-                #            print 'Parsed ', $parser->count_parsed(), "\n";
-
-                #                print Dumper(@input_buffer);
-                #                print "******\n";
-                @input_buffer = ();
+                push( @input_buffer, $_ );
                 $command_sent = 0;
 
-                # prompt detection avoids reading the output forever
-                last READ;
+           # stop reading because the srvrmgr.exe will block read the filehandle
+#                last READ;
+
+            }
+            else {   # no prompt detection, keep reading output from srvrmgr.exe
+
+                push( @input_buffer, $_ );
 
             }
 
-            push( @input_buffer, $_ );
-
-# :TRICKY:29/06/2011 21:23:11:: bufferization in srvrmgr.exe ruins the day: the prompt will never come out unless a little push is given
-            syswrite $wtr, "\n";
-
         }    # end of READ block
+
+        # below is the place for a Action object
+        if ( scalar(@input_buffer) >= 1 ) {
+
+            push( @input_buffer, $prompt ) if ( defined($prompt) );
+
+            my $action = Siebel::Srvrmgr::Daemon::ActionFactory->create(
+                $self->action_stack()->[ $condition->get_cmd_counter() ],
+                {
+                    parser => Siebel::Srvrmgr::ListParser->new(
+                        { default_prompt => $prompt }
+                    )
+                }
+            );
+
+            $action->do( \@input_buffer );
+
+            @input_buffer = ();
+
+        }
 
 # begin of session, sending command to the prompt
 # srvrmgr.exe of Siebel 7.5.3.17 does not echo command printed to the input file handle
@@ -219,42 +216,62 @@ sub run {
 
             my $cmd = $self->cmd_stack()->[ $condition->get_cmd_counter() ];
 
-            push( @input_buffer, ( $prompt . $cmd ) );
             syswrite $wtr, "$cmd\n";
+
+    # this is necessary to give a hint to the parser about the command submitted
+            push( @input_buffer, $prompt . $cmd );
+
             $command_sent = 1;
 
             sleep( $self->timeout() );
 
         }
 
-    }
+    } while ( $condition->check() );
+
 }
 
 sub DEMOLISH {
 
     my $self = shift;
 
-    close( $self->read_fh() );
     syswrite $self->write_fh(), "exit\n";
+
+    my $rdr =
+      $self->read_fh();  # diamond operator does not like method calls inside it
+
+    while (<$rdr>) {
+
+        if (/^Disconnecting from server\./) {
+
+            print $_;
+            last;
+
+        }
+        else {
+
+            print $_;
+
+        }
+
+    }
+
+    close( $self->read_fh() );
     close( $self->write_fh() );
 
-    $self->process()->Wait( $self->timeout() );
+    $self->process()->Wait( $self->win32_timeout() );
 
-    if ( $self->process()->GetExitCode( $self->exit_code() ) eq 'STILL_ACTIVE' )
-    {
+    if ( $self->process()->GetExitCode( $self->exit_code() ) ) {
 
         $self->process()->Kill( $self->exit_code() );
-        warn "Server manager had to be killed\n";
+        syswrite STDOUT, "Server manager had to be killed\n";
 
     }
     else {
 
-        print "Server manager exited without errors\n";
+        syswrite STDOUT, "Server manager exited without errors\n";
 
     }
-
-    die "I'm going mama!\n";
-    exit(0);
 
 }
 

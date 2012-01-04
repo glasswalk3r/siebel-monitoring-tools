@@ -10,7 +10,7 @@ Siebel::Srvrmgr::Daemon::Condition - object that checks which conditions should 
     my $condition = Siebel::Srvrmgr::Daemon::Condition(
         {
             is_infinite    => $self->is_infinite(),
-            total_commands => scalar( @{ $self->commands() } )
+            max_cmd_idx => scalar( @{ $self->commands() } )
         }
     );
 
@@ -21,9 +21,12 @@ use strict;
 use Moose;
 use namespace::autoclean;
 
-has is_infinite    => ( isa => 'Bool', is => 'ro', required => 1 );
-has total_commands => ( isa => 'Int',  is => 'ro', required => 1 );
-has cmd_counter    => (
+has is_infinite => ( isa => 'Bool', is => 'ro', required => 1 );
+has max_cmd_idx =>
+  ( isa => 'Int', is => 'ro', required => 0, writer => '_set_max_cmd_idx' );
+has total_commands =>
+  ( isa => 'Int', is => 'ro', required => 1, writer => '_set_total_commands' );
+has cmd_counter => (
     isa      => 'Int',
     is       => 'ro',
     required => 1,
@@ -32,32 +35,76 @@ has cmd_counter    => (
     default  => 0
 );
 
+sub BUILD {
+
+    my $self = shift;
+
+    $self->_set_max_cmd_idx( ( $self->total_commands() ) - 1 );
+
+}
+
+sub reduce_total_cmd {
+
+    my $self = shift;
+
+    $self->_set_total_commands( $self->total_commands() - 1 );
+
+}
+
 sub check {
 
     my $self = shift;
 
-    if ( $self->is_infinite() and ( $self->total_commands() > 1 ) ) {
+    if ( $self->is_infinite() ) {
 
-        if ( ( $self->get_cmd_counter() + 1 ) <=
-            ( $self->total_commands() - 1 ) )
-        {
+        if ( $self->total_commands() > 1 ) {
 
-            $self->add_cmd_counter();
-            return 1;
+            if ( ( $self->get_cmd_counter() + 1 ) <= $self->max_cmd_idx() ) {
+
+                $self->add_cmd_counter();
+                return 1;
+
+            }
+            else {
+
+                $self->reset_cmd_counter();
+
+                return 1;
+
+            }
 
         }
         else {
-
-            $self->reset_cmd_counter();
 
             return 1;
 
         }
 
     }
-    elsif ( $self->is_infinite() ) {
+    elsif ( $self->total_commands() > 0 ) {
 
-        return 1;
+        if (
+
+            # if at least one command to execute
+            ( $self->total_commands() == 1 )
+
+            # or there are more commands to execute
+            or ( ( $self->get_cmd_counter() + 1 ) <= ( $self->max_cmd_idx() ) )
+
+          )
+        {
+
+  #            $self->add_cmd_counter() unless ( $self->total_commands() == 1 );
+            $self->reduce_total_cmd();
+            return 1;
+
+        }
+        else {
+
+            warn "No commands submitted to srvrmgr.exe?\n";
+            return 0;
+
+        }
 
     }
     else {
@@ -72,7 +119,7 @@ sub add_cmd_counter {
 
     my $self = shift;
 
-    if ( ( $self->get_cmd_counter() + 1 ) <= ( $self->total_commands() - 1 ) ) {
+    if ( ( $self->get_cmd_counter() + 1 ) <= ( $self->max_cmd_idx() ) ) {
 
         $self->_set_cmd_counter( $self->get_cmd_counter() + 1 );
 
@@ -80,7 +127,7 @@ sub add_cmd_counter {
     else {
 
         die "Can't increment counter because maximum of commands is "
-          . $self->total_commands() . "\n";
+          . $self->max_cmd_idx() . "\n";
 
     }
 
