@@ -3,8 +3,7 @@ use Moose;
 use FSA::Rules;
 use Data::Dumper;
 use Carp;
-use lib 'c:/temp/monitor';
-use Siebel::Srvrmgr::ListParser::Output;
+use Siebel::Srvrmgr::ListParser::OutputFactory;
 use Siebel::Srvrmgr::ListParser::Buffer;
 
 has 'parsed_tree' => (
@@ -47,6 +46,7 @@ has 'last_command' => (
 
 has 'is_cmd_changed' => ( isa => 'Bool', is => 'rw', default => 0 );
 
+# buffer is an array ref of Siebel of Siebel::Srvrmgr::ListParser::Buffer objects
 has 'buffer' => (
     is      => 'rw',
     isa     => 'ArrayRef',
@@ -54,6 +54,8 @@ has 'buffer' => (
     writer  => '_set_buffer',
     default => sub { return [] }
 );
+
+has 'warn_enabled' => ( isa => 'Bool', is => 'ro', default => 0 );
 
 sub set_last_command {
 
@@ -141,20 +143,6 @@ sub clean_buffer {
 
 }
 
-#around BUILDARGS => sub {
-#
-#    my $orig  = shift;
-#    my $class = shift;
-#
-#    # hash ref
-#    my $args = shift;
-#
-#    $args->{_list_comp_format} = $args->{default_prompt} . 'list comp';
-#
-#    return $class->$orig($args);
-#
-#};
-
 sub count_parsed {
 
     my $self = shift;
@@ -200,8 +188,12 @@ sub append_output {
     my $data_ref  = shift;
 
 # :TODO:12/07/2011 16:37:23:: use an abstract factory here; last_command attribute should define which class to create
-    my $output = Siebel::Srvrmgr::ListParser::Output->new(
-        { data_type => $data_type, data_parsed => $data_ref } );
+    my $output = Siebel::Srvrmgr::ListParser::OutputFactory->create(
+
+        #        $self->get_last_command(),
+        $data_type,
+        { data_type => $data_type, raw_data => $data_ref }
+    );
 
     $self->set_parsed_tree($output);
 
@@ -323,6 +315,30 @@ sub parse {
             ],
             message => 'prompt found'
         },
+        list_comp_def => {
+            do => sub {
+                my $state = shift;
+
+                $state->notes('parser')->set_buffer($state);
+
+            },
+            on_exit => sub {
+                my $state = shift;
+                $state->notes('parser')->is_cmd_changed(0);
+            },
+            rules => [
+                command_submission => sub {
+
+                    my $state = shift;
+
+                    return ( $state->notes('line') =~
+                          $state->notes('parser')->get_prompt_regex() );
+
+                },
+                list_comp_def => sub { return 1; }
+            ],
+            message => 'prompt found'
+        },
         command_submission => {
             do => sub {
 
@@ -342,9 +358,13 @@ sub parse {
                 }
                 else {
 
-                    warn 'got prompt, but no command submitted in line '
-                      . $state->notes('line_num') . "\n"
-                      unless ( defined($cmd) );
+                    if ( $state->notes('parser')->warn_enabled() ) {
+
+                        warn 'got prompt, but no command submitted in line '
+                          . $state->notes('line_num') . "\n"
+                          unless ( defined($cmd) );
+
+                    }
 
                 }
 
@@ -387,6 +407,25 @@ sub parse {
                     }
 
                 },
+                list_comp_def => sub {
+
+                    my $state = shift;
+
+           # :TODO:20/12/2011 18:05:33:: replace the regex for a precompiled one
+                    if ( $state->notes('parser')->get_last_command() =~
+                        /list\scomp\sdef\s\w+/ )
+                    {
+
+                        return 1;
+
+                    }
+                    else {
+
+                        return 0;
+
+                    }
+
+                },
 
      # :TODO:06/07/2011 13:38:58:: add other possibilities here of list commands
             ],
@@ -415,6 +454,15 @@ sub parse {
         $state->notes( line     => $line );
         $line_number++;
         $fsa->switch() unless ( $fsa->done() );
+
+    }
+
+    # creates the parsed tree
+    my $buffer_ref = $self->get_buffer();
+
+    foreach my $buffer ( @{$buffer_ref} ) {
+
+        $self->append_output( $buffer->get_type(), $buffer->get_content() );
 
     }
 
