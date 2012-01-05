@@ -175,11 +175,14 @@ sub run {
 
                 }
 
-                push( @input_buffer, $_ );
-                $command_sent = 0;
-
            # stop reading because the srvrmgr.exe will block read the filehandle
-#                last READ;
+                  unless ( ( scalar(@input_buffer) == 1 ) and ($command_sent) ) {
+					  # @input_buffer will have only the submitted command
+
+					  $command_sent = 0;
+					  last READ;
+
+				  }
 
             }
             else {   # no prompt detection, keep reading output from srvrmgr.exe

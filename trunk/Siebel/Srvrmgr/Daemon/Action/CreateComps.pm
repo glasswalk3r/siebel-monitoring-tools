@@ -28,7 +28,34 @@ sub do {
 
         if ( $obj->isa('Siebel::Srvrmgr::ListParser::Output::ListComp') ) {
 
-            print Dumper( $obj->get_data_parsed() );
+			$obj->parse();
+
+            my $servers_ref = $obj->get_servers();
+
+            warn "Could not fetch servers\n"
+              unless ( scalar( @{$servers_ref} ) > 0 );
+
+            foreach my $servername ( @{$servers_ref} ) {
+
+                my $server = $obj->get_server($servername);
+
+                if ( defined($server) ) {
+
+					foreach my $comp_alias(@{$server->get_comps()}) {
+
+						$comp = $server->get_comp($comp_alias);
+
+						return $comp->create_cmd();
+
+					}
+
+                } else {
+
+					warn "could not fetch $servername data\n";
+
+				}
+
+            }
 
         }
 
