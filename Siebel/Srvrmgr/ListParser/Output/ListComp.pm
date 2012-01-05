@@ -1,5 +1,7 @@
 package Siebel::Srvrmgr::ListParser::Output::ListComp;
 use Moose;
+use namespace::autoclean;
+use Siebel::Srvrmgr::ListParser::Output::ListComp::Server;
 
 extends 'Siebel::Srvrmgr::ListParser::Output';
 
@@ -24,6 +26,29 @@ has 'servers' => (
     reader  => 'get_servers',
     default => sub { return [] }
 );
+
+sub get_server {
+
+    my $self       = shift;
+    my $servername = shift;
+
+    if ( exists( $self->get_data_parsed()->{$servername} ) ) {
+
+        return Siebel::Srvrmgr::ListParser::Output::ListComp::Server->new(
+            {
+                name => $servername,
+                data => $self->get_data_parsed()->{$servername}
+            }
+        );
+
+    }
+    else {
+
+        return undef;
+
+    }
+
+}
 
 sub set_last_server {
 
@@ -61,14 +86,6 @@ has 'fields_pattern' => (
 #        CC_INCARN_NO (23):  Incarnation Number
 #        CC_DESC_TEXT (251):  Component description
 #configure list comp show SV_NAME, CC_ALIAS, CC_NAME, CG_ALIAS, CC_RUNMODE, CP_DISP_RUN_STATE, CP_NUM_RUN_TASKS, CP_MAX_TASKS, CP_ACTV_MTS_PROCS, CP_MAX_MTS_PROCS, CP_START_TIME, CP_END_TIME
-
-sub BUILD {
-
-    my $self = shift;
-
-    $self->parse();
-
-}
 
 sub parse {
 
@@ -186,3 +203,4 @@ sub parse {
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
+
