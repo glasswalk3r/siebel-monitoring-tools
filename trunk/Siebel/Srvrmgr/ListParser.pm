@@ -291,6 +291,30 @@ sub parse {
             ],
             message => 'prompt found'
         },
+        list_comp_type => {
+            do => sub {
+                my $state = shift;
+
+                $state->notes('parser')->set_buffer($state);
+
+            },
+            on_exit => sub {
+                my $state = shift;
+                $state->notes('parser')->is_cmd_changed(0);
+            },
+            rules => [
+                command_submission => sub {
+
+                    my $state = shift;
+
+                    return ( $state->notes('line') =~
+                          $state->notes('parser')->get_prompt_regex() );
+
+                },
+                list_comp_type => sub { return 1; }
+            ],
+            message => 'prompt found'
+        },
         list_comp_params => {
             do => sub {
                 my $state = shift;
@@ -376,6 +400,24 @@ sub parse {
 
                     if ( $state->notes('parser')->get_last_command() eq
                         'list comp' )
+                    {
+
+                        return 1;
+
+                    }
+                    else {
+
+                        return 0;
+
+                    }
+
+                },
+                list_comp_type => sub {
+
+                    my $state = shift;
+
+                    if ( $state->notes('parser')->get_last_command() eq
+                        'list comp type' )
                     {
 
                         return 1;

@@ -12,8 +12,16 @@ Siebel::Srvrmgr::Daemon::Action - base class for Siebel::Srvrmgr::Daemon action
 use Moose;
 use namespace::autoclean;
 
-has parser => ( isa => 'Siebel::Srvrmgr::ListParser', is => 'ro', required => 1, reader => 'get_parser' );
+has parser => (
+    isa      => 'Siebel::Srvrmgr::ListParser',
+    is       => 'ro',
+    required => 1,
+    reader   => 'get_parser'
+);
+has params => ( isa => 'ArrayRef', is => 'rw' );
 
+
+# every do method must return 1 if output was used, otherwise 0
 sub do {
 
     my $self = shift;
