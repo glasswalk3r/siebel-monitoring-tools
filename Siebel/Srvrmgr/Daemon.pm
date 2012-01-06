@@ -67,13 +67,19 @@ has bin        => ( isa => 'Str',        is => 'rw', required => 1 );
 has write_fh   => ( isa => 'FileHandle', is => 'ro', writer   => '_set_write' );
 has read_fh    => ( isa => 'FileHandle', is => 'ro', writer   => '_set_read' );
 has pid        => ( isa => 'Int',        is => 'ro', writer   => '_set_pid' );
-has is_infinite => ( isa => 'Bool', is => 'ro', required => 1 );
+has is_infinite   => ( isa => 'Bool', is => 'ro', required => 1 );
+has last_exec_cmd => ( isa => 'Str',  is => 'rw', default  => '' );
+
 has cmd_stack => ( isa => 'ArrayRef', is => 'ro', writer => '_set_cmd_stack' );
+
+has params_stack =>
+  ( isa => 'ArrayRef', is => 'ro', writer => '_set_params_stack' );
+
 has action_stack =>
   ( isa => 'ArrayRef', is => 'ro', writer => '_set_action_stack' );
 
+# specific code for windows
 has exit_code => ( isa => 'Int', is => 'ro', writer => '_set_exit_code' );
-
 has process =>
   ( isa => 'Win32::Process', is => 'ro', writer => '_set_process' );
 has win32_timeout => ( isa => 'Int', is => 'ro', default => '5000' );
@@ -81,22 +87,24 @@ has win32_timeout => ( isa => 'Int', is => 'ro', default => '5000' );
 sub BUILD {
 
     my $self = shift;
-    my $args = shift;
 
     my $cmds_ref = $self->commands();
 
     my @cmd;
     my @actions;
+    my @params;
 
     foreach my $cmd_ref ( @{$cmds_ref} ) {    # $cmd_ref is a hash reference
 
         push( @cmd,     $cmd_ref->{command} );
         push( @actions, $cmd_ref->{action} );
+        push( @params,  $cmd_ref->{params} );
 
     }
 
     $self->_set_cmd_stack( \@cmd );
     $self->_set_action_stack( \@actions );
+    $self->_set_params_stack( \@params );
 
 }
 
@@ -136,13 +144,13 @@ sub run {
     syswrite $wtr, "\n";
 
     my $prompt;
-    my $command_sent = 0;
     my @input_buffer;
 
     my $condition = Siebel::Srvrmgr::Daemon::Condition->new(
         {
             is_infinite    => $self->is_infinite(),
-            total_commands => scalar( @{ $self->commands() } )
+            total_commands => scalar( @{ $self->commands() } ),
+            cmd_sent       => 0
         }
     );
 
@@ -159,8 +167,12 @@ sub run {
 # :TRICKY:29/06/2011 21:23:11:: bufferization in srvrmgr.exe ruins the day: the prompt will never come out unless a little push is given
             if (/^\d+ rows returned\./) {
 
+                # parsers will consider the lines below
+                push( @input_buffer, $_ );
+                push( @input_buffer, '' );
+
                 syswrite $wtr, "\n";
-                last;
+                last READ;
 
             }
 
@@ -175,14 +187,26 @@ sub run {
 
                 }
 
-           # stop reading because the srvrmgr.exe will block read the filehandle
-                  unless ( ( scalar(@input_buffer) == 1 ) and ($command_sent) ) {
-					  # @input_buffer will have only the submitted command
+                # no command submitted
+                if ( scalar(@input_buffer) < 1 ) {
 
-					  $command_sent = 0;
-					  last READ;
+                    $condition->cmd_sent(0);
+                    last READ;
 
-				  }
+                }
+                else {
+
+                    unless (( scalar(@input_buffer) >= 1 )
+                        and ( $input_buffer[0] eq $self->last_exec_cmd() )
+                        and $condition->cmd_sent() )
+                    {
+
+                        $condition->cmd_sent(0);
+                        last READ;
+
+                    }
+
+                }
 
             }
             else {   # no prompt detection, keep reading output from srvrmgr.exe
@@ -196,35 +220,50 @@ sub run {
         # below is the place for a Action object
         if ( scalar(@input_buffer) >= 1 ) {
 
-            push( @input_buffer, $prompt ) if ( defined($prompt) );
+            #            push( @input_buffer, $prompt ) if ( defined($prompt) );
+
+# :TRICKY:5/1/2012 17:43:58:: copy params to avoid operations that erases the parameters due passing an array reference and messing with it
+            my @params;
+
+            map { push( @params, $_ ) }
+              @{ $self->params_stack()->[ $condition->get_cmd_counter() ] };
+
+            my $class =
+              $self->action_stack()->[ $condition->get_cmd_counter() ];
 
             my $action = Siebel::Srvrmgr::Daemon::ActionFactory->create(
-                $self->action_stack()->[ $condition->get_cmd_counter() ],
+                $class,
                 {
                     parser => Siebel::Srvrmgr::ListParser->new(
                         { default_prompt => $prompt }
-                    )
+                    ),
+                    params => \@params
+
                 }
             );
 
-            $action->do( \@input_buffer );
+            $condition->output_used( $action->do( \@input_buffer ) );
+
+            $condition->cmd_sent(0) if ( $condition->output_used() ); # :TODO:6/1/2012 00:03:41:: move this to the Condition class
 
             @input_buffer = ();
 
         }
 
-# begin of session, sending command to the prompt
-# srvrmgr.exe of Siebel 7.5.3.17 does not echo command printed to the input file handle
-        unless ($command_sent) {
+        # begin of session, sending command to the prompt
+        unless ( $condition->cmd_sent() ) {
+
+			$condition->add_cmd_counter();
 
             my $cmd = $self->cmd_stack()->[ $condition->get_cmd_counter() ];
 
             syswrite $wtr, "$cmd\n";
 
-    # this is necessary to give a hint to the parser about the command submitted
+# srvrmgr.exe of Siebel 7.5.3.17 does not echo command printed to the input file handle
+# this is necessary to give a hint to the parser about the command submitted
             push( @input_buffer, $prompt . $cmd );
-
-            $command_sent = 1;
+            $self->last_exec_cmd( $prompt . $cmd );
+            $condition->cmd_sent(1);
 
             sleep( $self->timeout() );
 
@@ -244,6 +283,8 @@ sub DEMOLISH {
       $self->read_fh();  # diamond operator does not like method calls inside it
 
     while (<$rdr>) {
+
+		next if (/^srvrmgr>\s\r\n$/);
 
         if (/^Disconnecting from server\./) {
 

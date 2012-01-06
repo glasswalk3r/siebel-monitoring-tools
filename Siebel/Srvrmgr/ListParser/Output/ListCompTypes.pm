@@ -1,4 +1,4 @@
-package Siebel::Srvrmgr::ListParser::Output::ListCompDef;
+package Siebel::Srvrmgr::ListParser::Output::ListCompTypes;
 use Moose;
 
 extends 'Siebel::Srvrmgr::ListParser::Output';
@@ -18,16 +18,11 @@ has 'fields_pattern' => (
 );
 
 # for POD,  this is the list configuration considered by the module
-#srvrmgr> configure list comp def
-#        CC_NAME (76):  Component name
+#srvrmgr> configure list comp type
 #        CT_NAME (76):  Component type name
-#        CC_RUNMODE (31):  Component run mode (enum)
-#        CC_ALIAS (31):  Component alias
-#        CC_DISP_ENABLE_ST (61):   Display enablement state (translatable)
-#        CC_DESC_TEXT (251):   Component description
-#        CG_NAME (76):  Component group
-#        CG_ALIAS (31):  Component Group Alias
-#        CC_INCARN_NO (23):  Incarnation Number
+#        CT_RUNMODE (31):  Supported run mode
+#        CT_ALIAS (31):  Component type alias
+#        CT_DESC_TEXT (251):  Description of component type
 
 sub BUILD {
 
@@ -84,7 +79,8 @@ sub parse {
 
             }
 
-            if ( $line =~ /^CC_NAME\s.*\sCC_INCARN_NO$/ ) { # this is the header
+            if ( $line =~ /^CT_NAME\s.*\sCT_DESC_TEXT(\s+)?$/ )
+            {    # this is the header
 
                 my @columns = split( /\s{2,}/, $line );
 
@@ -95,10 +91,23 @@ sub parse {
             }
             else {
 
-                my @fields_values =
-                  unpack( $self->get_fields_pattern(), $line );
+                my @fields_values;
 
-                my $cc_name = $fields_values[0];
+                # :TODO:5/1/2012 16:33:37:: copy this check to the other parsers
+                if ( defined( $self->get_fields_pattern() ) ) {
+
+                    @fields_values =
+                      unpack( $self->get_fields_pattern(), $line );
+
+                }
+                else {
+
+                    die
+                      "Cannot continue without having fields pattern defined\n";
+
+                }
+
+                my $ct_name = $fields_values[0];
 
                 my $list_len = scalar(@fields_values);
 
@@ -108,7 +117,7 @@ sub parse {
 
                     for ( my $i = 0 ; $i < $list_len ; $i++ ) {
 
-                        $parsed_lines{$cc_name}->{ $columns_ref->[$i] } =
+                        $parsed_lines{$ct_name}->{ $columns_ref->[$i] } =
                           $fields_values[$i];
 
                     }

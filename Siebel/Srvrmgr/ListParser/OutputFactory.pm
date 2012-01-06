@@ -10,10 +10,11 @@ our $list_params   = qr/list\sparams\sfor\sserver\s\w+\sfor\scomponent\s\w+/;
 our $list_comp_def = qr/list\scomp\sdef\s\w+/;
 
 our %table_mapping = (
-    'list comp'     => 'ListComp',
-    'list params'   => 'ListCompParams',
-    'list comp def' => 'ListCompDef',
-    'greetings'     => 'Greetings'
+    'list comp'      => 'ListComp',
+    'list params'    => 'ListCompParams',
+    'list comp def'  => 'ListCompDef',
+    'greetings'      => 'Greetings',
+    'list comp type' => 'ListCompTypes'
 );
 
 implementation_class_via sub {
@@ -30,6 +31,9 @@ implementation_class_via sub {
         }
         when ( $_ eq 'list_comp_def' ) {
             $class = $table_mapping{'list comp def'};
+        }
+        when ( $_ eq 'list_comp_type' ) {
+            $class = $table_mapping{'list comp type'};
         }
         when ( $_ eq 'list_comp' ) { $class = $table_mapping{'list comp'}; }
         when ( $_ eq 'greetings' ) { $class = $table_mapping{greetings}; }

@@ -34,6 +34,8 @@ has cmd_counter => (
     reader   => 'get_cmd_counter',
     default  => 0
 );
+has output_used => ( isa => 'Bool', is => 'rw', default => 0 );
+has cmd_sent    => ( isa => 'Bool', is => 'rw', default => 0);
 
 sub BUILD {
 
@@ -68,7 +70,6 @@ sub check {
             else {
 
                 $self->reset_cmd_counter();
-
                 return 1;
 
             }
@@ -83,25 +84,26 @@ sub check {
     }
     elsif ( $self->total_commands() > 0 ) {
 
-        if (
+        # if at least one command to execute
+        if ( $self->total_commands() == 1 ) {
 
-            # if at least one command to execute
-            ( $self->total_commands() == 1 )
+            $self->reduce_total_cmd();
+            return 1;
 
             # or there are more commands to execute
-            or ( ( $self->get_cmd_counter() + 1 ) <= ( $self->max_cmd_idx() ) )
-
+        }
+        elsif ( ( $self->total_commands() > 1 )
+#            and ( ( $self->get_cmd_counter() + 1 ) <= ( $self->max_cmd_idx() ) )
+            and ( $self->get_cmd_counter() <= ( $self->max_cmd_idx() ) )
           )
         {
 
-  #            $self->add_cmd_counter() unless ( $self->total_commands() == 1 );
-            $self->reduce_total_cmd();
+#            $self->add_cmd_counter();
             return 1;
 
         }
         else {
 
-            warn "No commands submitted to srvrmgr.exe?\n";
             return 0;
 
         }
@@ -121,7 +123,8 @@ sub add_cmd_counter {
 
     if ( ( $self->get_cmd_counter() + 1 ) <= ( $self->max_cmd_idx() ) ) {
 
-        $self->_set_cmd_counter( $self->get_cmd_counter() + 1 );
+        $self->_set_cmd_counter( $self->get_cmd_counter() + 1 )
+          if ( $self->output_used() );
 
     }
     else {

@@ -2,6 +2,7 @@ package Siebel::Srvrmgr::ListParser::Output::ListComp;
 use Moose;
 use namespace::autoclean;
 use Siebel::Srvrmgr::ListParser::Output::ListComp::Server;
+use Siebel::Srvrmgr::ListParser::Output::ListComp::Comp;
 
 extends 'Siebel::Srvrmgr::ListParser::Output';
 
@@ -26,6 +27,14 @@ has 'servers' => (
     reader  => 'get_servers',
     default => sub { return [] }
 );
+
+sub BUILD {
+
+    my $self = shift;
+
+    $self->parse();
+
+}
 
 sub get_server {
 
