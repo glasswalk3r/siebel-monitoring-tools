@@ -7,6 +7,43 @@ Siebel::Srvrmgr::Daemon::Action - base class for Siebel::Srvrmgr::Daemon action
 
 =head1 SYNOPSES
 
+This class must be subclassed and the do method overloaded.
+
+An subclass should return true ONLY when was able to identify the type of output received.
+
+This can be accomplish using something like this in the do method:
+
+    sub do {
+
+		my $self = shift;
+		my $buffer = shift;
+
+		$self->get_parser()->parse($buffer);
+
+		my $tree = $self->get_parser()->get_parsed_tree();
+
+		foreach my $obj ( @{$tree} ) {
+
+			if ( $obj->isa('Siebel::Srvrmgr::ListParser::Output::MyOutputSubclassName') ) {
+
+				my $data =  $obj->get_data_parsed();
+
+				nstore $data, $self->dump_file();
+
+				return 1;
+
+			}
+
+		}    # end of foreach block
+
+		return 0;
+		
+	}
+
+Where MyOutputSubclassName is a subclass of Siebel::Srvrmgr::ListParser::Output.
+
+If this kind of output is not identified and the proper return() given, Siebel::Srvrmgr::Daemon can enter in a loop.
+
 =cut
 
 use Moose;

@@ -95,6 +95,25 @@ has 'fields_pattern' => (
 #        CC_INCARN_NO (23):  Incarnation Number
 #        CC_DESC_TEXT (251):  Component description
 #configure list comp show SV_NAME, CC_ALIAS, CC_NAME, CG_ALIAS, CC_RUNMODE, CP_DISP_RUN_STATE, CP_NUM_RUN_TASKS, CP_MAX_TASKS, CP_ACTV_MTS_PROCS, CP_MAX_MTS_PROCS, CP_START_TIME, CP_END_TIME
+# this is the default, but it will be necessary to have this configuration
+#srvrmgr> configure list comp
+#        SV_NAME (31):  Server name
+#        CC_ALIAS (21):  Component alias
+#        CT_ALIAS (31):  Component type alias
+#        CG_ALIAS (31):  Component GRoup Alias
+#        CC_RUNMODE (31):  Component run mode (enum)
+#        CP_DISP_RUN_STATE (61):  Component display run state
+#        CP_NUM_RUN_TASKS (16):  Current number of running tasks
+#        CP_MAX_TASKS (11):  Maximum tasks configured
+#        CP_ACTV_MTS_PROCS (17):  Active MTS control processes
+#        CP_MAX_MTS_PROCS (16):  Maximum MTS control processes
+#        CP_START_TIME (21):  Component start time
+#        CP_END_TIME (21):  Component end time
+#        CP_STATUS (251):  Component-reported status
+#        CC_INCARN_NO (23):  Incarnation Number
+#        CC_DESC_TEXT (251):  Component description
+# because of Siebel::Srvrmgr::ListParser::Output::ListComp::Comp that will expect to have all fields names without being truncate
+# see "set ColumnWidth true" to configure srvrmgr.exe correctly
 
 sub parse {
 

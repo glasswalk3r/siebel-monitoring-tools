@@ -19,7 +19,7 @@ has cg_alias          => ( isa => 'Str', is => 'rw' );
 has cc_runmode        => ( isa => 'Str', is => 'rw' );
 has cp_disp_run_state => ( isa => 'Str', is => 'rw' );
 has cp_num_run_tasks  => ( isa => 'Str', is => 'rw' );
-has cp_max_tasks      => ( isa => 'Str', is => 'rw' );
+has cp_max_task       => ( isa => 'Str', is => 'rw' );
 has cp_actv_mts_procs => ( isa => 'Str', is => 'rw' );
 has cp_max_mts_procs  => ( isa => 'Str', is => 'rw' );
 has cp_start_time     => ( isa => 'Str', is => 'rw' );
@@ -40,7 +40,7 @@ sub BUILD {
 
     }
 
-    $self->_set_data(undef);
+    $self->_set_data({});
 
 }
 
