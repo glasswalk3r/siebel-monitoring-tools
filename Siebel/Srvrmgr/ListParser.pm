@@ -1,7 +1,6 @@
 package Siebel::Srvrmgr::ListParser;
 use Moose;
 use FSA::Rules;
-use Data::Dumper;
 use Carp;
 use Siebel::Srvrmgr::ListParser::OutputFactory;
 use Siebel::Srvrmgr::ListParser::Buffer;
@@ -363,6 +362,30 @@ sub parse {
             ],
             message => 'prompt found'
         },
+        load_preferences => {
+            do => sub {
+                my $state = shift;
+
+                $state->notes('parser')->set_buffer($state);
+
+            },
+            on_exit => sub {
+                my $state = shift;
+                $state->notes('parser')->is_cmd_changed(0);
+            },
+            rules => [
+                command_submission => sub {
+
+                    my $state = shift;
+
+                    return ( $state->notes('line') =~
+                          $state->notes('parser')->get_prompt_regex() );
+
+                },
+                list_comp_def => sub { return 1; }
+            ],
+            message => 'prompt found'
+        },
         command_submission => {
             do => sub {
 
@@ -456,6 +479,24 @@ sub parse {
            # :TODO:20/12/2011 18:05:33:: replace the regex for a precompiled one
                     if ( $state->notes('parser')->get_last_command() =~
                         /list\scomp\sdef\s\w+/ )
+                    {
+
+                        return 1;
+
+                    }
+                    else {
+
+                        return 0;
+
+                    }
+
+                },
+                load_preferences => sub {
+
+                    my $state = shift;
+
+           # :TODO:20/12/2011 18:05:33:: replace the regex for a precompiled one
+                    if ( $state->notes('parser')->get_last_command() eq 'load preferences' )
                     {
 
                         return 1;

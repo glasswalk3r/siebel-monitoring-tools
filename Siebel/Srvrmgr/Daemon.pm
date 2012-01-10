@@ -48,6 +48,7 @@ use namespace::autoclean;
 use Siebel::Srvrmgr::Daemon::Condition;
 use Siebel::Srvrmgr::Daemon::ActionFactory;
 use Siebel::Srvrmgr::ListParser;
+use Siebel::Srvrmgr::Regexes;
 
 use Win32::Process qw(STILL_ACTIVE)
   ;    # :TODO:3/1/2012 16:55:03:: move to a subclass
@@ -154,6 +155,8 @@ sub run {
         }
     );
 
+    my $prompt_regex = Siebel::Srvrmgr::Regexes::SRVRMGR_PROMPT;
+
     do {
 
         exit if ($SIG_CAUGHT);
@@ -178,8 +181,7 @@ sub run {
 
             # prompt was returned, end of output
             # first execution should bring only informations about Siebel
-            if (/^srvrmgr(\:\w+)?>\s$/)
-            {    # :TODO:4/1/2012 11:26:28:: make this regex previously compiled
+            if (/$prompt_regex/) {
 
                 unless ( defined($prompt) ) {
 
@@ -213,6 +215,16 @@ sub run {
 
                 push( @input_buffer, $_ );
 
+                if ( $_ eq
+'srvrmgr> File: d:\\sea752\\client\\bin\\.Siebel_svrmgr.pref'
+                  )
+                {
+
+                    syswrite $wtr, "\n";
+                    last READ;
+
+                }
+
             }
 
         }    # end of READ block
@@ -244,7 +256,9 @@ sub run {
 
             $condition->output_used( $action->do( \@input_buffer ) );
 
-            $condition->cmd_sent(0) if ( $condition->output_used() ); # :TODO:6/1/2012 00:03:41:: move this to the Condition class
+            $condition->cmd_sent(0)
+              if ( $condition->output_used() )
+              ;    # :TODO:6/1/2012 00:03:41:: move this to the Condition class
 
             @input_buffer = ();
 
@@ -253,7 +267,7 @@ sub run {
         # begin of session, sending command to the prompt
         unless ( $condition->cmd_sent() ) {
 
-			$condition->add_cmd_counter();
+            $condition->add_cmd_counter();
 
             my $cmd = $self->cmd_stack()->[ $condition->get_cmd_counter() ];
 
@@ -284,7 +298,7 @@ sub DEMOLISH {
 
     while (<$rdr>) {
 
-		next if (/^srvrmgr>\s\r\n$/);
+        next if (/^srvrmgr>\s\r\n$/);
 
         if (/^Disconnecting from server\./) {
 

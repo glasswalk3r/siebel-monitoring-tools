@@ -35,7 +35,7 @@ has cmd_counter => (
     default  => 0
 );
 has output_used => ( isa => 'Bool', is => 'rw', default => 0 );
-has cmd_sent    => ( isa => 'Bool', is => 'rw', default => 0);
+has cmd_sent    => ( isa => 'Bool', is => 'rw', default => 0 );
 
 sub BUILD {
 
@@ -82,6 +82,13 @@ sub check {
         }
 
     }
+    elsif ( ( $self->get_cmd_counter() == $self->max_cmd_idx() )
+        and $self->output_used() )
+    {
+
+        return 0;
+
+    }
     elsif ( $self->total_commands() > 0 ) {
 
         # if at least one command to execute
@@ -93,12 +100,9 @@ sub check {
             # or there are more commands to execute
         }
         elsif ( ( $self->total_commands() > 1 )
-#            and ( ( $self->get_cmd_counter() + 1 ) <= ( $self->max_cmd_idx() ) )
-            and ( $self->get_cmd_counter() <= ( $self->max_cmd_idx() ) )
-          )
+            and ( $self->get_cmd_counter() <= ( $self->max_cmd_idx() ) ) )
         {
 
-#            $self->add_cmd_counter();
             return 1;
 
         }
@@ -129,7 +133,7 @@ sub add_cmd_counter {
     }
     else {
 
-        die "Can't increment counter because maximum of commands is "
+        warn "Can't increment counter because maximum index of command is "
           . $self->max_cmd_idx() . "\n";
 
     }
