@@ -210,7 +210,9 @@ sub parse {
 
     my $fsa = FSA::Rules->new(
         first_line => {
-            do    => sub { print "Searching for useful data\n" },
+            do => sub {
+                print "Searching for useful data\n";
+            },
             rules => [
                 command_submission => sub {
 
@@ -477,8 +479,8 @@ sub parse {
                     my $state = shift;
 
            # :TODO:20/12/2011 18:05:33:: replace the regex for a precompiled one
-                    if ( $state->notes('parser')->get_last_command() =~
-                        /list\scomp\sdef\s\w+/ )
+                    if ( $state->notes('parser')->get_last_command() =~ 
+                        /list\scomp\sdefs?(\s\w+)?/ )
                     {
 
                         return 1;
@@ -495,8 +497,8 @@ sub parse {
 
                     my $state = shift;
 
-           # :TODO:20/12/2011 18:05:33:: replace the regex for a precompiled one
-                    if ( $state->notes('parser')->get_last_command() eq 'load preferences' )
+                    if ( $state->notes('parser')->get_last_command() eq
+                        'load preferences' )
                     {
 
                         return 1;

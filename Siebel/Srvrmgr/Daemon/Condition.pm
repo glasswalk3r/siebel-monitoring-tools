@@ -130,11 +130,16 @@ sub add_cmd_counter {
         $self->_set_cmd_counter( $self->get_cmd_counter() + 1 )
           if ( $self->output_used() );
 
+		  return 1;
+
     }
     else {
 
         warn "Can't increment counter because maximum index of command is "
           . $self->max_cmd_idx() . "\n";
+
+
+		  return 0;
 
     }
 
