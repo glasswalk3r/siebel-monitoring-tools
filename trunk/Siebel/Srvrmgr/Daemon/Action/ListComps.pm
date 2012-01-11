@@ -11,7 +11,6 @@ Siebel::Srvrmgr::Daemon::Action - base class for Siebel::Srvrmgr::Daemon action
 
 use Moose;
 use namespace::autoclean;
-use Storable qw(nstore);
 
 extends 'Siebel::Srvrmgr::Daemon::Action';
 
@@ -54,17 +53,14 @@ sub do {
 
                 my $server = $obj->get_server($servername);
 
-                if ( defined($server) ) {
+                if (
+                    $server->isa(
+                        'Siebel::Srvrmgr::ListParser::Output::ListComp::Server')
+                  )
+                {
 
-                    foreach my $comp_alias ( @{ $server->get_comps() } ) {
-
-                        my $comp = $server->get_comp($comp_alias);
-
-                        push( @comps, $comp );
-
-                    }
-
-                    last;
+                    $server->store( $self->dump_file() );
+					return 1;
 
                 }
                 else {
@@ -75,14 +71,11 @@ sub do {
 
             }
 
-            nstore \@comps, $self->dump_file();
-            return 1;    # expecting only one type of output
-
         }
 
     }    # end of foreach block
 
-	return 0;
+    return 0;
 
 }
 

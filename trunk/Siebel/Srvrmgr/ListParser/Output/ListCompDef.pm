@@ -84,7 +84,7 @@ sub parse {
 
             }
 
-            if ( $line =~ /^CC_NAME\s.*\sCC_INCARN_NO$/ ) { # this is the header
+            if ( $line =~ /^CC_NAME\s.*\sCC_INCARN_NO\s*$/ ) { # this is the header
 
                 my @columns = split( /\s{2,}/, $line );
 
@@ -95,8 +95,17 @@ sub parse {
             }
             else {
 
-                my @fields_values =
-                  unpack( $self->get_fields_pattern(), $line );
+                my @fields_values;
+
+				if ($self->get_fields_pattern()) {
+				
+                  @fields_values = unpack( $self->get_fields_pattern(), $line );
+				
+				} else {
+
+					die "Cannot continue since fields pattern was not defined\n";
+
+				}
 
                 my $cc_name = $fields_values[0];
 

@@ -267,19 +267,21 @@ sub run {
         # begin of session, sending command to the prompt
         unless ( $condition->cmd_sent() ) {
 
-            $condition->add_cmd_counter();
+            if ( $condition->add_cmd_counter() ) {
 
-            my $cmd = $self->cmd_stack()->[ $condition->get_cmd_counter() ];
+                my $cmd = $self->cmd_stack()->[ $condition->get_cmd_counter() ];
 
-            syswrite $wtr, "$cmd\n";
+                syswrite $wtr, "$cmd\n";
 
 # srvrmgr.exe of Siebel 7.5.3.17 does not echo command printed to the input file handle
 # this is necessary to give a hint to the parser about the command submitted
-            push( @input_buffer, $prompt . $cmd );
-            $self->last_exec_cmd( $prompt . $cmd );
-            $condition->cmd_sent(1);
+                push( @input_buffer, $prompt . $cmd );
+                $self->last_exec_cmd( $prompt . $cmd );
+                $condition->cmd_sent(1);
+                $condition->output_used(0);
+                sleep( $self->timeout() );
 
-            sleep( $self->timeout() );
+            }
 
         }
 
@@ -292,6 +294,7 @@ sub DEMOLISH {
     my $self = shift;
 
     syswrite $self->write_fh(), "exit\n";
+	syswrite $self->write_fh(), "\n";
 
     my $rdr =
       $self->read_fh();  # diamond operator does not like method calls inside it
