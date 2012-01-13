@@ -2,6 +2,8 @@ package Siebel::Srvrmgr::ListParser::Buffer;
 use Moose;
 
 has 'type' => ( is => 'ro', isa => 'Str', required => 1, reader => 'get_type' );
+has 'cmd_line' =>
+  ( is => 'ro', isa => 'Str', required => 1, reader => 'get_cmd_line' );
 
 has 'content' => (
     is      => 'rw',
