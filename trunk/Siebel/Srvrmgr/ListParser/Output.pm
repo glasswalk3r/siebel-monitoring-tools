@@ -1,5 +1,9 @@
 package Siebel::Srvrmgr::ListParser::Output;
 use Moose;
+use MooseX::Storage;
+use namespace::autoclean;
+
+with Storage( io => 'StorableFile' );
 
 has 'data_type' =>
   ( is => 'ro', isa => 'Str', reader => 'get_data_type', required => 1 );
@@ -16,6 +20,7 @@ has 'data_parsed' => (
     reader => 'get_data_parsed',
     writer => 'set_data_parsed'
 );
+has 'cmd_line' => ( isa => 'Str', is => 'ro', reader => 'get_cmd_line' );
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
