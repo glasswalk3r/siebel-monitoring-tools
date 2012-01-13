@@ -86,7 +86,11 @@ sub set_buffer {
 
 # :TODO:07/07/2011 13:05:22:: refactor this to a private method since code is repeated
                 my $buffer = Siebel::Srvrmgr::ListParser::Buffer->new(
-                    { type => $state->name() } );
+                    {
+                        type     => $state->name(),
+                        cmd_line => $self->get_last_command()
+                    }
+                );
 
                 $buffer->set_content( $state->notes('line') );
 
@@ -116,7 +120,11 @@ sub set_buffer {
         else {
 
             my $buffer = Siebel::Srvrmgr::ListParser::Buffer->new(
-                { type => $state->name() } );
+                {
+                    type     => $state->name(),
+                    cmd_line => $self->get_last_command()
+                }
+            );
 
             $buffer->set_content( $state->notes('line') );
 
@@ -188,10 +196,11 @@ sub append_output {
 
 # :TODO:12/07/2011 16:37:23:: use an abstract factory here; last_command attribute should define which class to create
     my $output = Siebel::Srvrmgr::ListParser::OutputFactory->create(
-
-        #        $self->get_last_command(),
         $data_type,
-        { data_type => $data_type, raw_data => $data_ref }
+        {
+            data_type => $data_type,
+            raw_data  => $data_ref
+        }
     );
 
     $self->set_parsed_tree($output);
@@ -316,7 +325,7 @@ sub parse {
             ],
             message => 'prompt found'
         },
-        list_comp_params => {
+        list_params => {
             do => sub {
                 my $state = shift;
 
@@ -336,7 +345,7 @@ sub parse {
                           $state->notes('parser')->get_prompt_regex() );
 
                 },
-                list_comp_params => sub { return 1; }
+                list_params => sub { return 1; }
             ],
             message => 'prompt found'
         },
@@ -455,13 +464,14 @@ sub parse {
                     }
 
                 },
-                list_comp_params => sub {
+                list_params => sub {
 
                     my $state = shift;
 
            # :TODO:20/12/2011 18:05:33:: replace the regex for a precompiled one
                     if ( $state->notes('parser')->get_last_command() =~
-                        /list\sparams\sfor\sserver\s\w+\sfor\scomponent\s\w+/ )
+                        /list\sparams(\sfor\sserver\s\w+\sfor\scomponent\s\w+)?/
+                      )
                     {
 
                         return 1;
@@ -479,7 +489,7 @@ sub parse {
                     my $state = shift;
 
            # :TODO:20/12/2011 18:05:33:: replace the regex for a precompiled one
-                    if ( $state->notes('parser')->get_last_command() =~ 
+                    if ( $state->notes('parser')->get_last_command() =~
                         /list\scomp\sdefs?(\s\w+)?/ )
                     {
 
