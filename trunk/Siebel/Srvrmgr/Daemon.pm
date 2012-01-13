@@ -85,10 +85,9 @@ has process =>
   ( isa => 'Win32::Process', is => 'ro', writer => '_set_process' );
 has win32_timeout => ( isa => 'Int', is => 'ro', default => '5000' );
 
-sub BUILD {
+sub setup_commands {
 
-    my $self = shift;
-
+    my $self     = shift;
     my $cmds_ref = $self->commands();
 
     my @cmd;
@@ -106,6 +105,16 @@ sub BUILD {
     $self->_set_cmd_stack( \@cmd );
     $self->_set_action_stack( \@actions );
     $self->_set_params_stack( \@params );
+
+    return 1;
+
+}
+
+sub BUILD {
+
+    my $self = shift;
+
+    $self->setup_commands();
 
 }
 
@@ -168,7 +177,7 @@ sub run {
             s/\r\n//;
 
 # :TRICKY:29/06/2011 21:23:11:: bufferization in srvrmgr.exe ruins the day: the prompt will never come out unless a little push is given
-            if (/^\d+ rows returned\./) {
+            if (/^\d+\srows?\sreturned\./) {
 
                 # parsers will consider the lines below
                 push( @input_buffer, $_ );
@@ -294,7 +303,7 @@ sub DEMOLISH {
     my $self = shift;
 
     syswrite $self->write_fh(), "exit\n";
-	syswrite $self->write_fh(), "\n";
+    syswrite $self->write_fh(), "\n";
 
     my $rdr =
       $self->read_fh();  # diamond operator does not like method calls inside it
