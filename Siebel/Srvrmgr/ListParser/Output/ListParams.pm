@@ -1,4 +1,4 @@
-package Siebel::Srvrmgr::ListParser::Output::ListCompParams;
+package Siebel::Srvrmgr::ListParser::Output::ListParams;
 use Moose;
 
 extends 'Siebel::Srvrmgr::ListParser::Output';
@@ -10,18 +10,20 @@ has 'comp_params' => (
     writer => 'set_comp_params'
 );
 
-has 'servers' => (
-    is      => 'rw',
-    isa     => 'ArrayRef',
-    reader  => 'get_servers',
-    default => sub { return [] }
-);
-
 has 'fields_pattern' => (
     is     => 'rw',
     isa    => 'Str',
     reader => 'get_fields_pattern',
     writer => 'set_fields_pattern'
+);
+
+has server =>
+  ( isa => 'Str', is => 'ro', writer => '_set_server', reader => 'get_server' );
+has comp_alias => (
+    isa    => 'Str',
+    is     => 'ro',
+    writer => '_set_comp_alias',
+    reader => 'get_comp_alias'
 );
 
 # for POD,  this is the list configuration considered by the module
@@ -34,12 +36,49 @@ has 'fields_pattern' => (
 #        PA_SETLEVEL (31):  Internal level at which value was set
 #        PA_DISP_SETLEVEL (61):  Display level at which value was set (translatable)
 #        PA_NAME (76):  Parameter name
+#
+# Data extructure return
+#                 'data_parsed' => {
+#                                    'Parameter' => {
+#                                                     'PA_NAME' => 'Private key file name',
+#                                                     'PA_DATATYPE' => 'String',
+#                                                     'PA_SCOPE' => 'Subsystem',
+#                                                     'PA_VALUE' => '',
+#                                                     'PA_ALIAS' => 'KeyFileName',
+#                                                     'PA_SETLEVEL' => 'SIS_NEVER_SET',
+#                                                     'PA_DISP_SETLEVEL' => 'SIS_NEVER_SET',
+#                                                     'PA_SUBSYSTEM' => 'Networking'
+#                                                   },
+#
+
+sub set_details {
+
+    my $self = shift;
+
+    if ( defined( $self->get_cmd_line() ) ) {
+
+        #list params for server SERVERNAME component COMPONENT_ALIAS
+        my @values = split( /\s/, $self->get_cmd_line() );
+
+        if ( ( scalar(@values) ) == 7 ) {
+
+            $self->_set_server( $values[4] );
+            $self->_set_comp_alias( $values[6] );
+
+        }
+
+    }
+
+    return 1;
+
+}
 
 sub BUILD {
 
     my $self = shift;
 
     $self->parse();
+    $self->set_details();
 
 }
 
@@ -51,7 +90,7 @@ sub parse {
 
     my %parsed_lines;
 
-    # removing the three last lines Siebel 7.5.3 (one blank line followed by a line amount of lines returned followed by a blank line)
+# removing the three last lines Siebel 7.5.3 (one blank line followed by a line amount of lines returned followed by a blank line)
     for ( 1 .. 3 ) {
 
         pop( @{$data_ref} );
@@ -64,7 +103,7 @@ sub parse {
 
       SWITCH: {
 
-            if ( $line =~ /^\-+\s/ ) { # this is the header line
+            if ( $line =~ /^\-+\s/ ) {    # this is the header line
 
                 my @columns = split( /\s{2}/, $line );
 
@@ -91,7 +130,7 @@ sub parse {
             }
 
             #SV_NAME     CC_ALIAS
-            if ( $line =~ /^PA_ALIAS\s.*\sPA_NAME/ ) { # this is the header
+            if ( $line =~ /^PA_ALIAS\s.*\sPA_NAME/ ) {    # this is the header
 
                 my @columns = split( /\s{2,}/, $line );
 
@@ -113,10 +152,11 @@ sub parse {
 
                 if (@fields_values) {
 
-                    for ( my $i = 0 ; $i < $list_len ; $i++ ) { # starting from 1 to skip the field PA_ALIAS
+                    for ( my $i = 0 ; $i < $list_len ; $i++ )
+                    {    # starting from 1 to skip the field PA_ALIAS
 
-                        $parsed_lines{$pa_alias}
-                          ->{ $columns_ref->[$i] } = $fields_values[$i];
+                        $parsed_lines{$pa_alias}->{ $columns_ref->[$i] } =
+                          $fields_values[$i];
 
                     }
 
