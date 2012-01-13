@@ -11,7 +11,7 @@ our $list_comp_def = qr/list\scomp\sdef\s\w+/;
 
 our %table_mapping = (
     'list comp'        => 'ListComp',
-    'list params'      => 'ListCompParams',
+    'list params'      => 'ListParams',
     'list comp def'    => 'ListCompDef',
     'greetings'        => 'Greetings',
     'list comp type'   => 'ListCompTypes',
@@ -20,14 +20,14 @@ our %table_mapping = (
 
 implementation_class_via sub {
 
-    my $last_cmd    = shift;
-    my $object_data = shift;    # hash ref
+    my $last_cmd_type = shift;
+    my $object_data   = shift;    # hash ref
 
     my $class;
 
-    given ($last_cmd) {
+    given ($last_cmd_type) {
 
-        when ( $_ eq 'list_comp_params' ) {
+        when ( $_ eq 'list_params' ) {
             $class = $table_mapping{'list params'};
         }
         when ( $_ eq 'list_comp_def' ) {
@@ -41,7 +41,7 @@ implementation_class_via sub {
         when ( $_ eq 'load_preferences' ) {
             $class = $table_mapping{'load preferences'};
         }
-        default { die "Cannot defined a class for command $last_cmd"; }
+        default { die "Cannot defined a class for command $last_cmd_type"; }
 
     }
 
