@@ -1,5 +1,6 @@
 package Siebel::Srvrmgr::ListParser::Buffer;
 use Moose;
+use namespace::autoclean;
 
 has 'type' => ( is => 'ro', isa => 'Str', required => 1, reader => 'get_type' );
 has 'cmd_line' =>
@@ -30,5 +31,4 @@ sub set_content {
 
 }
 
-no Moose;
 __PACKAGE__->meta->make_immutable;

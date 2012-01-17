@@ -57,17 +57,23 @@ use Win32::Process qw(STILL_ACTIVE)
 $SIG{INT} = \&terminate;
 our $SIG_CAUGHT = 0;
 
-has server     => ( isa => 'Str',        is => 'rw', required => 1 );
-has gateway    => ( isa => 'Str',        is => 'rw', required => 1 );
-has enterprise => ( isa => 'Str',        is => 'rw', required => 1 );
-has user       => ( isa => 'Str',        is => 'rw', required => 1 );
-has password   => ( isa => 'Str',        is => 'rw', required => 1 );
-has timeout    => ( isa => 'Int',        is => 'rw', default  => 1 );
-has commands   => ( isa => 'ArrayRef',   is => 'rw', required => 1 );
-has bin        => ( isa => 'Str',        is => 'rw', required => 1 );
-has write_fh   => ( isa => 'FileHandle', is => 'ro', writer   => '_set_write' );
-has read_fh    => ( isa => 'FileHandle', is => 'ro', writer   => '_set_read' );
-has pid        => ( isa => 'Int',        is => 'ro', writer   => '_set_pid' );
+has server     => ( isa => 'Str', is => 'rw', required => 1 );
+has gateway    => ( isa => 'Str', is => 'rw', required => 1 );
+has enterprise => ( isa => 'Str', is => 'rw', required => 1 );
+has user       => ( isa => 'Str', is => 'rw', required => 1 );
+has password   => ( isa => 'Str', is => 'rw', required => 1 );
+has timeout    => ( isa => 'Int', is => 'rw', default  => 1 );
+has commands   => (
+    isa      => 'ArrayRef',
+    is       => 'rw',
+    required => 1,
+    reader   => 'get_commands',
+    writer   => 'set_commands'
+);
+has bin      => ( isa => 'Str',        is => 'rw', required => 1 );
+has write_fh => ( isa => 'FileHandle', is => 'ro', writer   => '_set_write' );
+has read_fh  => ( isa => 'FileHandle', is => 'ro', writer   => '_set_read' );
+has pid      => ( isa => 'Int',        is => 'ro', writer   => '_set_pid' );
 has is_infinite   => ( isa => 'Bool', is => 'ro', required => 1 );
 has last_exec_cmd => ( isa => 'Str',  is => 'rw', default  => '' );
 
@@ -88,7 +94,7 @@ has win32_timeout => ( isa => 'Int', is => 'ro', default => '5000' );
 sub setup_commands {
 
     my $self     = shift;
-    my $cmds_ref = $self->commands();
+    my $cmds_ref = $self->get_commands();
 
     my @cmd;
     my @actions;
@@ -159,7 +165,7 @@ sub run {
     my $condition = Siebel::Srvrmgr::Daemon::Condition->new(
         {
             is_infinite    => $self->is_infinite(),
-            total_commands => scalar( @{ $self->commands() } ),
+            total_commands => scalar( @{ $self->get_commands() } ),
             cmd_sent       => 0
         }
     );
