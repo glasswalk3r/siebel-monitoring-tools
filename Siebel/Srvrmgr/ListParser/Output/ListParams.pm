@@ -1,5 +1,6 @@
 package Siebel::Srvrmgr::ListParser::Output::ListParams;
 use Moose;
+use namespace::autoclean;
 
 extends 'Siebel::Srvrmgr::ListParser::Output';
 
@@ -19,6 +20,7 @@ has 'fields_pattern' => (
 
 has server =>
   ( isa => 'Str', is => 'ro', writer => '_set_server', reader => 'get_server' );
+
 has comp_alias => (
     isa    => 'Str',
     is     => 'ro',
@@ -144,15 +146,13 @@ sub parse {
                 my @fields_values =
                   unpack( $self->get_fields_pattern(), $line );
 
-                my $pa_alias = $fields_values[0];
-
-                my $list_len = scalar(@fields_values);
-
-                my $columns_ref = $self->get_comp_params();
-
                 if (@fields_values) {
 
-                    for ( my $i = 0 ; $i < $list_len ; $i++ )
+                    my $pa_alias    = $fields_values[0];
+                    my $list_len    = scalar(@fields_values);
+                    my $columns_ref = $self->get_comp_params();
+
+                    for ( my $i = 1 ; $i < $list_len ; $i++ )
                     {    # starting from 1 to skip the field PA_ALIAS
 
                         $parsed_lines{$pa_alias}->{ $columns_ref->[$i] } =

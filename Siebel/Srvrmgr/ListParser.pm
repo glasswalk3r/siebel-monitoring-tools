@@ -190,16 +190,16 @@ sub set_parsed_tree {
 
 sub append_output {
 
-    my $self      = shift;
-    my $data_type = shift;
-    my $data_ref  = shift;
+    my $self   = shift;
+    my $buffer = shift;
 
 # :TODO:12/07/2011 16:37:23:: use an abstract factory here; last_command attribute should define which class to create
     my $output = Siebel::Srvrmgr::ListParser::OutputFactory->create(
-        $data_type,
+        $buffer->get_type(),
         {
-            data_type => $data_type,
-            raw_data  => $data_ref
+            data_type => $buffer->get_type(),
+            raw_data  => $buffer->get_content(),
+            cmd_line  => $buffer->get_cmd_line()
         }
     );
 
@@ -557,7 +557,7 @@ sub parse {
 
     foreach my $buffer ( @{$buffer_ref} ) {
 
-        $self->append_output( $buffer->get_type(), $buffer->get_content() );
+        $self->append_output($buffer);
 
     }
 
