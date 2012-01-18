@@ -308,44 +308,54 @@ sub DEMOLISH {
 
     my $self = shift;
 
-    syswrite $self->write_fh(), "exit\n";
-    syswrite $self->write_fh(), "\n";
+    if ( ( defined( $self->write_fh() ) ) and ( defined( $self->read_fh() ) ) )
+    {
 
-    my $rdr =
-      $self->read_fh();  # diamond operator does not like method calls inside it
+        syswrite $self->write_fh(), "exit\n";
+        syswrite $self->write_fh(), "\n";
 
-    while (<$rdr>) {
+        my $rdr = $self->read_fh()
+          ;    # diamond operator does not like method calls inside it
 
-        next if (/^srvrmgr>\s\r\n$/);
+        while (<$rdr>) {
 
-        if (/^Disconnecting from server\./) {
+            next if (/^srvrmgr>\s\r\n$/);
 
-            print $_;
-            last;
+            if (/^Disconnecting from server\./) {
+
+                print $_;
+                last;
+
+            }
+            else {
+
+                print $_;
+
+            }
+
+        }
+
+        close( $self->read_fh() );
+        close( $self->write_fh() );
+
+    }
+
+	# process was created
+    if ( defined( $self->process() ) ) {
+
+        $self->process()->Wait( $self->win32_timeout() );
+
+        if ( $self->process()->GetExitCode( $self->exit_code() ) ) {
+
+            $self->process()->Kill( $self->exit_code() );
+            syswrite STDOUT, "Server manager had to be killed\n";
 
         }
         else {
 
-            print $_;
+            syswrite STDOUT, "Server manager exited without errors\n";
 
         }
-
-    }
-
-    close( $self->read_fh() );
-    close( $self->write_fh() );
-
-    $self->process()->Wait( $self->win32_timeout() );
-
-    if ( $self->process()->GetExitCode( $self->exit_code() ) ) {
-
-        $self->process()->Kill( $self->exit_code() );
-        syswrite STDOUT, "Server manager had to be killed\n";
-
-    }
-    else {
-
-        syswrite STDOUT, "Server manager exited without errors\n";
 
     }
 
