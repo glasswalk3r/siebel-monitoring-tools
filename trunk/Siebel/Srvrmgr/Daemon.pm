@@ -49,9 +49,7 @@ use Siebel::Srvrmgr::Daemon::Condition;
 use Siebel::Srvrmgr::Daemon::ActionFactory;
 use Siebel::Srvrmgr::ListParser;
 use Siebel::Srvrmgr::Regexes;
-
-use Win32::Process qw(STILL_ACTIVE)
-  ;    # :TODO:3/1/2012 16:55:03:: move to a subclass
+use POSIX ":sys_wait_h";
 
 # both variables below exist to deal with requested termination of the program gracefully
 $SIG{INT} = \&terminate;
@@ -84,12 +82,6 @@ has params_stack =>
 
 has action_stack =>
   ( isa => 'ArrayRef', is => 'ro', writer => '_set_action_stack' );
-
-# specific code for windows
-has exit_code => ( isa => 'Int', is => 'ro', writer => '_set_exit_code' );
-has process =>
-  ( isa => 'Win32::Process', is => 'ro', writer => '_set_process' );
-has win32_timeout => ( isa => 'Int', is => 'ro', default => '5000' );
 
 sub setup_commands {
 
@@ -128,36 +120,33 @@ sub run {
 
     my $self = shift;
 
-    my ( $rdr, $wtr );
-
 # :TRICKY:28/06/2011 19:56:49:: STDERR does not work with IPC::Open3 (STDOUT and STDERR are the same)
-    $self->_set_pid(
-        open2(
-            $rdr,                $wtr, $self->bin(),     '/e',
-            $self->enterprise(), '/g', $self->gateway(), '/u',
-            $self->user(),       '/p', $self->password()
-        )
-    );
+    unless ( $self->pid() ) {
 
-    $self->_set_write($wtr);
-    $self->_set_read($rdr);
+        my ( $rdr, $wtr );
 
-    my $process;
-    my $exit_code;
+        $self->_set_pid(
+            open2(
+                $rdr,                $wtr, $self->bin(),     '/e',
+                $self->enterprise(), '/g', $self->gateway(), '/u',
+                $self->user(),       '/p', $self->password()
+            )
+        );
 
-# :WORKAROUND:28/06/2011 19:57:24:: necessary to be able to kill the srvrmgr.exe process correctly when the program exists
-    Win32::Process::Open( $process, $self->pid(), 0 );
+        $self->_set_write($wtr);
+        $self->_set_read($rdr);
 
-    $process->GetExitCode($exit_code);
+        print 'running with PID = ', $self->pid(), "\n";
 
-    $self->_set_exit_code($exit_code);
-    $self->_set_process($process);
+    }
+    else {
 
-    print 'running with PID = ', $self->pid(), ' exit code = ', $exit_code,
-      "\n";
+        print 'Reusing ', $self->pid(), "\n";
+
+    }
 
 # :WARNING:28/06/2011 19:47:26:: reading the output is hanging without an first input
-    syswrite $wtr, "\n";
+    syswrite $self->write_fh(), "\n";
 
     my $prompt;
     my @input_buffer;
@@ -171,6 +160,8 @@ sub run {
     );
 
     my $prompt_regex = Siebel::Srvrmgr::Regexes::SRVRMGR_PROMPT;
+
+    my $rdr = $self->read_fh();
 
     do {
 
@@ -189,7 +180,7 @@ sub run {
                 push( @input_buffer, $_ );
                 push( @input_buffer, '' );
 
-                syswrite $wtr, "\n";
+                syswrite $self->write_fh(), "\n";
                 last READ;
 
             }
@@ -235,7 +226,7 @@ sub run {
                   )
                 {
 
-                    syswrite $wtr, "\n";
+                    syswrite $self->write_fh(), "\n";
                     last READ;
 
                 }
@@ -286,7 +277,7 @@ sub run {
 
                 my $cmd = $self->cmd_stack()->[ $condition->get_cmd_counter() ];
 
-                syswrite $wtr, "$cmd\n";
+                syswrite $self->write_fh(), "$cmd\n";
 
 # srvrmgr.exe of Siebel 7.5.3.17 does not echo command printed to the input file handle
 # this is necessary to give a hint to the parser about the command submitted
@@ -319,8 +310,6 @@ sub DEMOLISH {
 
         while (<$rdr>) {
 
-            next if (/^srvrmgr>\s\r\n$/);
-
             if (/^Disconnecting from server\./) {
 
                 print $_;
@@ -338,22 +327,16 @@ sub DEMOLISH {
         close( $self->read_fh() );
         close( $self->write_fh() );
 
-    }
+        if ( kill 0, $self->pid() ) {
 
-	# process was created
-    if ( defined( $self->process() ) ) {
+			sleep(5);
 
-        $self->process()->Wait( $self->win32_timeout() );
+            print "srvrmgr is still running, trying to kill it\n";
 
-        if ( $self->process()->GetExitCode( $self->exit_code() ) ) {
+            my $ret = waitpid( $self->pid(), WNOHANG );
 
-            $self->process()->Kill( $self->exit_code() );
-            syswrite STDOUT, "Server manager had to be killed\n";
-
-        }
-        else {
-
-            syswrite STDOUT, "Server manager exited without errors\n";
+            print
+"ripped PID = $ret, status = $?, child error native = ${^CHILD_ERROR_NATIVE}\n";
 
         }
 
