@@ -1,9 +1,45 @@
 package Siebel::Srvrmgr::ListParser;
+
+=pod
+
+=head1 NAME
+
+Siebel::Srvrmgr::ListParser - state model parser to idenfity which output type was read
+
+=head1 SYNOPSIS
+
+use Siebel::Srvrmgr::ListParser;
+
+my $parser = Siebel::Srvrmgr::ListParser->new({ default_prompt => $some_prompt });
+
+=cut
+
 use Moose;
 use FSA::Rules;
 use Carp;
 use Siebel::Srvrmgr::ListParser::OutputFactory;
 use Siebel::Srvrmgr::ListParser::Buffer;
+
+=pod
+
+=head1 DESCRIPTION
+
+Siebel::Srvrmgr::ListParser is a state machine parser created to parse output of "list" commands executed through srvrmgr program.
+
+The parser can idenfity different types of commands and their outputs from a buffer given as parameter to the module. Foreach 
+type of output identified an Siebel::Srvrmgr::ListParser::Buffer object will be created, idenfifying which type of command
+was executed and the raw information from it.
+
+At the end of information read from the buffer, this class will call Siebel::Srvrmgr::ListParser::OutputFactory to create
+specific Siebel::Srvrmgr::ListParser::Output objects based on the identified type of Buffer object. Each of this objects will
+parse the raw output and populate attributes based on this information. After this is easier to obtain the information from
+those subclasses of Siebel::Srvrmgr::ListParser::Output.
+
+Siebel::Srvrmgr::ListParser expects to receive output from srvrmgr program in an specific format and is able to idenfity a
+limited number of commands and their outputs, raising an exception when those types cannot be identified. See subclasses
+of Siebel::Srvrmgr::ListParser::Output to see which classes/types are available.
+
+=cut
 
 has 'parsed_tree' => (
     is     => 'rw',
@@ -21,8 +57,7 @@ has 'prompt_regex' => (
     is      => 'rw',
     isa     => 'RegexpRef',
     reader  => 'get_prompt_regex',
-    writer  => 'set_prompt_regex',
-    default => sub { qr/^srvrmgr(\:\w+)?>(\s[\w\s]+)?/ }
+    writer  => 'set_prompt_regex'
 );
 
 has 'hello_regex' => (
