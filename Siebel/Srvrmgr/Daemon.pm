@@ -1,8 +1,5 @@
 package Siebel::Srvrmgr::Daemon;
 
-# :TODO:3/1/2012 17:47:12:: this code is totally for Win32 systems, it should be modified to allow subclasses of it so create process could be managed
-# from others OS's (e.g., Linux)
-
 =pod
 =head1 NAME
 
@@ -221,6 +218,7 @@ sub run {
 
                 push( @input_buffer, $_ );
 
+# :TODO      :30-01-2012 12:28:54:: this statement must be changed to be reusable
                 if ( $_ eq
 'srvrmgr> File: d:\\sea752\\client\\bin\\.Siebel_svrmgr.pref'
                   )
@@ -238,8 +236,6 @@ sub run {
         # below is the place for a Action object
         if ( scalar(@input_buffer) >= 1 ) {
 
-            #            push( @input_buffer, $prompt ) if ( defined($prompt) );
-
 # :TRICKY:5/1/2012 17:43:58:: copy params to avoid operations that erases the parameters due passing an array reference and messing with it
             my @params;
 
@@ -253,7 +249,10 @@ sub run {
                 $class,
                 {
                     parser => Siebel::Srvrmgr::ListParser->new(
-                        { default_prompt => $prompt }
+                        {
+                            prompt_regex => $prompt_regex,
+                            hello_regex  => Siebel::Srvrmgr::Regexes::CONN_GREET
+                        }
                     ),
                     params => \@params
 
@@ -329,7 +328,7 @@ sub DEMOLISH {
 
         if ( kill 0, $self->pid() ) {
 
-			sleep(5);
+            sleep(5);
 
             print "srvrmgr is still running, trying to kill it\n";
 

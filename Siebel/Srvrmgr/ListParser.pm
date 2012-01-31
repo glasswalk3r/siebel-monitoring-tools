@@ -10,7 +10,7 @@ Siebel::Srvrmgr::ListParser - state model parser to idenfity which output type w
 
 use Siebel::Srvrmgr::ListParser;
 
-my $parser = Siebel::Srvrmgr::ListParser->new({ default_prompt => $some_prompt });
+my $parser = Siebel::Srvrmgr::ListParser->new({ prompt_regex => $some_prompt });
 
 =cut
 
@@ -39,6 +39,13 @@ Siebel::Srvrmgr::ListParser expects to receive output from srvrmgr program in an
 limited number of commands and their outputs, raising an exception when those types cannot be identified. See subclasses
 of Siebel::Srvrmgr::ListParser::Output to see which classes/types are available.
 
+=head1 ATTRIBUTES
+
+=head2 parsed_tree
+
+An array reference of parsed data. Each index should be a reference to another data extructure, most probably an hash 
+reference, with parsed data related from one line read from output of srvrmgr program.
+
 =cut
 
 has 'parsed_tree' => (
@@ -48,10 +55,23 @@ has 'parsed_tree' => (
     writer => '_set_parsed_tree'
 );
 
+=pod
+
+=head2 has_tree
+
+A boolean value that identifies if the ListParser object has a parsed tree or not.
+
+=cut
+
 has 'has_tree' => ( is => 'rw', isa => 'Bool', default => 0 );
 
-has '_list_comp_format' =>
-  ( is => 'ro', isa => 'Str', reader => 'get_list_comp_format' );
+=pod
+
+=head2 prompt_regex
+
+A regular expression reference of how the srvrmgr prompt looks like.
+
+=cut
 
 has 'prompt_regex' => (
     is      => 'rw',
@@ -60,14 +80,21 @@ has 'prompt_regex' => (
     writer  => 'set_prompt_regex'
 );
 
+=pod
+
+=head2 hello_regex
+
+A regular expression reference of how the first line of text received right after the login in one
+server (or enterprise).
+
+=cut
+
 has 'hello_regex' => (
     is      => 'rw',
     isa     => 'RegexpRef',
     reader  => 'get_hello_regex',
     writer  => 'set_hello_regex',
-    default => sub {
-qr/^Siebel\sEnterprise\sApplications\sSiebel\sServer\sManager\,\sVersion*/;
-    }
+	} 
 );
 
 has 'last_command' => (
@@ -228,7 +255,6 @@ sub append_output {
     my $self   = shift;
     my $buffer = shift;
 
-# :TODO:12/07/2011 16:37:23:: use an abstract factory here; last_command attribute should define which class to create
     my $output = Siebel::Srvrmgr::ListParser::OutputFactory->create(
         $buffer->get_type(),
         {
