@@ -97,6 +97,14 @@ has 'hello_regex' => (
 	} 
 );
 
+=pod
+
+=head2 last_command
+
+A string with the last command identified by the parser. It is used for several things, including changes in the state model machine.
+
+=cut
+
 has 'last_command' => (
     is      => 'rw',
     isa     => 'Str',
@@ -105,9 +113,24 @@ has 'last_command' => (
     default => ''
 );
 
+=pod
+
+=head2 is_cmd_changed
+
+A boolean value that identified when the last_command attribute has been changed (i.e another command was identified by the parser).
+
+=cut
+
 has 'is_cmd_changed' => ( isa => 'Bool', is => 'rw', default => 0 );
 
-# buffer is an array ref of Siebel of Siebel::Srvrmgr::ListParser::Buffer objects
+=pod
+
+=head2 buffer
+
+An array reference with each one of the indexes being a C<Siebel::Srvrmgr::ListParser::Buffer> object.
+
+=cut
+
 has 'buffer' => (
     is      => 'rw',
     isa     => 'ArrayRef',
@@ -116,7 +139,30 @@ has 'buffer' => (
     default => sub { return [] }
 );
 
-has 'warn_enabled' => ( isa => 'Bool', is => 'ro', default => 0 );
+=pod
+
+=head2 is_warn_enabled
+
+A boolean value that is used for debugging purpouses during the parsing time. If enabled some debug messages may be printed during this phase.
+
+=cut
+
+has 'is_warn_enabled' => ( isa => 'Bool', is => 'ro', default => 0 );
+
+=pod
+
+=head1 METHODS
+
+=head2 set_last_command
+
+Set the last command found in the parser received data. It also triggers that the command has changed (see method is_cmd_changed).
+
+=head2 is_cmd_changed
+
+Sets the boolean attribute with the same name. If no parameter is given, returns the value stored in the C<is_cmd_changed> attribute. If a parameter is given, 
+expects to received true (1) or false (0), otherwise it will return an exception.
+
+=cut
 
 sub set_last_command {
 
@@ -477,7 +523,7 @@ sub parse {
                 }
                 else {
 
-                    if ( $state->notes('parser')->warn_enabled() ) {
+                    if ( $state->notes('parser')->is_warn_enabled() ) {
 
                         warn 'got prompt, but no command submitted in line '
                           . $state->notes('line_num') . "\n"
