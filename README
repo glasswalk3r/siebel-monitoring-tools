@@ -1,0 +1,58 @@
+Siebel-Srvrmgr
+=====================
+
+This distribution is part of the project Siebel Monitoring Tools.
+
+The goal of this project is to make possible to monitor Siebel servers through SNMP. 
+
+The object that are being considered to be monitored are: components status, resource consumption and tasks information. 
+
+This distribution was created to enable facilities like:
+
+- execute the srvrmgr program and read it's output without depending on batch mode and reconnecting for each command.
+- parse output of commands from srvrmgr as a general purpouse tools.
+
+With those tools available it would be able to execute commmands through srvrmgr program and populate an database (for this project, an SNMP MIB).
+
+INSTALLATION
+
+To install this module type the following:
+
+   perl Makefile.PL
+   make
+   make test
+   make install
+
+DEPENDENCIES
+
+This module requires these other modules to work:
+
+- Carp
+- Moose
+- namespace::autoclean
+- FSA::Rules
+
+SUPPORT AND DOCUMENTATION
+
+After installing, you can find documentation for this module with the
+perldoc command.
+
+    perldoc Siebel::Srvrmgr
+    
+You can also look for information at:
+
+    Bug tracker
+        http://code.google.com/p/siebel-monitoring-tools/issues/list
+    CPAN Ratings
+        http://cpanratings.perl.org/dist/Siebel-Srvrmgr
+    Search CPAN
+        http://search.cpan.org/dist/Siebel-Srvrmgr/
+
+COPYRIGHT AND LICENCE
+
+Copyright (C) 2012 by Alceu Rodrigues de Freitas Junior
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.8 or,
+at your option, any later version of Perl 5 you may have available.
+

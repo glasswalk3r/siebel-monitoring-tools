@@ -1,0 +1,30 @@
+---
+abstract: 'Perl classes to execute and parse output of srvrmgr program'
+name:         DTS
+version:      0.01
+version_from: lib/Siebel/Srvrmgr.pm
+installdirs:  site
+build_requires:
+    Test::Exception:               0.27
+    Test::More:                    0
+    Test::POD:                     1.22
+    Test::Pod::Coverage:           1.08
+requires:
+    Carp:                          1.04
+    namespace::autoclean           0.13
+    Moose:                         2.0401
+    FSA::Rules                     0.29
+no_index:
+  directory:
+    - t    
+author: Alceu Rodrigues de Freitas Junior <arfreitas@cpan.org>
+license: GNU GPL
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+distribution_type: module
+generated_by: ExtUtils::MakeMaker version 6.30
+resources:
+    license: http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+    homepage: http://code.google.com/p/siebel-monitoring-tools/
+    bugtracker: http://code.google.com/p/siebel-monitoring-tools/issues/list
