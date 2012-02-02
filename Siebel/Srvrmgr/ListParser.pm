@@ -27,7 +27,7 @@ use Siebel::Srvrmgr::ListParser::Buffer;
 Siebel::Srvrmgr::ListParser is a state machine parser created to parse output of "list" commands executed through srvrmgr program.
 
 The parser can idenfity different types of commands and their outputs from a buffer given as parameter to the module. Foreach 
-type of output identified an Siebel::Srvrmgr::ListParser::Buffer object will be created, idenfifying which type of command
+type of output identified an Siebel::Srvrmgr::ListParser::Buffer object will be created, identifying which type of command
 was executed and the raw information from it.
 
 At the end of information read from the buffer, this class will call Siebel::Srvrmgr::ListParser::OutputFactory to create
@@ -46,10 +46,12 @@ of Siebel::Srvrmgr::ListParser::Output to see which classes/types are available.
 An array reference of parsed data. Each index should be a reference to another data extructure, most probably an hash 
 reference, with parsed data related from one line read from output of srvrmgr program.
 
+This is an read-only attribute.
+
 =cut
 
 has 'parsed_tree' => (
-    is     => 'rw',
+    is     => 'ro',
     isa    => 'ArrayRef',
     reader => 'get_parsed_tree',
     writer => '_set_parsed_tree'
@@ -63,7 +65,8 @@ A boolean value that identifies if the ListParser object has a parsed tree or no
 
 =cut
 
-has 'has_tree' => ( is => 'rw', isa => 'Bool', default => 0 );
+has 'has_tree' =>
+  ( is => 'ro', isa => 'Bool', default => 0, writer => '_set_has_tree' );
 
 =pod
 
@@ -74,10 +77,10 @@ A regular expression reference of how the srvrmgr prompt looks like.
 =cut
 
 has 'prompt_regex' => (
-    is      => 'rw',
-    isa     => 'RegexpRef',
-    reader  => 'get_prompt_regex',
-    writer  => 'set_prompt_regex'
+    is     => 'rw',
+    isa    => 'RegexpRef',
+    reader => 'get_prompt_regex',
+    writer => 'set_prompt_regex'
 );
 
 =pod
@@ -90,11 +93,10 @@ server (or enterprise).
 =cut
 
 has 'hello_regex' => (
-    is      => 'rw',
-    isa     => 'RegexpRef',
-    reader  => 'get_hello_regex',
-    writer  => 'set_hello_regex',
-	} 
+    is     => 'rw',
+    isa    => 'RegexpRef',
+    reader => 'get_hello_regex',
+    writer => 'set_hello_regex'
 );
 
 =pod
@@ -103,10 +105,12 @@ has 'hello_regex' => (
 
 A string with the last command identified by the parser. It is used for several things, including changes in the state model machine.
 
+This is a read-only attribute.
+
 =cut
 
 has 'last_command' => (
-    is      => 'rw',
+    is      => 'ro',
     isa     => 'Str',
     reader  => 'get_last_command',
     writer  => '_set_last_command',
@@ -153,14 +157,42 @@ has 'is_warn_enabled' => ( isa => 'Bool', is => 'ro', default => 0 );
 
 =head1 METHODS
 
-=head2 set_last_command
-
-Set the last command found in the parser received data. It also triggers that the command has changed (see method is_cmd_changed).
-
 =head2 is_cmd_changed
 
 Sets the boolean attribute with the same name. If no parameter is given, returns the value stored in the C<is_cmd_changed> attribute. If a parameter is given, 
 expects to received true (1) or false (0), otherwise it will return an exception.
+
+=head2 get_parsed_tree
+
+Returns the parsed_tree attribute.
+
+=head2 get_prompt_regex
+
+Returns the regular expression reference from the prompt_regex attribute.
+
+=head2 set_prompt_regex
+
+Sets the prompt_regex attribute. Expects an regular expression reference as parameter.
+
+=head2 get_hello_regex
+
+Returns the regular expression reference from the hello_regex attribute.
+
+=head2 set_hello_regex
+
+Sets the hello_regex attribute. Expects an regular expression reference as parameter.
+
+=head2 get_last_command
+
+Returns an string of the last command read by the parser.
+
+=head2 has_tree
+
+Returns a boolean value (1 for true, 0 for false) if the parser has or not a parsed tree.
+
+=head2 set_last_command
+
+Set the last command found in the parser received data. It also triggers that the command has changed (see method is_cmd_changed).
 
 =cut
 
@@ -175,6 +207,14 @@ sub set_last_command {
     $self->_set_last_command($cmd);
 
 }
+
+=pod
+
+=head2 set_buffer
+
+Sets the buffer attribute,  inserting new C<Siebel::Srvrmgr::ListParser::Buffer> objects into the array reference as necessary.
+
+=cut
 
 sub set_buffer {
 
@@ -250,6 +290,14 @@ sub set_buffer {
 
 }
 
+=pod
+
+=head2 clean_buffer
+
+Removes the array reference from the buffer attribute and associates a new one with an empty array. This should be used for cleanup purpouses or attemp to free memory.
+
+=cut
+
 sub clean_buffer {
 
     my $self = shift;
@@ -257,6 +305,14 @@ sub clean_buffer {
     $self->_set_buffer( [] );
 
 }
+
+=pod
+
+=head2 count_parsed
+
+Returns an integer with the total number of objects available in the parsed_tree attribute.
+
+=cut
 
 sub count_parsed {
 
@@ -266,13 +322,33 @@ sub count_parsed {
 
 }
 
+=pod
+
+=head2 clean_parsed_tree
+
+Removes the reference on parsed_tree attribute. Also, sets has_tree attribute to false.
+
+=cut
+
 sub clean_parsed_tree {
 
     my $self = shift;
 
-    $self->has_tree(0);
+    $self->_set_has_tree(0);
+
+    $self->_set_parsed_tree( [] );
 
 }
+
+=pod
+
+=head2 set_parsed_tree
+
+Sets the parsed_tree attribute, adding references as necessary. Also sets the has_tree attribute to true.
+
+This method should not be called directly unless you know what you're doing. See C<append_output> method.
+
+=cut
 
 sub set_parsed_tree {
 
@@ -292,9 +368,20 @@ sub set_parsed_tree {
 
     }
 
-    $self->has_tree(1);
+    $self->_set_has_tree(1);
 
 }
+
+=pod
+
+=head2 append_output
+
+Appends an object to an existing parsed tree. Expects as a parameter an C<Siebel::Srvrmgr::ListParser::Buffer> object as a parameter.
+
+It uses C<Siebel::Srvrmgr::ListParser::OutputFactory> to create the proper 
+C<Siebel::Srvrmgr::ListParser::Output> object based on the C<Siebel::Srvrmgr::ListParser::Buffer> type.
+
+=cut
 
 sub append_output {
 
@@ -313,6 +400,21 @@ sub append_output {
     $self->set_parsed_tree($output);
 
 }
+
+=pod
+
+=head2 parse
+
+Parses one (or more) commands executed from srvrmgr program with their respective response.
+
+Expects as parameter an array reference with the output of srvrmgr, including the command executed.
+
+It will create an C<FSA::Rules> object to parse the given array reference, calling C<append_output> method for each C<Siebel::Srvrmgr::ListParser::Buffer> object
+found.
+
+This method will raise an exception if a given output cannot be identified by the parser.
+
+=cut
 
 sub parse {
 
@@ -669,6 +771,37 @@ sub parse {
     }
 
 }
+
+=pod
+
+=head1 CAVEATS
+
+Checkout the POD for the C<Siebel::Srvrmgr::ListParser::Output> objects to see details about which kind of output is expected if you're getting errors from the parser. There 
+are details regarding how the settings of srvrmgr are expect for output of list commands.
+
+=head1 SEE ALSO
+
+=over 4 
+
+=item *
+
+L<Moose>
+
+=item *
+
+L<FSA::Rules>
+
+=item *
+
+L<Siebel::Srvrmgr::ListParser::OutputFactory>
+
+=item *
+
+L<Siebel::Srvrmgr::ListParser::Buffer>
+
+=back
+
+=cut
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
