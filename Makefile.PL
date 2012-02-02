@@ -8,7 +8,8 @@ my %config = (
         Carp                 => 1.04,
         namespace::autoclean => 0.13,
         Moose                => 2.0401,
-        FSA::Rules           => 0.29
+        FSA::Rules           => 0.29, 
+		MooseX::Storage      => 0.30
     },
     META_MERGE => {
         resources => {
