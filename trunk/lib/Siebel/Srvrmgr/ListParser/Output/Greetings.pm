@@ -23,7 +23,7 @@ extends 'Siebel::Srvrmgr::ListParser::Output';
 
 C<Siebel::Srvrmgr::ListParser::Output::Greetings> extends C<Siebel::Srvrmgr::ListParser::Output>.
 
-Normally this class would be created by L<Siebel::Srvrmgr::ListParser::OutputFactory> C<create> static method. See the automated tests for examples.
+Normally this class would be created by L<Siebel::Srvrmgr::ListParser::OutputFactory> C<create> static method. See the automated tests for examples of direct instatiation.
 
 It is possible to recover some useful information from the object methods but most of it is simple copyrigh information.
 
@@ -120,13 +120,23 @@ See L<Siebel::Srvrmgr::ListParser::Output> class for inherited methods.
 
 =head2 get_version
 
+Returns a string as the value of version attribute.
+
 =head2 get_patch
+
+Returns a string as the value of patch attribute.
 
 =head2 get_copyright
 
+Returns a string as the value of copyright attribute.
+
 =head2 get_total_servers
 
+Returns a integer as the value of total_servers attribute.
+
 =head2 get_total_conn
+
+Returns a integer as the value of total_connected attribute.
 
 =cut
 
@@ -162,10 +172,7 @@ sub parse {
 
                 #Copyright (c) 2001 Siebel Systems, Inc.  All rights reserved.
 
-                my @words = split( /\s/, $line );
-
-                $self->_set_copyright(
-                    $words[2] . ' ' . $words[3] . ' ' . $words[4] );
+                $self->_set_copyright($line);
 
                 last SWITCH;
             }
@@ -196,11 +203,11 @@ sub parse {
 
 =item *
 
-Siebel::Srvrmgr::Regexes
+L<Siebel::Srvrmgr::Regexes>
 
 =item *
 
-Siebel::Srvrmgr::ListParser::Output
+L<Siebel::Srvrmgr::ListParser::Output>
 
 =back
 
