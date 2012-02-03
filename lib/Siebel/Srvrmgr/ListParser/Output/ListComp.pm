@@ -1,25 +1,131 @@
 package Siebel::Srvrmgr::ListParser::Output::ListComp;
+
+=pod
+
+=head1 NAME
+
+Siebel::Srvrmgr::ListParser::Output::Listcomp - subclass that parses C<list comp> commands output of srvrmgr.
+
+=cut
+
 use Moose;
 use namespace::autoclean;
 use Siebel::Srvrmgr::ListParser::Output::ListComp::Server;
 use Siebel::Srvrmgr::ListParser::Output::ListComp::Comp;
 
+=head1 SYNOPSIS
+
+See L<Siebel::Srvrmgr::ListParser::Output>.
+
+=cut
+
 extends 'Siebel::Srvrmgr::ListParser::Output';
 
+=pod
+
+=head1 DESCRIPTION
+
+This class extends L<Siebel::Srvrmgr::ListParser::Output> base class adding support for parsing C<list comp> commands.
+
+The module is capable of identifying output of several servers configured in the enterprise and organizes the components
+found for each server.
+
+It is expected that the C<srvrmgr> program has a proper configuration for the C<list comp> command. The configuration
+can see below:
+
+	srvrmgr> configure list comp
+        SV_NAME (31):  Server name
+        CC_ALIAS (31):  Component alias
+        CC_NAME (76):  Component name
+        CT_ALIAS (31):  Component type alias
+        CG_ALIAS (31):  Component GRoup Alias
+        CC_RUNMODE (31):  Component run mode (enum)
+        CP_DISP_RUN_STATE (61):  Component display run state
+        CP_NUM_RUN_TASKS (11):  Current number of running tasks
+        CP_MAX_TASKS (11):  Maximum tasks configured
+        CP_ACTV_MTS_PROCS (11):  Active MTS control processes
+        CP_MAX_MTS_PROCS (11):  Maximum MTS control processes
+        CP_START_TIME (21):  Component start time
+        CP_END_TIME (21):  Component end time
+        CP_STATUS (251):  Component-reported status
+        CC_INCARN_NO (23):  Incarnation Number
+        CC_DESC_TEXT (251):  Component description
+
+This should be the default configuration, but it will be necessary to have this configuration 
+(check the difference of size for each column):
+
+	srvrmgr> configure list comp
+        SV_NAME (31):  Server name
+        CC_ALIAS (21):  Component alias
+        CT_ALIAS (31):  Component type alias
+        CG_ALIAS (31):  Component GRoup Alias
+        CC_RUNMODE (31):  Component run mode (enum)
+        CP_DISP_RUN_STATE (61):  Component display run state
+        CP_NUM_RUN_TASKS (16):  Current number of running tasks
+        CP_MAX_TASKS (11):  Maximum tasks configured
+        CP_ACTV_MTS_PROCS (17):  Active MTS control processes
+        CP_MAX_MTS_PROCS (16):  Maximum MTS control processes
+        CP_START_TIME (21):  Component start time
+        CP_END_TIME (21):  Component end time
+        CP_STATUS (251):  Component-reported status
+        CC_INCARN_NO (23):  Incarnation Number
+        CC_DESC_TEXT (251):  Component description
+
+because L<Siebel::Srvrmgr::ListParser::Output::ListComp::Comp> will expect to have all columns names without being 
+truncated.
+
+To enable that, execute the following commands in the srvrmgr program:
+
+	set ColumnWidth true
+
+	configure list comp show SV_NAME(31), CC_ALIAS(21), CC_NAME(31), CG_ALIAS(31), CC_RUNMODE(31), CP_DISP_RUN_STATE(61),
+	CP_NUM_RUN_TASKS(16), CP_MAX_TASKS(11), CP_ACTV_MTS_PROCS(17), CP_MAX_MTS_PROCS(16), CP_START_TIME(21), 
+	CP_END_TIME(21), CP_STATUS(251), CC_INCARN_NO(23), CC_DESC_TEXT(251)
+
+Saving this configuration as a preference and loading it everytime is a good idea too.
+
+=head1 ATTRIBUTES
+
+=head2 last_server
+
+A string that represents the last associated server from the list of components read from output.
+
+By default, the value of it is an empty string.
+
+This attribute is used during parsing of C<list comp> command and is a read-only attribute.
+
+=cut
+
 has 'last_server' => (
-    is      => 'rw',
+    is      => 'ro',
     isa     => 'Str',
     reader  => 'get_last_server',
-    writer  => '_set_last_server',
+    writer  => '__set_last_server',
     default => ''
 );
 
+=pod
+
+=head2 comp_attribs
+
+An array reference with the components attributes. This is a read-only attribute.
+
+=cut
+
 has 'comp_attribs' => (
-    is     => 'rw',
+    is     => 'ro',
     isa    => 'ArrayRef',
     reader => 'get_comp_attribs',
-    writer => 'set_comp_attribs'
+    writer => '_set_comp_attribs'
 );
+
+=pod
+
+=head2 servers
+
+This is an array reference with the servers found during processing of the C<list components> output.
+
+=cut
 
 has 'servers' => (
     is      => 'rw',
@@ -28,6 +134,32 @@ has 'servers' => (
     default => sub { return [] }
 );
 
+=pod
+
+=head2 fields_pattern
+
+When starting processing the output of C<list comp> command, the header is read and the size of each column is taken
+from the header of each column. With this information a pattern is build to match each value foreach line read. This 
+attribute will hold the string that describes this pattern (that latter will be used with the C<unpack()> builtin function).
+
+Therefore is B<really> important that the header of C<srvrmgr> program is not removed or the parser will not work properly
+and probably an exception will be raised by it.
+
+=cut
+
+has 'fields_pattern' => (
+    is     => 'ro',
+    isa    => 'Str',
+    reader => 'get_fields_pattern',
+    writer => '_set_fields_pattern'
+);
+
+=pod
+
+=head1 METHODS
+
+=cut
+
 sub BUILD {
 
     my $self = shift;
@@ -35,6 +167,33 @@ sub BUILD {
     $self->parse();
 
 }
+
+=pod
+
+=head2 get_fields_pattern
+
+Returns the field_pattern attribute as a string.
+
+=head2 get_comp_attribs
+
+Returns the value of comp_attribs attribute as an array reference.
+
+=head2 get_last_server
+
+Returns the last_server attribute as a string.
+
+=head2 get_servers
+
+Returns the value of servers attribute as an array reference.
+
+=head2 get_server
+
+Expects as parameter the name of a server which output was parsed. 
+
+If the server exists in the C<servers> attribute, it returns a L<Siebel::Srvrmgr::ListParser::Output::ListComp::Server> 
+object. Otherwise it will return C<undef>.
+
+=cut
 
 sub get_server {
 
@@ -59,61 +218,17 @@ sub get_server {
 
 }
 
-sub set_last_server {
+sub _set_last_server {
 
     my $self   = shift;
     my $server = shift;
 
-    $self->_set_last_server($server);
+    $self->__set_last_server($server);
     push( @{ $self->get_servers() }, $server );
 
 }
 
-has 'fields_pattern' => (
-    is     => 'rw',
-    isa    => 'Str',
-    reader => 'get_fields_pattern',
-    writer => 'set_fields_pattern'
-);
 
-# for POD,  this is the list configuration considered by the module
-#srvrmgr> configure list comp
-#        SV_NAME (31):  Server name
-#        CC_ALIAS (31):  Component alias
-#        CC_NAME (76):  Component name
-#        CT_ALIAS (31):  Component type alias
-#        CG_ALIAS (31):  Component GRoup Alias
-#        CC_RUNMODE (31):  Component run mode (enum)
-#        CP_DISP_RUN_STATE (61):  Component display run state
-#        CP_NUM_RUN_TASKS (11):  Current number of running tasks
-#        CP_MAX_TASKS (11):  Maximum tasks configured
-#        CP_ACTV_MTS_PROCS (11):  Active MTS control processes
-#        CP_MAX_MTS_PROCS (11):  Maximum MTS control processes
-#        CP_START_TIME (21):  Component start time
-#        CP_END_TIME (21):  Component end time
-#        CP_STATUS (251):  Component-reported status
-#        CC_INCARN_NO (23):  Incarnation Number
-#        CC_DESC_TEXT (251):  Component description
-#configure list comp show SV_NAME, CC_ALIAS, CC_NAME, CG_ALIAS, CC_RUNMODE, CP_DISP_RUN_STATE, CP_NUM_RUN_TASKS, CP_MAX_TASKS, CP_ACTV_MTS_PROCS, CP_MAX_MTS_PROCS, CP_START_TIME, CP_END_TIME
-# this is the default, but it will be necessary to have this configuration
-#srvrmgr> configure list comp
-#        SV_NAME (31):  Server name
-#        CC_ALIAS (21):  Component alias
-#        CT_ALIAS (31):  Component type alias
-#        CG_ALIAS (31):  Component GRoup Alias
-#        CC_RUNMODE (31):  Component run mode (enum)
-#        CP_DISP_RUN_STATE (61):  Component display run state
-#        CP_NUM_RUN_TASKS (16):  Current number of running tasks
-#        CP_MAX_TASKS (11):  Maximum tasks configured
-#        CP_ACTV_MTS_PROCS (17):  Active MTS control processes
-#        CP_MAX_MTS_PROCS (16):  Maximum MTS control processes
-#        CP_START_TIME (21):  Component start time
-#        CP_END_TIME (21):  Component end time
-#        CP_STATUS (251):  Component-reported status
-#        CC_INCARN_NO (23):  Incarnation Number
-#        CC_DESC_TEXT (251):  Component description
-# because of Siebel::Srvrmgr::ListParser::Output::ListComp::Comp that will expect to have all fields names without being truncate
-# see "set ColumnWidth true" to configure srvrmgr.exe correctly
 
 sub parse {
 
@@ -150,7 +265,7 @@ sub parse {
 
                 }
 
-                $self->set_fields_pattern($pattern);
+                $self->_set_fields_pattern($pattern);
 
                 last SWITCH;
 
@@ -173,7 +288,7 @@ sub parse {
                 # component alias do not need to be maintained here
                 shift(@columns);
 
-                $self->set_comp_attribs( \@columns );
+                $self->_set_comp_attribs( \@columns );
 
                 last SWITCH;
 
