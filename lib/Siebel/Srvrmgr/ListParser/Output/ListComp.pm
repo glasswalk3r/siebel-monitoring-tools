@@ -34,42 +34,42 @@ It is expected that the C<srvrmgr> program has a proper configuration for the C<
 can see below:
 
 	srvrmgr> configure list comp
-        SV_NAME (31):  Server name
-        CC_ALIAS (31):  Component alias
-        CC_NAME (76):  Component name
-        CT_ALIAS (31):  Component type alias
-        CG_ALIAS (31):  Component GRoup Alias
-        CC_RUNMODE (31):  Component run mode (enum)
-        CP_DISP_RUN_STATE (61):  Component display run state
-        CP_NUM_RUN_TASKS (11):  Current number of running tasks
-        CP_MAX_TASKS (11):  Maximum tasks configured
-        CP_ACTV_MTS_PROCS (11):  Active MTS control processes
-        CP_MAX_MTS_PROCS (11):  Maximum MTS control processes
-        CP_START_TIME (21):  Component start time
-        CP_END_TIME (21):  Component end time
-        CP_STATUS (251):  Component-reported status
-        CC_INCARN_NO (23):  Incarnation Number
-        CC_DESC_TEXT (251):  Component description
+		SV_NAME (31):  Server name
+		CC_ALIAS (31):  Component alias
+		CC_NAME (76):  Component name
+		CT_ALIAS (31):  Component type alias
+		CG_ALIAS (31):  Component GRoup Alias
+		CC_RUNMODE (31):  Component run mode (enum)
+		CP_DISP_RUN_STATE (61):  Component display run state
+		CP_NUM_RUN_TASKS (11):  Current number of running tasks
+		CP_MAX_TASKS (11):  Maximum tasks configured
+		CP_ACTV_MTS_PROCS (11):  Active MTS control processes
+		CP_MAX_MTS_PROCS (11):  Maximum MTS control processes
+		CP_START_TIME (21):  Component start time
+		CP_END_TIME (21):  Component end time
+		CP_STATUS (251):  Component-reported status
+		CC_INCARN_NO (23):  Incarnation Number
+		CC_DESC_TEXT (251):  Component description
 
 This should be the default configuration, but it will be necessary to have this configuration 
 (check the difference of size for each column):
 
 	srvrmgr> configure list comp
-        SV_NAME (31):  Server name
-        CC_ALIAS (21):  Component alias
-        CT_ALIAS (31):  Component type alias
-        CG_ALIAS (31):  Component GRoup Alias
-        CC_RUNMODE (31):  Component run mode (enum)
-        CP_DISP_RUN_STATE (61):  Component display run state
-        CP_NUM_RUN_TASKS (16):  Current number of running tasks
-        CP_MAX_TASKS (11):  Maximum tasks configured
-        CP_ACTV_MTS_PROCS (17):  Active MTS control processes
-        CP_MAX_MTS_PROCS (16):  Maximum MTS control processes
-        CP_START_TIME (21):  Component start time
-        CP_END_TIME (21):  Component end time
-        CP_STATUS (251):  Component-reported status
-        CC_INCARN_NO (23):  Incarnation Number
-        CC_DESC_TEXT (251):  Component description
+		SV_NAME (31):  Server name
+		CC_ALIAS (21):  Component alias
+		CT_ALIAS (31):  Component type alias
+		CG_ALIAS (31):  Component GRoup Alias
+		CC_RUNMODE (31):  Component run mode (enum)
+		CP_DISP_RUN_STATE (61):  Component display run state
+		CP_NUM_RUN_TASKS (16):  Current number of running tasks
+		CP_MAX_TASKS (11):  Maximum tasks configured
+		CP_ACTV_MTS_PROCS (17):  Active MTS control processes
+		CP_MAX_MTS_PROCS (16):  Maximum MTS control processes
+		CP_START_TIME (21):  Component start time
+		CP_END_TIME (21):  Component end time
+		CP_STATUS (251):  Component-reported status
+		CC_INCARN_NO (23):  Incarnation Number
+		CC_DESC_TEXT (251):  Component description
 
 because L<Siebel::Srvrmgr::ListParser::Output::ListComp::Comp> will expect to have all columns names without being 
 truncated.
@@ -78,8 +78,8 @@ To enable that, execute the following commands in the srvrmgr program:
 
 	set ColumnWidth true
 
-	configure list comp show SV_NAME(31), CC_ALIAS(21), CC_NAME(31), CG_ALIAS(31), CC_RUNMODE(31), CP_DISP_RUN_STATE(61),
-	CP_NUM_RUN_TASKS(16), CP_MAX_TASKS(11), CP_ACTV_MTS_PROCS(17), CP_MAX_MTS_PROCS(16), CP_START_TIME(21), 
+	configure list comp show SV_NAME(31), CC_ALIAS(21), CC_NAME(31), CG_ALIAS(31), CC_RUNMODE(31), CP_DISP_RUN_STATE(61),\
+	CP_NUM_RUN_TASKS(16), CP_MAX_TASKS(11), CP_ACTV_MTS_PROCS(17), CP_MAX_MTS_PROCS(16), CP_START_TIME(21), \
 	CP_END_TIME(21), CP_STATUS(251), CC_INCARN_NO(23), CC_DESC_TEXT(251)
 
 Saving this configuration as a preference and loading it everytime is a good idea too.
@@ -132,26 +132,6 @@ has 'servers' => (
     isa     => 'ArrayRef',
     reader  => 'get_servers',
     default => sub { return [] }
-);
-
-=pod
-
-=head2 fields_pattern
-
-When starting processing the output of C<list comp> command, the header is read and the size of each column is taken
-from the header of each column. With this information a pattern is build to match each value foreach line read. This 
-attribute will hold the string that describes this pattern (that latter will be used with the C<unpack()> builtin function).
-
-Therefore is B<really> important that the header of C<srvrmgr> program is not removed or the parser will not work properly
-and probably an exception will be raised by it.
-
-=cut
-
-has 'fields_pattern' => (
-    is     => 'ro',
-    isa    => 'Str',
-    reader => 'get_fields_pattern',
-    writer => '_set_fields_pattern'
 );
 
 =pod

@@ -5,10 +5,6 @@ use strict;
 use MooseX::AbstractFactory;
 use feature 'switch';
 
-# :TODO:4/1/2012 15:53:27:: create a module to share compiled regex between modules
-our $list_params   = qr/list\sparams\sfor\sserver\s\w+\sfor\scomponent\s\w+/;
-our $list_comp_def = qr/list\scomp\sdef\s\w+/;
-
 our %table_mapping = (
     'list comp'        => 'ListComp',
     'list params'      => 'ListParams',

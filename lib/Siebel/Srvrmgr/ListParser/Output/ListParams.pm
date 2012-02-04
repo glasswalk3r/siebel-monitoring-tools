@@ -11,13 +11,6 @@ has 'comp_params' => (
     writer => 'set_comp_params'
 );
 
-has 'fields_pattern' => (
-    is     => 'rw',
-    isa    => 'Str',
-    reader => 'get_fields_pattern',
-    writer => 'set_fields_pattern'
-);
-
 has server =>
   ( isa => 'Str', is => 'ro', writer => '_set_server', reader => 'get_server' );
 
