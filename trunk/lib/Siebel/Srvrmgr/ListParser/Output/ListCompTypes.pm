@@ -10,13 +10,6 @@ has 'comp_params' => (
     writer => 'set_comp_params'
 );
 
-has 'fields_pattern' => (
-    is     => 'rw',
-    isa    => 'Str',
-    reader => 'get_fields_pattern',
-    writer => 'set_fields_pattern'
-);
-
 # for POD,  this is the list configuration considered by the module
 #srvrmgr> configure list comp type
 #        CT_NAME (76):  Component type name

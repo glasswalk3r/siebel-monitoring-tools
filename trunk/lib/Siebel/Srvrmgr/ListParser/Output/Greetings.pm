@@ -114,6 +114,10 @@ has 'total_connected' => (
 
 =pod
 
+=head2 field_pattern
+
+This attribute makes no sense for Greetings class, there it will always be equal C<undef>.
+
 =head1 METHODS
 
 See L<Siebel::Srvrmgr::ListParser::Output> class for inherited methods.
