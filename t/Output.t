@@ -1,4 +1,4 @@
 use lib 't';
-use Test::Greetings;
+use Test::Output;
 
 Test::Class->runtests;
