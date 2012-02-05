@@ -138,18 +138,6 @@ has 'servers' => (
 
 =head1 METHODS
 
-=cut
-
-sub BUILD {
-
-    my $self = shift;
-
-    $self->parse();
-
-}
-
-=pod
-
 =head2 get_fields_pattern
 
 Returns the field_pattern attribute as a string.
@@ -208,7 +196,15 @@ sub _set_last_server {
 
 }
 
+=pod
 
+=head2 parse
+
+Parsers the data available in the C<raw_data> attribute, populating the C<data_parsed> attribute.
+
+The C<raw_data> attribute will be set to an empty array reference once the parsing is finished.
+
+=cut
 
 sub parse {
 
@@ -274,9 +270,18 @@ sub parse {
 
             }
             else {
+                
+				my @fields_values;
 
-                my @fields_values =
-                  unpack( $self->get_fields_pattern(), $line );
+				if ($self->get_fields_pattern()) {
+				
+                  @fields_values = unpack( $self->get_fields_pattern(), $line );
+				
+				} else {
+
+					die "Cannot continue since fields pattern was not defined\n";
+
+				}
 
                 my $server = shift(@fields_values);
 
@@ -285,7 +290,7 @@ sub parse {
                     or ( $self->get_last_server() ne $server ) )
                 {
 
-                    $self->set_last_server($server);
+                    $self->_set_last_server($server);
 
                 }
 
@@ -309,7 +314,7 @@ sub parse {
                 }
                 else {
 
-                    warn "get nothing\n";
+                    warn "got nothing\n";
 
                 }
 
@@ -323,6 +328,33 @@ sub parse {
     $self->set_raw_data( [] );
 
 }
+
+=pod
+
+=head1 SEE ALSO
+
+=over 4 
+
+=item *
+
+L<Moose>
+
+=item *
+
+L<namespace::autoclean>
+
+=item *
+
+L<Siebel::Srvrmgr::ListParser::Output::ListComp::Server>
+
+=item *
+
+L<Siebel::Srvrmgr::ListParser::Output::ListComp::Comp>
+
+=back
+
+
+=cut
 
 no Moose;
 __PACKAGE__->meta->make_immutable;

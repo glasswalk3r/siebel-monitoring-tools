@@ -11,14 +11,6 @@ has 'location' => (
     writer => 'set_location'
 );
 
-sub BUILD {
-
-    my $self = shift;
-
-    $self->parse();
-
-}
-
 sub parse {
 
     my $self = shift;
