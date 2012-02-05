@@ -1,4 +1,4 @@
 use lib 't';
-use Test::Greetings;
+use Test::ListComp;
 
 Test::Class->runtests;

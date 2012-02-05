@@ -3,47 +3,34 @@ package Test::Greetings;
 use Test::Most;
 use base 'Test::Class';
 
-sub class { 'Siebel::Srvrmgr::ListParser::Output::Greetings' }
+sub class { 'Siebel::Srvrmgr::ListParser::Output' }
 
 sub startup : Tests(startup => 1) {
     my $test = shift;
     use_ok $test->class;
 }
 
-sub constructor : Tests(9) {
+sub constructor : Tests(3) {
 
     my $test  = shift;
     my $class = $test->class;
 
     can_ok( $class, 'new' );
 
-    #extended method tests
+    # base class method tests
     can_ok( $class,
-        qw(get_version get_patch get_copyright get_total_servers get_total_conn)
+        qw(new get_data_type get_raw_data set_raw_data get_data_parsed set_data_parsed get_cmd_line parse get_fields_pattern)
     );
 
     my @data = <Test::Greetings::DATA>;
     close(Test::Greetings::DATA);
 
-    ok(
-        my $hello = $class->new(
-            { data_type => 'greetings', raw_data => \@data, cmd_line => '' }
-        ),
-        '... and the constructor should succeed'
-    );
+    dies_ok {
+        my $output = $class->new(
+            { data_type => 'output', raw_data => \@data, cmd_line => '' } );
+    }
+    'the constructor must fail';
 
-    isa_ok( $hello, $class, '... and the object it returns' );
-    is( $hello->get_version(), '7.5.3', 'can get the correct version' );
-    is( $hello->get_patch(),   '16157', 'can get the correct patch' );
-    is(
-        $hello->get_copyright(),
-        'Copyright (c) 2001 Siebel Systems, Inc.  All rights reserved.',
-        'can get the correct copyright'
-    );
-    is( $hello->get_total_servers(),
-        1, 'can get the correct number of configured servers' );
-    is( $hello->get_total_conn(),
-        1, 'can get the correct number of available servers' );
 }
 
 1;
