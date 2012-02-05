@@ -29,18 +29,6 @@ It is possible to recover some useful information from the object methods but mo
 
 Beware that the parse method is called automatically as soon as the object is created.
 
-=cut
-
-sub BUILD {
-
-    my $self = shift;
-
-    $self->parse();
-
-}
-
-=pod
-
 =head1 ATTRIBUTES
 
 =head2 version

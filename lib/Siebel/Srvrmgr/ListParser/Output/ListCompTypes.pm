@@ -17,14 +17,6 @@ has 'comp_params' => (
 #        CT_ALIAS (31):  Component type alias
 #        CT_DESC_TEXT (251):  Description of component type
 
-sub BUILD {
-
-    my $self = shift;
-
-    $self->parse();
-
-}
-
 sub parse {
 
     my $self = shift;

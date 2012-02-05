@@ -22,14 +22,6 @@ has 'comp_params' => (
 #        CG_ALIAS (31):  Component Group Alias
 #        CC_INCARN_NO (23):  Incarnation Number
 
-sub BUILD {
-
-    my $self = shift;
-
-    $self->parse();
-
-}
-
 sub parse {
 
     my $self = shift;
