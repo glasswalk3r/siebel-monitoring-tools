@@ -130,6 +130,12 @@ Returns a integer as the value of total_servers attribute.
 
 Returns a integer as the value of total_connected attribute.
 
+=head2 parse
+
+Parses the data available in the C<raw_data> attribute, setting the attribute C<data_parsed> at the end of process.
+
+Also the attribute C<raw_data> has his reference changed to an empty array reference and the end of process.
+
 =cut
 
 sub parse {

@@ -1,5 +1,6 @@
 package Test::Greetings;
 
+use Test::Pod::Coverage;
 use Test::Most;
 use base 'Test::Class';
 
@@ -10,7 +11,7 @@ sub startup : Tests(startup => 1) {
     use_ok $test->class;
 }
 
-sub constructor : Tests(3) {
+sub constructor : Tests(4) {
 
     my $test  = shift;
     my $class = $test->class;
@@ -30,6 +31,8 @@ sub constructor : Tests(3) {
             { data_type => 'output', raw_data => \@data, cmd_line => '' } );
     }
     'the constructor must fail';
+
+	pod_coverage_ok($class, "$class is Pod covered");
 
 }
 
