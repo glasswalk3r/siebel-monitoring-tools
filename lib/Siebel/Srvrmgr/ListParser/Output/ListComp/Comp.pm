@@ -17,9 +17,9 @@ use namespace::autoclean;
 
 	use Siebel::Srvrmgr::ListParser::Output::ListComp::Comp;
 
-	my $comp = Siebel::Srvrmgr::ListParser::Output::ListComp::Comp->new({ data => \%data,  cc_lias => 'MyComp' });
+	my $comp = Siebel::Srvrmgr::ListParser::Output::ListComp::Comp->new({ data => \%data,  cc_alias => 'MyComp' });
 
-	print 'ALIAS = ', $comp->cc_name(), "\n";
+	print 'NAME = ', $comp->cc_name(), "\n";
 
 	foreach my $param(@{$comp->get_params()}) {
 
@@ -56,19 +56,11 @@ has data => (
 
 =pod
 
-=head2 sv_name
-
-A string of the name of the server where the component is associated.
-
-=cut
-
-has sv_name => ( isa => 'Str', is => 'rw' );
-
-=pod
-
 =head2 cc_alias
 
 A string of the alias of the component.
+
+This is a required attribute during object creation.
 
 =cut
 
@@ -130,9 +122,12 @@ has cc_runmode => ( isa => 'Str', is => 'rw' );
 
 A string of the component display run state.
 
+This attribute is read-only.
+
 =cut
 
-has cp_disp_run_state => ( isa => 'Str', is => 'rw' );
+has cp_disp_run_state =>
+  ( isa => 'Str', is => 'ro', writer => '_set_cp_disp_run_state' );
 
 =pod
 
@@ -140,19 +135,22 @@ has cp_disp_run_state => ( isa => 'Str', is => 'rw' );
 
 An integer with the number of running tasks of the component.
 
+This attribute is read-only.
+
 =cut
 
-has cp_num_run_tasks => ( isa => 'Str', is => 'rw' );
+has cp_num_run_tasks =>
+  ( isa => 'Int', is => 'ro', writer => '_set_cp_num_run_tasks' );
 
 =pod
 
-=head2 cp_max_task
+=head2 cp_max_tasks
 
 An integer with the maximum number of tasks the component will execute before restart itself.
 
 =cut
 
-has cp_max_task => ( isa => 'Str', is => 'rw' );
+has cp_max_tasks => ( isa => 'Int', is => 'rw' );
 
 =pod
 
@@ -160,9 +158,12 @@ has cp_max_task => ( isa => 'Str', is => 'rw' );
 
 An integer wit the active MTS processes running for the component.
 
+This attribute is read-only.
+
 =cut
 
-has cp_actv_mts_procs => ( isa => 'Str', is => 'rw' );
+has cp_actv_mts_procs =>
+  ( isa => 'Int', is => 'ro', writer => '_set_cp_actv_mts_procs' );
 
 =pod
 
@@ -172,7 +173,7 @@ An integer with the maximum number of MTS process that will run for the componen
 
 =cut
 
-has cp_max_mts_procs => ( isa => 'Str', is => 'rw' );
+has cp_max_mts_procs => ( isa => 'Int', is => 'rw' );
 
 =pod
 
@@ -180,9 +181,12 @@ has cp_max_mts_procs => ( isa => 'Str', is => 'rw' );
 
 An string representing the start time of the component.
 
+This attribute is read-only.
+
 =cut
 
-has cp_start_time => ( isa => 'Str', is => 'rw' );
+has cp_start_time =>
+  ( isa => 'Str', is => 'ro', writer => '_set_cp_start_time' );
 
 =pod
 
@@ -190,9 +194,11 @@ has cp_start_time => ( isa => 'Str', is => 'rw' );
 
 An string representing the end time of the component.
 
+This attribute is read-only.
+
 =cut
 
-has cp_end_time => ( isa => 'Str', is => 'rw' );
+has cp_end_time => ( isa => 'Str', is => 'ro', writer => '_set_cp_end_time' );
 
 =pod
 
@@ -200,9 +206,11 @@ has cp_end_time => ( isa => 'Str', is => 'rw' );
 
 A string representing the status of the component.
 
+This attribute is read-only.
+
 =cut
 
-has cp_status => ( isa => 'Str', is => 'rw' );
+has cp_status => ( isa => 'Str', is => 'ro', writer => '_set_cp_status' );
 
 =pod
 
@@ -210,9 +218,15 @@ has cp_status => ( isa => 'Str', is => 'rw' );
 
 An integer with representing the component incarnation number.
 
+This attribute is read-only.
+
 =cut
 
-has cc_incarn_no => ( isa => 'Str', is => 'rw' );
+has cc_incarn_no => (
+    isa    => 'Int',
+    is     => 'ro',
+    writer => '_set_cc_incarn_no'
+);
 
 =pod
 
@@ -232,18 +246,56 @@ All attributes have the same methods name to access them. For setting them, just
 
 =head2 BUILD
 
+The C<BUILD> method will create all attributes/methods based on the value of the C<data> attribute.
+
+Once this operation is finished, the C<data> attribute is set to an empty hash reference.
+
 =cut
 
 sub BUILD {
 
     my $self = shift;
 
-    foreach my $key ( keys( %{ $self->get_data() } ) ) {
+    my @rw =
+      qw(cc_name ct_alias cg_alias cc_runmode cp_max_tasks cp_max_mts_procs cc_desc_text);
 
-        my $attrib = lc($key);
+    foreach my $attrib (@rw) {
 
-        $self->$attrib( $self->get_data()->{$key} );
+        my $key = uc($attrib);
 
+        $self->$attrib( $self->get_data()->{$key} )
+          if ( exists( $self->get_data()->{$key} ) );
+
+    }
+
+    my @ro_str = qw(cp_disp_run_state cp_start_time cp_end_time cp_status);
+
+    foreach my $attrib (@ro_str) {
+
+        my $key = uc($attrib);
+
+        my $method = "_set_$attrib";
+
+        $self->$method( $self->get_data()->{$key} )
+          if ( exists( $self->get_data()->{$key} ) );
+
+    }
+
+    my @ro_int = qw(cp_num_run_tasks cp_actv_mts_procs cc_incarn_no);
+
+    foreach my $attrib (@ro_int) {
+
+        my $key = uc($attrib);
+
+        my $method = "_set_$attrib";
+
+        if ( exists( $self->get_data()->{$key} ) ) {
+
+            ( $self->get_data()->{$key} eq '' )
+              ? $self->$method(0)
+              : $self->$method( $self->get_data()->{$key} );
+
+        }
     }
 
     $self->_set_data( {} );

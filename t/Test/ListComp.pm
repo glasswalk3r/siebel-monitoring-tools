@@ -1,16 +1,18 @@
 package Test::ListComp;
 
+use Test::Pod::Coverage;
 use Test::Most;
 use base 'Test::Class';
 
 sub class { 'Siebel::Srvrmgr::ListParser::Output::ListComp' }
 
 sub startup : Tests(startup => 1) {
+
     my $test = shift;
     use_ok $test->class;
 }
 
-sub constructor : Tests(9) {
+sub constructor : Tests(10) {
 
     my $test  = shift;
     my $class = $test->class;
@@ -61,6 +63,8 @@ sub constructor : Tests(9) {
 
     isa_ok( $comps->get_server( $comps->get_last_server() ),
         $server_class, "get_last_server returns a $server_class object" );
+
+	pod_coverage_ok($class, "$class is Pod covered");
 
 }
 

@@ -1,15 +1,16 @@
-use 5.010001
+use 5.010001;
 use ExtUtils::MakeMaker;
 
 my %config = (
     NAME         => 'Siebel::Srvrmgr',
     VERSION_FROM => 'lib/Siebel/Srvrmgr.pm',    # finds $VERSION
     PREREQ_PM    => {
-        Carp                 => 1.04,
-        namespace::autoclean => 0.13,
-        Moose                => 2.0401,
-        FSA::Rules           => 0.29, 
-		MooseX::Storage      => 0.30
+        Carp                         => 1.04,
+        namespace::autoclean         => 0.13,
+        Moose                        => 2.0401,
+        FSA::Rules                   => 0.29,
+        MooseX::Storage              => 0.30,
+        Moose::Util::TypeConstraints => 2.0402
     },
     META_MERGE => {
         resources => {
