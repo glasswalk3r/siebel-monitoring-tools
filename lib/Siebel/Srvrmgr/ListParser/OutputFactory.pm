@@ -1,17 +1,73 @@
 package Siebel::Srvrmgr::ListParser::OutputFactory;
 
+=pod
+
+=head1 NAME
+
+Siebel::Srvrmgr::ListParser::OutputFactory - abstract factory class to create Siebel::Srvrmgr::ListParser::Output objects
+
+=cut
+
 use warnings;
 use strict;
 use MooseX::AbstractFactory;
-use feature 'switch';
+
+=pod
+
+=head1 SYNOPSIS
+
+	use Siebel::Srvrmgr::ListParser::OutputFactory;
+
+    my $output = Siebel::Srvrmgr::ListParser::OutputFactory->create(
+        $type,
+        {
+            data_type => $type,
+            raw_data  => \@data,
+            cmd_line  => 'list something'
+        }
+    );
+
+=head1 DESCRIPTION
+
+This is an abstract factory class to create instances of subclass of L<Siebel::Srvrmgr::ListParser::Output> superclass.
+
+It has the mapping between the types parsed by L<Siebel::Srvrmgr::ListParser> class to the respective class of output. See
+C<Siebel::Srvrmgr::ListParser::OutputFactory::table_mapping> for the mapping between types and classes.
+
+=head1 METHODS
+
+=head2 create
+
+Returns the instance of the class defined by the type given as parameter. Expects two parameters: an string with the type
+of output and an hash reference with the parameters expected by the C<new> method of L<Siebel::Srvrmgr::ListParser::Output>.
+
+=head1 SEE ALSO
+
+=over 3
+
+=item *
+
+L<MooseX::AbstractFactory>
+
+=item *
+
+L<Siebel::Srvrmgr::ListParser::Output>
+
+=item *
+
+L<Siebel::Srvrmgr::ListParser>
+
+=back
+
+=cut
 
 our %table_mapping = (
-    'list comp'        => 'ListComp',
-    'list params'      => 'ListParams',
-    'list comp def'    => 'ListCompDef',
+    'list_comp'        => 'ListComp',
+    'list_params'      => 'ListParams',
+    'list_comp_def'    => 'ListCompDef',
     'greetings'        => 'Greetings',
-    'list comp type'   => 'ListCompTypes',
-    'load preferences' => 'LoadPreferences'
+    'list_comp_type'   => 'ListCompTypes',
+    'load_preferences' => 'LoadPreferences'
 );
 
 implementation_class_via sub {
@@ -19,29 +75,17 @@ implementation_class_via sub {
     my $last_cmd_type = shift;
     my $object_data   = shift;    # hash ref
 
-    my $class;
+    if ( exists( $table_mapping{$last_cmd_type} ) ) {
 
-    given ($last_cmd_type) {
-
-        when ( $_ eq 'list_params' ) {
-            $class = $table_mapping{'list params'};
-        }
-        when ( $_ eq 'list_comp_def' ) {
-            $class = $table_mapping{'list comp def'};
-        }
-        when ( $_ eq 'list_comp_type' ) {
-            $class = $table_mapping{'list comp type'};
-        }
-        when ( $_ eq 'list_comp' ) { $class = $table_mapping{'list comp'}; }
-        when ( $_ eq 'greetings' ) { $class = $table_mapping{greetings}; }
-        when ( $_ eq 'load_preferences' ) {
-            $class = $table_mapping{'load preferences'};
-        }
-        default { die "Cannot defined a class for command $last_cmd_type"; }
+        return 'Siebel::Srvrmgr::ListParser::Output::'
+          . $table_mapping{$last_cmd_type};
 
     }
+    else {
 
-    return 'Siebel::Srvrmgr::ListParser::Output::' . $class;
+        die "Cannot defined a class for command $last_cmd_type";
+
+    }
 
 };
 
