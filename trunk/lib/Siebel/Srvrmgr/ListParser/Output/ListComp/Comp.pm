@@ -256,8 +256,7 @@ sub BUILD {
 
     my $self = shift;
 
-    my @rw =
-      qw(cc_name ct_alias cg_alias cc_runmode cp_max_tasks cp_max_mts_procs cc_desc_text);
+    my @rw = qw(cc_name ct_alias cg_alias cc_runmode cp_max_tasks cc_desc_text);
 
     foreach my $attrib (@rw) {
 
@@ -281,6 +280,21 @@ sub BUILD {
 
     }
 
+    my $key = uc('cp_max_mts_procs');
+
+    if ( exists( $self->get_data()->{$key} ) ) {
+
+        ( $self->get_data()->{$key} eq '' )
+          ? $self->cp_max_mts_procs(0)
+          : $self->cp_max_mts_procs( $self->get_data()->{$key} );
+
+    }
+    else {
+
+        die "Cannot find $key in data attribute";
+
+    }
+
     my @ro_int = qw(cp_num_run_tasks cp_actv_mts_procs cc_incarn_no);
 
     foreach my $attrib (@ro_int) {
@@ -294,6 +308,11 @@ sub BUILD {
             ( $self->get_data()->{$key} eq '' )
               ? $self->$method(0)
               : $self->$method( $self->get_data()->{$key} );
+
+        }
+        else {
+
+            die "Cannot find $key in data attribute";
 
         }
     }
@@ -315,34 +334,6 @@ sub get_attribs {
     my $self = shift;
 
     return [ keys( %{ $self->get_data() } ) ];
-
-}
-
-=pod
-
-=head2 get_attrib_val
-
-Gets an attribute value. Expects as parameter the attribute name.
-
-If the attribute does not exists for the component, an C<undef> value will be returned.
-
-=cut
-
-sub get_attrib_val {
-
-    my $self   = shift;
-    my $attrib = shift;
-
-    if ( exists( $self->get_data()->{$attrib} ) ) {
-
-        return $self->get_data()->{$attrib};
-
-    }
-    else {
-
-        return undef;
-
-    }
 
 }
 

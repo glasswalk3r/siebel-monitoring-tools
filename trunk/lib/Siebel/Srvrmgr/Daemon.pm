@@ -45,7 +45,7 @@ use namespace::autoclean;
 use Siebel::Srvrmgr::Daemon::Condition;
 use Siebel::Srvrmgr::Daemon::ActionFactory;
 use Siebel::Srvrmgr::ListParser;
-use Siebel::Srvrmgr::Regexes;
+use Siebel::Srvrmgr::Regexes qw(SRVRMGR_PROMPT LOAD_PREF_RESP);
 use POSIX ":sys_wait_h";
 
 # both variables below exist to deal with requested termination of the program gracefully
@@ -156,7 +156,7 @@ sub run {
         }
     );
 
-    my $prompt_regex = Siebel::Srvrmgr::Regexes::SRVRMGR_PROMPT;
+    my $prompt_regex = SRVRMGR_PROMPT;
 
     my $rdr = $self->read_fh();
 
@@ -218,11 +218,9 @@ sub run {
 
                 push( @input_buffer, $_ );
 
-# :TODO      :30-01-2012 12:28:54:: this statement must be changed to be reusable
-                if ( $_ eq
-'srvrmgr> File: d:\\sea752\\client\\bin\\.Siebel_svrmgr.pref'
-                  )
-                {
+                my $load_pref = LOAD_PREF_RESP;
+
+                if (/$load_pref/) {
 
                     syswrite $self->write_fh(), "\n";
                     last READ;
@@ -248,12 +246,7 @@ sub run {
             my $action = Siebel::Srvrmgr::Daemon::ActionFactory->create(
                 $class,
                 {
-                    parser => Siebel::Srvrmgr::ListParser->new(
-                        {
-                            prompt_regex => $prompt_regex,
-                            hello_regex  => Siebel::Srvrmgr::Regexes::CONN_GREET
-                        }
-                    ),
+                    parser => Siebel::Srvrmgr::ListParser->new(),
                     params => \@params
 
                 }

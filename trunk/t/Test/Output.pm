@@ -1,4 +1,4 @@
-package Test::Greetings;
+package Test::Output;
 
 use Test::Pod::Coverage;
 use Test::Most;
@@ -18,13 +18,12 @@ sub constructor : Tests(4) {
 
     can_ok( $class, 'new' );
 
-    # base class method tests
     can_ok( $class,
         qw(new get_data_type get_raw_data set_raw_data get_data_parsed set_data_parsed get_cmd_line parse get_fields_pattern)
     );
 
-    my @data = <Test::Greetings::DATA>;
-    close(Test::Greetings::DATA);
+    my @data = <Test::Output::DATA>;
+    close(Test::Output::DATA);
 
     dies_ok {
         my $output = $class->new(

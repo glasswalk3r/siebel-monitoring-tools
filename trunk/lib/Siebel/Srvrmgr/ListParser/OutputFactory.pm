@@ -41,6 +41,13 @@ C<Siebel::Srvrmgr::ListParser::OutputFactory::table_mapping> for the mapping bet
 Returns the instance of the class defined by the type given as parameter. Expects two parameters: an string with the type
 of output and an hash reference with the parameters expected by the C<new> method of L<Siebel::Srvrmgr::ListParser::Output>.
 
+=head2 can_create
+
+Expects a string as the output type.
+
+Returns true if there is a mapping between the given type and a subclass of L<Siebel::Srvrmgr::ListParser::Output>;
+otherwise it returns false;
+
 =head1 SEE ALSO
 
 =over 3
@@ -69,6 +76,15 @@ our %table_mapping = (
     'list_comp_type'   => 'ListCompTypes',
     'load_preferences' => 'LoadPreferences'
 );
+
+sub can_create {
+
+    my $class = shift;
+    my $type  = shift;
+
+    return ( exists( $table_mapping{$type} ) );
+
+}
 
 implementation_class_via sub {
 

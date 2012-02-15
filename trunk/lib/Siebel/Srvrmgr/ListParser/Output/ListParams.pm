@@ -2,17 +2,108 @@ package Siebel::Srvrmgr::ListParser::Output::ListParams;
 use Moose;
 use namespace::autoclean;
 
+=pod
+
+=head1 NAME
+
+Siebel::Srvrmgr::ListParser::Output::ListParams - subclass to parse output of the command C<list comp params>.
+
+=cut
+
 extends 'Siebel::Srvrmgr::ListParser::Output';
 
-has 'comp_params' => (
+=pod
+
+=head1 SYNOPSIS
+
+	use Siebel::Srvrmgr::ListParser::Output::ListParams;
+
+	my $comp_params = Siebel::Srvrmgr::ListParser::Output::ListParams->new({ data_type => 'list_comp_params', 
+																			 raw_data => \@com_data, 
+															                 cmd_line => 'list params for server XXXX component YYYY'});
+
+	my $server_params = Siebel::Srvrmgr::ListParser::Output::ListParams->new({ data_type => 'sometype', 
+																			   raw_data => \@server_data,
+															                   cmd_line => 'list params for server XXXX'});
+
+=head1 DESCRIPTION
+
+This module parses the output of the command C<list comp params>. Beware that those parameters may be of the server if a component alias is omitted from
+the command line.
+
+The parser expects to have the following configuration of fields for the respective command.
+
+	srvrmgr> configure list params
+		PA_ALIAS (31):  Parameter alias
+		PA_VALUE (101):  Parameter value
+		PA_DATATYPE (31):  Parameter value datatype
+		PA_SCOPE (31):  Parameter level
+		PA_SUBSYSTEM (31):  Parameter subsystem
+		PA_SETLEVEL (31):  Internal level at which value was set
+		PA_DISP_SETLEVEL (61):  Display level at which value was set (translatable)
+		PA_NAME (76):  Parameter name
+
+The C<data_parsed> attribute will return the following data estructure:
+
+	'data_parsed' => {
+		'Parameter1' => {
+			'PA_NAME' => 'Private key file name',
+			'PA_DATATYPE' => 'String',
+			'PA_SCOPE' => 'Subsystem',
+			'PA_VALUE' => '',
+			'PA_ALIAS' => 'KeyFileName',
+			'PA_SETLEVEL' => 'SIS_NEVER_SET',
+			'PA_DISP_SETLEVEL' => 'SIS_NEVER_SET',
+			'PA_SUBSYSTEM' => 'Networking'
+			},
+		'Parameter2' => {
+			'PA_NAME' => 'Private key file name',
+			'PA_DATATYPE' => 'String',
+			'PA_SCOPE' => 'Subsystem',
+			'PA_VALUE' => '',
+			'PA_ALIAS' => 'KeyFileName',
+			'PA_SETLEVEL' => 'SIS_NEVER_SET',
+			'PA_DISP_SETLEVEL' => 'SIS_NEVER_SET',
+			'PA_SUBSYSTEM' => 'Networking'
+			},
+			# N parameters
+	}
+
+Until now there is no method implementation that would return a parameter name and it's properties, it's necessary to access the hashes directly.
+
+=head1 ATTRIBUTES
+
+=head2 params
+
+An array reference with the parameters representing the output of the command C<list comp params>.
+
+=cut
+
+has 'params' => (
     is     => 'rw',
     isa    => 'ArrayRef',
-    reader => 'get_comp_params',
-    writer => 'set_comp_params'
+    reader => 'get_params',
+    writer => 'set_params'
 );
+
+=pod
+
+=head2 server
+
+An string representing the server from where the parameter were got.
+
+=cut
 
 has server =>
   ( isa => 'Str', is => 'ro', writer => '_set_server', reader => 'get_server' );
+
+=pod
+
+=head2 comp_alias
+
+An string of the component alias respective to the command executed, if available (considering that the parameter may be of the server, not a component).
+
+=cut
 
 has comp_alias => (
     isa    => 'Str',
@@ -21,32 +112,25 @@ has comp_alias => (
     reader => 'get_comp_alias'
 );
 
-# for POD,  this is the list configuration considered by the module
-#srvrmgr> configure list params
-#        PA_ALIAS (31):  Parameter alias
-#        PA_VALUE (101):  Parameter value
-#        PA_DATATYPE (31):  Parameter value datatype
-#        PA_SCOPE (31):  Parameter level
-#        PA_SUBSYSTEM (31):  Parameter subsystem
-#        PA_SETLEVEL (31):  Internal level at which value was set
-#        PA_DISP_SETLEVEL (61):  Display level at which value was set (translatable)
-#        PA_NAME (76):  Parameter name
-#
-# Data extructure return
-#                 'data_parsed' => {
-#                                    'Parameter' => {
-#                                                     'PA_NAME' => 'Private key file name',
-#                                                     'PA_DATATYPE' => 'String',
-#                                                     'PA_SCOPE' => 'Subsystem',
-#                                                     'PA_VALUE' => '',
-#                                                     'PA_ALIAS' => 'KeyFileName',
-#                                                     'PA_SETLEVEL' => 'SIS_NEVER_SET',
-#                                                     'PA_DISP_SETLEVEL' => 'SIS_NEVER_SET',
-#                                                     'PA_SUBSYSTEM' => 'Networking'
-#                                                   },
-#
+=pod
 
-sub set_details {
+=head1 METHODS
+
+=head2 get_params
+
+Returns the attribute params.
+
+=head2 set_params
+
+Set the attribute params. Expects an array reference as parameter.
+
+=head2 _set_details
+
+A "private" method used to get the servername and component alias from the command line given as parameter during object creation.
+
+=cut
+
+sub _set_details {
 
     my $self = shift;
 
@@ -61,21 +145,42 @@ sub set_details {
             $self->_set_comp_alias( $values[6] );
 
         }
+        else {
+
+            warn "got strange list params command: cannot parse";
+
+        }
 
     }
 
-    return 1;
-
 }
+
+=pod
+
+=head2 BUILD
+
+Execute the methods C<parse> and C<_set_details> right after object creation.
+
+=cut
 
 sub BUILD {
 
     my $self = shift;
 
     $self->parse();
-    $self->set_details();
+    $self->_set_details();
 
 }
+
+=pod
+
+=head2 parse
+
+Parses the data in the C<raw_data> attribute setting the C<data_parsed> at the end of process.
+
+Beware that the C<raw_data> attribute will be set to an empty array reference at the end of the process.
+
+=cut
 
 sub parse {
 
@@ -112,7 +217,7 @@ sub parse {
 
                 }
 
-                $self->set_fields_pattern($pattern);
+                $self->_set_fields_pattern($pattern);
 
                 last SWITCH;
 
@@ -129,7 +234,7 @@ sub parse {
 
                 my @columns = split( /\s{2,}/, $line );
 
-                $self->set_comp_params( \@columns );
+                $self->set_params( \@columns );
 
                 last SWITCH;
 
@@ -143,7 +248,7 @@ sub parse {
 
                     my $pa_alias    = $fields_values[0];
                     my $list_len    = scalar(@fields_values);
-                    my $columns_ref = $self->get_comp_params();
+                    my $columns_ref = $self->get_params();
 
                     for ( my $i = 1 ; $i < $list_len ; $i++ )
                     {    # starting from 1 to skip the field PA_ALIAS
@@ -170,6 +275,24 @@ sub parse {
     $self->set_raw_data( [] );
 
 }
+
+=pod
+
+=head1 SEE ALSO
+
+=over 2
+
+=item *
+
+L<Siebel::Srvrmgr::ListParser::Output>
+
+=item *
+
+L<Moose>
+
+=back
+
+=cut
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
