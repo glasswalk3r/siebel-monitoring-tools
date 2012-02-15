@@ -19,6 +19,7 @@ use FSA::Rules;
 use Carp;
 use Siebel::Srvrmgr::ListParser::OutputFactory;
 use Siebel::Srvrmgr::ListParser::Buffer;
+use Siebel::Srvrmgr::Regexes qw(SRVRMGR_PROMPT CONN_GREET);
 
 =pod
 
@@ -77,10 +78,11 @@ A regular expression reference of how the srvrmgr prompt looks like.
 =cut
 
 has 'prompt_regex' => (
-    is     => 'rw',
-    isa    => 'RegexpRef',
-    reader => 'get_prompt_regex',
-    writer => 'set_prompt_regex'
+    is      => 'rw',
+    isa     => 'RegexpRef',
+    reader  => 'get_prompt_regex',
+    writer  => 'set_prompt_regex',
+    default => sub { SRVRMGR_PROMPT }
 );
 
 =pod
@@ -93,10 +95,11 @@ server (or enterprise).
 =cut
 
 has 'hello_regex' => (
-    is     => 'rw',
-    isa    => 'RegexpRef',
-    reader => 'get_hello_regex',
-    writer => 'set_hello_regex'
+    is      => 'rw',
+    isa     => 'RegexpRef',
+    reader  => 'get_hello_regex',
+    writer  => 'set_hello_regex',
+    default => sub { CONN_GREET }
 );
 
 =pod
@@ -292,13 +295,13 @@ sub set_buffer {
 
 =pod
 
-=head2 clean_buffer
+=head2 clear_buffer
 
 Removes the array reference from the buffer attribute and associates a new one with an empty array. This should be used for cleanup purpouses or attemp to free memory.
 
 =cut
 
-sub clean_buffer {
+sub clear_buffer {
 
     my $self = shift;
 
@@ -324,13 +327,13 @@ sub count_parsed {
 
 =pod
 
-=head2 clean_parsed_tree
+=head2 clear_parsed_tree
 
 Removes the reference on parsed_tree attribute. Also, sets has_tree attribute to false.
 
 =cut
 
-sub clean_parsed_tree {
+sub clear_parsed_tree {
 
     my $self = shift;
 
@@ -405,7 +408,7 @@ sub append_output {
 
 =head2 parse
 
-Parses one (or more) commands executed from srvrmgr program with their respective response.
+Parses one or more commands output executed through C<srvrmgr> program.
 
 Expects as parameter an array reference with the output of srvrmgr, including the command executed.
 
@@ -769,6 +772,8 @@ sub parse {
         $self->append_output($buffer);
 
     }
+
+	return 1;
 
 }
 
