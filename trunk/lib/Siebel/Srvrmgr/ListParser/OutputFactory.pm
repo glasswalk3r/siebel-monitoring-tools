@@ -73,7 +73,7 @@ our %table_mapping = (
     'list_params'      => 'ListParams',
     'list_comp_def'    => 'ListCompDef',
     'greetings'        => 'Greetings',
-    'list_comp_type'   => 'ListCompTypes',
+    'list_comp_types'  => 'ListCompTypes',
     'load_preferences' => 'LoadPreferences'
 );
 

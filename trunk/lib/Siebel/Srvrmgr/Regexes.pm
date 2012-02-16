@@ -28,13 +28,13 @@ This modules exports several pre-compiled regular expressions by demand.
 
 =head2 SRVRMGR_PROMPT
 
-Regular expression to match the C<srvrmgr> prompt, without any command or output. It will match the server name, if included.
+Regular expression to match the C<srvrmgr> prompt, with or without any command. It will match the server name, if included.
 
 =cut
 
 sub SRVRMGR_PROMPT {
 
-    return qr/^srvrmgr(\:\w+)?>\s$/;
+    return qr/^srvrmgr(\:\w+)?>\s(.*)?$/;
 
 }
 
@@ -70,7 +70,7 @@ Regular expression to match the first line submitted by a Siebel enterprise when
 
 sub CONN_GREET {
     return
-qr/^Siebel\sEnterprise\sApplications\sSiebel\sServer\sManager\,\sVersion*/;
+qr/^Siebel\sEnterprise\sApplications\sSiebel\sServer\sManager\,\sVersion.*/;
 }
 
 1;
