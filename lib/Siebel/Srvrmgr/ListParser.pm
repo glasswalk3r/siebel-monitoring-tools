@@ -16,7 +16,6 @@ Siebel::Srvrmgr::ListParser - state model parser to idenfity which output type w
 
 use Moose;
 use FSA::Rules;
-use Carp;
 use Siebel::Srvrmgr::ListParser::OutputFactory;
 use Siebel::Srvrmgr::ListParser::Buffer;
 use Siebel::Srvrmgr::Regexes qw(SRVRMGR_PROMPT CONN_GREET);
@@ -258,7 +257,7 @@ sub set_buffer {
                 }
                 else {
 
-                    carp 'Command has not changed but type of output has (got '
+                    warn 'Command has not changed but type of output has (got '
                       . $state->name()
                       . ' instead of '
                       . $last_buffer->get_type() . ")\n";
@@ -287,7 +286,7 @@ sub set_buffer {
     }
     else {
 
-        carp "Undefined content from state received\n";
+        warn "Undefined content from state received\n";
 
     }
 
@@ -513,7 +512,7 @@ sub parse {
             ],
             message => 'prompt found'
         },
-        list_comp_type => {
+        list_comp_types => {
             do => sub {
                 my $state = shift;
 
@@ -533,7 +532,7 @@ sub parse {
                           $state->notes('parser')->get_prompt_regex() );
 
                 },
-                list_comp_type => sub { return 1; }
+                list_comp_types => sub { return 1; }
             ],
             message => 'prompt found'
         },
@@ -605,7 +604,7 @@ sub parse {
                           $state->notes('parser')->get_prompt_regex() );
 
                 },
-                list_comp_def => sub { return 1; }
+                load_preferences => sub { return 1; }
             ],
             message => 'prompt found'
         },
@@ -658,12 +657,12 @@ sub parse {
                     }
 
                 },
-                list_comp_type => sub {
+                list_comp_types => sub {
 
                     my $state = shift;
 
                     if ( $state->notes('parser')->get_last_command() eq
-                        'list comp type' )
+                        'list comp types' )
                     {
 
                         return 1;

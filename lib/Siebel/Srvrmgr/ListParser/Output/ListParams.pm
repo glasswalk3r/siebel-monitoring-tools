@@ -1,6 +1,7 @@
 package Siebel::Srvrmgr::ListParser::Output::ListParams;
 use Moose;
 use namespace::autoclean;
+use feature qw(switch);
 
 =pod
 
@@ -136,18 +137,32 @@ sub _set_details {
 
     if ( defined( $self->get_cmd_line() ) ) {
 
-        #list params for server SERVERNAME component COMPONENT_ALIAS
-        my @values = split( /\s/, $self->get_cmd_line() );
+        given ( $self->get_cmd_line() ) {
 
-        if ( ( scalar(@values) ) == 7 ) {
+            when ('list params') {
+                $self->_set_server('connected server');
+                $self->_set_comp_alias('N/A');
+            }
+            when (/^list\sparams\sfor\scomponent\s\w+$/) {
+                $self->_set_server('connected server');
+                $self->_set_comp_alias(
+                    ( split( /\s/, $self->get_cmd_line() ) )[-1] );
+            }
+            when (/^list\sparams\sfor\sserver\s\w+$/) {
+                $self->_set_server(
+                    ( split( /\s/, $self->get_cmd_line() ) )[-1] );
+                $self->_set_comp_alias('N/A');
+            }
+            when (/^list\sparams\sfor\sserver\s\w+\scomponent\s\w+$/) {
 
-            $self->_set_server( $values[4] );
-            $self->_set_comp_alias( $values[6] );
+                my @values = split( /\s/, $self->get_cmd_line() );
 
-        }
-        else {
+                $self->_set_server( $values[4] );
+                $self->_set_comp_alias( $values[6] );
 
-            warn "got strange list params command: cannot parse";
+            }
+
+            default { die "got strange list params command: cannot parse"; }
 
         }
 
