@@ -10,7 +10,8 @@ my %config = (
         Moose                        => 2.0401,
         FSA::Rules                   => 0.29,
         MooseX::Storage              => 0.30,
-        Moose::Util::TypeConstraints => 2.0402
+        Moose::Util::TypeConstraints => 2.0402,
+        MooseX::Params::Validate     => 0.15
     },
     META_MERGE => {
         resources => {

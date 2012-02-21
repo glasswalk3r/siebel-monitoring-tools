@@ -15,6 +15,7 @@ requires:
     Moose:                         2.0401
     FSA::Rules                     0.29
     MooseX::Storage                0.30
+    MooseX::Params::Validate       0.15
 no_index:
   directory:
     - t    
