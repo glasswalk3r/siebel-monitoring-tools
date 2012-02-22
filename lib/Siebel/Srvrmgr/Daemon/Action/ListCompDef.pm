@@ -67,9 +67,10 @@ Sets the attribute C<dump_file>. Expects a string as parameter.
 
 =head2 BUILD
 
-The superclass C<BUILD> method is overrided. It expects the C<params> attribute to be given
-during object creation because it will retrieve the filename since it calls the method
-C<set_dump_file> automatically.
+Right after object creation this method will process the C<params> attribute and retrieve the first index of the array reference
+to define the C<dump_file> attribute using the method C<set_dump_file>.
+
+If the C<params> attribute is an empty reference, the method wil raise an exception.
 
 =cut
 
@@ -107,6 +108,8 @@ override 'do' => sub {
 
     my $self   = shift;
     my $buffer = shift;    # array reference
+
+	super();
 
     $self->get_parser()->parse($buffer);
 
