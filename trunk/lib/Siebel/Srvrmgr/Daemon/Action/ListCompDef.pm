@@ -1,6 +1,7 @@
 package Siebel::Srvrmgr::Daemon::Action::ListCompDef;
 
 =pod
+
 =head1 NAME
 
 Siebel::Srvrmgr::Daemon::Action::ListCompDef - subclass of Siebel::Srvrmgr::Daemon::Action to stored parsed list comp def output
@@ -26,6 +27,7 @@ use Storable qw(nstore);
 use Moose;
 
 extends 'Siebel::Srvrmgr::Daemon::Action';
+with 'Siebel::Srvrmgr::Daemon::Action::Serializable';
 
 =pod
 
@@ -39,61 +41,7 @@ L<Storable> C<nstore> function.
 
 Inherits all attributes from superclass.
 
-=head2 dump_file
-
-This attribute is a string used to indicate in which file the data from L<Siebel::Srvmrgr::ListParser::Output::ListCompDef> should
-be serialized into the OS filesystem. The string can be a complete path or just the filename.
-
-=cut
-
-has dump_file => (
-    isa    => 'Str',
-    is     => 'rw',
-    reader => 'get_dump_file',
-    writer => 'set_dump_file'
-);
-
-=pod
-
 =head1 METHODS
-
-=head2 get_dump_file
-
-Returns the string stored in the attribute C<dump_file>.
-
-=head2 set_dump_file
-
-Sets the attribute C<dump_file>. Expects a string as parameter.
-
-=head2 BUILD
-
-Right after object creation this method will process the C<params> attribute and retrieve the first index of the array reference
-to define the C<dump_file> attribute using the method C<set_dump_file>.
-
-If the C<params> attribute is an empty reference, the method wil raise an exception.
-
-=cut
-
-sub BUILD {
-
-    my $self = shift;
-
-    my $params_ref = $self->get_params();
-
-    unless ( ( defined($params_ref) ) and ( scalar( @{$params_ref} ) >= 1 ) ) {
-
-        die
-          'Must have at least one value in the params attribute array reference'
-
-    }
-
-    my $file = shift( @{$params_ref} );
-
-    $self->set_dump_file($file) if ( defined($file) );
-
-}
-
-=pod
 
 =head2 do
 
@@ -109,7 +57,7 @@ override 'do' => sub {
     my $self   = shift;
     my $buffer = shift;    # array reference
 
-	super();
+    super();
 
     $self->get_parser()->parse($buffer);
 
@@ -137,7 +85,7 @@ override 'do' => sub {
 
 =head1 SEE ALSO
 
-=over 3
+=over 4
 
 =item *
 
@@ -150,6 +98,10 @@ L<Storable>
 =item *
 
 L<Siebel::Srvrmgr::ListParser::Output::ListCompDef>
+
+=item *
+
+L<Siebel::Srvrmgr::Daemon::Action::Serializable>
 
 =back
 

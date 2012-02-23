@@ -1,11 +1,20 @@
 package Siebel::Srvrmgr::Daemon::Action::ListParams;
 
 =pod
+
 =head1 NAME
 
-Siebel::Srvrmgr::Daemon::Action - base class for Siebel::Srvrmgr::Daemon action
+Siebel::Srvrmgr::Daemon::Action::ListParams - subclass of Siebel::Srvrmgr::Daemon::Action to parse list params output
 
-=head1 SYNOPSES
+=head1 SYNOPSIS
+
+	use Siebel::Srvrmgr::Daemon::Action::ListParams;
+
+	my $action = Siebel::Srvrmgr::Daemon::Action::ListParams->new(  parser => Siebel::Srvrmgr::ListParser->new(),
+																	params => [$filename]);
+
+	$action->do(\@output);
+
 
 =cut
 
@@ -13,25 +22,32 @@ use Moose;
 use namespace::autoclean;
 
 extends 'Siebel::Srvrmgr::Daemon::Action';
+with 'Siebel::Srvrmgr::Daemon::Action::Serializable';
 
-has dump_file => ( isa => 'Str', is => 'rw' );
+=pod
 
-sub BUILD {
+=head1 DESCRIPTION
 
-    my $self = shift;
+This subclass of L<Siebel::Srvrmgr::Daemon::Action> will try to find a L<Siebel::Srvrmgr::ListParser::Output::ListParams> object in the given array reference
+given as parameter to the C<do> method and stores the parsed data from this object in a serialized file.
 
-    my $params_ref = $self->params();
+=head1 METHODS
 
-    my $file = shift( @{$params_ref} );
+=head2 do
 
-    $self->dump_file($file) if ( defined($file) );
+This method is overrided from the superclass method, that is still called to validate parameter given.
 
-}
+It will search in the array reference given as parameter: the first object found is serialized to the filesystem
+and the function returns 1 in this case. Otherwise it will return 0.
+
+=cut
 
 sub do {
 
     my $self   = shift;
     my $buffer = shift;    # array reference
+
+	super();
 
     $self->get_parser()->parse($buffer);
 
@@ -41,7 +57,7 @@ sub do {
 
         if ( $obj->isa('Siebel::Srvrmgr::ListParser::Output::ListParams') ) {
 
-            $obj->store( $self->dump_file() );
+            $obj->store( $self->get_dump_file() );
 
             return 1;
 
@@ -52,5 +68,23 @@ sub do {
     return 0;
 
 }
+
+=pod
+
+=head1 SEE ALSO
+
+=over 2
+
+=item *
+
+L<Siebel::Srvrmgr::Daemon::Action>
+
+=item *
+
+L<Siebel::Srvrmgr::Daemon::Action::Serializable>
+
+=back
+
+=cut
 
 __PACKAGE__->meta->make_immutable;

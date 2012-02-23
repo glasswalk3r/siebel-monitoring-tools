@@ -22,6 +22,8 @@ use namespace::autoclean;
 
 extends 'Siebel::Srvrmgr::Daemon::Action';
 
+with 'Siebel::Srvrmgr::Daemon::Action::Serializable';
+
 =pod
 
 =head1 DESCRIPTION
@@ -29,56 +31,7 @@ extends 'Siebel::Srvrmgr::Daemon::Action';
 This subclass of L<Siebel::Srvrmgr::Daemon::Action> will try to find a L<Siebel::Srvrmgr::ListParser::Output::ListComp> object in the given array reference
 given as parameter to the C<do> method and stores the parsed data from this object in a serialized file. 
 
-=head1 ATTRIBUTES
-
-=head2 dump_file
-
-This attribute is a string used to indicate in which file the data from L<Siebel::Srvmrgr::ListParser::Output::ListComp> should
-be serialized into the OS filesystem. The string can be a complete path or just the filename.
-
-=cut
-
-has dump_file => (
-    isa    => 'Str',
-    is     => 'rw',
-    writer => 'set_dump_file',
-    reader => 'get_dump_file'
-);
-
-=pod
-
 =head1 METHODS
-
-=head2 BUILD
-
-Right after object creation this method will process the C<params> attribute and retrieve the first index of the array reference
-to define the C<dump_file> attribute using the method C<set_dump_file>.
-
-If the C<params> attribute is an empty reference, the method wil raise an exception.
-
-=cut
-
-# :TODO:22-02-2012:arfreitas: create a role for this BUILD method since it's used by several classes
-sub BUILD {
-
-    my $self = shift;
-
-    my $params_ref = $self->get_params();
-
-    unless ( ( defined($params_ref) ) and ( scalar( @{$params_ref} ) >= 1 ) ) {
-
-        die
-          'Must have at least one value in the params attribute array reference'
-
-    }
-
-    my $file = shift( @{$params_ref} );
-
-    $self->set_dump_file($file) if ( defined($file) );
-
-}
-
-=pod
 
 =head2 do
 
@@ -154,7 +107,7 @@ override 'do' => sub {
 
 =head1 SEE ALSO
 
-=over 3
+=over 4
 
 =item *
 
@@ -167,6 +120,10 @@ L<Siebel::Srvrmgr::ListParser::Output::ListComp::Server>
 =item *
 
 L<Siebel::Srvrmgr::Daemon::Action>
+
+=item *
+
+L<Siebel::Srvrmgr::Daemon::Action::Serializable>
 
 =back
 
