@@ -1,16 +1,17 @@
 package Siebel::Srvrmgr::Daemon::Condition;
 
 =pod
+
 =head1 NAME
 
 Siebel::Srvrmgr::Daemon::Condition - object that checks which conditions should keep a Siebel::Srvrmgr::Daemon running
 
 =head1 SYNOPSIS
 
-    my $condition = Siebel::Srvrmgr::Daemon::Condition(
+    my $condition = Siebel::Srvrmgr::Daemon::Condition->new(
         {
-            is_infinite    => $self->is_infinite(),
-            max_cmd_idx => scalar( @{ $self->commands() } )
+            is_infinite    => 1, 
+			total_commands => 10
         }
     );
 
@@ -21,11 +22,69 @@ use strict;
 use Moose;
 use namespace::autoclean;
 
+=pod
+
+=head1 DESCRIPTION
+
+Siebel::Srvrmgr::Daemon::Condition class has one function: define if the L<Siebel::Srvrmgr::Daemon> object instance should continue it's loop execution or stop.
+
+There are several checkings that are carried (for example, if the loop must be infinite or if the stack of commands is finished) and the object of this class
+will return true (1) or false (0) depending on the context.
+
+Since this class was used exclusively to control de loop of execution, it does not make much sense to use it outside of L<Siebel::Srvrmgr::Daemon> class.
+
+There are more status that this class will keep, please check the attributes and methods.
+
+=head1 ATTRIBUTES
+
+=head2 is_infinite
+
+This is a boolean attribute and it is required during object creation. It tells if the object should always return true from the method C<check> or not.
+
+If it's true, C<check> method will always return true (1), otherwise it will return false (0).
+
+=cut
+
 has is_infinite => ( isa => 'Bool', is => 'ro', required => 1 );
+
+=pod
+
+=head2 max_cmd_idx
+
+Maximum command index. This is an integer attribute that identifies the last command from the commands stack (of L<Siebel::Srvrmgr::Daemon>).
+
+It's automatically set to C<total_commands> - 1 right after object creation.
+
+=cut
+
 has max_cmd_idx =>
   ( isa => 'Int', is => 'ro', required => 0, writer => '_set_max_cmd_idx' );
+
+=pod
+
+=head2 total_commands
+
+This is an integer that tells the total amount of commands available for execution. This class will keep track of the executed commands and the result
+of it will be part of the definition of the result returned from the method C<check> (unless C<is_infinite> attribute is set to true) and restart, if necessary, 
+the stack of commands to be executed.
+
+This attribute is required during object creation.
+
+=cut
+
 has total_commands =>
   ( isa => 'Int', is => 'ro', required => 1, writer => '_set_total_commands' );
+
+=pod
+
+=head2 cmd_counter
+
+An integer that keeps tracking of the current command being executed, always starting from zero.
+
+This attribute has a default value of zero.
+
+=cut
+
 has cmd_counter => (
     isa      => 'Int',
     is       => 'ro',
@@ -34,8 +93,66 @@ has cmd_counter => (
     reader   => 'get_cmd_counter',
     default  => 0
 );
-has output_used => ( isa => 'Bool', is => 'rw', default => 0 );
-has cmd_sent    => ( isa => 'Bool', is => 'rw', default => 0 );
+
+=pod
+
+=head2 output_used
+
+An boolean that identifies if the last executed command output was used or not.
+
+=cut
+
+has output_used => (
+    isa     => 'Bool',
+    is      => 'rw',
+    default => 0,
+    reader  => 'is_output_used',
+    writer  => 'set_output_used'
+);
+
+=pod
+
+=head2 cmd_sent
+
+An boolean that identifies if the current command to be executed was truly submitted to C<srvrmgr> program or not.
+
+=cut
+
+has cmd_sent => ( isa => 'Bool', is => 'rw', default => 0 );
+
+=pod
+
+=head1 METHODS
+
+=head2 get_cmd_counter
+
+Returns the content of the attribute C<cmd_counter> as an integer.
+
+=head2 is_output_used
+
+Returns a true or false based on the content of C<output_used> attribute.
+
+=head2 set_output_used
+
+Sets the C<output_used> attribute. Expects a 1 (true) or 0 (false) value as parameter.
+
+=head2 cmd_sent
+
+Returns a true or false based on the content of C<cmd_sent> attribute.
+
+=head2 max_cmd_idx
+
+Returns an integer based on the content of C<max_cmd_idx> attribute.
+
+=head2 is_infinite
+
+Returns a true or false based on the content of C<is_infinite> attribute.
+
+=head2 BUILD
+
+After the object creation, the C<BUILD> method will set the attribute C<max_cmd_idx> automatically.
+
+=cut
 
 sub BUILD {
 
@@ -45,6 +162,14 @@ sub BUILD {
 
 }
 
+=pod
+
+=head2 reduce_total_cmd
+
+This method subtracts one from the C<total_cmd> attribute.
+
+=cut
+
 sub reduce_total_cmd {
 
     my $self = shift;
@@ -52,6 +177,32 @@ sub reduce_total_cmd {
     $self->_set_total_commands( $self->total_commands() - 1 );
 
 }
+
+=pod
+
+=head2 check
+
+This method will check various conditions and depending on them will return true (1) or false (0).
+
+The conditions that are taken in consideration:
+
+=over 3
+
+=item *
+
+The execution loop is infinite or not
+
+=item *
+
+There is more items to execute from the commands/actions stack.
+
+=item *
+
+The output from a previous executed command was used or not.
+
+=back
+
+=cut
 
 sub check {
 
@@ -83,7 +234,7 @@ sub check {
 
     }
     elsif ( ( $self->get_cmd_counter() == $self->max_cmd_idx() )
-        and $self->output_used() )
+        and $self->is_output_used() )
     {
 
         return 0;
@@ -121,16 +272,36 @@ sub check {
 
 }
 
+=pod
+
+=head2 add_cmd_counter
+
+Increments by one the C<cmd_counter> attribute.
+
+It will check if the C<cmd_counter> after incrementing will not pass the C<max_cmd_idx> attribute. In this case, the method will
+not change C<cmd_counter> value and will return 0.
+
+Otherwise it will update if the attribute C<output_used> was set to true. In this case the method will return true otherwise false.
+
+=cut
+
 sub add_cmd_counter {
 
     my $self = shift;
 
     if ( ( $self->get_cmd_counter() + 1 ) <= ( $self->max_cmd_idx() ) ) {
 
-        $self->_set_cmd_counter( $self->get_cmd_counter() + 1 )
-          if ( $self->output_used() );
+        if ( $self->is_output_used() ) {
 
-		  return 1;
+            $self->_set_cmd_counter( $self->get_cmd_counter() + 1 );
+
+            return 1;
+
+        }
+        else {
+
+            return 0;
+        }
 
     }
     else {
@@ -138,12 +309,19 @@ sub add_cmd_counter {
         warn "Can't increment counter because maximum index of command is "
           . $self->max_cmd_idx() . "\n";
 
-
-		  return 0;
+        return 0;
 
     }
 
 }
+
+=pod
+
+=head2 reset_cmd_counter
+
+Resets the C<cmd_counter> attributing setting it to zero. This is useful specially if the loop of execution is infinite (thus the command stack must be restarted).
+
+=cut
 
 sub reset_cmd_counter {
 
@@ -152,5 +330,23 @@ sub reset_cmd_counter {
     $self->_set_cmd_counter(0);
 
 }
+
+=pod
+
+=head1 SEE ALSO
+
+=over 2
+
+=item *
+
+L<Moose>
+
+=item *
+
+L<Siebel::Srvrmgr::Daemon>
+
+=back
+
+=cut
 
 __PACKAGE__->meta->make_immutable;
