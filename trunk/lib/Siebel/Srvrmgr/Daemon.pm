@@ -252,10 +252,10 @@ sub run {
                 }
             );
 
-            $condition->output_used( $action->do( \@input_buffer ) );
+            $condition->set_output_used( $action->do( \@input_buffer ) );
 
             $condition->cmd_sent(0)
-              if ( $condition->output_used() )
+              if ( $condition->is_output_used() )
               ;    # :TODO:6/1/2012 00:03:41:: move this to the Condition class
 
             @input_buffer = ();
@@ -276,7 +276,7 @@ sub run {
                 push( @input_buffer, $prompt . $cmd );
                 $self->last_exec_cmd( $prompt . $cmd );
                 $condition->cmd_sent(1);
-                $condition->output_used(0);
+                $condition->set_output_used(0);
                 sleep( $self->timeout() );
 
             }
