@@ -59,7 +59,7 @@ override 'do' => sub {
 
             my $data = $obj->get_data_parsed();
 
-            nstore $data, $self->dump_file();
+            nstore $data, $self->get_dump_file();
 
             return 1;
 

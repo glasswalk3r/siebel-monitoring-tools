@@ -107,7 +107,7 @@ has output_used => (
     is      => 'rw',
     default => 0,
     reader  => 'is_output_used',
-    writer  => 'set_output_used'
+    writer  => '_set_output_used'
 );
 
 =pod
@@ -118,7 +118,13 @@ An boolean that identifies if the current command to be executed was truly submi
 
 =cut
 
-has cmd_sent => ( isa => 'Bool', is => 'rw', default => 0 );
+has cmd_sent => (
+    isa     => 'Bool',
+    is      => 'rw',
+    default => 0,
+    reader  => 'is_cmd_sent',
+    writer  => 'set_cmd_sent'
+);
 
 =pod
 
@@ -136,9 +142,30 @@ Returns a true or false based on the content of C<output_used> attribute.
 
 Sets the C<output_used> attribute. Expects a 1 (true) or 0 (false) value as parameter.
 
-=head2 cmd_sent
+If the parameter is true then the attribute C<cmd_sent> will be set to false (a new command will need to be submitted).
+
+=cut
+
+sub set_output_used {
+
+    my $self  = shift;
+    my $value = shift;
+
+    $self->_set_output_used($value);
+
+    $self->set_cmd_sent(0) if ($value);
+
+}
+
+=pod
+
+=head2 is_cmd_sent
 
 Returns a true or false based on the content of C<cmd_sent> attribute.
+
+=head2 set_cmd_sent
+
+Sets the attribute C<cmd_sent>. Expects true (1) or false (0) as value.
 
 =head2 max_cmd_idx
 
@@ -276,12 +303,10 @@ sub check {
 
 =head2 add_cmd_counter
 
-Increments by one the C<cmd_counter> attribute.
+Increments by one the C<cmd_counter> attribute, if possible.
 
 It will check if the C<cmd_counter> after incrementing will not pass the C<max_cmd_idx> attribute. In this case, the method will
-not change C<cmd_counter> value and will return 0.
-
-Otherwise it will update if the attribute C<output_used> was set to true. In this case the method will return true otherwise false.
+not change C<cmd_counter> value and will raise an exception.
 
 =cut
 
@@ -291,27 +316,50 @@ sub add_cmd_counter {
 
     if ( ( $self->get_cmd_counter() + 1 ) <= ( $self->max_cmd_idx() ) ) {
 
-        if ( $self->is_output_used() ) {
-
-            $self->_set_cmd_counter( $self->get_cmd_counter() + 1 );
-
-            return 1;
-
-        }
-        else {
-
-            return 0;
-        }
+        $self->_set_cmd_counter( $self->get_cmd_counter() + 1 );
 
     }
     else {
 
-        warn "Can't increment counter because maximum index of command is "
+        die "Can't increment counter because maximum index of command is "
           . $self->max_cmd_idx() . "\n";
+
+    }
+
+}
+
+sub can_increment {
+
+    my $self = shift;
+
+    if (    ( $self->is_output_used() )
+        and ( ( $self->get_cmd_counter() + 1 ) <= $self->max_cmd_idx() ) )
+    {
+
+        return 1;
+
+    }
+    else {
 
         return 0;
 
     }
+
+}
+
+sub is_last_cmd {
+
+	my $self = shift;
+
+	if ($self->get_cmd_counter() == $self->max_cmd_idx()) {
+
+		return 1;
+
+	} else {
+
+		return 0;
+
+	}
 
 }
 
