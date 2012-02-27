@@ -1,6 +1,6 @@
 ---
 abstract: 'Perl classes to execute and parse output of srvrmgr program'
-name:         DTS
+name:         Siebel-Srvrmgr
 version:      0.01
 version_from: lib/Siebel/Srvrmgr.pm
 installdirs:  site
@@ -16,6 +16,7 @@ requires:
     FSA::Rules                     0.29
     MooseX::Storage                0.30
     MooseX::Params::Validate       0.15
+    MooseX::AbstractFactory        0.3.2
 no_index:
   directory:
     - t    

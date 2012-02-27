@@ -174,7 +174,7 @@ sub _set_details {
 
 =head2 BUILD
 
-Execute the methods C<parse> and C<_set_details> right after object creation.
+Execute the method C<_set_details> right after object creation.
 
 =cut
 
@@ -182,7 +182,6 @@ sub BUILD {
 
     my $self = shift;
 
-    $self->parse();
     $self->_set_details();
 
 }

@@ -156,7 +156,8 @@ sub run {
         }
     );
 
-    my $prompt_regex = SRVRMGR_PROMPT;
+    my $prompt_regex    = SRVRMGR_PROMPT;
+    my $load_pref_regex = LOAD_PREF_RESP;
 
     my $rdr = $self->read_fh();
 
@@ -195,7 +196,7 @@ sub run {
                 # no command submitted
                 if ( scalar(@input_buffer) < 1 ) {
 
-                    $condition->cmd_sent(0);
+                    $condition->set_cmd_sent(0);
                     last READ;
 
                 }
@@ -203,10 +204,19 @@ sub run {
 
                     unless (( scalar(@input_buffer) >= 1 )
                         and ( $input_buffer[0] eq $self->last_exec_cmd() )
-                        and $condition->cmd_sent() )
+                        and $condition->is_cmd_sent() )
                     {
 
-                        $condition->cmd_sent(0);
+                        $condition->set_cmd_sent(0);
+                        last READ;
+
+                    }
+
+# this is specific for load preferences response since it may contain the prompt string (Siebel 7.5.3.17)
+                    if (/$load_pref_regex/) {
+
+                        push( @input_buffer, $_ );
+                        syswrite $self->write_fh(), "\n";
                         last READ;
 
                     }
@@ -217,15 +227,6 @@ sub run {
             else {   # no prompt detection, keep reading output from srvrmgr.exe
 
                 push( @input_buffer, $_ );
-
-                my $load_pref = LOAD_PREF_RESP;
-
-                if (/$load_pref/) {
-
-                    syswrite $self->write_fh(), "\n";
-                    last READ;
-
-                }
 
             }
 
@@ -254,32 +255,29 @@ sub run {
 
             $condition->set_output_used( $action->do( \@input_buffer ) );
 
-            $condition->cmd_sent(0)
-              if ( $condition->is_output_used() )
-              ;    # :TODO:6/1/2012 00:03:41:: move this to the Condition class
-
             @input_buffer = ();
 
         }
 
+# :TODO:27/2/2012 17:43:42:: must deal with command stack when the loop is infinite (invoke reset method)
+
         # begin of session, sending command to the prompt
-        unless ( $condition->cmd_sent() ) {
+        unless ( $condition->is_cmd_sent() or $condition->is_last_cmd() ) {
 
-            if ( $condition->add_cmd_counter() ) {
+            $condition->add_cmd_counter()
+              if ( $condition->can_increment() );
 
-                my $cmd = $self->cmd_stack()->[ $condition->get_cmd_counter() ];
+            my $cmd = $self->cmd_stack()->[ $condition->get_cmd_counter() ];
 
-                syswrite $self->write_fh(), "$cmd\n";
+            syswrite $self->write_fh(), "$cmd\n";
 
 # srvrmgr.exe of Siebel 7.5.3.17 does not echo command printed to the input file handle
 # this is necessary to give a hint to the parser about the command submitted
-                push( @input_buffer, $prompt . $cmd );
-                $self->last_exec_cmd( $prompt . $cmd );
-                $condition->cmd_sent(1);
-                $condition->set_output_used(0);
-                sleep( $self->timeout() );
-
-            }
+            push( @input_buffer, $prompt . $cmd );
+            $self->last_exec_cmd( $prompt . $cmd );
+            $condition->set_cmd_sent(1);
+            $condition->set_output_used(0);
+            sleep( $self->timeout() );
 
         }
 

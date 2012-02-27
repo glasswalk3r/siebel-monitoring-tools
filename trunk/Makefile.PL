@@ -11,7 +11,8 @@ my %config = (
         FSA::Rules                   => 0.29,
         MooseX::Storage              => 0.30,
         Moose::Util::TypeConstraints => 2.0402,
-        MooseX::Params::Validate     => 0.15
+        MooseX::Params::Validate     => 0.15,
+        MooseX::AbstractFactory      => 0.3.2
     },
     META_MERGE => {
         resources => {
@@ -24,7 +25,6 @@ my %config = (
         },
     },
     LICENSE => 'GNU General Public License (GPL)',
-
     NO_META => 1,
     dist    => { SUFFIX => '.gz', COMPRESS => 'gzip --best' },
     (

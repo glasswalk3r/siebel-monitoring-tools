@@ -428,6 +428,7 @@ sub parse {
     die "data parameter must be an array reference\n"
       unless ( ref($data_ref) eq 'ARRAY' );
 
+# :TODO:27/2/2012 15:06:20:: treat STDOUT messages adding a "warn" to notes method based on is_warn_enabled attribute
     my $fsa = FSA::Rules->new(
         first_line => {
             do => sub {
@@ -661,8 +662,14 @@ sub parse {
 
                     my $state = shift;
 
-                    if ( $state->notes('parser')->get_last_command() eq
-                        'list comp types' )
+                    if (
+                        (
+                            $state->notes('parser')->get_last_command() eq
+                            'list comp types'
+                        )
+                        or ( $state->notes('parser')->get_last_command() eq
+                            'list comp type' )
+                      )
                     {
 
                         return 1;
@@ -772,7 +779,7 @@ sub parse {
 
     }
 
-	return 1;
+    return 1;
 
 }
 
