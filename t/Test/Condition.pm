@@ -18,7 +18,7 @@ sub constructor : Tests(13) {
     my $class = $test->class;
 
     can_ok( $class,
-        qw(new get_cmd_counter is_infinite max_cmd_idx total_commands is_output_used set_output_used cmd_sent reduce_total_cmd check add_cmd_counter reset_cmd_counter)
+        qw(new get_cmd_counter is_infinite max_cmd_idx total_commands is_output_used set_output_used is_cmd_sent set_cmd_sent can_increment is_last_cmd reduce_total_cmd check add_cmd_counter reset_cmd_counter)
     );
 
     my $condition;
