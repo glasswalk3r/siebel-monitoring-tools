@@ -51,18 +51,19 @@ can see below:
 		CC_INCARN_NO (23):  Incarnation Number
 		CC_DESC_TEXT (251):  Component description
 
-This should be the default configuration, but it will be necessary to have this configuration 
+This should be the default configuration, but it will be necessary to have the configuration below
 (check the difference of size for each column):
 
 	srvrmgr> configure list comp
 		SV_NAME (31):  Server name
 		CC_ALIAS (21):  Component alias
+		CC_NAME (76):  Component name
 		CT_ALIAS (31):  Component type alias
 		CG_ALIAS (31):  Component GRoup Alias
 		CC_RUNMODE (31):  Component run mode (enum)
 		CP_DISP_RUN_STATE (61):  Component display run state
 		CP_NUM_RUN_TASKS (16):  Current number of running tasks
-		CP_MAX_TASKS (11):  Maximum tasks configured
+		CP_MAX_TASKS (12):  Maximum tasks configured
 		CP_ACTV_MTS_PROCS (17):  Active MTS control processes
 		CP_MAX_MTS_PROCS (16):  Maximum MTS control processes
 		CP_START_TIME (21):  Component start time
@@ -72,7 +73,8 @@ This should be the default configuration, but it will be necessary to have this 
 		CC_DESC_TEXT (251):  Component description
 
 because L<Siebel::Srvrmgr::ListParser::Output::ListComp::Comp> will expect to have all columns names without being 
-truncated.
+truncated. This class will check those columns names and order and it will raise an exception if it found something different
+from the expected.
 
 To enable that, execute the following commands in the srvrmgr program:
 
@@ -116,7 +118,7 @@ has 'comp_attribs' => (
     is     => 'ro',
     isa    => 'ArrayRef',
     reader => 'get_comp_attribs',
-    writer => '_set_comp_attribs'
+    writer => '__set_comp_attribs',
 );
 
 =pod
@@ -137,6 +139,40 @@ has 'servers' => (
 =pod
 
 =head1 METHODS
+
+=cut
+
+sub _set_comp_attribs {
+
+    my $self = shift;
+    my $data = shift;
+
+    my @expected_attribs = (
+        'CC_NAME',           'CT_ALIAS',
+        'CG_ALIAS',          'CC_RUNMODE',
+        'CP_DISP_RUN_STATE', 'CP_NUM_RUN_TASKS',
+        'CP_MAX_TASKS',      'CP_ACTV_MTS_PROCS',
+        'CP_MAX_MTS_PROCS',  'CP_START_TIME',
+        'CP_END_TIME',       'CP_STATUS',
+        'CC_INCARN_NO',      'CC_DESC_TEXT'
+    );
+
+    for ( my $i = 0 ; $i <= $#expected_attribs ; $i++ ) {
+
+        unless ( $data->[$i] eq $expected_attribs[$i] ) {
+
+            die 'invalid attribute name recovered from output: expected '
+              . $expected_attribs[$i]
+              . ', got '
+              . $data->[$i];
+
+        }
+
+    }
+
+    $self->__set_comp_attribs($data);
+
+}
 
 =head2 get_fields_pattern
 
@@ -270,18 +306,21 @@ sub parse {
 
             }
             else {
-                
-				my @fields_values;
 
-				if ($self->get_fields_pattern()) {
-				
-                  @fields_values = unpack( $self->get_fields_pattern(), $line );
-				
-				} else {
+                my @fields_values;
 
-					die "Cannot continue since fields pattern was not defined\n";
+                if ( $self->get_fields_pattern() ) {
 
-				}
+                    @fields_values =
+                      unpack( $self->get_fields_pattern(), $line );
+
+                }
+                else {
+
+                    die
+                      "Cannot continue since fields pattern was not defined\n";
+
+                }
 
                 my $server = shift(@fields_values);
 
