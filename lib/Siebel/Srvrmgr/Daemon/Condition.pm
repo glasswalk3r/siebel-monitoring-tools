@@ -328,6 +328,15 @@ sub add_cmd_counter {
 
 }
 
+=pod
+
+=head2 can_increment
+
+This method checks if the C<cmd_counter> can be increment or not, returning true (1) or false (0) depending
+on the conditions evaluated.
+
+=cut
+
 sub can_increment {
 
     my $self = shift;
@@ -346,6 +355,15 @@ sub can_increment {
     }
 
 }
+
+=pod
+
+=head2 is_last_cmd
+
+This method returns true (1) if the C<cmd_counter> holds the last command index from the command stack, otherwise it
+returns false.
+
+=cut
 
 sub is_last_cmd {
 
@@ -376,6 +394,8 @@ sub reset_cmd_counter {
     my $self = shift;
 
     $self->_set_cmd_counter(0);
+
+	return 1;
 
 }
 

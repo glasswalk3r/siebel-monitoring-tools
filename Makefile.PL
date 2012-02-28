@@ -14,6 +14,13 @@ my %config = (
         MooseX::Params::Validate     => 0.15,
         MooseX::AbstractFactory      => 0.3.2
     },
+    BUILD_REQUIRES => {
+        Test::Exception     => 0.27,
+        Test::More          => 0,
+        Test::Pod           => 1.22,
+        Test::Pod::Coverage => 1.08,
+        Test::Output        => 1.01
+    },
     META_MERGE => {
         resources => {
             license  => 'http://www.gnu.org/licenses/old-licenses/gpl-2.0.html',
