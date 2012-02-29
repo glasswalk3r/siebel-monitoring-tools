@@ -1,6 +1,5 @@
 package Test::ListCompTypes;
 
-use Test::Pod::Coverage;
 use Test::Most;
 use base 'Test::Class';
 
@@ -12,7 +11,7 @@ sub startup : Tests(startup => 1) {
     use_ok $test->class;
 }
 
-sub constructor : Tests(5) {
+sub constructor : Tests(4) {
 
     my $test  = shift;
     my $class = $test->class;
@@ -37,8 +36,6 @@ sub constructor : Tests(5) {
     );
 
     isa_ok( $comps, $class, '... and the object it returns' );
-
-    pod_coverage_ok( $class, "$class is Pod covered" );
 
 }
 

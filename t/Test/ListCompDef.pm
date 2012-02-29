@@ -1,6 +1,5 @@
 package Test::ListCompDef;
 
-use Test::Pod::Coverage;
 use Test::Most;
 use base 'Test::Class';
 
@@ -12,7 +11,7 @@ sub startup : Tests(startup => 1) {
     use_ok $test->class;
 }
 
-sub constructor : Tests(7) {
+sub constructor : Tests(6) {
 
     my $test  = shift;
     my $class = $test->class;
@@ -49,8 +48,6 @@ sub constructor : Tests(7) {
 
     is_deeply( $comps->get_comp_defs(), $default_comp_defs,
         'get_fields_pattern returns a correct set of attributes' );
-
-    pod_coverage_ok( $class, "$class is Pod covered" );
 
 }
 

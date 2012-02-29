@@ -1,6 +1,5 @@
 package Test::ActionFactory;
 
-use Test::Pod::Coverage;
 use Test::Most;
 use Siebel::Srvrmgr::ListParser;
 use base 'Test::Class';
@@ -13,7 +12,7 @@ sub startup : Tests(startup => 1) {
     use_ok $test->class;
 }
 
-sub xunda : Tests(4) {
+sub constructor : Tests(3) {
 
     my $test  = shift;
     my $class = $test->class;
@@ -36,8 +35,6 @@ sub xunda : Tests(4) {
         sub { $class->create('FooBar') },
 'create method raises an exception trying to instantiate an object from a invalid class'
     );
-
-    pod_coverage_ok( $class, "$class is Pod covered" );
 
 }
 

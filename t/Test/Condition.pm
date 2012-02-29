@@ -1,6 +1,5 @@
 package Test::Condition;
 
-use Test::Pod::Coverage;
 use Test::Most;
 use Siebel::Srvrmgr::ListParser;
 use base 'Test::Class';
@@ -12,7 +11,7 @@ sub startup : Tests(startup => 1) {
     use_ok $test->class;
 }
 
-sub constructor : Tests(19) {
+sub constructor : Tests(18) {
 
     my $test  = shift;
     my $class = $test->class;
@@ -63,8 +62,6 @@ sub constructor : Tests(19) {
 
     is( $condition->can_increment(), 0, 'can_increment must return false' );
 
-    pod_coverage_ok( $class, "$class is Pod covered" );
-
     ok( $condition->reset_cmd_counter(), 'reset_cmd_counter works' );
 
     is( $condition->get_cmd_counter(),
@@ -84,6 +81,7 @@ sub constructor : Tests(19) {
     }
 
     ok( $condition2->check(), 'check must return true if is_infinite is true' );
+
     is( $condition2->get_cmd_counter(), 0,
 'get_cmd_counter must return zero because of automatic reset from check method when is_infinite is true'
     );

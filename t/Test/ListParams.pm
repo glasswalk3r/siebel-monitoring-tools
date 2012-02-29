@@ -1,6 +1,5 @@
 package Test::ListParams;
 
-use Test::Pod::Coverage;
 use Test::Most;
 use base 'Test::Class';
 
@@ -12,7 +11,7 @@ sub startup : Tests(startup => 1) {
     use_ok $test->class;
 }
 
-sub constructor : Tests(9) {
+sub constructor : Tests(8) {
 
     my $test  = shift;
     my $class = $test->class;
@@ -39,6 +38,7 @@ sub constructor : Tests(9) {
     );
 
     isa_ok( $params, $class, '... and the object it returns' );
+
     is( $params->get_fields_pattern(),
         'A22A32A13A11A29A23A23A46', 'fields_patterns is correct' );
 
@@ -55,8 +55,6 @@ sub constructor : Tests(9) {
     my $comp_alias = 'bar';
     is( $params->get_comp_alias(),
         $comp_alias, "get_comp_alias returns $comp_alias" );
-
-    pod_coverage_ok( $class, "$class is Pod covered" );
 
 }
 

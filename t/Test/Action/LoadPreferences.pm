@@ -1,7 +1,6 @@
 package Test::Action::LoadPreferences;
 
 use base 'Test::Class';
-use Test::Pod::Coverage;
 use Test::Most;
 use Siebel::Srvrmgr::ListParser;
 use Storable;
@@ -13,7 +12,7 @@ sub startup : Tests(startup => 1) {
     use_ok $test->class;
 }
 
-sub constructor : Tests(4) {
+sub constructor : Tests(3) {
 
     my $test  = shift;
     my $class = $test->class;
@@ -31,8 +30,6 @@ sub constructor : Tests(4) {
         ),
         'the constructor should suceed'
     );
-
-    pod_coverage_ok( $class, "$class is Pod covered" );
 
     my @data = <Test::Action::LoadPreferences::DATA>;
     close(Test::Action::LoadPreferences::DATA);

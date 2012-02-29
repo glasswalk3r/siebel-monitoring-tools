@@ -1,6 +1,5 @@
 package Test::Buffer;
 
-use Test::Pod::Coverage;
 use Test::Most;
 use base 'Test::Class';
 
@@ -11,7 +10,7 @@ sub startup : Tests(startup => 1) {
     use_ok $test->class;
 }
 
-sub constructor : Tests(5) {
+sub constructor : Tests(4) {
 
     my $test  = shift;
     my $class = $test->class;
@@ -29,8 +28,6 @@ sub constructor : Tests(5) {
         'the constructor should suceed' );
 
     ok( $buffer->set_content( $data[0] ), 'is ok to add lines to it' );
-
-    pod_coverage_ok( $class, "$class is Pod covered" );
 
 }
 

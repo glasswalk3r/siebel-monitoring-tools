@@ -1,6 +1,5 @@
 package Test::Greetings;
 
-use Test::Pod::Coverage;
 use Test::Most;
 use base 'Test::Class';
 
@@ -11,7 +10,7 @@ sub startup : Tests(startup => 1) {
     use_ok $test->class;
 }
 
-sub constructor : Tests(10) {
+sub constructor : Tests(9) {
 
     my $test  = shift;
     my $class = $test->class;
@@ -46,8 +45,6 @@ sub constructor : Tests(10) {
 
     is( $hello->get_total_conn(),
         1, 'can get the correct number of available servers' );
-
-	pod_coverage_ok($class, "$class is Pod covered");
 
 }
 

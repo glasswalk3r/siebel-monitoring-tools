@@ -1,6 +1,5 @@
 package Test::OutputFactory;
 
-use Test::Pod::Coverage;
 use Test::Most;
 use base 'Test::Class';
 
@@ -11,7 +10,7 @@ sub startup : Tests(startup => 1) {
     use_ok $test->class;
 }
 
-sub constructor : Tests(10) {
+sub constructor : Tests(9) {
 
     my $test  = shift;
     my $class = $test->class;
@@ -26,8 +25,6 @@ sub constructor : Tests(10) {
             { data_type => 'foobar', raw_data => [], cmd_line => '' } );
     }
     'the create method fail with an invalid class';
-
-    pod_coverage_ok( $class, "$class is Pod covered" );
 
     ok( $class->can_create('list_comp'),     'list_comp is a valid type' );
     ok( $class->can_create('list_params'),   'list_params is a valid type' );
