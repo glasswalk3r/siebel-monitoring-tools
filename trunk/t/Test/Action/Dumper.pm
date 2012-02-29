@@ -1,7 +1,6 @@
 package Test::Action::Dumper;
 
 use base 'Test::Class';
-use Test::Pod::Coverage;
 use Test::Most;
 use Siebel::Srvrmgr::ListParser;
 
@@ -12,7 +11,7 @@ sub startup : Tests(startup => 1) {
     use_ok $test->class;
 }
 
-sub constructor : Tests(4) {
+sub constructor : Tests(3) {
 
     my $test  = shift;
     my $class = $test->class;
@@ -33,8 +32,6 @@ sub constructor : Tests(4) {
 
     isa_ok( $action->get_parser(), 'Siebel::Srvrmgr::ListParser',
         'get_parser returned object' );
-
-    pod_coverage_ok( $class, "$class is Pod covered" );
 
 }
 

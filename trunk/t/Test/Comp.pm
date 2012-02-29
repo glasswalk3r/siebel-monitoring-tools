@@ -1,6 +1,5 @@
 package Test::Comp;
 
-use Test::Pod::Coverage;
 use Test::Most;
 use base 'Test::Class';
 use Siebel::Srvrmgr::ListParser::Output::ListComp;
@@ -13,7 +12,7 @@ sub startup : Tests(startup => 1) {
     use_ok $test->class;
 }
 
-sub constructor : Tests(19) {
+sub constructor : Tests(18) {
 
     my $test  = shift;
     my $class = $test->class;
@@ -74,8 +73,6 @@ sub constructor : Tests(19) {
     is( $comp->cp_end_time(),  '', 'cp_end_time returns the correct value' );
     is( $comp->cp_status(),    '', 'cp_status returns the correct value' );
     is( $comp->cc_desc_text(), '', 'cc_desc_text returns the correct value' );
-
-    pod_coverage_ok( $class, "$class is Pod covered" );
 
 }
 

@@ -1,6 +1,7 @@
 package Siebel::Srvrmgr::Daemon::Action::Dumper;
 
 =pod
+
 =head1 NAME
 
 Siebel::Srvrmgr::Daemon::Action::Dumper - subclass for Siebel::Srvrmgr::Daemon::Action to dump buffer content

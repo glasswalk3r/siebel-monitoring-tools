@@ -1,6 +1,5 @@
 package Test::LoadPreferences;
 
-use Test::Pod::Coverage;
 use Test::Most;
 use base 'Test::Class';
 
@@ -12,7 +11,7 @@ sub startup : Tests(startup => 1) {
     use_ok $test->class;
 }
 
-sub constructor : Tests(6) {
+sub constructor : Tests(5) {
 
     my $test  = shift;
     my $class = $test->class;
@@ -39,8 +38,6 @@ sub constructor : Tests(6) {
     isa_ok( $prefs, $class, '... and the object it returns' );
 
 	is($prefs->get_location(), 'C:\Siebel\8.0\web client\BIN\.Siebel_svrmgr.pref', 'get_location returns the correct data');
-
-    pod_coverage_ok( $class, "$class is Pod covered" );
 
 }
 

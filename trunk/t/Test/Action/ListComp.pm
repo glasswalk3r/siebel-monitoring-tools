@@ -1,7 +1,6 @@
 package Test::Action::ListComp;
 
 use base 'Test::Class';
-use Test::Pod::Coverage;
 use Test::Most;
 use Siebel::Srvrmgr::ListParser;
 use Siebel::Srvrmgr::ListParser::Output::ListComp::Server;
@@ -13,7 +12,7 @@ sub startup : Tests(startup => 1) {
     use_ok $test->class;
 }
 
-sub constructor : Tests(7) {
+sub constructor : Tests(6) {
 
     my $test  = shift;
     my $class = $test->class;
@@ -39,8 +38,6 @@ sub constructor : Tests(7) {
 
     is( $action->get_dump_file(),
         $file, 'get_dump_file returns the correct string' );
-
-    pod_coverage_ok( $class, "$class is Pod covered" );
 
     ok( $action->set_dump_file($file), 'set_dump_file works' );
 

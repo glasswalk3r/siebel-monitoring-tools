@@ -76,7 +76,8 @@ Until now there is no method implementation that would return a parameter name a
 
 =head2 params
 
-An array reference with the parameters representing the output of the command C<list comp params>.
+An array reference with the parameters attributes representing the output of the command C<list comp params>. If this description looks confusing, is the same
+columns shown in the command C<configure list params>.
 
 =cut
 
@@ -292,9 +293,15 @@ sub parse {
 
 =pod
 
+=head1 CAVEATS
+
+On Win32 system the method C<load> inherited from the superclass is not recovering the related data of C<data_parsed> attribute, even when that data is saved with the C<store> method.
+
+Despite that, the L<Storable> C<retrieve> function is capable to recover such data (but not the class methods).
+
 =head1 SEE ALSO
 
-=over 2
+=over 3
 
 =item *
 
@@ -303,6 +310,10 @@ L<Siebel::Srvrmgr::ListParser::Output>
 =item *
 
 L<Moose>
+
+=item *
+
+L<Storable>
 
 =back
 

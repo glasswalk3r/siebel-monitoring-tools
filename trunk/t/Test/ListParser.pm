@@ -1,6 +1,5 @@
 package Test::ListParser;
 
-use Test::Pod::Coverage;
 use Test::Most;
 use base 'Test::Class';
 
@@ -11,7 +10,7 @@ sub startup : Tests(startup => 1) {
     use_ok $test->class;
 }
 
-sub constructor : Tests(9) {
+sub constructor : Tests(8) {
 
     my $test  = shift;
     my $class = $test->class;
@@ -30,8 +29,6 @@ sub constructor : Tests(9) {
         '... and the constructor should succeed' );
 
     isa_ok( $parser, $class, '... and the object it returns' );
-
-    pod_coverage_ok( $class, "$class is Pod covered" );
 
     ok( $parser->parse( \@data ), 'parse method works' );
 

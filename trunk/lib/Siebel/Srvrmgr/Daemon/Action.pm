@@ -119,6 +119,10 @@ sub do {
 
 =pod
 
+=head1 CAVEATS
+
+This class may be changed to a role instead of a superclass in the future since it's methods could be used by different classes.
+
 =head1 SEE ALSO
 
 =over 6

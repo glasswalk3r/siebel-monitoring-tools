@@ -1,6 +1,5 @@
 package Test::ListComp;
 
-use Test::Pod::Coverage;
 use Test::Most;
 use base 'Test::Class';
 
@@ -12,7 +11,7 @@ sub startup : Tests(startup => 1) {
     use_ok $test->class;
 }
 
-sub constructor : Tests(10) {
+sub constructor : Tests(9) {
 
     my $test  = shift;
     my $class = $test->class;
@@ -39,6 +38,7 @@ sub constructor : Tests(10) {
     );
 
     isa_ok( $comps, $class, '... and the object it returns' );
+
     is(
         $comps->get_fields_pattern(),
         'A12A19A41A10A14A13A19A18A14A19A18A21A13A11A14A14',
@@ -63,8 +63,6 @@ sub constructor : Tests(10) {
 
     isa_ok( $comps->get_server( $comps->get_last_server() ),
         $server_class, "get_last_server returns a $server_class object" );
-
-	pod_coverage_ok($class, "$class is Pod covered");
 
 }
 
