@@ -12,7 +12,7 @@ my %config = (
         MooseX::Storage              => 0.30,
         Moose::Util::TypeConstraints => 2.0402,
         MooseX::Params::Validate     => 0.15,
-        MooseX::AbstractFactory      => 0.3.2
+        MooseX::AbstractFactory      => 0.004000
     },
     BUILD_REQUIRES => {
         Test::Exception     => 0.27,
@@ -32,7 +32,6 @@ my %config = (
         },
     },
     LICENSE => 'GNU General Public License (GPL)',
-    NO_META => 1,
     dist    => { SUFFIX => '.gz', COMPRESS => 'gzip --best' },
     (
         $] >= 5.010001
@@ -44,5 +43,7 @@ my %config = (
           )
         : ()
     ),
+    NO_MYMETA => 1
 );
 
+WriteMakefile(%config);
