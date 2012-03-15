@@ -16,7 +16,7 @@ my %config = (
     },
     BUILD_REQUIRES => {
         Test::Exception     => 0.27,
-        Test::More          => 0,
+        Test::Most          => 0.25,
         Test::Pod           => 1.22,
         Test::Pod::Coverage => 1.08,
         Test::Output        => 1.01
