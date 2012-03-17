@@ -102,7 +102,6 @@ identify the type of output received, giving it to the proper parse and processi
 Every C<do> method must return true (1) if output was used, otherwise false (0);
 
 Actually this method will only validate if the parameter is an array reference or not. Subclasses must override
-
 C<do> to actually to something with the array reference content (see C<override> method in L<Moose::Manual::MethodModifiers>).
 
 =cut
