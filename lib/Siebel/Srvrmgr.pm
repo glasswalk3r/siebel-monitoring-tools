@@ -1,6 +1,6 @@
 package Siebel::Srvrmgr;
 
-our $VERSION = '0.01';
+our $VERSION = '0.03';
 
 =pod
 

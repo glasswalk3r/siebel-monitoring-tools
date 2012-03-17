@@ -24,7 +24,7 @@ use Siebel::Srvrmgr::Regexes qw(SRVRMGR_PROMPT CONN_GREET);
 
 =head1 DESCRIPTION
 
-Siebel::Srvrmgr::ListParser is a state machine parser created to parse output of "list" commands executed through srvrmgr program.
+Siebel::Srvrmgr::ListParser is a state machine parser created to parse output of "list" commands executed through C<srvrmgr> program.
 
 The parser can idenfity different types of commands and their outputs from a buffer given as parameter to the module. Foreach 
 type of output identified an L<Siebel::Srvrmgr::ListParser::Buffer> object will be created, identifying which type of command
@@ -35,7 +35,7 @@ specific L<Siebel::Srvrmgr::ListParser::Output> objects based on the identified 
 parse the raw output and populate attributes based on this information. After this is easier to obtain the information from
 those subclasses of L<Siebel::Srvrmgr::ListParser::Output>.
 
-Siebel::Srvrmgr::ListParser expects to receive output from srvrmgr program in an specific format and is able to idenfity a
+Siebel::Srvrmgr::ListParser expects to receive output from C<srvrmgr> program in an specific format and is able to idenfity a
 limited number of commands and their outputs, raising an exception when those types cannot be identified. See subclasses
 of L<Siebel::Srvrmgr::ListParser::Output> to see which classes/types are available.
 
@@ -72,7 +72,7 @@ has 'has_tree' =>
 
 =head2 prompt_regex
 
-A regular expression reference of how the srvrmgr prompt looks like.
+A regular expression reference of how the C<srvrmgr> prompt looks like.
 
 =cut
 
@@ -792,7 +792,7 @@ are details regarding how the settings of srvrmgr are expect for output of list 
 
 =head1 SEE ALSO
 
-=over 4 
+=over 5 
 
 =item *
 
@@ -801,6 +801,10 @@ L<Moose>
 =item *
 
 L<FSA::Rules>
+
+=item *
+
+L<Siebel::Srvrmgr::ListParser::Output>
 
 =item *
 

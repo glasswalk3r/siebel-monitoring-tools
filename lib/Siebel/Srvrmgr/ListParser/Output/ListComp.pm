@@ -51,7 +51,7 @@ can see below:
 		CC_INCARN_NO (23):  Incarnation Number
 		CC_DESC_TEXT (251):  Component description
 
-This should be the default configuration, but it will be necessary to have the configuration below
+This output above should be the default but it will be necessary to have the configuration below
 (check the difference of size for each column):
 
 	srvrmgr> configure list comp
@@ -76,7 +76,7 @@ because L<Siebel::Srvrmgr::ListParser::Output::ListComp::Comp> will expect to ha
 truncated. This class will check those columns names and order and it will raise an exception if it found something different
 from the expected.
 
-To enable that, execute the following commands in the srvrmgr program:
+To enable that, execute the following commands in the C<srvrmgr> program:
 
 	set ColumnWidth true
 
