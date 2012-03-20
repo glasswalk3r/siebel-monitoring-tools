@@ -10,7 +10,7 @@ use Siebel::Srvrmgr::Daemon;
 use Storable qw(retrieve); # shouldn't be necessary, but there is a bug in Win32 system that requires it
 use Siebel::Srvrmgr::ListParser::Output::ListComp::Server;
 use Siebel::Srvrmgr::ListParser::Output::ListParams;
-use File::Spec::Functions qw(tmpdir);
+use File::Spec::Functions qw(tmpdir catfile);
 
 # be sure to edit the variables below and the key values in the new() method
 # as appropriated to your environment
@@ -90,7 +90,9 @@ foreach my $comp_alias ( @{$server_comps} ) {
 }
 
 # simple cache between the calls
-unless ( -e $tmp_dir . 'EIM-listParams.sto' ) {
+my @params_files = glob( catfile( $tmp_dir, '*-listParams.sto' ) );
+
+unless (@params_files) {
 
     $daemon->set_commands( \@new_commands );
     $daemon->setup_commands();
@@ -112,7 +114,7 @@ foreach my $comp_alias ( @{$server_comps} ) {
 
 # this will not work in Win32, that's why is commented, see CAVEATS of the class POD
 #    my $params = Siebel::Srvrmgr::ListParser::Output::ListParams->load( $tmp_dir . $comp_alias . '-listParams.sto' );
-    my $params = retrieve( $tmp_dir . $comp_alias . '-listParams.sto' );
+    my $params = retrieve( catfile( $tmp_dir, ( $comp_alias . '-listParams.sto' ) ) );
 
     my @params;
 
