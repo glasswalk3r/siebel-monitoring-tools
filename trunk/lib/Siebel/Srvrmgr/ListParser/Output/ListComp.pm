@@ -56,7 +56,7 @@ This output above should be the default but it will be necessary to have the con
 
 	srvrmgr> configure list comp
 		SV_NAME (31):  Server name
-		CC_ALIAS (21):  Component alias
+		CC_ALIAS (31):  Component alias
 		CC_NAME (76):  Component name
 		CT_ALIAS (31):  Component type alias
 		CG_ALIAS (31):  Component GRoup Alias
