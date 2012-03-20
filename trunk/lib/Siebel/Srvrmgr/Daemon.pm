@@ -86,15 +86,19 @@ our $SIG_PIPE   = 0;
 
 =head2 server
 
-This is a string representing the servername where the instance should connect. This is a required attribute during
+This is a string representing the servername where the instance should connect. This is a optional attribute during
 object creation with the C<new> method.
+
+Beware that the C<run> method will verify if the C<server> attribute has a defined value or not: if it has, the C<run>
+method will try to connect to the Siebel Enterprise specifying the given Siebel Server. If not, the method will try to connect
+to the Enterprise only, not specifying which Siebel Server to connect.
 
 =cut
 
 has server => (
     isa      => 'Str',
     is       => 'rw',
-    required => 1,
+    required => 0,
     reader   => 'get_server',
     writer   => 'set_server'
 );
@@ -509,13 +513,35 @@ sub run {
 
         }
 
-        $self->_set_pid(
-            open2(
-                $rdr,                    $wtr, $self->get_bin(),     '/e',
-                $self->get_enterprise(), '/g', $self->get_gateway(), '/u',
-                $self->get_user(),       '/p', $self->get_password()
-            )
-        );
+        if ( defined( $self->get_server() ) ) {
+
+            $self->_set_pid(
+                open2(
+                    $rdr,                    $wtr,
+                    $self->get_bin(),        '/e',
+                    $self->get_enterprise(), '/g',
+                    $self->get_gateway(),    '/u',
+                    $self->get_user(),       '/p',
+                    $self->get_password(),   '/s',
+                    $self->get_server()
+                )
+            );
+
+        }
+        else {
+
+            $self->_set_pid(
+                open2(
+                    $rdr,                    $wtr,
+                    $self->get_bin(),        '/e',
+                    $self->get_enterprise(), '/g',
+                    $self->get_gateway(),    '/u',
+                    $self->get_user(),       '/p',
+                    $self->get_password()
+                )
+            );
+
+        }
 
 # :TODO:29/2/2012 18:31:56:: open2 is still returning a PID on Win32 even if the execution fails: must find a way to identify the error and return false here
         $self->_set_write($wtr);
@@ -556,6 +582,15 @@ sub run {
             exit if ($SIG_CAUGHT);
 
             s/\r\n//;
+
+            # caught an error
+            if (/^SBL\-\w{3}\-\d+/) {
+
+                warn "Caught an error from srvrmgr! Error message is:\n";
+                warn "$_\n";
+                last READ;
+
+            }
 
 # :TRICKY:29/06/2011 21:23:11:: bufferization in srvrmgr.exe ruins the day: the prompt will never come out unless a little push is given
             if (/^\d+\srows?\sreturned\./) {
