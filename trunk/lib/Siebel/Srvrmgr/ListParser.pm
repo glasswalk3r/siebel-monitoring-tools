@@ -432,7 +432,8 @@ sub parse {
     my $fsa = FSA::Rules->new(
         first_line => {
             do => sub {
-                print "Searching for useful data\n";
+                print "Searching for useful data\n"
+                  if ( $ENV{SIEBEL_SRVRMGR_DEBUG} );
             },
             rules => [
                 command_submission => sub {

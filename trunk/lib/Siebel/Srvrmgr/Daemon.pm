@@ -733,20 +733,24 @@ sub DEMOLISH {
         syswrite $self->get_write(), "exit\n";
         syswrite $self->get_write(), "\n";
 
-        my $rdr = $self->get_read()
-          ;    # diamond operator does not like method calls inside it
+        if ( $ENV{SIEBEL_SRVRMGR_DEBUG} ) {
 
-        while (<$rdr>) {
+            my $rdr = $self->get_read()
+              ;    # diamond operator does not like method calls inside it
 
-            if (/^Disconnecting from server\./) {
+            while (<$rdr>) {
 
-                print $_;
-                last;
+                if (/^Disconnecting from server\./) {
 
-            }
-            else {
+                    print $_;
+                    last;
 
-                print $_;
+                }
+                else {
+
+                    print $_;
+
+                }
 
             }
 
@@ -759,12 +763,14 @@ sub DEMOLISH {
 
             sleep(5);
 
-            print "srvrmgr is still running, trying to kill it\n";
+            print "srvrmgr is still running, trying to kill it\n"
+              if ( $ENV{SIEBEL_SRVRMGR_DEBUG} );
 
             my $ret = waitpid( $self->get_pid(), WNOHANG );
 
             print
-"ripped PID = $ret, status = $?, child error native = ${^CHILD_ERROR_NATIVE}\n";
+"ripped PID = $ret, status = $?, child error native = ${^CHILD_ERROR_NATIVE}\n"
+              if ( $ENV{SIEBEL_SRVRMGR_DEBUG} );
 
         }
 
