@@ -58,9 +58,6 @@ override 'do' => sub {
 
     my $tree = $self->get_parser()->get_parsed_tree();
 
-    my @comps
-      ;   # array of Siebel::Srvrmgr::ListParser::Output::ListComp::Comp objects
-
     foreach my $obj ( @{$tree} ) {
 
         if ( $obj->isa('Siebel::Srvrmgr::ListParser::Output::ListComp') ) {
