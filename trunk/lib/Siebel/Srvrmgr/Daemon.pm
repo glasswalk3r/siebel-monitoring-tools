@@ -543,14 +543,28 @@ sub run {
 
         }
 
-# :TODO:29/2/2012 18:31:56:: open2 is still returning a PID on Win32 even if the execution fails: must find a way to identify the error and return false here
+ # :WORKAROUND:19/4/2012 19:38:04:: somehow the child process of srvrmgr has to be waited for one second and receive one kill 0 signal before
+ # it dies when something goes wrong
+        sleep 1;
+        kill 0, $self->get_pid();
+
+        unless ( kill 0, $self->get_pid() ) {
+
+            print "child error native = ${^CHILD_ERROR_NATIVE}\n"
+              if ( $ENV{SIEBEL_SRVRMGR_DEBUG} );
+
+            return 0;
+
+        }
+
         $self->_set_write($wtr);
         $self->_set_read($rdr);
 
     }
     else {
 
-        print 'Reusing ', $self->get_pid(), "\n";
+        print 'Reusing ', $self->get_pid(), "\n"
+          if ( $ENV{SIEBEL_SRVRMGR_DEBUG} );
 
     }
 
@@ -588,6 +602,14 @@ sub run {
 
                 warn "Caught an error from srvrmgr! Error message is:\n";
                 warn "$_\n";
+
+                if (/^SBL-ADM-02049.*/) {
+
+                    warn "Unrecoverable failure: aborting...\n";
+                    return 0;
+
+                }
+
                 last READ;
 
             }
