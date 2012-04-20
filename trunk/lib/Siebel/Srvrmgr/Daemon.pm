@@ -508,8 +508,7 @@ sub run {
 
         unless ( -e $self->get_bin() ) {
 
-            warn 'Cannot find program ' . $self->get_bin() . " to execute\n";
-            return 0;
+            die 'Cannot find program ' . $self->get_bin() . " to execute\n";
 
         }
 
