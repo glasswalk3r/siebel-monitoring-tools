@@ -19,6 +19,7 @@ Siebel::Srvrmgr::Daemon::Action::ListComps - subclass of Siebel::Srvrmgr::Daemon
 
 use Moose;
 use namespace::autoclean;
+use Siebel::Srvrmgr::Daemon::ActionStash;
 
 extends 'Siebel::Srvrmgr::Daemon::Action';
 
@@ -61,13 +62,16 @@ override 'do' => sub {
 
     my $tree = $self->get_parser()->get_parsed_tree();
 
+    my %checked_comps;
+
     foreach my $obj ( @{$tree} ) {
 
         if ( $obj->isa('Siebel::Srvrmgr::ListParser::Output::ListComp') ) {
 
             my $servers_ref = $obj->get_servers();
 
-            warn "Could not fetch servers\n"
+            die
+"Could not fetch servers from the Siebel::Srvrmgr::ListParser::Output::ListComp object returned by the parser"
               unless ( scalar( @{$servers_ref} ) > 0 );
 
             foreach my $servername ( @{$servers_ref} ) {
@@ -108,50 +112,66 @@ override 'do' => sub {
 
                                 if ($is_ok) {
 
-                                    print "comp is ok\n";
+                                    $checked_comps{$servername}
+                                      ->{ $exp_comp->{name} } = 1;
 
                                 }
                                 else {
 
-                                    print 'invalid status got for ',
+                                    $checked_comps{$servername}
+                                      ->{ $exp_comp->{name} } = 0;
+
+                                    warn 'invalid status got for ',
                                       $exp_comp->{name}, ' ',
-                                      $comp->cp_disp_run_state(),
-                                      "\n";
+                                      $comp->cp_disp_run_state(), "\n"
+                                      if ( $ENV{SIEBEL_SRVRMGR_DEBUG} );
 
                                 }
 
-							}
+                            }
                             else {
-                                print 'Could not find any component with name ',
+
+                                die 'Could not find any component with name ',
                                   $exp_comp->{name}, "\n"
 
                             }
 
                         }
 
-                    }
+                    }    # end of foreach comp
                     else {
 
-                        print "Invalid servername returned\n";
+                        die "Invalid servername returned\n";
 
                     }
-
-                    return 1;
 
                 }
                 else {
 
-                    print "could not fetch $servername data\n";
+                    die "could not fetch $servername data\n";
 
                 }
 
-            }
+            }    # end of foreach server
 
         }
 
-    }    # end of foreach block
+    }    # end of foreach Siebel::Srvrmgr::ListParser::Output::ListComp object
 
-    return 0;
+    # found some servers
+    if ( keys(%checked_comps) ) {
+
+        my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
+        $stash->set_stash( \%checked_comps );
+
+        return 1;
+
+    }
+    else {
+
+        return 0;
+
+    }
 
 };
 

@@ -512,6 +512,7 @@ sub run {
 
         }
 
+ # :TODO:25/4/2012 20:07:59:: try IPC::Open3 to try to read the STDERR for errors too
         if ( defined( $self->get_server() ) ) {
 
             $self->_set_pid(
@@ -542,17 +543,15 @@ sub run {
 
         }
 
- # :WORKAROUND:19/4/2012 19:38:04:: somehow the child process of srvrmgr has to be waited for one second and receive one kill 0 signal before
- # it dies when something goes wrong
+# :WORKAROUND:19/4/2012 19:38:04:: somehow the child process of srvrmgr has to be waited for one second and receive one kill 0 signal before
+# it dies when something goes wrong
         sleep 1;
         kill 0, $self->get_pid();
 
         unless ( kill 0, $self->get_pid() ) {
 
-            print "child error native = ${^CHILD_ERROR_NATIVE}\n"
-              if ( $ENV{SIEBEL_SRVRMGR_DEBUG} );
-
-            return 0;
+            die $self->get_bin()
+              . " process returned a fatal error: ${^CHILD_ERROR_NATIVE}\n";
 
         }
 
@@ -596,16 +595,33 @@ sub run {
 
             s/\r\n//;
 
-            # caught an error
+            # caught an specific error
             if (/^SBL\-\w{3}\-\d+/) {
 
-                warn "Caught an error from srvrmgr! Error message is:\n";
-                warn "$_\n";
+                if ( $ENV{SIEBEL_SRVRMGR_DEBUG} ) {
+
+                    warn "Caught an error from srvrmgr! Error message is:\n";
+                    warn "$_\n";
+
+                }
+
+                # could not find the Siebel server
+                if (/^SBL-ADM-02043.*/) {
+
+                    die "Unrecoverable failure... aborting...\n";
+
+                }
+
+				# could not find the Siebel Enterprise
+                if (/^SBL-ADM-02071.*/) {
+
+                    die "Unrecoverable failure... aborting...\n";
+
+                }
 
                 if (/^SBL-ADM-02049.*/) {
 
-                    warn "Unrecoverable failure: aborting...\n";
-                    return 0;
+                    die "Unrecoverable failure... aborting...\n";
 
                 }
 
