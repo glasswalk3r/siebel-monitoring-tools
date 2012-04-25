@@ -12,7 +12,8 @@ my %config = (
         MooseX::Storage              => 0.30,
         Moose::Util::TypeConstraints => 2.0402,
         MooseX::Params::Validate     => 0.15,
-        MooseX::AbstractFactory      => 0.004000
+        MooseX::AbstractFactory      => 0.004000,
+        MooseX::Singleton            => 0.27
     },
     BUILD_REQUIRES => {
         Test::Exception     => 0.27,
