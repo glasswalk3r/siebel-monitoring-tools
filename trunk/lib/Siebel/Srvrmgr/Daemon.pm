@@ -512,7 +512,7 @@ sub run {
 
         }
 
- # :TODO:25/4/2012 20:07:59:: try IPC::Open3 to try to read the STDERR for errors too
+# :TODO:25/4/2012 20:07:59:: try IPC::Open3 to try to read the STDERR for errors too
         if ( defined( $self->get_server() ) ) {
 
             $self->_set_pid(
@@ -612,7 +612,7 @@ sub run {
 
                 }
 
-				# could not find the Siebel Enterprise
+                # could not find the Siebel Enterprise
                 if (/^SBL-ADM-02071.*/) {
 
                     die "Unrecoverable failure... aborting...\n";
@@ -798,7 +798,8 @@ sub DEMOLISH {
 
         if ( kill 0, $self->get_pid() ) {
 
-            sleep(5);
+# :TODO:26/4/2012 19:33:24:: this hardcode of sleep should be removed or used as a parameter
+            sleep(1);
 
             print "srvrmgr is still running, trying to kill it\n"
               if ( $ENV{SIEBEL_SRVRMGR_DEBUG} );
@@ -818,7 +819,7 @@ sub DEMOLISH {
 sub _terminate {
 
     my ($sig) = @_;
-    warn "The Interrupt was caught: <$sig>\n";
+    warn "The Interrupt was caught: <$sig>\n" if ( $ENV{SIEBEL_SRVRMGR_DEBUG} );
     $SIG_CAUGHT = 1;
 
 }
