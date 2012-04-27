@@ -42,7 +42,7 @@ have to expand it to a full Action subclass name available from this distributio
 will be expanded to "Siebel::Srvrmgr::Daemon::Action::LoadPreferences" and try to instantiate such object.
 
 If a full class name (with double semicolon separators) is given, the factory will try to instantiate that object and return it. That should
-make possible to create outsite the distribution directory.
+make possible to create objects from classes outside the distribution directory.
 
 =cut
 

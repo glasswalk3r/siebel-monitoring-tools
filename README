@@ -66,9 +66,3 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with Siebel Monitoring Tools.  If not, see <http://www.gnu.org/licenses/>.
-
-
-This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself, either Perl version 5.8.8 or,
-at your option, any later version of Perl 5 you may have available.
-

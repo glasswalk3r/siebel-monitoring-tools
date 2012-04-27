@@ -4,16 +4,22 @@ package Siebel::Srvrmgr::Daemon::Action::CheckComps;
 
 =head1 NAME
 
-Siebel::Srvrmgr::Daemon::Action::ListComps - subclass of Siebel::Srvrmgr::Daemon::Action to deal with list comp output
+Siebel::Srvrmgr::Daemon::Action::CheckComps - subclass of Siebel::Srvrmgr::Daemon::Action to verify components status
 
 =head1 SYNOPSIS
 
-	use Siebel::Srvrmgr::Daemon::Action::ListComps;
+	use Siebel::Srvrmgr::Daemon::Action::CheckComps;
 
-	my $action = Siebel::Srvrmgr::Daemon::Action::ListComps->new({  parser => Siebel::Srvrmgr::ListParser->new(), 
-																	params => [$myDumpFile]});
+    my $return_data = Siebel::Srvrmgr::Daemon::ActionStash->instance();
 
-	$action->do(\@output);
+    my $comps = [ {name => 'SynchMgr', ok_status => 'Running'}, { name => 'WfProcMgr', ok_status => 'Running'} ];
+
+	my $action = Siebel::Srvrmgr::Daemon::Action::CheckComps->new({  parser => Siebel::Srvrmgr::ListParser->new(), 
+																	 params => ['myserver', $comps ] });
+
+	$action->do();
+
+    # do something with $return_data
 
 =cut
 
@@ -28,19 +34,16 @@ extends 'Siebel::Srvrmgr::Daemon::Action';
 =head1 DESCRIPTION
 
 This subclass of L<Siebel::Srvrmgr::Daemon::Action> will try to find a L<Siebel::Srvrmgr::ListParser::Output::ListComp> object in the given array reference
-given as parameter to the C<do> method and stores the parsed data from this object in a serialized file. 
+given as parameter to the C<do> method and compares the status of the components with the array reference given as parameter.
+
+The C<do> method of C<Siebel::Srvrmgr::Daemon::Action::CheckComps> uses L<Siebel::Srvrmgr::Daemon::ActionStash> to enable the program that created the object 
+instance to be able to fetch the information returned.
 
 =head1 METHODS
 
 =head2 do
 
-This methods expects an array reference as parameter containing a given command output.
-
-It will try to identify the first ocurrence of a L<Siebel::Srvrmgr::ListParser::Output::ListComp>: once one is found,
-it will call the C<get_servers> method from this class and then iterate over the servers (objects from the class L<Siebel::Srvrmgr::ListParser::Output::ListComp::Server>) 
-calling their respective C<store> method to serialize themselves into the OS filesystem.
-
-The name of the filename used for data serialization will be the value of C<dump_file> append with the character '_' and the server name.
+blablabla.
 
 This method will return 1 if this operation was executed sucessfuly, 0 otherwise.
 
@@ -195,7 +198,7 @@ L<Siebel::Srvrmgr::Daemon::Action>
 
 =item *
 
-L<Siebel::Srvrmgr::Daemon::Action::Serializable>
+L<Siebel::Srvrmgr::Daemon::Action::Stash>
 
 =back
 
