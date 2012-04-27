@@ -624,7 +624,14 @@ sub run {
                     die "Unrecoverable failure... aborting...\n";
 
                 }
+				
+				# SBL-ADM-02751: Unable to open file 
+				if (/^SBL-ADM-02751.*/) {
 
+                    die "Unrecoverable failure... aborting...\n";
+
+                }
+				
                 last READ;
 
             }
