@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<servers>
+  <server name="foobar">
+    <components>
+      <component name="ClientAdmin" description="Client Administration" ComponentGroup="System" OKStatus="Ativado" criticality="1"/>
+      <component name="CommConfigMgr" description="Communications Configuration Manager" ComponentGroup="CommMgmt" criticality="1"/>
+      <component name="CommOutboundMgr" description="Communications Outbound Manager" ComponentGroup="CommMgmt" criticality="1"/>
+      <component name="CommSessionMgr" description="Communications Session Manager" ComponentGroup="CommMgmt" criticality="1"/>
+      <component name="DbXtract" description="Database Extract" ComponentGroup="Remote" criticality="5"/>
+      <component name="EAIObjMgr_enu" description="EAI Object Manager (ENU)" ComponentGroup="EAI" criticality="1"/>
+      <component name="MailMgr" description="Email Manager" ComponentGroup="CommMgmt" criticality="1"/>
+      <component name="EIM" description="Enterprise Integration Mgr" ComponentGroup="EAI" criticality="5"/>
+      <component name="FSMSrvr" description="File System Manager" ComponentGroup="System" OKStatus="Ativado" criticality="5"/>
+      <component name="GenNewDb" description="Generate New Database" ComponentGroup="Remote" criticality="1"/>
+      <component name="GenTrig" description="Generate Triggers" ComponentGroup="Workflow" criticality="1"/>
+      <component name="PageMgr" description="Page Manager" ComponentGroup="CommMgmt" criticality="1"/>
+      <component name="PDbXtract" description="Parallel Database Extract" ComponentGroup="Remote" criticality="1"/>
+      <component name="ServerMgr" description="Server Manager" ComponentGroup="System" criticality="5"/>
+      <component name="SRBroker" description="Server Request Broker" ComponentGroup="System" criticality="5"/>
+      <component name="SRProc" description="Server Request Processor" ComponentGroup="System" criticality="5"/>
+      <component name="SynchMgr" description="Synchronization Manager" ComponentGroup="Remote" criticality="5"/>
+      <component name="TxnMerge" description="Transaction Merger" ComponentGroup="Remote" OKStatus="Em execução" criticality="5"/>
+      <component name="TxnProc" description="Transaction Processor" ComponentGroup="Remote" OKStatus="Em execução" criticality="5"/>
+      <component name="TxnRoute" description="Transaction Router" ComponentGroup="Remote" OKStatus="Em execução" criticality="5"/>
+      <component name="UpgKitBldr" description="Upgrade Kit Builder" ComponentGroup="SiebAnywhere" criticality="1"/>
+      <component name="WorkActn" description="Workflow Action Agent" ComponentGroup="Workflow" criticality="1"/>
+      <component name="WorkMon" description="Workflow Monitor Agent" ComponentGroup="Workflow" criticality="1"/>
+      <component name="WfProcBatchMgr" description="Workflow Process Batch Manager" ComponentGroup="Workflow" criticality="1"/>
+      <component name="WfProcMgr" description="Workflow Process Manager" ComponentGroup="Workflow" criticality="5"/>
+      <component name="ePharmaObjMgr_ptb" description="ePharma Object Manager (PTB)" ComponentGroup="LifeSciences" criticality="5"/>
+      <component name="ePharmaObjMgr_esn" description="ePharma Object Manager (ESN)" ComponentGroup="LifeSciences" criticality="1"/>
+      <component name="ePharmaObjMgr_enu" description="ePharma Object Manager (ENU)" ComponentGroup="LifeSciences" criticality="5"/>
+    </components>
+    <componentsGroups>
+      <componentGroup name="Workflow" defaultOKStatus="Em execução|Ativado"/>
+      <componentGroup name="CommMgmt" defaultOKStatus="Em execução|Ativado"/>
+      <componentGroup name="EAI" defaultOKStatus="Ativado"/>
+      <componentGroup name="System" defaultOKStatus="Em execução"/>
+      <componentGroup name="Remote" defaultOKStatus="Em execução|Ativado"/>
+      <componentGroup name="LifeSciences" defaultOKStatus="Em execução|Ativado"/>
+      <componentGroup name="SiebAnywhere" defaultOKStatus="Ativado"/>
+    </componentsGroups>
+  </server>
+</servers>
