@@ -75,11 +75,11 @@ eval {
     $daemon->run();
 };
 
-$np->nagios_die('Could not check components state') if ( $@ );
+$np->nagios_die('Could not check components state: ' . $@) if ( $@ );
 
 my $status = calc_status( $comps, $stash, $siebel_server );
 
-$np->nagios_die('Could not check components state') if ( $status == -1 );
+$np->nagios_die('Could not check components state: server or component not found') if ( $status == -1 );
 
 my $threshold = $np->set_thresholds(
     warning  => $np->opts->warning(),
@@ -142,12 +142,11 @@ sub parse_config {
     my $ref    = XMLin($config);
 
     # hash ref
-    my $server   = $ref->{server}->{name};
-    my $defaults = $ref->{server}->{componentsGroups};
+    my $defaults = $ref->{server}->{componentsGroups}->{componentGroup};
 
     my @comps;
 
-    my $xml_comps = $ref->{server}->{components};
+    my $xml_comps = $ref->{server}->{components}->{component};
 
     foreach my $comp_name ( keys( %{$xml_comps} ) ) {
 
