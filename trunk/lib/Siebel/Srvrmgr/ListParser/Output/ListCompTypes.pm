@@ -136,8 +136,8 @@ sub parse {
                 }
                 else {
 
-                    die
-                      "Cannot continue without having fields pattern defined\n";
+                    confess
+                      "Cannot continue without having fields pattern defined";
 
                 }
 
@@ -146,6 +146,9 @@ sub parse {
                 my $list_len = scalar(@fields_values);
 
                 my $columns_ref = $self->get_attribs();
+
+                confess "Could not retrieve the name of the fields"
+                  unless ( defined($columns_ref) );
 
                 if (@fields_values) {
 

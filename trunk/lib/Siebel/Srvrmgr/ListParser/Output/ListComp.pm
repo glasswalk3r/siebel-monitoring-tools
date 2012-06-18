@@ -38,7 +38,7 @@ can see below:
 		CC_ALIAS (31):  Component alias
 		CC_NAME (76):  Component name
 		CT_ALIAS (31):  Component type alias
-		CG_ALIAS (31):  Component GRoup Alias
+		CG_ALIAS (31):  Component Group Alias
 		CC_RUNMODE (31):  Component run mode (enum)
 		CP_DISP_RUN_STATE (61):  Component display run state
 		CP_NUM_RUN_TASKS (11):  Current number of running tasks
@@ -338,6 +338,9 @@ sub parse {
                 my $list_len = scalar(@fields_values);
 
                 my $columns_ref = $self->get_comp_attribs();
+
+                confess "Cannot continue without defining fields names"
+                  unless ( defined($columns_ref) );
 
                 if (@fields_values) {
 

@@ -1,6 +1,8 @@
 package Test::Daemon;
 
+use Cwd;
 use Test::Most;
+use File::Spec;
 use base 'Test::Class';
 
 sub class { 'Siebel::Srvrmgr::Daemon' }
@@ -44,14 +46,16 @@ sub constructor : Tests(27) {
 
     my $is_infinite = 0;
 
-	# this data structure will make more sense when saw in use by the following foreach loop
+    my $cmd = File::Spec->catfile( getcwd(), 't', 'srvrmgr-mock.pl' );
+
+# this data structure will make more sense when saw in use by the following foreach loop
     my @data = (
         [qw(get_server set_server foo)],
         [qw(get_gateway set_gateway bar)],
         [qw(get_enterprise set_enterprise foobar)],
         [qw(get_user set_user sadmin)],
         [qw(get_password set_password my_pass)],
-        [qw(get_bin set_bin srvrmgr)],
+        [ 'get_bin', 'set_bin', $cmd ],
         [ qw(get_wait_time set_wait_time 1)
         ] # :TRICKY:29/2/2012 17:50:36:: set_wait_time will return the value passed as parameter, so the ok function will complain if passed 0
     );
@@ -109,13 +113,24 @@ sub constructor : Tests(27) {
 
     ok( $daemon->setup_commands(), 'setup_commands works' );
 
-	TODO: {
-	
-		local $TODO = 'must implement a srvrmgr mock to test run method';
+    ok( $daemon->run(), 'run method executes successfuly' );
 
-		ok($daemon->run(), 'run method executes successfuly');
-	
-	}
+    # removes the dump files
+    my $dir = getcwd();
+
+    opendir( DIR, $dir ) or die "Cannot read $dir: $!\n";
+    my @files = readdir(DIR);
+    close(DIR);
+
+    foreach my $file (@files) {
+
+        if ( $file =~ /^dump\w/ ) {
+
+            unlink $file or die "Cannot remove $file: $!\n";
+
+        }
+
+    }
 
 }
 
