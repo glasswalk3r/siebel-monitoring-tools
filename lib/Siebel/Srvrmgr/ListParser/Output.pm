@@ -23,6 +23,7 @@ use Moose;
 
 use MooseX::Storage;
 use namespace::autoclean;
+use Carp;
 
 with Storage( io => 'StorableFile' );
 

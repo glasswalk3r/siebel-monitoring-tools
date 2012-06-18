@@ -74,11 +74,11 @@ use POSIX ":sys_wait_h";
 # :TODO:29/2/2012 18:49:06:: implement debug messages
 
 # both variables below exist to deal with requested termination of the program gracefully
-$SIG{INT}  = \&_terminate;
-$SIG{PIPE} = \&_terminate;
+$SIG{INT}  = \&_term_INT;
+$SIG{PIPE} = \&_term_PIPE;
 
-our $SIG_CAUGHT = 0;
-our $SIG_PIPE   = 0;
+our $SIG_INT  = 0;
+our $SIG_PIPE = 0;
 
 =pod
 
@@ -258,7 +258,7 @@ has read_fh => (
 
 =pod
 
-=head2 pin
+=head2 pid
 
 An integer presenting the process id (PID) of the process created by the OS when the C<srvrmgr> program is executed.
 
@@ -587,13 +587,14 @@ sub run {
 
     do {
 
-        exit if ($SIG_CAUGHT);
+        exit if ($SIG_INT);
 
       READ: while (<$rdr>) {
 
-            exit if ($SIG_CAUGHT);
+            exit if ($SIG_INT);
 
             s/\r\n//;
+            chomp();
 
             # caught an specific error
             if (/^SBL\-\w{3}\-\d+/) {
@@ -624,14 +625,14 @@ sub run {
                     die "Unrecoverable failure... aborting...\n";
 
                 }
-				
-				# SBL-ADM-02751: Unable to open file 
-				if (/^SBL-ADM-02751.*/) {
+
+                # SBL-ADM-02751: Unable to open file
+                if (/^SBL-ADM-02751.*/) {
 
                     die "Unrecoverable failure... aborting...\n";
 
                 }
-				
+
                 last READ;
 
             }
@@ -777,45 +778,64 @@ sub DEMOLISH {
         syswrite $self->get_write(), "exit\n";
         syswrite $self->get_write(), "\n";
 
-        if ( $ENV{SIEBEL_SRVRMGR_DEBUG} ) {
+        # after the exit command the srvrmgr program already exited
+        unless ($SIG_PIPE) {
 
-            my $rdr = $self->get_read()
-              ;    # diamond operator does not like method calls inside it
+            if ( $ENV{SIEBEL_SRVRMGR_DEBUG} ) {
 
-            while (<$rdr>) {
+                my $rdr = $self->get_read()
+                  ;    # diamond operator does not like method calls inside it
 
-                if (/^Disconnecting from server\./) {
+                while (<$rdr>) {
 
-                    print $_;
-                    last;
+                    if (/^Disconnecting from server\./) {
 
-                }
-                else {
+                        print $_;
+                        last;
 
-                    print $_;
+                    }
+                    else {
+
+                        print $_;
+
+                    }
 
                 }
 
             }
 
-        }
+            close( $self->get_read() );
+            close( $self->get_write() );
 
-        close( $self->get_read() );
-        close( $self->get_write() );
-
-        if ( kill 0, $self->get_pid() ) {
+            if ( kill 0, $self->get_pid() ) {
 
 # :TODO:26/4/2012 19:33:24:: this hardcode of sleep should be removed or used as a parameter
-            sleep(1);
+                sleep(1);
 
-            print "srvrmgr is still running, trying to kill it\n"
-              if ( $ENV{SIEBEL_SRVRMGR_DEBUG} );
+                print "srvrmgr is still running, trying to kill it\n"
+                  if ( $ENV{SIEBEL_SRVRMGR_DEBUG} );
 
-            my $ret = waitpid( $self->get_pid(), WNOHANG );
+                my $ret = waitpid( $self->get_pid(), WNOHANG );
 
-            print
-"ripped PID = $ret, status = $?, child error native = ${^CHILD_ERROR_NATIVE}\n"
-              if ( $ENV{SIEBEL_SRVRMGR_DEBUG} );
+                if ( $ENV{SIEBEL_SRVRMGR_DEBUG} ) {
+
+                    if ( $? == 0 ) {
+
+                        print "OK\n";
+
+                    }
+                    else {
+
+                        print
+"Something went bad with child process: look for zombie process on the computer\n";
+
+                    }
+
+                    print
+"ripped PID = $ret, status = $?, child error native = ${^CHILD_ERROR_NATIVE}\n";
+                }
+
+            }
 
         }
 
@@ -823,11 +843,19 @@ sub DEMOLISH {
 
 }
 
-sub _terminate {
+sub _term_INT {
 
     my ($sig) = @_;
     warn "The Interrupt was caught: <$sig>\n" if ( $ENV{SIEBEL_SRVRMGR_DEBUG} );
-    $SIG_CAUGHT = 1;
+    $SIG_INT = 1;
+
+}
+
+sub _term_PIPE {
+
+    my ($sig) = @_;
+    warn "The Interrupt was caught: <$sig>\n" if ( $ENV{SIEBEL_SRVRMGR_DEBUG} );
+    $SIG_PIPE = 1;
 
 }
 

@@ -29,7 +29,17 @@ package main;
 
 =head1 DESCRIPTION
 
-blablablah.
+This class was created to enable the possibility to retrieve data from an L<Siebel::Srvrmgr::Daemon::Action> subclass invoked by L<Siebel::Srvrmg::Daemon> without
+the need to return data from within the objects.
+
+Since Siebel::Srvrmgr::Daemon::ActionStash is a singleton, a reference of the already instantied object will always be returned when calling C<instance>. So, before
+calling the method C<run> from a L<Siebel::Srvrmgr::Daemon> class instance, it is just a matter to call C<instance> and inside the L<Siebel::Srvrmgr::Daemon::Action> subclass, 
+call the C<initialize> method with the data that should be returned as parameter.
+
+The drawnback from this technique is that two Action objects cannot used the same Stash at the same time or data will be replace/lost: a ActionStash instance should be used 
+exclusively by a single Action subclass. If you have need to returned data from several L<Siebel::Srvrmgr::Daemon::Action> subclasses you must use a different method.
+
+Considering this situation, the interface of this class should be considered experimental and may be changed in the future releases.
 
 =cut
 
@@ -45,6 +55,8 @@ use MooseX::FollowPBP;
 =head2 stash
 
 This attribute is a reference to some data. This means that it will accept B<any> reference to some that structure that you think it will be useful.
+
+If undefined, this attribute will returned an empty array reference.
 
 =cut
 

@@ -125,7 +125,8 @@ sub parse {
 
             }
 
-            if ( $line =~ /^CC_NAME\s.*\sCC_INCARN_NO\s*$/ ) { # this is the header
+            if ( $line =~ /^CC_NAME\s.*\sCC_INCARN_NO\s*$/ )
+            {    # this is the header
 
                 my @columns = split( /\s{2,}/, $line );
 
@@ -138,21 +139,27 @@ sub parse {
 
                 my @fields_values;
 
-				if ($self->get_fields_pattern()) {
-				
-                  @fields_values = unpack( $self->get_fields_pattern(), $line );
-				
-				} else {
+                if ( $self->get_fields_pattern() ) {
 
-					die "Cannot continue since fields pattern was not defined\n";
+                    @fields_values =
+                      unpack( $self->get_fields_pattern(), $line );
 
-				}
+                }
+                else {
+
+                    die
+                      "Cannot continue since fields pattern was not defined\n";
+
+                }
 
                 my $cc_name = $fields_values[0];
 
                 my $list_len = scalar(@fields_values);
 
                 my $columns_ref = $self->get_comp_defs();
+
+                confess "Cannot continue without defining fields names"
+                  unless ( defined($columns_ref) );
 
                 if (@fields_values) {
 
