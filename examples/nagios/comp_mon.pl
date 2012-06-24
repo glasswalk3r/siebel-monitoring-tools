@@ -6,8 +6,52 @@ use File::Spec::Functions qw(tmpdir catfile);
 use Nagios::Plugin;
 use Siebel::Srvrmgr::Daemon::ActionStash;
 
+#    COPYRIGHT AND LICENCE
+#
+#    This software is copyright (c) 2012 of Alceu Rodrigues de Freitas Junior, arfreitas@cpan.org
+#
+#    This file is part of Siebel Monitoring Tools.
+#
+#    Siebel Monitoring Tools is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    Siebel Monitoring Tools is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with Siebel Monitoring Tools.  If not, see <http://www.gnu.org/licenses/>.
+
+# configuration of the plugin
+
+# the Siebel Server name to connect
 my $siebel_server = 'foobar';
-my $bin = catfile( 'path_to', 'srvrmgr.exe' );
+
+# the path to the srvrmgr program. Do not include the executable
+my $srvrmgr_path = 'path_to';
+
+# the executable name of srvrmgr
+my $srvrmgr_exec = 'srvrmgr.exe';
+
+# the Siebel Enterprise to connect to
+my $siebel_ent = 'foo';
+
+# the login to use for authentication. The login must have the correct visibility
+my $user = 'sadmin';
+
+# the login password
+my $password = 'foobar';
+
+# the Siebel Gateway to connect to
+my $siebel_gat = 'foobar';
+
+####################
+# DO NOT EDIT THE REST OF THIS SCRIPT
+
+my $bin = catfile( $srvrmgr_path, $srvrmgr_exec );
 
 my $np = Nagios::Plugin->new(
     shortname => 'SCM',
@@ -32,8 +76,7 @@ $np->add_arg(
 $np->add_arg(
     spec     => "configuration|f=s",
     required => 1,
-    help =>
-"-f, --configuration=PATH",
+    help     => "-f, --configuration=PATH",
 );
 
 $np->getopts();
@@ -43,43 +86,45 @@ my $stash;
 
 eval {
 
-	my $config = $np->opts->configuration();
-	$comps  = parse_config($config);
+    my $config = $np->opts->configuration();
+    $comps = parse_config($config);
 
-	my $daemon = Siebel::Srvrmgr::Daemon->new(
-		{
-			server      => $siebel_server,
-			gateway     => 'foobar',
-			enterprise  => 'FOO',
-			user        => 'sadmin',
-			password    => 'foobar',
-			bin         => $bin,
-			is_infinite => 0,
-			timeout     => 0,
-			commands    => [
-				{
-					command => 'load preferences',
-					action  => 'LoadPreferences',
-				},
-				{
-					command => 'list comp',
-					action  => 'CheckComps',
-					params  => [ $siebel_server, $comps ]
-				}
-			]
-		}
-	);
+    my $daemon = Siebel::Srvrmgr::Daemon->new(
+        {
+            server      => $siebel_server,
+            gateway     => $siebel_gat,
+            enterprise  => $siebel_ent,
+            user        => $user,
+            password    => $password,
+            bin         => $bin,
+            is_infinite => 0,
+            timeout     => 0,
+            commands    => [
+                {
+                    command => 'load preferences',
+                    action  => 'LoadPreferences',
+                },
+                {
+                    command => 'list comp',
+                    action  => 'CheckComps',
+                    params  => [ $siebel_server, $comps ]
+                }
+            ]
+        }
+    );
 
-	$stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
+    $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
 
     $daemon->run();
 };
 
-$np->nagios_die('Could not check components state: ' . $@) if ( $@ );
+$np->nagios_die( 'Could not check components state: ' . $@ ) if ($@);
 
 my $status = calc_status( $comps, $stash, $siebel_server );
 
-$np->nagios_die('Could not check components state: server or component not found') if ( $status == -1 );
+$np->nagios_die(
+    'Could not check components state: server or component not found')
+  if ( $status == -1 );
 
 my $threshold = $np->set_thresholds(
     warning  => $np->opts->warning(),
