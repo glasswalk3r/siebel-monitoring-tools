@@ -27,7 +27,7 @@ sub constructor : Tests(7) {
         sub {
             $stash_param = $class->new( { key1 => 'value', key2 => 'value' } );
         },
-        'the constructor should die because there is already an instance'
+        'the constructor should die because there is already an instance of it'
     );
 
     isa_ok( $stash->get_stash(), 'ARRAY',

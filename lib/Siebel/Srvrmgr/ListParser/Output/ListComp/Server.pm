@@ -12,6 +12,7 @@ use Moose;
 use MooseX::Storage;
 use namespace::autoclean;
 use Siebel::Srvrmgr::ListParser::Output::ListComp::Comp;
+use Carp;
 
 =pod
 
@@ -139,6 +140,9 @@ sub get_comp_data {
 
     my $self  = shift;
     my $alias = shift;
+
+    confess 'Must give a valid value to alias parameter'
+      unless ( defined($alias) );
 
     if ( exists( $self->get_data()->{$alias} ) ) {
 

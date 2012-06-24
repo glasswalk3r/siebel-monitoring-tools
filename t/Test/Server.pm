@@ -12,7 +12,7 @@ sub startup : Tests(startup => 1) {
     use_ok $test->class;
 }
 
-sub constructor : Tests(6) {
+sub constructor : Tests(8) {
 
     my $test  = shift;
     my $class = $test->class;
@@ -48,6 +48,12 @@ sub constructor : Tests(6) {
         'Siebel::Srvrmgr::ListParser::Output::ListComp::Comp',
         'get_comp returns a Comp object'
     );
+
+    isa_ok( $server->get_comps(), 'ARRAY',
+        'get_comps returns an array reference' );
+
+    isa_ok( $server->get_comp_data('EIM'),
+        'HASH', 'get_comp_data returns an hash reference' );
 
 }
 

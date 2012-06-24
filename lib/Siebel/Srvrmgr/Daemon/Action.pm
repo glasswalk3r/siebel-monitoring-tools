@@ -51,6 +51,7 @@ If this kind of output is not identified and the proper C<return> given, L<Siebe
 use Moose;
 use MooseX::Params::Validate;
 use namespace::autoclean;
+use Carp;
 
 =pod
 
