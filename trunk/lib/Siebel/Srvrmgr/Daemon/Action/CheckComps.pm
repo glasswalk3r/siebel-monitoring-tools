@@ -39,13 +39,73 @@ given as parameter to the C<do> method and compares the status of the components
 The C<do> method of C<Siebel::Srvrmgr::Daemon::Action::CheckComps> uses L<Siebel::Srvrmgr::Daemon::ActionStash> to enable the program that created the object 
 instance to be able to fetch the information returned.
 
+This module was created to work close with Nagios concepts, especially regarding threshold levels (see C<new> method for more details).
+
 =head1 METHODS
+
+=head2 new
+
+The new method returns a instance of L<Siebel::Srvrmgr::Daemon::Action::CheckComps>. The parameter expected are the same ones of any subclass of 
+L<Siebel::Srvrmgr::Daemon::Action>, but the C<params> attribute have some important differences.
+
+The C<params> attribute expects an array reference with the following content, in this exactly order:
+
+=over
+
+=item 1
+
+A scalar with the Siebel Server name to consider when checking the component status.
+
+=item 2
+
+An array reference with hash references as indexes values. Each hash reference must have the following keys/values:
+
+=over
+
+=item *
+
+name: alias of the Siebel Component
+
+=item *
+
+ok_status: a string representing the status considered OK for the component, as seen when using C<list comp> inside the Server Manager program. The C<ok_status> value
+can be more then one status, being separated by a pipe character. The c<do> method will check for this and deal with it as expected.
+
+=item *
+
+criticality: a integer representing how critical it is for the component not having the ok_status expected. This is an arbritary value, higher values means more critical.
+
+=back
+
+=back
+
+See the examples directory of this distribution to check a XML file used for configuration for more details.
 
 =head2 do
 
-blablabla.
+Expects a array reference as the buffer output from srvrmgr program as a parameter.
 
-This method will return 1 if this operation was executed sucessfuly, 0 otherwise.
+This method will check the output from C<srvrmgr> program parsed by L<Siebel::Srvrmgr::ListParser::Output::ListComp> object and compare each component recovered status
+with the status defined in the array reference given to C<params> method during object creation.
+
+It will return 1 if this operation was executed sucessfuly and request a instance of L<Siebel::Srvrmgr::Daemon::ActionStash>, calling it's method C<instance> and then
+C<set_stash> with a hash reference as it's content. Otherwise, the method will return 0 and no data will be set to the ActionStash object.
+
+The hash reference stored at the ActionStash object will have the following structure:
+
+	$VAR1 = {
+			  'foobar_server' => {
+								   'CompAlias1' => 0,
+								   'CompAlias2' => 1
+								 },
+			  'foobar2_server' => {
+									'CompAlias1' => 1,
+									'CompAlias2' => 1
+								  }
+			};
+
+If the servername passed during the object creation (as C<params> attribute of C<new> method) cannot be found in the buffer parameter, the object will raise an
+exception.
 
 =cut
 
@@ -73,13 +133,13 @@ override 'do' => sub {
 
             my $servers_ref = $obj->get_servers();
 
-            die
+            confess
 "Could not fetch servers from the Siebel::Srvrmgr::ListParser::Output::ListComp object returned by the parser"
               unless ( scalar( @{$servers_ref} ) > 0 );
 
-            foreach my $servername ( @{$servers_ref} ) {
+            foreach my $name ( @{$servers_ref} ) {
 
-                my $server = $obj->get_server($servername);
+                my $server = $obj->get_server($name);
 
                 if (
                     $server->isa(
@@ -134,7 +194,7 @@ override 'do' => sub {
                             }
                             else {
 
-                                die 'Could not find any component with name ',
+                                confess 'Could not find any component with name ',
                                   $exp_comp->{name}, "\n"
 
                             }
@@ -144,14 +204,14 @@ override 'do' => sub {
                     }    # end of foreach comp
                     else {
 
-                        die "Invalid servername returned\n";
+                        confess 'Invalid servername retrieved from buffer';
 
                     }
 
                 }
                 else {
 
-                    die "could not fetch $servername data\n";
+                    confess "could not fetch $servername data";
 
                 }
 
@@ -199,6 +259,10 @@ L<Siebel::Srvrmgr::Daemon::Action>
 =item *
 
 L<Siebel::Srvrmgr::Daemon::Action::Stash>
+
+=item *
+
+L<Nagios::Plugin>
 
 =back
 
