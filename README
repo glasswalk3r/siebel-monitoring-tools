@@ -25,12 +25,7 @@ To install this module type the following:
 
 DEPENDENCIES
 
-This module requires these other modules to work:
-
-- Carp
-- Moose
-- namespace::autoclean
-- FSA::Rules
+Please check the Makefile.PL for the dependencies of modules of this distribution.
 
 SUPPORT AND DOCUMENTATION
 
