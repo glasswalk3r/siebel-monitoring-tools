@@ -4,8 +4,8 @@
 
 The parsers available from the API were tested against the following versions of Siebel:
 
-  * 7.5.3.17_16285
-  * 8
+  * 7.5.3.17, patch 16285
+  * 8.0.0.7, patch 20426
 
 The more different versions that can provide different output, the more reliable will be the parsers.
 
@@ -19,6 +19,35 @@ First, it is necessary to setup correctly the output from the _list_ _component_
 ﻿configure list components show SV_NAME(31) , CC_ALIAS(31) , CC_NAME(76) , CT_ALIAS(31) , CG_ALIAS(31) , CC_RUNMODE(31) , CP_DISP_RUN_STATE(61) , CP_NUM_RUN_TASKS(16) , CP_MAX_TASKS(12) , CP_ACTV_MTS_PROCS(17) , CP_MAX_MTS_PROCS(16) , CP_START_TIME(21) , CP_END_TIME(21) , CP_STATUS(251) , CC_INCARN_NO(23) , CC_DESC_TEXT(251)
 }}}
 
-This command should be executed from a single line inside of srvrmgr prompt. For convenience, this command is also available as a ".Siebel_svrmgr.pref" file (the dot is part of the filename) in every distribution of the API. This file is known as a srvrmgr preferences files and may include any customization desired since the login at any Siebel Enterprise. Please check the Siebel documentation for more details.
+This command should be executed from a single line inside of srvrmgr prompt (and indeed is a very long line). For convenience, this command is also available as a ".Siebel_svrmgr.pref" file (the dot is part of the filename) in every distribution of the API. This file is known as a srvrmgr preferences files and may include any customization desired since the login at any Siebel Enterprise. Please check the Siebel documentation for more details about personalization.
+
+The reason for having this configuration is fully explained [http://search.cpan.org/~arfreitas/Siebel-Srvrmgr/lib/Siebel/Srvrmgr/ListParser/Output/ListComp.pm here].
 
 Once this is done, it is just a matter to execute the following commands:
+
+  # save preferences
+  # load preferences
+  # list comp
+  # list comp types
+  # list params
+  # list params for component SRProc
+  # list comp def SRProc
+  # list tasks
+  # list tasks for component SRProc
+
+Order *is* important is this case, so please keep it.
+
+Typing all those commands are also boring, so there is a text file available for download with all of those commands. This text file can be used like the command line below shows:
+
+{{{
+srvrmgr /g <GATEWAY> /s <SERVER> /e <ENTERPRISE> /o <PATH><OUTPUT>.txt /i <PATH>lists_cmd.txt /b /u <USER>
+}}}
+
+where:
+
+  * `<`GATEWAY`>`: is the host name of the Siebel Gateway of the Enterprise
+  * `<`SERVER`>`: is the Siebel server name of the Enterprise
+  * `<`ENTERPRISE`<`: is the name of Siebel Enterprise
+  * `<`OUTPUT`>`: is the filename to be used as the generated output from srvrmgr. It should have the format `<`SIEBEL VERSION NUMBER`>``_``<`PATCH NUMBER`>`.txt
+  * `<`PATH`>`: the complete path to the files
+  * `<`USER`>` the login to be used for authentication. Should be *sadmin* or any other login with the same responsibility of sadmin.
