@@ -59,3 +59,5 @@ where:
   * `<`USER`>` the login to be used for authentication. Should be *sadmin* or any other login with the same responsibility of sadmin.
 
 Both files, .Siebel_svrmgr and list_cmd.txt, are available at the _examples_ directory at the [http://code.google.com/p/siebel-monitoring-tools/source/browse/#svn%2Ftrunk%2Fexamples SVN repository].
+
+Once you have the file, please create a new [http://code.google.com/p/siebel-monitoring-tools/issues/list Issue] and attach the output file. Be sure to identify yourself so I can give you the proper credits for helping out.
