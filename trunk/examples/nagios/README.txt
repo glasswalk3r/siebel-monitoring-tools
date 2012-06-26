@@ -1,3 +1,5 @@
+README
+----------------
 These files are a complete Nagios plugin for setup Siebel components monitoring:
 
 - commands.cfg: this file is the Nagios commands configuration file. It contains an example of how the comp_mon.pl should be executed
@@ -10,4 +12,4 @@ that has the srvrmgr.exe program installed, since comp_mon.pl will use such prog
 
 The NSC is not obligatory, but you will need to have srvrmgr program available somewhere (even in the Nagios box) to check the components.
 
-See www.nagios.org for more information about the Nagios program
+See www.nagios.org for more information about the Nagios project.

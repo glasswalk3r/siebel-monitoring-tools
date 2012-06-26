@@ -1,0 +1,9 @@
+save preferences
+load preferences
+list comp
+list comp types
+list params
+list params for component SRProc
+list comp def SRProc
+list tasks
+list tasks for component SRProc
