@@ -9,7 +9,7 @@ The parsers available from the API were tested against the following versions of
 
 The more different versions that can provide different output, the more reliable will be the parsers.
 
-Providing the output from your Siebel Enterprise using the srvrmgr program is really simple.
+Providing the output from your Siebel Enterprise using the srvrmgr program is really simple. Please check the detail by reading the next content.
 
 = Details =
 
@@ -57,3 +57,5 @@ where:
   * `<`OUTPUT`>`: is the filename to be used as the generated output from srvrmgr. It should have the format `<`SIEBEL VERSION NUMBER`>``_``<`PATCH NUMBER`>`.txt
   * `<`PATH`>`: the complete path to the files
   * `<`USER`>` the login to be used for authentication. Should be *sadmin* or any other login with the same responsibility of sadmin.
+
+Both files, .Siebel_svrmgr and list_cmd.txt, are available at the _examples_ directory at the [http://code.google.com/p/siebel-monitoring-tools/source/browse/#svn%2Ftrunk%2Fexamples SVN repository].
