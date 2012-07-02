@@ -1,2 +1,4 @@
 #summary table of contents of all wiki pages
-* [NagiosPlugins information about Nagios plug-ins]
+* [NagiosPlugins Nagios plug-ins]
+* [DeveloperNotes Developers Notes]
+* [SrvrmgrOutput Srvrmgr Output]
