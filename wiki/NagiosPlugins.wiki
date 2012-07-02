@@ -2,12 +2,8 @@
 
 = Introduction =
 
+Nagios plug-ins are part of this project and they will be documented in this page, regarding functionality and how to configure them.
 
+== Siebel Components Monitoring =
 
-
-= Details =
-
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+http://siebel-monitoring-tools.googlecode.com/files/Nagios%20Core%20-%20Mozilla%20Firefox_2012-06-26_12-35-55.png
