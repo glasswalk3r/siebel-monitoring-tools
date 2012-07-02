@@ -7,7 +7,7 @@ The parsers available from the API were tested against the following versions of
   * 7.5.3.17, patch 16285
   * 8.0.0.7, patch 20426
 
-The more different versions that can provide different output, the more reliable will be the parsers.
+The more different versions output that we have, the more reliable will be the parsers.
 
 Providing the output from your Siebel Enterprise using the `srvrmgr` program is really simple. Please check the detail by reading the next content.
 
