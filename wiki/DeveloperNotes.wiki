@@ -8,6 +8,13 @@ The intention of this page is give more details for developers (and possible peo
 
 = Details =
 
+To provide monitoring of Siebel environments, this project considers obtaining (but no limited to) information from the program `srvrmgr`, which can connect to a Siebel Enterprise and gather several details from the `list` commands available.
+
+To be able to work with the `srvrmgr` program and parsing its output, a general usage API was developed for this end. There are several packages/classes available in the Siebel::Srvrmgr namespace.
+
+The main parser of this API is the Siebel::Srvrmgr::ListParser class, which identify the commands and their respective output as read from default output from `srvrmgr` program. This class is a state machine parser and it's different states can be checked below:
+
+The supported commands can be checked by seen the subclasses of Siebel::Srvrmgr::ListParser::Output superclass.
 
 = Rules of thumb for developing =
 
