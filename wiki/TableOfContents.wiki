@@ -1,0 +1,2 @@
+#summary table of contents of all wiki pages
+* [NagiosPlugins information about Nagios plug-ins]
