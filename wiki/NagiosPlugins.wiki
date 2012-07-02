@@ -1,4 +1,5 @@
 #summary description of the Nagios plugins available
+#labels Phase-Deploy
 
 = Introduction =
 
