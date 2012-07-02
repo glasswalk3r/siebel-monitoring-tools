@@ -2,7 +2,7 @@
 
 <wiki:toc max_depth="2" />
 
-= Developer Notes =
+= Introduction =
 
 The intention of this page is give more details for developers (and people that would like to contribute with code for the project) and general guidelines about how to contribute of code for this project.
 
