@@ -14,6 +14,8 @@ To be able to work with the `srvrmgr` program and parsing its output, a general 
 
 The main parser of this API is the Siebel::Srvrmgr::ListParser class, which identify the commands and their respective output as read from default output from `srvrmgr` program. This class is a state machine parser and it's different states can be checked below:
 
+http://siebel-monitoring-tools.googlecode.com/files/pretty.png
+
 The supported commands can be checked by seen the subclasses of Siebel::Srvrmgr::ListParser::Output superclass.
 
 = Rules of thumb for developing =
@@ -23,6 +25,7 @@ These are very general rules and are open for discussion: having bad definitions
 This is a Perl project, so any developer should be comfortable dealing with:
   * Perl objects;
   * Parsers;
+  * Siebel concepts;
 
 Regarding code style, the default configuration of the of the Perl-Support vim plug-in should work just fine. Of course, I'm not trying to say that is obligatory to use Vim or any other text editor: just try to stick with one code style helps a lot about code quality. Perl-Support can be reached at http://vim.sourceforge.net/scripts/script.php?script_id=556.
 
