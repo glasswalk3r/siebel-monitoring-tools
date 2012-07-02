@@ -1,0 +1,30 @@
+#summary Details of the project intended for developers
+
+<wiki:toc max_depth="2" />
+
+= Developer Notes =
+
+The intention of this page is give more details for developers (and possible people that would like to contribute with code for the project) and general guidelines about how to contribute of code for this project.
+
+= Details =
+
+
+= Rules of thumb for developing =
+
+These are very general rules and are open for discussion: having bad definitions are better then none.
+
+This is a Perl project, so any developer should be comfortable dealing with:
+  * Perl objects;
+  * Parsers;
+
+Regarding code style, the default configuration of the of the Perl-Support vim plug-in should work just fine. Of course, I'm not trying to say that is obligatory to use Vim or any other text editor: just try to stick with one code style helps a lot about code quality. Perl-Support can be reached at http://vim.sourceforge.net/scripts/script.php?script_id=556.
+
+Do comment your code when committing to SVN: this helps a lot.
+
+Perl does not enforces practices and programming style ([http://en.wikipedia.org/wiki/There%27s_more_than_one_way_to_do_it TMTOWTDI]), but this does not means that every way is useful besides obfuscate code contests. The book "Perl Best Practices" is a very good reference and quite recommended. The [http://perltidy.sourceforge.net/ Perltidy] plug-in for Vim helps a lot too.
+
+= Mailing list =
+
+There are too few people in the project that justifies the creation of a developer mailing list. If necessary, just send a e-mail to the project owner for feedback or help.
+
+In the future a mailing list may be created.
