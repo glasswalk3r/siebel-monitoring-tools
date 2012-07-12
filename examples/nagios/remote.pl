@@ -3,7 +3,6 @@ use strict;
 use DBI qw(:sql_types);
 use Nagios::Plugin;
 use XML::XPath;
-use Nagios::Plugin::Performance use_die => 1;
 
 my $np;
 
