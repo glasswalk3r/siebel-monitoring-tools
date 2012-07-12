@@ -2,9 +2,19 @@ use warnings;
 use strict;
 use DBI qw(:sql_types);
 use Nagios::Plugin;
+use XML::XPath;
+use Nagios::Plugin::Performance use_die => 1;
 
-my $np = Nagios::Plugin->new( usage => "Usage: %s [ -v|--verbose ] "
-      . "[ -c|--critical=<threshold> ] [ -w|--warning=<threshold> ]" );
+my $np;
+
+$SIG{'ALRM'} =
+  sub { $np->nagios_die('Timeout trying to reach database'), CRITICAL };
+
+$np = Nagios::Plugin->new(
+    usage => "Usage: %s [ -p|--pending=<value> ] [ -c|--config=<filename> ]"
+      . "[ -c|--critical=<threshold> ] [ -w|--warning=<threshold> ]",
+    version => 0.01
+);
 
 $np->add_arg(
     spec     => 'warning|w=s',
@@ -25,27 +35,87 @@ $np->add_arg(
 $np->add_arg(
     spec     => 'pending|w=s',
     required => 1,
-    help     => '-p, --pending=INTEGER:INTEGER. Defines the minimum amount of pending transactions to consider in the Siebel Remote tables.'
+    help =>
+'-p, --pending=INTEGER:INTEGER. Defines the minimum amount of pending transactions to consider in the Siebel Remote tables.'
+);
+
+$np->add_arg(
+    spec     => 'config|w=s',
+    required => 0,
+    help =>
+'-c, --config=STRING:STRING. Complete path to the XML file to be used for configuration. Default to remote.xml in the current directory where the program is executed.'
 );
 
 $np->getopts();
 
-my $total = query_db();
+my $xp;
+
+eval {
+
+    if ( defined( $np->opts->config() ) ) {
+
+        $xp = XML::XPath->new( filename => $np->opts->config() );
+
+    }
+    else {
+
+        $xp = XML::XPath->new( filename => 'remote.xml' );
+
+    }
+
+};
+
+if ($@) {
+
+    $np->nagios_die( $@, UNKNOWN );
+
+}
+
+alarm $xp->findvalue('siebelRemote/time-out');
+
+my $total;
+
+eval {
+
+    $total = query_db(
+        {
+            to_route => $np->opts->pending(),
+            dsn      => $xp->findvalue('/siebelRemote/db/DSN')->value(),
+            user     => $xp->findvalue('/siebelRemote/db/user')->value(),
+            password => $xp->findvalue('/siebelRemote/db/password')->value()
+        }
+    );
+
+};
+
+if ($@) {
+
+    $np->nagios_die( $@, UNKNOWN );
+
+}
+
+my $threshold = $np->set_thresholds(
+    warning  => $np->opts->warning,
+    critical => $np->opts->critical
+);
+
+$np->add_perfdata(
+    label => 'number of users with pending transaction above the acceptable',
+    value => $total,
+    uom   => '',
+    threshold => $threshold,
+);
 
 $np->nagios_exit(
-    return_code => $np->check_threshold(
-        check    => $total,
-        warning  => $np->opts->warning(),
-        critical => $np->opts->critical()
-    )
+    return_code => $np->check_threshold($total),
+    message     => 'Users with transactions to be routed above '
+      . $np->opts->pending() . ': '
+      . $total
 );
 
 sub query_db {
 
-    my $to_route = shift;
-    my $dsn      = 'dbi:ODBC:FOOBAR';
-    my $user     = 'FOO';
-    my $password = 'BAR';
+    my $params_ref = shift;    #hash reference
 
     my $query = <<BLOCK;
 SELECT COUNT(*) AS TOTAL
@@ -67,10 +137,13 @@ AND SPOSTN.ROW_ID       = SPARTYPER.PARTY_ID
 AND (A.MAX_TXN_ID - LR.LAST_TXN_NUM) >= ? 
 BLOCK
 
-    my $dbh = DBI->connect( $dsn, $user, $password );
+    my $dbh =
+      DBI->connect( $params_ref->{dsn}, $params_ref->{user},
+        $params_ref->{password} );
     $dbh->{RaiseError} = 1;
+
     my $sth = $dbh->prepare($query);
-    $sth->bind_param( 1, $to_route, SQL_INTEGER );
+    $sth->bind_param( 1, $params_ref->{to_route}, SQL_INTEGER );
     $sth->execute();
 
     my $row = $sth->fetchrow_arrayref();
