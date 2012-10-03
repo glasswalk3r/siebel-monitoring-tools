@@ -1,5 +1,5 @@
 #summary description of the Nagios plugins available
-#labels Phase-Deploy
+#labels Phase-Requirements,Featured
 
 = Introduction =
 
@@ -14,6 +14,14 @@ This is the first released plug-in for Nagios: the components of a Siebel server
   # list all components configured in the Server;
   # compare the components states with the expected ones read from the XML configuration file;
   # return the comparison as a format understood by Nagios;
+
+=== Installation ===
+
+This should be considered as a beta version. The script will connect to a Siebel Enterprise and run only some list commands and should be harmless. But this is a free software, so do not expected guarantees from it!
+
+The Nagios plugin needs to have the Siebel-Srvrmgr Perl distribution installed from CPAN to work and, of course, need to have installed Perl (any distribution should do it) with the minimum version being 5.10. 
+
+Regarding the OS platform requirements, since the Nagios plugin depends on the Nagios core, it will not be available on OS platforms where Nagios is not available *but* it is possible to use the plugin installed in any OS that have a `srvrmgr` program available (for example Windows).
 
 === Configuration ===
 
@@ -82,7 +90,7 @@ You can create as many as necessary components definitions in the XML file.
 
 === Running/testing the plug-in ===
 
-The plug-in expected command lines parameter. This is the output if no argument is given:
+The plug-in expects command lines parameter. This is the output if no argument is given:
 
 {{{
 jackal@yggdrasil$ perl comp_mon.pl
