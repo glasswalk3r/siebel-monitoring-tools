@@ -1,0 +1,55 @@
+#summary how to setup the Siebel-Srvrmgr Perl distribution
+#labels Phase-Deploy,Featured
+
+= Siebel-Srvrmgr setup procedures =
+
+The Siebel-Srvrmgr download-able tarball (see [http://search.cpan.org/~arfreitas/Siebel-Srvrmgr-0.05/] for it) includes a Makefile.PL to make it easier to install the application. After unpacking the tarball, there are two ways to install it:
+
+  * the good and old "perl Makefile.PL; make; make install".
+  * using the CPAN shell.
+
+Both methods relies in features available in any Perl distribution.
+
+== Using directly the Makefile.PL ==
+
+After unpacking the tarball, it is just a matter to go to created folder and type:
+
+{{{
+$ perl Makefile.PL
+$ make
+$ make install
+}}}
+
+The problem with this method is that you will need to solve the dependencies necessary for the finder.pl script manually. If you have Internet connection available, the CPAN shell method should be easier to use.
+
+== Using the CPAN shell ==
+
+You will need to rename the extracted directory from the tarball, appending a dot to it. For example, let suppose that you have the following directory:
+
+{{{
+Siebel-Srvrmgr-0.05
+}}}
+
+You will need to rename it to:
+
+{{{
+Siebel-Srvrmgr-0.05.
+}}}
+
+Inside a shell, type:
+
+{{{
+$ perl -MCPAN -e shell
+}}}
+
+If you never used the CPAN shell before, you will need to reply some questions to get it configured. For more information about that, please consult [http://search.cpan.org/~andk/CPAN-1.9800/lib/CPAN.pm].
+
+After that, inside the CPAN shell type:
+
+{{{
+install Siebel-Srvrmgr-0.05.
+}}}
+
+The CPAN shell will find the Makefile.PL, process it, solve all needed dependencies and copy the files to the correct places.
+
+More information about this feature of CPAN shell can be seen at [http://search.cpan.org/~andk/CPAN-1.9800/lib/CPAN.pm#Integrating_local_directories].
