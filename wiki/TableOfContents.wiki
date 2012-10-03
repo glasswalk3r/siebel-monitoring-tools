@@ -2,4 +2,4 @@
   * [NagiosPlugins Nagios plug-ins]
   * [DeveloperNotes Developers Notes]
   * [SrvrmgrOutput Srvrmgr Output]
-  * [PerlDistroSetup Perl-Srvrgrm setup procedures]
+  * [PerlDistroSetup Perl-Srvrgrm Installation]
