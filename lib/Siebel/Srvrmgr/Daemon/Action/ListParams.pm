@@ -47,7 +47,7 @@ sub do {
     my $self   = shift;
     my $buffer = shift;    # array reference
 
-	super();
+    super();
 
     $self->get_parser()->parse($buffer);
 
@@ -111,3 +111,4 @@ along with Siebel Monitoring Tools.  If not, see <http://www.gnu.org/licenses/>.
 =cut
 
 __PACKAGE__->meta->make_immutable;
+1;

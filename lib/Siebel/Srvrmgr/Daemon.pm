@@ -19,20 +19,27 @@ Siebel::Srvrmgr::Daemon - class for interactive sessions with Siebel srvrmgr.exe
             password    => 'password',
             bin         => 'c:\\siebel\\client\\bin\\srvrmgr.exe',
             is_infinite => 1,
-            commands    => [
-                {
-                    command => 'list comps',
-                    action  => 'Siebel::Srvrmgr::Daemon::Action'
-                },
-                {
-                    command => 'list params',
-                    action  => 'Siebel::Srvrmgr::Daemon::Action'
-                },
-                {
-                    command => 'list comp defs for component XXX',
-                    action  => 'Siebel::Srvrmgr::Daemon::Action'
-                }
-            ]
+			commands    => [
+			        Siebel::Srvrmgr::Daemon::Command->new(
+                        command => 'load preferences',
+                        action  => 'LoadPreferences'
+                    ),
+                    Siebel::Srvrmgr::Daemon::Command->new(
+                        command => 'list comp type',
+                        action  => 'ListCompTypes',
+                        params  => [$comp_types_file]
+                    ),
+                    Siebel::Srvrmgr::Daemon::Command->new(
+                        command => 'list comp',
+                        action  => 'ListComps',
+                        params  => [$comps_file]
+                    ),
+                    Siebel::Srvrmgr::Daemon::Command->new(
+                        command => 'list comp def',
+                        action  => 'ListCompDef',
+                        params  => [$comps_defs_file]
+                    )
+                ]
         }
     );
 
@@ -62,13 +69,14 @@ through C<srvrmgr> program and if it's not terminated automatically the PID will
 
 use warnings;
 use strict;
-use IPC::Open2;
 use Moose;
+use IPC::Open2;
 use namespace::autoclean;
 use Siebel::Srvrmgr::Daemon::Condition;
 use Siebel::Srvrmgr::Daemon::ActionFactory;
 use Siebel::Srvrmgr::ListParser;
 use Siebel::Srvrmgr::Regexes qw(SRVRMGR_PROMPT LOAD_PREF_RESP);
+use Siebel::Srvrmgr::Daemon::Command;
 use POSIX ":sys_wait_h";
 
 # :TODO:29/2/2012 18:49:06:: implement debug messages
@@ -184,22 +192,16 @@ has wait_time => (
 
 =head2 commands
 
-An array reference containing hash references with the keys C<command> and C<action>. The C<command> key should have the 
-command to be executed and the C<action> key the name of the class to be instantied as an action to be executed.
+An array reference containing one or more references of L<Siebel::Srvrmgr::Daemon::Commands> class.
 
 The commands will be executed in the exactly order as given by the indexes in the array reference (as FIFO).
-
-The C<action> key value could be the full package name of the class or only the class name of a subclass from L<Siebel::Srvrmgr::Daemon::Action> (consider this as a shortcut).
-
-Additionally, the optional key C<params> might by used to pass parameters to the class given by the C<action> key. The content of such key must be an array reference, which in case will make it 
-possible to pass an arbitrary number of the parameters to the class. How the action class will deal with the parameters is left to the class.
 
 This is a required attribute during object creation with the C<new> method.
 
 =cut
 
 has commands => (
-    isa      => 'ArrayRef',
+    isa      => 'ArrayRef[Siebel::Srvrmgr::Daemon::Command]',
     is       => 'rw',
     required => 1,
     reader   => 'get_commands',
@@ -454,11 +456,11 @@ sub setup_commands {
     my @actions;
     my @params;
 
-    foreach my $cmd_ref ( @{$cmds_ref} ) {    # $cmd_ref is a hash reference
+    foreach my $cmd ( @{$cmds_ref} ) {
 
-        push( @cmd,     $cmd_ref->{command} );
-        push( @actions, $cmd_ref->{action} );
-        push( @params,  $cmd_ref->{params} );
+        push( @cmd,     $cmd->get_command() );
+        push( @actions, $cmd->get_action() );
+        push( @params,  $cmd->get_params() );
 
     }
 
@@ -903,6 +905,10 @@ L<Siebel::Srvrmgr::Regexes>
 
 L<POSIX>
 
+=item *
+
+L<Siebel::Srvrmgr::Daemon::Command>
+
 =back
 
 =head1 AUTHOR
@@ -931,3 +937,5 @@ along with Siebel Monitoring Tools.  If not, see <http://www.gnu.org/licenses/>.
 =cut
 
 __PACKAGE__->meta->make_immutable;
+
+1;

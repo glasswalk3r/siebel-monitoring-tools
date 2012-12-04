@@ -9,6 +9,7 @@ Siebel::Srvrmgr::ListParser::Output::ListCompDef - subclass to parse component d
 =cut
 
 use Moose;
+use namespace::autoclean;
 
 extends 'Siebel::Srvrmgr::ListParser::Output';
 
@@ -229,5 +230,5 @@ along with Siebel Monitoring Tools.  If not, see <http://www.gnu.org/licenses/>.
 
 =cut
 
-no Moose;
 __PACKAGE__->meta->make_immutable;
+1;
