@@ -1,6 +1,7 @@
-package Siebel::Srvrmgr::ListParser::Output::ListCompTypes;
+package Siebel::Srvrmgr::ListParser::Output::ListServers;
 use Moose;
 use namespace::autoclean;
+use feature 'switch';
 
 =pod
 
@@ -34,17 +35,17 @@ If the configuration is not setup as this, the parsing will fail and the module 
 
 =head1 ATTRIBUTES
 
-=head2 types_attribs
+=head2 attribs
 
-An array reference with all the component types attributes. Each index will be an hash reference with the fields CT_NAME, CT_RUNMODE, CT_ALIAS and CT_DESC_TEXT.
+An array reference with the attributes of each Siebel Server listed by C<list servers> command.
 
 =cut
 
-has 'types_attribs' => (
-    is     => 'rw',
+has attribs => (
+    is     => 'ro',
     isa    => 'ArrayRef',
     reader => 'get_attribs',
-    writer => 'set_attribs'
+    writer => '_set_attribs'
 );
 
 =pod
@@ -54,10 +55,6 @@ has 'types_attribs' => (
 =head2 get_attribs
 
 Returns the array reference stored in the C<types_attribs> attribute.
-
-=head2 set_attribs
-
-Sets the attribute C<types_attribs>. Expects an array reference as parameter.
 
 =head2 parse
 
@@ -86,9 +83,9 @@ sub parse {
 
         chomp($line);
 
-      SWITCH: {
+        given ($line) {
 
-            if ( $line =~ /^\-+\s/ ) {    # this is the header line
+            when (/^\-+\s/) {    # this is the header line
 
                 my @columns = split( /\s{2}/, $line );
 
@@ -104,27 +101,21 @@ sub parse {
 
                 $self->_set_fields_pattern($pattern);
 
-                last SWITCH;
+            }
+
+            when ('') { }    # do nothing
+
+# SBLSRVR_NAME SBLSRVR_GROUP_NAME HOST_NAME INSTALL_DIR SBLMGR_PID SV_DISP_STATE SBLSRVR_STATE START_TIME END_TIME SBLSRVR_STATUS
+            when (/^SBLSRVR_NAME\s.*\sSBLSRVR_STATUS(\s+)?$/)
+            {                # this is the header
+
+                my @columns = split( /\s{2,}/, lc($line) );
+
+                $self->_set_attribs( \@columns );
 
             }
 
-            if ( $line eq '' ) {
-
-                last SWITCH;
-
-            }
-
-            if ( $line =~ /^CT_NAME\s.*\sCT_DESC_TEXT(\s+)?$/ )
-            {    # this is the header
-
-                my @columns = split( /\s{2,}/, $line );
-
-                $self->set_attribs( \@columns );
-
-                last SWITCH;
-
-            }
-            else {
+            default {
 
                 my @fields_values;
 
@@ -142,9 +133,8 @@ sub parse {
 
                 }
 
-                my $ct_name = $fields_values[0];
-
-                my $list_len = scalar(@fields_values);
+                my $list_len    = scalar(@fields_values);
+                my $server_name = $fields_values[0];
 
                 my $columns_ref = $self->get_attribs();
 
@@ -153,9 +143,9 @@ sub parse {
 
                 if (@fields_values) {
 
-                    for ( my $i = 0 ; $i < $list_len ; $i++ ) {
+                    for ( my $i = 1 ; $i < $list_len ; $i++ ) {
 
-                        $parsed_lines{$ct_name}->{ $columns_ref->[$i] } =
+                        $parsed_lines{$server_name}->{ $columns_ref->[$i] } =
                           $fields_values[$i];
 
                     }
@@ -220,5 +210,4 @@ along with Siebel Monitoring Tools.  If not, see <http://www.gnu.org/licenses/>.
 =cut
 
 __PACKAGE__->meta->make_immutable;
-
 1;

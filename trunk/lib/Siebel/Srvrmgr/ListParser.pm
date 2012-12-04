@@ -15,6 +15,7 @@ Siebel::Srvrmgr::ListParser - state model parser to idenfity which output type w
 =cut
 
 use Moose;
+use namespace::autoclean;
 use FSA::Rules;
 use Siebel::Srvrmgr::ListParser::OutputFactory;
 use Siebel::Srvrmgr::ListParser::Buffer;
@@ -842,5 +843,5 @@ along with Siebel Monitoring Tools.  If not, see <http://www.gnu.org/licenses/>.
 
 =cut
 
-no Moose;
 __PACKAGE__->meta->make_immutable;
+1;
