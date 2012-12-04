@@ -72,25 +72,25 @@ sub constructor : Tests(27) {
                 is_infinite => $is_infinite,
                 wait_time   => $data[6]->[2],
                 commands    => [
-                    {
+                    Siebel::Srvrmgr::Daemon::Command->new(
                         command => 'load preferences',
-                        action  => 'LoadPreferences',
-                    },
-                    {
+                        action  => 'LoadPreferences'
+                    ),
+                    Siebel::Srvrmgr::Daemon::Command->new(
                         command => 'list comp type',
                         action  => 'ListCompTypes',
                         params  => [$comp_types_file]
-                    },
-                    {
+                    ),
+                    Siebel::Srvrmgr::Daemon::Command->new(
                         command => 'list comp',
                         action  => 'ListComps',
                         params  => [$comps_file]
-                    },
-                    {
+                    ),
+                    Siebel::Srvrmgr::Daemon::Command->new(
                         command => 'list comp def',
                         action  => 'ListCompDef',
                         params  => [$comps_defs_file]
-                    }
+                    )
                 ]
             }
         ),
