@@ -1,44 +1,197 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
-<servers>
-  <server name="foobar">
-    <components>
-      <component name="ClientAdmin" description="Client Administration" ComponentGroup="System" OKStatus="Activated" criticality="1"/>
-      <component name="CommConfigMgr" description="Communications Configuration Manager" ComponentGroup="CommMgmt" criticality="1"/>
-      <component name="CommOutboundMgr" description="Communications Outbound Manager" ComponentGroup="CommMgmt" criticality="1"/>
-      <component name="CommSessionMgr" description="Communications Session Manager" ComponentGroup="CommMgmt" criticality="1"/>
-      <component name="DbXtract" description="Database Extract" ComponentGroup="Remote" criticality="5"/>
-      <component name="EAIObjMgr_enu" description="EAI Object Manager (ENU)" ComponentGroup="EAI" criticality="1"/>
-      <component name="MailMgr" description="Email Manager" ComponentGroup="CommMgmt" criticality="1"/>
-      <component name="EIM" description="Enterprise Integration Mgr" ComponentGroup="EAI" criticality="5"/>
-      <component name="FSMSrvr" description="File System Manager" ComponentGroup="System" OKStatus="Activated" criticality="5"/>
-      <component name="GenNewDb" description="Generate New Database" ComponentGroup="Remote" criticality="1"/>
-      <component name="GenTrig" description="Generate Triggers" ComponentGroup="Workflow" criticality="1"/>
-      <component name="PageMgr" description="Page Manager" ComponentGroup="CommMgmt" criticality="1"/>
-      <component name="PDbXtract" description="Parallel Database Extract" ComponentGroup="Remote" criticality="1"/>
-      <component name="ServerMgr" description="Server Manager" ComponentGroup="System" criticality="5"/>
-      <component name="SRBroker" description="Server Request Broker" ComponentGroup="System" criticality="5"/>
-      <component name="SRProc" description="Server Request Processor" ComponentGroup="System" criticality="5"/>
-      <component name="SynchMgr" description="Synchronization Manager" ComponentGroup="Remote" criticality="5"/>
-      <component name="TxnMerge" description="Transaction Merger" ComponentGroup="Remote" OKStatus="Executing" criticality="5"/>
-      <component name="TxnProc" description="Transaction Processor" ComponentGroup="Remote" OKStatus="Executing" criticality="5"/>
-      <component name="TxnRoute" description="Transaction Router" ComponentGroup="Remote" OKStatus="Executing" criticality="5"/>
-      <component name="UpgKitBldr" description="Upgrade Kit Builder" ComponentGroup="SiebAnywhere" criticality="1"/>
-      <component name="WorkActn" description="Workflow Action Agent" ComponentGroup="Workflow" criticality="1"/>
-      <component name="WorkMon" description="Workflow Monitor Agent" ComponentGroup="Workflow" criticality="1"/>
-      <component name="WfProcBatchMgr" description="Workflow Process Batch Manager" ComponentGroup="Workflow" criticality="1"/>
-      <component name="WfProcMgr" description="Workflow Process Manager" ComponentGroup="Workflow" criticality="5"/>
-      <component name="ePharmaObjMgr_ptb" description="ePharma Object Manager (PTB)" ComponentGroup="LifeSciences" criticality="5"/>
-      <component name="ePharmaObjMgr_esn" description="ePharma Object Manager (ESN)" ComponentGroup="LifeSciences" criticality="1"/>
-      <component name="ePharmaObjMgr_enu" description="ePharma Object Manager (ENU)" ComponentGroup="LifeSciences" criticality="5"/>
-    </components>
-    <componentsGroups>
-      <componentGroup name="Workflow" defaultOKStatus="Executing|Activated"/>
-      <componentGroup name="CommMgmt" defaultOKStatus="Executing|Activated"/>
-      <componentGroup name="EAI" defaultOKStatus="Activated"/>
-      <componentGroup name="System" defaultOKStatus="Executing"/>
-      <componentGroup name="Remote" defaultOKStatus="Executing|Activated"/>
-      <componentGroup name="LifeSciences" defaultOKStatus="Executing|Activated"/>
-      <componentGroup name="SiebAnywhere" defaultOKStatus="Activated"/>
-    </componentsGroups>
-  </server>
-</servers>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns1:siebelMonitor xmlns:ns1="http://foobar.org">
+	<ns1:connection>
+		<ns1:siebelServer/>
+		<ns1:srvrmgrPath>C:\Siebel\8.1\Client_1\BIN</ns1:srvrmgrPath>
+		<ns1:srvrmgrExec>srvrmgr.exe</ns1:srvrmgrExec>
+		<ns1:siebelEnterprise>foobar</ns1:siebelEnterprise>
+		<ns1:siebelGateway>siebelgw</ns1:siebelGateway>
+		<ns1:user>sadmin</ns1:user>
+		<ns1:password>sadmin</ns1:password>
+	</ns1:connection>
+	<ns1:servers>
+		<ns1:server name="siebelsrv01">
+			<ns1:components>
+				<ns1:component name="EAIObjMgr_ptb" description="EAI Object Manager (PTB)" ComponentGroup="EAI" OKStatus="Shutdown" criticality="1"/>
+				<ns1:component name="eChannelCMEObjMgr_enu" description="eChannel Power Communications Object Manager (ENU)" ComponentGroup="Communications" OKStatus="Shutdown" criticality="1"/>
+				<ns1:component name="eChannelCMEObjMgr_ptb" description="eChannel Power Communications Object Manager (PTB)" ComponentGroup="Communications" OKStatus="Shutdown" criticality="1"/>
+				<ns1:component name="eCommunicationsObjMgr_enu" description="eCommunications Object Manager (ENU)" ComponentGroup="Communications" OKStatus="Shutdown" criticality="1"/>
+				<ns1:component name="eCommunicationsObjMgrAdm_ptb" description="eCommunications Object Manager Adm (PTB)" ComponentGroup="Communications" OKStatus="Shutdown" criticality="1"/>
+				<ns1:component name="ADMBatchProc" description="Application Deployment Manager Batch Processor" ComponentGroup="ADM" criticality="1"/>
+				<ns1:component name="ADMObjMgr_enu" description="Application Deployment Manager Object Manager (ENU)" ComponentGroup="ADM" criticality="1"/>
+				<ns1:component name="ADMObjMgr_ptb" description="Application Deployment Manager Object Manager (PTB)" ComponentGroup="ADM" criticality="1"/>
+				<ns1:component name="ADMProc" description="Application Deployment Manager Processor" ComponentGroup="ADM" criticality="1"/>
+				<ns1:component name="BusIntBatchMgr" description="Business Integration Batch Manager" ComponentGroup="EAI" criticality="1"/>
+				<ns1:component name="BusIntMgr" description="Business Integration Manager" ComponentGroup="EAI" criticality="1"/>
+				<ns1:component name="EAIObjMgr_enu" description="EAI Object Manager (ENU)" ComponentGroup="EAI" criticality="4"/>
+				<ns1:component name="EIM" description="Enterprise Integration Mgr" ComponentGroup="EAI" criticality="2"/>
+				<ns1:component name="FSMSrvr" description="File System Manager" ComponentGroup="SystemAux" criticality="4"/>
+				<ns1:component name="GenTrig" description="Generate Triggers" ComponentGroup="Workflow" criticality="1"/>
+				<ns1:component name="JMSReceiver" description="JMS Receiver" ComponentGroup="EAI" criticality="4"/>
+				<ns1:component name="ListImportSvcMgr" description="List Import Service Manager" ComponentGroup="MktgSrv" criticality="2"/>
+				<ns1:component name="ServerMgr" description="Server Manager" ComponentGroup="System" criticality="4"/>
+				<ns1:component name="SRBroker" description="Server Request Broker" ComponentGroup="System" criticality="4"/>
+				<ns1:component name="SRProc" description="Server Request Processor" ComponentGroup="SystemAux" criticality="4"/>
+				<ns1:component name="SvrTblCleanup" description="Server Tables Cleanup" ComponentGroup="SystemAux" criticality="4"/>
+				<ns1:component name="SvrTaskPersist" description="Server Task Persistance" ComponentGroup="SystemAux" criticality="4"/>
+				<ns1:component name="AdminNotify" description="Siebel Administrator Notification Component" ComponentGroup="SystemAux" criticality="1"/>
+				<ns1:component name="SCBroker" description="Siebel Connection Broker" ComponentGroup="System" criticality="4"/>
+				<ns1:component name="TaskLogCleanup" description="Task Log Cleanup" ComponentGroup="TaskUI" criticality="4"/>
+				<ns1:component name="WorkActn" description="Workflow Action Agent" ComponentGroup="Workflow" criticality="2"/>
+				<ns1:component name="WorkMon" description="Workflow Monitor Agent" ComponentGroup="Workflow" criticality="2"/>
+				<ns1:component name="WorkMonSWI" description="Workflow Monitor Agent SWI" ComponentGroup="Workflow" criticality="2"/>
+				<ns1:component name="WfProcBatchMgr" description="Workflow Process Batch Manager" ComponentGroup="Workflow" criticality="4"/>
+				<ns1:component name="WfProcMgr" description="Workflow Process Manager" ComponentGroup="Workflow" criticality="4"/>
+				<ns1:component name="WfRecvMgr" description="Workflow Recovery Manager" ComponentGroup="Workflow" criticality="4"/>
+				<ns1:component name="eCommunicationsObjMgr_ptb" description="eCommunications Object Manager (PTB)" ComponentGroup="Communications" criticality="4"/>
+			</ns1:components>
+			<ns1:componentsGroups>
+				<ns1:componentGroup name="ADM" defaultOKStatus="Online|Running"/>
+				<ns1:componentGroup name="EAI" defaultOKStatus="Online|Running"/>
+				<ns1:componentGroup name="Workflow" defaultOKStatus="Online|Running"/>
+				<ns1:componentGroup name="MktgSrv" defaultOKStatus="Online|Running"/>
+				<ns1:componentGroup name="System" defaultOKStatus="Online|Running"/>
+				<ns1:componentGroup name="SystemAux" defaultOKStatus="Online|Running"/>
+				<ns1:componentGroup name="TaskUI" defaultOKStatus="Online|Running"/>
+				<ns1:componentGroup name="Communications" defaultOKStatus="Online|Running"/>
+			</ns1:componentsGroups>
+		</ns1:server>
+		<ns1:server name="siebelsrv02">
+			<ns1:components>
+				<ns1:component name="EAIObjMgr_ptb" description="EAI Object Manager (PTB)" ComponentGroup="EAI" OKStatus="Shutdown" criticality="4"/>
+				<ns1:component name="eChannelCMEObjMgr_enu" description="eChannel Power Communications Object Manager (ENU)" ComponentGroup="Communications" OKStatus="Shutdown" criticality="1"/>
+				<ns1:component name="eChannelCMEObjMgr_ptb" description="eChannel Power Communications Object Manager (PTB)" ComponentGroup="Communications" OKStatus="Shutdown" criticality="4"/>
+				<ns1:component name="eCommunicationsObjMgr_enu" description="eCommunications Object Manager (ENU)" ComponentGroup="Communications" OKStatus="Shutdown" criticality="1"/>
+				<ns1:component name="eCommunicationsObjMgrAdm_ptb" description="eCommunications Object Manager Adm (PTB)" ComponentGroup="Communications" OKStatus="Shutdown" criticality="4"/>
+				<ns1:component name="ADMBatchProc" description="Application Deployment Manager Batch Processor" ComponentGroup="ADM" criticality="1"/>
+				<ns1:component name="ADMObjMgr_enu" description="Application Deployment Manager Object Manager (ENU)" ComponentGroup="ADM" criticality="1"/>
+				<ns1:component name="ADMObjMgr_ptb" description="Application Deployment Manager Object Manager (PTB)" ComponentGroup="ADM" criticality="1"/>
+				<ns1:component name="ADMProc" description="Application Deployment Manager Processor" ComponentGroup="ADM" criticality="1"/>
+				<ns1:component name="BusIntBatchMgr" description="Business Integration Batch Manager" ComponentGroup="EAI" criticality="1"/>
+				<ns1:component name="BusIntMgr" description="Business Integration Manager" ComponentGroup="EAI" criticality="1"/>
+				<ns1:component name="EAIObjMgr_enu" description="EAI Object Manager (ENU)" ComponentGroup="EAI" criticality="4"/>
+				<ns1:component name="EIM" description="Enterprise Integration Mgr" ComponentGroup="EAI" criticality="2"/>
+				<ns1:component name="FSMSrvr" description="File System Manager" ComponentGroup="SystemAux" criticality="4"/>
+				<ns1:component name="GenTrig" description="Generate Triggers" ComponentGroup="Workflow" criticality="1"/>
+				<ns1:component name="JMSReceiver" description="JMS Receiver" ComponentGroup="EAI" criticality="4"/>
+				<ns1:component name="ListImportSvcMgr" description="List Import Service Manager" ComponentGroup="MktgSrv" criticality="1"/>
+				<ns1:component name="ServerMgr" description="Server Manager" ComponentGroup="System" criticality="4"/>
+				<ns1:component name="SRBroker" description="Server Request Broker" ComponentGroup="System" criticality="4"/>
+				<ns1:component name="SRProc" description="Server Request Processor" ComponentGroup="SystemAux" criticality="4"/>
+				<ns1:component name="SvrTblCleanup" description="Server Tables Cleanup" ComponentGroup="SystemAux" criticality="1"/>
+				<ns1:component name="SvrTaskPersist" description="Server Task Persistance" ComponentGroup="SystemAux" criticality="1"/>
+				<ns1:component name="AdminNotify" description="Siebel Administrator Notification Component" ComponentGroup="SystemAux" criticality="1"/>
+				<ns1:component name="SCBroker" description="Siebel Connection Broker" ComponentGroup="System" criticality="1"/>
+				<ns1:component name="TaskLogCleanup" description="Task Log Cleanup" ComponentGroup="TaskUI" criticality="1"/>
+				<ns1:component name="WorkActn" description="Workflow Action Agent" ComponentGroup="Workflow" criticality="2"/>
+				<ns1:component name="WorkMon" description="Workflow Monitor Agent" ComponentGroup="Workflow" criticality="2"/>
+				<ns1:component name="WorkMonSWI" description="Workflow Monitor Agent SWI" ComponentGroup="Workflow" criticality="2"/>
+				<ns1:component name="WfProcBatchMgr" description="Workflow Process Batch Manager" ComponentGroup="Workflow" criticality="2"/>
+				<ns1:component name="WfProcMgr" description="Workflow Process Manager" ComponentGroup="Workflow" criticality="4"/>
+				<ns1:component name="WfRecvMgr" description="Workflow Recovery Manager" ComponentGroup="Workflow" criticality="1"/>
+				<ns1:component name="eCommunicationsObjMgr_ptb" description="eCommunications Object Manager (PTB)" ComponentGroup="Communications" criticality="1"/>
+			</ns1:components>
+			<ns1:componentsGroups>
+				<ns1:componentGroup name="EAI" defaultOKStatus="Online|Running"/>
+				<ns1:componentGroup name="Communications" defaultOKStatus="Online|Running"/>
+				<ns1:componentGroup name="MktgSrv" defaultOKStatus="Online|Running"/>
+				<ns1:componentGroup name="System" defaultOKStatus="Online|Running"/>
+				<ns1:componentGroup name="SystemAux" defaultOKStatus="Online|Running"/>
+				<ns1:componentGroup name="TaskUI" defaultOKStatus="Online|Running"/>
+				<ns1:componentGroup name="Workflow" defaultOKStatus="Online|Running"/>
+			</ns1:componentsGroups>
+		</ns1:server>
+		<ns1:server name="siebelsrv03">
+			<ns1:components>
+				<ns1:component name="ADMBatchProc" description="Application Deployment Manager Batch Processor" ComponentGroup="ADM" criticality=""/>
+				<ns1:component name="ADMObjMgr_enu" description="Application Deployment Manager Object Manager (ENU)" ComponentGroup="ADM" criticality=""/>
+				<ns1:component name="ADMObjMgr_ptb" description="Application Deployment Manager Object Manager (PTB)" ComponentGroup="ADM" criticality=""/>
+				<ns1:component name="ADMProc" description="Application Deployment Manager Processor" ComponentGroup="ADM" criticality=""/>
+				<ns1:component name="BusIntBatchMgr" description="Business Integration Batch Manager" ComponentGroup="EAI" criticality=""/>
+				<ns1:component name="BusIntMgr" description="Business Integration Manager" ComponentGroup="EAI" criticality=""/>
+				<ns1:component name="EAIObjMgr_enu" description="EAI Object Manager (ENU)" ComponentGroup="EAI" criticality=""/>
+				<ns1:component name="EIM" description="Enterprise Integration Mgr" ComponentGroup="EAI" criticality=""/>
+				<ns1:component name="FSMSrvr" description="File System Manager" ComponentGroup="SystemAux" criticality=""/>
+				<ns1:component name="GenTrig" description="Generate Triggers" ComponentGroup="Workflow" criticality=""/>
+				<ns1:component name="JMSReceiver" description="JMS Receiver" ComponentGroup="EAI" criticality=""/>
+				<ns1:component name="ListImportSvcMgr" description="List Import Service Manager" ComponentGroup="MktgSrv" criticality=""/>
+				<ns1:component name="ServerMgr" description="Server Manager" ComponentGroup="System" criticality=""/>
+				<ns1:component name="SRBroker" description="Server Request Broker" ComponentGroup="System" criticality=""/>
+				<ns1:component name="SRProc" description="Server Request Processor" ComponentGroup="SystemAux" criticality=""/>
+				<ns1:component name="SvrTblCleanup" description="Server Tables Cleanup" ComponentGroup="SystemAux" criticality=""/>
+				<ns1:component name="SvrTaskPersist" description="Server Task Persistance" ComponentGroup="SystemAux" criticality=""/>
+				<ns1:component name="AdminNotify" description="Siebel Administrator Notification Component" ComponentGroup="SystemAux" criticality=""/>
+				<ns1:component name="SCBroker" description="Siebel Connection Broker" ComponentGroup="System" criticality=""/>
+				<ns1:component name="TaskLogCleanup" description="Task Log Cleanup" ComponentGroup="TaskUI" criticality=""/>
+				<ns1:component name="WorkActn" description="Workflow Action Agent" ComponentGroup="Workflow" criticality=""/>
+				<ns1:component name="WorkMon" description="Workflow Monitor Agent" ComponentGroup="Workflow" criticality=""/>
+				<ns1:component name="WorkMonSWI" description="Workflow Monitor Agent SWI" ComponentGroup="Workflow" criticality=""/>
+				<ns1:component name="WfProcBatchMgr" description="Workflow Process Batch Manager" ComponentGroup="Workflow" criticality=""/>
+				<ns1:component name="WfProcMgr" description="Workflow Process Manager" ComponentGroup="Workflow" criticality=""/>
+				<ns1:component name="WfRecvMgr" description="Workflow Recovery Manager" ComponentGroup="Workflow" criticality=""/>
+				<ns1:component name="eChannelCMEObjMgr_ptb" description="eChannel Power Communications Object Manager (PTB)" ComponentGroup="Communications" criticality=""/>
+				<ns1:component name="eCommunicationsObjMgr_ptb" description="eCommunications Object Manager (PTB)" ComponentGroup="Communications" criticality=""/>
+				<ns1:component name="EAIObjMgr_ptb" description="EAI Object Manager (PTB)" ComponentGroup="EAI" OKStatus="Shutdown" criticality=""/>
+				<ns1:component name="eChannelCMEObjMgr_enu" description="eChannel Power Communications Object Manager (ENU)" ComponentGroup="Communications" OKStatus="Shutdown" criticality=""/>
+				<ns1:component name="eCommunicationsObjMgr_enu" description="eCommunications Object Manager (ENU)" ComponentGroup="Communications" OKStatus="Shutdown" criticality=""/>
+				<ns1:component name="eCommunicationsObjMgrAdm_ptb" description="eCommunications Object Manager Adm (PTB)" ComponentGroup="Communications" OKStatus="Shutdown" criticality=""/>
+			</ns1:components>
+			<ns1:componentsGroups>
+				<ns1:componentGroup name="ADM" defaultOKStatus="Online|Running"/>
+				<ns1:componentGroup name="Communications" defaultOKStatus="Online|Running"/>
+				<ns1:componentGroup name="EAI" defaultOKStatus="Online|Running"/>
+				<ns1:componentGroup name="MktgSrv" defaultOKStatus="Online|Running"/>
+				<ns1:componentGroup name="System" defaultOKStatus="Online|Running"/>
+				<ns1:componentGroup name="SystemAux" defaultOKStatus="Online|Running"/>
+				<ns1:componentGroup name="TaskUI" defaultOKStatus="Online|Running"/>
+				<ns1:componentGroup name="Workflow" defaultOKStatus="Online|Running"/>
+			</ns1:componentsGroups>
+		</ns1:server>
+		<ns1:server name="siebelsrv04">
+			<ns1:components>
+				<ns1:component name="ADMBatchProc" description="Application Deployment Manager Batch Processor" ComponentGroup="ADM" criticality="1"/>
+				<ns1:component name="ADMObjMgr_enu" description="Application Deployment Manager Object Manager (ENU)" ComponentGroup="ADM" criticality="1"/>
+				<ns1:component name="ADMObjMgr_ptb" description="Application Deployment Manager Object Manager (PTB)" ComponentGroup="ADM" criticality="1"/>
+				<ns1:component name="ADMProc" description="Application Deployment Manager Processor" ComponentGroup="ADM" criticality="1"/>
+				<ns1:component name="BusIntBatchMgr" description="Business Integration Batch Manager" ComponentGroup="EAI" criticality="1"/>
+				<ns1:component name="BusIntMgr" description="Business Integration Manager" ComponentGroup="EAI" criticality="1"/>
+				<ns1:component name="EAIObjMgr_enu" description="EAI Object Manager (ENU)" ComponentGroup="EAI" criticality="4"/>
+				<ns1:component name="EIM" description="Enterprise Integration Mgr" ComponentGroup="EAI" criticality="2"/>
+				<ns1:component name="FSMSrvr" description="File System Manager" ComponentGroup="SystemAux" criticality="4"/>
+				<ns1:component name="GenTrig" description="Generate Triggers" ComponentGroup="Workflow" criticality="1"/>
+				<ns1:component name="JMSReceiver" description="JMS Receiver" ComponentGroup="EAI" criticality="4"/>
+				<ns1:component name="ListImportSvcMgr" description="List Import Service Manager" ComponentGroup="MktgSrv" criticality="2"/>
+				<ns1:component name="ServerMgr" description="Server Manager" ComponentGroup="System" criticality="4"/>
+				<ns1:component name="SRBroker" description="Server Request Broker" ComponentGroup="System" criticality="4"/>
+				<ns1:component name="SRProc" description="Server Request Processor" ComponentGroup="SystemAux" criticality="4"/>
+				<ns1:component name="SvrTblCleanup" description="Server Tables Cleanup" ComponentGroup="SystemAux" criticality="1"/>
+				<ns1:component name="SvrTaskPersist" description="Server Task Persistance" ComponentGroup="SystemAux" criticality="1"/>
+				<ns1:component name="AdminNotify" description="Siebel Administrator Notification Component" ComponentGroup="SystemAux" criticality="1"/>
+				<ns1:component name="SCBroker" description="Siebel Connection Broker" ComponentGroup="System" criticality="4"/>
+				<ns1:component name="TaskLogCleanup" description="Task Log Cleanup" ComponentGroup="TaskUI" criticality="1"/>
+				<ns1:component name="WorkActn" description="Workflow Action Agent" ComponentGroup="Workflow" criticality="2"/>
+				<ns1:component name="WorkMon" description="Workflow Monitor Agent" ComponentGroup="Workflow" criticality="2"/>
+				<ns1:component name="WorkMonSWI" description="Workflow Monitor Agent SWI" ComponentGroup="Workflow" criticality="2"/>
+				<ns1:component name="WfProcBatchMgr" description="Workflow Process Batch Manager" ComponentGroup="Workflow" criticality="2"/>
+				<ns1:component name="WfProcMgr" description="Workflow Process Manager" ComponentGroup="Workflow" criticality="4"/>
+				<ns1:component name="WfRecvMgr" description="Workflow Recovery Manager" ComponentGroup="Workflow" criticality="1"/>
+				<ns1:component name="eChannelCMEObjMgr_ptb" description="eChannel Power Communications Object Manager (PTB)" ComponentGroup="Communications" criticality="4"/>
+				<ns1:component name="eCommunicationsObjMgr_ptb" description="eCommunications Object Manager (PTB)" ComponentGroup="Communications" criticality="4"/>
+				<ns1:component name="EAIObjMgr_ptb" description="EAI Object Manager (PTB)" ComponentGroup="EAI" OKStatus="Shutdown" criticality="1"/>
+				<ns1:component name="eChannelCMEObjMgr_enu" description="eChannel Power Communications Object Manager (ENU)" ComponentGroup="Communications" OKStatus="Shutdown" criticality="1"/>
+				<ns1:component name="eCommunicationsObjMgr_enu" description="eCommunications Object Manager (ENU)" ComponentGroup="Communications" OKStatus="Shutdown" criticality="1"/>
+				<ns1:component name="eCommunicationsObjMgrAdm_ptb" description="eCommunications Object Manager Adm (PTB)" ComponentGroup="Communications" OKStatus="Shutdown" criticality="1"/>
+			</ns1:components>
+			<ns1:componentsGroups>
+				<ns1:componentGroup name="ADM" defaultOKStatus="Online|Running"/>
+				<ns1:componentGroup name="Communications" defaultOKStatus="Online|Running"/>
+				<ns1:componentGroup name="EAI" defaultOKStatus="Online|Running"/>
+				<ns1:componentGroup name="MktgSrv" defaultOKStatus="Online|Running"/>
+				<ns1:componentGroup name="System" defaultOKStatus="Online|Running"/>
+				<ns1:componentGroup name="SystemAux" defaultOKStatus="Online|Running"/>
+				<ns1:componentGroup name="TaskUI" defaultOKStatus="Online|Running"/>
+				<ns1:componentGroup name="Workflow" defaultOKStatus="Online|Running"/>
+			</ns1:componentsGroups>
+		</ns1:server>      
+	</ns1:servers>
+</ns1:siebelMonitor>
