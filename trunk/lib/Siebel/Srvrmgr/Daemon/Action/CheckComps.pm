@@ -15,7 +15,7 @@ Siebel::Srvrmgr::Daemon::Action::CheckComps - subclass of Siebel::Srvrmgr::Daemo
     my $comps = [ {name => 'SynchMgr', ok_status => 'Running'}, { name => 'WfProcMgr', ok_status => 'Running'} ];
 
 	my $action = Siebel::Srvrmgr::Daemon::Action::CheckComps->new({  parser => Siebel::Srvrmgr::ListParser->new(), 
-																	 params => ['myserver', $comps ] });
+																	 params => [ $server1, $server2 ] });
 
 	$action->do();
 
@@ -46,38 +46,10 @@ This module was created to work close with Nagios concepts, especially regarding
 =head2 new
 
 The new method returns a instance of L<Siebel::Srvrmgr::Daemon::Action::CheckComps>. The parameter expected are the same ones of any subclass of 
-L<Siebel::Srvrmgr::Daemon::Action>, but the C<params> attribute have some important differences.
-
-The C<params> attribute expects an array reference with the following content, in this exactly order:
-
-=over
-
-=item 1
-
-A scalar with the Siebel Server name to consider when checking the component status.
-
-=item 2
-
-An array reference with hash references as indexes values. Each hash reference must have the following keys/values:
-
-=over
-
-=item *
-
-name: alias of the Siebel Component
-
-=item *
-
-ok_status: a string representing the status considered OK for the component, as seen when using C<list comp> inside the Server Manager program. The C<ok_status> value
-can be more then one status, being separated by a pipe character. The c<do> method will check for this and deal with it as expected.
-
-=item *
-
-criticality: a integer representing how critical it is for the component not having the ok_status expected. This is an arbritary value, higher values means more critical.
-
-=back
-
-=back
+L<Siebel::Srvrmgr::Daemon::Action>, but the C<params> attribute has a important difference: it expects an array reference with instances of classes
+that have the role L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Server>. The way that the classes will get the information about which component 
+information is available per server is not important as long as they keep the same methods defined by the roles 
+L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Server> and L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Component>.
 
 See the examples directory of this distribution to check a XML file used for configuration for more details.
 
@@ -88,7 +60,7 @@ Expects a array reference as the buffer output from srvrmgr program as a paramet
 This method will check the output from C<srvrmgr> program parsed by L<Siebel::Srvrmgr::ListParser::Output::ListComp> object and compare each component recovered status
 with the status defined in the array reference given to C<params> method during object creation.
 
-It will return 1 if this operation was executed sucessfuly and request a instance of L<Siebel::Srvrmgr::Daemon::ActionStash>, calling it's method C<instance> and then
+It will return 1 if this operation was executed successfuly and request a instance of L<Siebel::Srvrmgr::Daemon::ActionStash>, calling it's method C<instance> and then
 C<set_stash> with a hash reference as it's content. Otherwise, the method will return 0 and no data will be set to the ActionStash object.
 
 The hash reference stored at the ActionStash object will have the following structure:
@@ -107,6 +79,9 @@ The hash reference stored at the ActionStash object will have the following stru
 If the servername passed during the object creation (as C<params> attribute of C<new> method) cannot be found in the buffer parameter, the object will raise an
 exception.
 
+Beware that this Action subclass can deal with multiple servers, as long as the buffer output is from a C<list comp>, list all server/components that
+are part of the Siebel Enterprise.
+
 =cut
 
 override 'do' => sub {
@@ -114,12 +89,17 @@ override 'do' => sub {
     my $self   = shift;
     my $buffer = shift;    # array reference
 
-    my $params = $self->get_params();    # array reference
+    my $servers = $self->get_params();    # array reference
 
     super();
 
-    my $servername = $params->[0];
-    my $exp_comps  = $params->[1];       # expected comps states
+    my %servers;                         # to locate the expected servers easier
+
+    foreach my $server ( @{$servers} ) {
+
+        $servers{ $server->name() } = $server;
+
+    }
 
     $self->get_parser()->parse($buffer);
 
@@ -147,16 +127,21 @@ override 'do' => sub {
                   )
                 {
 
-                    if ( $server->get_name() eq $servername ) {
+                    my $name = $server->get_name();
 
-                        foreach my $exp_comp ( @{$exp_comps} ) {
+                    if ( exists( $servers{$name} ) ) {
 
-                            my $comp = $server->get_comp( $exp_comp->{name} );
+                        my $exp_srv =
+                          $servers{$name};    # the expected server reference
+
+                        foreach my $exp_comp ( @{ $exp_srv->components() } ) {
+
+                            my $comp = $server->get_comp( $exp_comp->name() );
 
                             if ( defined($comp) ) {
 
                                 my @valid_status =
-                                  split( /\|/, $exp_comp->{ok_status} );
+                                  split( /\|/, $exp_comp->OKStatus() );
 
                                 my $is_ok = 0;
 
@@ -175,17 +160,17 @@ override 'do' => sub {
 
                                 if ($is_ok) {
 
-                                    $checked_comps{$servername}
-                                      ->{ $exp_comp->{name} } = 1;
+                                    $checked_comps{ $exp_srv->name() }
+                                      ->{ $exp_comp->name() } = 1;
 
                                 }
                                 else {
 
-                                    $checked_comps{$servername}
-                                      ->{ $exp_comp->{name} } = 0;
+                                    $checked_comps{ $exp_srv->name() }
+                                      ->{ $exp_comp->name() } = 0;
 
                                     warn 'invalid status got for ',
-                                      $exp_comp->{name}, ' ',
+                                      $exp_comp->name(),          ' ',
                                       $comp->cp_disp_run_state(), "\n"
                                       if ( $ENV{SIEBEL_SRVRMGR_DEBUG} );
 
@@ -194,7 +179,8 @@ override 'do' => sub {
                             }
                             else {
 
-                                confess 'Could not find any component with name ',
+                                confess
+                                  'Could not find any component with name ',
                                   $exp_comp->{name}, "\n"
 
                             }
@@ -204,14 +190,14 @@ override 'do' => sub {
                     }    # end of foreach comp
                     else {
 
-                        confess 'Invalid servername retrieved from buffer';
+                        confess 'Unexpected servername retrieved from buffer';
 
                     }
 
                 }
                 else {
 
-                    confess "could not fetch $servername data";
+                    confess "could not fetch $name data";
 
                 }
 
@@ -292,4 +278,3 @@ along with Siebel Monitoring Tools.  If not, see <http://www.gnu.org/licenses/>.
 =cut
 
 __PACKAGE__->meta->make_immutable;
-1;

@@ -379,4 +379,3 @@ along with Siebel Monitoring Tools.  If not, see <http://www.gnu.org/licenses/>
 =cut
 
 __PACKAGE__->meta->make_immutable;
-1;

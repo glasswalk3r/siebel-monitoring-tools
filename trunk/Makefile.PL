@@ -1,10 +1,10 @@
-use 5.010001;
+use 5.010;
 use ExtUtils::MakeMaker;
 
 my %config = (
     NAME             => 'Siebel::Srvrmgr',
     VERSION_FROM     => 'lib/Siebel/Srvrmgr.pm',    # finds $VERSION
-    MIN_PERL_VERSION => 5.010001,
+    MIN_PERL_VERSION => 5.010,
     PREREQ_PM        => {
         Carp                         => 1.04,
         namespace::autoclean         => 0.13,
@@ -16,7 +16,7 @@ my %config = (
         MooseX::AbstractFactory      => 0.004000,
         MooseX::Singleton            => 0.27,
         MooseX::FollowPBP            => 0.05,
-        feature                      => 1.16
+        Siebel::AssertOS             => 0.02
     },
     BUILD_REQUIRES => {
         Test::Exception     => 0.27,
@@ -39,7 +39,7 @@ my %config = (
     LICENSE => 'GNU General Public License Version 3 (GPL v3)',
     dist    => { SUFFIX => '.gz', COMPRESS => 'gzip --best' },
     (
-        $] >= 5.010001
+        $] >= 5.010
         ?    ## Add these new keywords supported since 5.005
           (
             ABSTRACT_FROM =>
