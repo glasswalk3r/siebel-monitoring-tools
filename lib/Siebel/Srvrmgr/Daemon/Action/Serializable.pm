@@ -15,8 +15,6 @@ needs serialization to the filesystem.
 
 =head1 ATTRIBUTES
 
-Inherits all attributes from superclass.
-
 =head2 dump_file
 
 This attribute is a string used to indicate in which file the data from L<Siebel::Srvmrgr::ListParser::Output::ListCompDef> should
