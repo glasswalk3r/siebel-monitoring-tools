@@ -10,7 +10,7 @@ Siebel::Srvrmgr::Daemon::Action::CheckComps::Server - role for classes that hold
 
 =head1 DESCRIPTION
 
-This class is a role, not a subclass of L<Siebel::Srvrmgr::Daemon::Action>. It is intended to be used by classes that provides information
+This package is a role, not a subclass of L<Siebel::Srvrmgr::Daemon::Action>. It is intended to be used by classes that provides information
 about which components are available in a Siebel server and which is their expected status.
 
 =head1 ATTRIBUTES

@@ -5,6 +5,8 @@ use Test::Most;
 use Siebel::Srvrmgr::ListParser;
 use Siebel::Srvrmgr::Daemon::Action::CheckComps;
 use Siebel::Srvrmgr::ListParser::Output::ListComp::Server;
+use Test::Action::CheckComps::Server;
+use Test::Action::CheckComps::Component;
 
 sub class { 'Siebel::Srvrmgr::Daemon::Action::CheckComps' }
 
@@ -23,11 +25,31 @@ sub constructor : Tests(5) {
     can_ok( $class, qw(new do) );
 
     my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
-    my $comps = [
-        { name => 'SynchMgr',  ok_status => 'Running' },
-        { name => 'WfProcMgr', ok_status => 'Running' }
-    ];
-    my $returned_data = { sieb_foobar => { SynchMgr => 0, WfProcMgr => 0 } };
+
+	# applying roles as expected by Siebel::Srvrmgr::Daemon::Action::CheckComps
+    my $comp1 = Test::Action::CheckComps::Component->new(
+        {
+            name           => 'SynchMgr',
+            description    => 'foobar',
+            componentGroup => 'foobar',
+            OKStatus       => 'Running',
+            criticality    => 5
+        }
+    );
+    my $comp2 = Test::Action::CheckComps::Component->new(
+        {
+            name           => 'WfProcMgr',
+            description    => 'foobar',
+            componentGroup => 'foobar',
+            OKStatus       => 'Running',
+            criticality    => 5
+        }
+    );
+
+    my $server1 = Test::Action::CheckComps::Server->new(
+        { name => 'sieb_foobar', components => [ $comp1, $comp2 ] } );
+    my $server2 = Test::Action::CheckComps::Server->new(
+        { name => 'foobar', components => [ $comp1, $comp2 ] } );
 
     my $action;
 
@@ -35,30 +57,39 @@ sub constructor : Tests(5) {
         $action = $class->new(
             {
                 parser => Siebel::Srvrmgr::ListParser->new(),
-                params => [ 'sieb_foobar', $comps ]
+                params => [$server1]
             }
         ),
         'the constructor should succeed'
     );
 
-    my @data = <Test::Action::CheckComps::DATA>;
+    # mocking the returned data from srvrmgr
+    my @input_data = <Test::Action::CheckComps::DATA>;
     close(Test::Action::CheckComps::DATA);
 
-    ok( $action->do( \@data ), 'the do method could process the data' );
+    ok( $action->do( \@input_data ), 'do() can process the input data' );
 
-    is_deeply( $stash->get_stash(), $returned_data,
+    # data expected to be returned from the stash
+    my $expected_data = {
+        'sieb_foobar' => {
+            'SynchMgr'  => 0,
+            'WfProcMgr' => 0
+        }
+    };
+
+    is_deeply( $stash->get_stash(), $expected_data,
         'data returned by the stash is the expected one' );
 
     my $other_action = $class->new(
         {
             parser => Siebel::Srvrmgr::ListParser->new(),
-            params => [ 'foobar', $comps ]
+            params => [$server2]
         }
     );
 
     dies_ok(
-        sub { $other_action->do( \@data ) },
-'do method must die because the expected server will not be available'
+        sub { $other_action->do( \@input_data ) },
+        'do method must die because the expected server will not be available'
     );
 
 }

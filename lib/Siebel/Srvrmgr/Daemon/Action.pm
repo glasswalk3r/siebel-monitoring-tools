@@ -8,7 +8,7 @@ Siebel::Srvrmgr::Daemon::Action - base class for Siebel::Srvrmgr::Daemon action
 
 =head1 SYNOPSIS
 
-This class must be subclassed and the C<do> method overloaded.
+This class must be subclassed and the C<do> method overrided.
 
 An subclass should return true ONLY when was able to identify the type of output received. Beware that the output expected must include also
 the command executed or the L<Siebel::Srvrmgr::ListParser> object will not be able to identify the type of the output (L<Siebel::Srvrmgr::Daemon> does that).
