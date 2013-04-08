@@ -25,6 +25,7 @@ Siebel::Srvrmgr::Daemon::Action::CheckComps - subclass of Siebel::Srvrmgr::Daemo
 
 use Moose;
 use namespace::autoclean;
+use Moose::Util qw(does_role);
 use Siebel::Srvrmgr::Daemon::ActionStash;
 
 extends 'Siebel::Srvrmgr::Daemon::Action';
@@ -49,9 +50,31 @@ The new method returns a instance of L<Siebel::Srvrmgr::Daemon::Action::CheckCom
 L<Siebel::Srvrmgr::Daemon::Action>, but the C<params> attribute has a important difference: it expects an array reference with instances of classes
 that have the role L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Server>. The way that the classes will get the information about which component 
 information is available per server is not important as long as they keep the same methods defined by the roles 
-L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Server> and L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Component>.
+L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Server> for a Siebel server and L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Component> for a Siebel
+server component.
 
 See the examples directory of this distribution to check a XML file used for configuration for more details.
+
+=head2 BUILD
+
+Validates if the params array reference have objects with the L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Server> role applied.
+
+=cut
+
+sub BUILD {
+
+    my $self = shift;
+
+    my $role = 'Siebel::Srvrmgr::Daemon::Action::CheckComps::Server';
+
+    foreach my $object ( @{ $self->get_params() } ) {
+
+        die "all params items must be classes with $role role applied"
+          unless ( does_role( $object, $role ) );
+
+    }
+
+}
 
 =head2 do
 
@@ -93,7 +116,7 @@ override 'do' => sub {
 
     super();
 
-    my %servers;                         # to locate the expected servers easier
+    my %servers;    # to locate the expected servers easier
 
     foreach my $server ( @{$servers} ) {
 
