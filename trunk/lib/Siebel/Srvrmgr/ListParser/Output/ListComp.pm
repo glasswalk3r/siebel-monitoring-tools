@@ -79,10 +79,10 @@ from the expected.
 To enable that, execute the following commands in the C<srvrmgr> program:
 
 	set ColumnWidth true
-
-	configure list comp show SV_NAME(31), CC_ALIAS(21), CC_NAME(31), CG_ALIAS(31), CC_RUNMODE(31), CP_DISP_RUN_STATE(61),\
-	CP_NUM_RUN_TASKS(16), CP_MAX_TASKS(11), CP_ACTV_MTS_PROCS(17), CP_MAX_MTS_PROCS(16), CP_START_TIME(21), \
-	CP_END_TIME(21), CP_STATUS(251), CC_INCARN_NO(23), CC_DESC_TEXT(251)
+    
+	configure list components show SV_NAME(31), CC_ALIAS(31), CC_NAME(76), CT_ALIAS(31), CG_ALIAS(31), CC_RUNMODE(31), CP_DISP_RUN_STATE(61),\
+	CP_NUM_RUN_TASKS(16), CP_MAX_TASKS(12), CP_ACTV_MTS_PROCS(17), CP_MAX_MTS_PROCS(16), CP_START_TIME(21), CP_END_TIME(21),\
+	CP_STATUS(251), CC_INCARN_NO(23), CC_DESC_TEXT(251)
 
 Saving this configuration as a preference and loading it everytime is a good idea too.
 
