@@ -36,8 +36,7 @@ my %config = (
               'http://code.google.com/p/siebel-monitoring-tools/source/browse/'
         },
     },
-    LICENSE => 'GNU General Public License Version 3 (GPL v3)',
-    dist    => { SUFFIX => '.gz', COMPRESS => 'gzip --best' },
+    dist => { SUFFIX => '.gz', COMPRESS => 'gzip --best' },
     (
         $] >= 5.010
         ?    ## Add these new keywords supported since 5.005
@@ -48,7 +47,8 @@ my %config = (
           )
         : ()
     ),
-    NO_MYMETA => 1
+    NO_MYMETA => 1,
+    ( $ExtUtils::MakeMaker::VERSION >= 6.3002 ? ( 'LICENSE' => 'gpl', ) : () )
 );
 
 WriteMakefile(%config);
