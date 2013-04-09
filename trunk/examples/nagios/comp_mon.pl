@@ -25,34 +25,6 @@ use Siebel::Srvrmgr::Daemon::ActionStash;
 #    You should have received a copy of the GNU General Public License
 #    along with Siebel Monitoring Tools.  If not, see <http://www.gnu.org/licenses/>.
 
-# configuration of the plugin
-
-# the Siebel Server name to connect
-my $siebel_server = 'foobar';
-
-# the path to the srvrmgr program. Do not include the executable
-my $srvrmgr_path = 'path_to';
-
-# the executable name of srvrmgr
-my $srvrmgr_exec = 'srvrmgr.exe';
-
-# the Siebel Enterprise to connect to
-my $siebel_ent = 'foo';
-
-# the login to use for authentication. The login must have the correct visibility
-my $user = 'sadmin';
-
-# the login password
-my $password = 'foobar';
-
-# the Siebel Gateway to connect to
-my $siebel_gat = 'foobar';
-
-####################
-# DO NOT EDIT THE REST OF THIS SCRIPT
-
-my $bin = catfile( $srvrmgr_path, $srvrmgr_exec );
-
 my $np = Nagios::Plugin->new(
     shortname => 'SCM',
     usage     => "Usage: %s -w -c -f",
@@ -81,34 +53,33 @@ $np->add_arg(
 
 $np->getopts();
 
-my $comps;
 my $stash;
+my $cfg;
 
 eval {
 
-    my $config = $np->opts->configuration();
+    $cfg = Siebel::Monitor::Config->new( file => $np->opts->configuration() );
     $comps = parse_config($config);
 
     my $daemon = Siebel::Srvrmgr::Daemon->new(
         {
-            server      => $siebel_server,
-            gateway     => $siebel_gat,
-            enterprise  => $siebel_ent,
-            user        => $user,
-            password    => $password,
-            bin         => $bin,
+            gateway     => $cfg->gateway(),
+            enterprise  => $cfg->enterprise(),
+            user        => $cfg->user(),
+            password    => $cfg->password(),
+            bin         => catfile( $cfg->srvrmgrPath(), $cfg->srvrmgrBin() ),
             is_infinite => 0,
             timeout     => 0,
             commands    => [
-                {
+                Siebel::Srvrmgr::Daemon::Command->new(
                     command => 'load preferences',
                     action  => 'LoadPreferences',
-                },
-                {
+                ),
+                Siebel::Srvrmgr::Daemon::Command->new(
                     command => 'list comp',
                     action  => 'CheckComps',
-                    params  => [ $siebel_server, $comps ]
-                }
+                    params  => $cfg->servers()
+                )
             ]
         }
     );
@@ -120,7 +91,7 @@ eval {
 
 $np->nagios_die( 'Could not check components state: ' . $@ ) if ($@);
 
-my $status = calc_status( $comps, $stash, $siebel_server );
+my $status = calc_status( $cfg, $stash );
 
 $np->nagios_die(
     'Could not check components state: server or component not found')
@@ -132,8 +103,8 @@ my $threshold = $np->set_thresholds(
 );
 
 $np->nagios_exit(
-    return_code => $np->check_threshold($status),
-    message     => "Components status is $status"
+    return_code => $np->check_threshold( $status ),
+    message     => 'Components status is '. $status
 );
 
 sub calc_status {
@@ -178,52 +149,6 @@ sub calc_status {
     }
 
     return $status;
-
-}
-
-sub parse_config {
-
-    my $config = shift;
-    my $ref    = XMLin($config);
-
-    # hash ref
-    my $defaults = $ref->{server}->{componentsGroups}->{componentGroup};
-
-    my @comps;
-
-    my $xml_comps = $ref->{server}->{components}->{component};
-
-    foreach my $comp_name ( keys( %{$xml_comps} ) ) {
-
-        my $status = undef;
-
-        if ( exists( $xml_comps->{$comp_name}->{OKStatus} ) ) {
-
-            $status = $xml_comps->{$comp_name}->{OKStatus};
-
-        }
-        else {
-
-            my $comp_group = $xml_comps->{$comp_name}->{ComponentGroup};
-            $status = $defaults->{$comp_group}->{defaultOKStatus};
-
-        }
-
-        die "Status must be defined for $comp_name\n"
-          unless ( defined($status) );
-
-        push(
-            @comps,
-            {
-                name        => $comp_name,
-                ok_status   => $status,
-                criticality => $xml_comps->{$comp_name}->{criticality}
-            }
-        );
-
-    }
-
-    return \@comps;
 
 }
 
