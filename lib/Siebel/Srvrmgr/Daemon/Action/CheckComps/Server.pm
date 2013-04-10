@@ -1,6 +1,7 @@
 package Siebel::Srvrmgr::Daemon::Action::CheckComps::Server;
 
 use Moose::Role;
+use Moose::Util::TypeConstraints;
 
 =pod
 
@@ -35,7 +36,11 @@ An array reference with instances of classes that have the L<Siebel::Srvrmgr::Da
 
 =cut
 
-has components => ( isa => 'ArrayRef', is => 'rw', required => 1 );
+role_type 'CheckCompsComp',
+  { role => 'Siebel::Srvrmgr::Daemon::Action::CheckComps::Component' };
+
+has components =>
+  ( isa => 'ArrayRef[CheckCompsComp]', is => 'rw', required => 1 );
 
 =pod
 

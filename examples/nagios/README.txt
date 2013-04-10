@@ -13,3 +13,8 @@ that has the srvrmgr.exe program installed, since comp_mon.pl will use such prog
 The NSC is not obligatory, but you will need to have srvrmgr program available somewhere (even in the Nagios box) to check the components.
 
 See www.nagios.org for more information about the Nagios project.
+
+Required additional Perl modules to be installed prior utilization of comp_mon.pl:
+
+Nagios::Plugin
+XML::Rabbit
