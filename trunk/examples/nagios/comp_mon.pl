@@ -1,10 +1,11 @@
 use warnings;
 use strict;
-use XML::Simple;
 use Siebel::Srvrmgr::Daemon;
 use File::Spec::Functions qw(tmpdir catfile);
 use Nagios::Plugin;
 use Siebel::Srvrmgr::Daemon::ActionStash;
+use lib '.';
+use Siebel::Monitor::Config;
 
 #    COPYRIGHT AND LICENCE
 #
