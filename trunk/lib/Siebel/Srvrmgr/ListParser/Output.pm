@@ -4,7 +4,7 @@ package Siebel::Srvrmgr::ListParser::Output;
 
 =head1 NAME
 
-Siebel::Srvrmgr::ListParser::Output - base class of output classes
+Siebel::Srvrmgr::ListParser::Output - base class of srvrmgr output
 
 =head1 SYNOPSIS
 
@@ -41,8 +41,8 @@ The C<parse> method must be overrided by subclasses or a exception will be raise
 
 =head2 data_type
 
-Identifies which kind of data is being given to the class. This is usually used by abstract factory classes to identify which subclass of Siebel::Srvrmgr::ListParser::Output must
-be created.
+Identifies which kind of data is being given to the class. This is usually used by abstract factory classes to identify which subclass of 
+Siebel::Srvrmgr::ListParser::Output must be created.
 
 This attribute is required during object creation.
 

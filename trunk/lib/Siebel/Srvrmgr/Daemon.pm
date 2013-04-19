@@ -568,7 +568,7 @@ sub run {
 
     }
 
-# :WARNING:28/06/2011 19:47:26:: reading the output is hanging without an first input
+# :WARNING:28/06/2011 19:47:26:: reading the output is hanging without one dummy input
     syswrite $self->get_write(), "\n";
 
     my $prompt;
