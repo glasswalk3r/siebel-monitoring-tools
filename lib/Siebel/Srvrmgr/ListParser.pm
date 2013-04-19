@@ -20,6 +20,7 @@ use Siebel::AssertOS;
 use Siebel::Srvrmgr::ListParser::OutputFactory;
 use Siebel::Srvrmgr::ListParser::Buffer;
 use Siebel::Srvrmgr::Regexes qw(SRVRMGR_PROMPT CONN_GREET);
+use Scalar::Util qw(weaken);
 
 =pod
 
@@ -27,7 +28,7 @@ use Siebel::Srvrmgr::Regexes qw(SRVRMGR_PROMPT CONN_GREET);
 
 Siebel::Srvrmgr::ListParser is a state machine parser created to parse output of "list" commands executed through C<srvrmgr> program.
 
-The parser can idenfity different types of commands and their outputs from a buffer given as parameter to the module. Foreach 
+The parser can identify different types of commands and their outputs from a buffer given as parameter to the module. For each 
 type of output identified an L<Siebel::Srvrmgr::ListParser::Buffer> object will be created, identifying which type of command
 was executed and the raw information from it.
 
@@ -75,6 +76,8 @@ has 'has_tree' =>
 
 A regular expression reference of how the C<srvrmgr> prompt looks like.
 
+By default this regular expression value is defined by L<Siebel::Srvrmgr::Regexes>::SRVRMGR_PROMPT.
+
 =cut
 
 has 'prompt_regex' => (
@@ -91,6 +94,8 @@ has 'prompt_regex' => (
 
 A regular expression reference of how the first line of text received right after the login in one
 server (or enterprise).
+
+By default this regular expression value is defined by L<Siebel::Srvrmgr::Regexes>::CON_GREET.
 
 =cut
 
@@ -145,16 +150,6 @@ has 'buffer' => (
     writer  => '_set_buffer',
     default => sub { return [] }
 );
-
-=pod
-
-=head2 is_warn_enabled
-
-A boolean value that is used for debugging purpouses during the parsing time. If enabled some debug messages may be printed during this phase.
-
-=cut
-
-has 'is_warn_enabled' => ( isa => 'Bool', is => 'ro', default => 0 );
 
 =pod
 
@@ -410,9 +405,9 @@ sub append_output {
 
 Parses one or more commands output executed through C<srvrmgr> program.
 
-Expects as parameter an array reference with the output of srvrmgr, including the command executed.
+Expects as parameter an array reference with the output of C<srvrmgr>, including the command executed.
 
-It will create an C<FSA::Rules> object to parse the given array reference, calling C<append_output> method for each C<Siebel::Srvrmgr::ListParser::Buffer> object
+It will create an L<FSA::Rules> object to parse the given array reference, calling C<append_output> method for each L<Siebel::Srvrmgr::ListParser::Buffer> object
 found.
 
 This method will raise an exception if a given output cannot be identified by the parser.
@@ -429,23 +424,15 @@ sub parse {
     die "data parameter must be an array reference\n"
       unless ( ref($data_ref) eq 'ARRAY' );
 
-# :TODO:27/2/2012 15:06:20:: treat STDOUT messages adding a "warn" to notes method based on is_warn_enabled attribute
+    warn "received an empty buffer" unless ( @{$data_ref} );
+
     my $fsa = FSA::Rules->new(
-        first_line => {
+        no_data => {
             do => sub {
                 print "Searching for useful data\n"
                   if ( $ENV{SIEBEL_SRVRMGR_DEBUG} );
             },
             rules => [
-                command_submission => sub {
-
-                    my $state = shift;
-                    my $line  = $state->notes('line');
-
-                    return ( $state->notes('line') =~
-                          $state->notes('parser')->get_prompt_regex() );
-
-                },
                 greetings => sub {
 
                     my $state = shift;
@@ -454,7 +441,15 @@ sub parse {
                           $state->notes('parser')->get_hello_regex() );
 
                 },
-                first_line => sub { return 1 }
+                command_submission => sub {
+
+                    my $state = shift;
+
+                    return ( $state->notes('line') =~
+                          $state->notes('parser')->get_prompt_regex() );
+
+                },
+                no_data => sub { return 1 }
             ],
             message => 'Line read'
 
@@ -485,7 +480,7 @@ sub parse {
         end => {
             do    => sub { print "Enterprise says 'bye-bye'\n"; },
             rules => [
-                first_line => sub {
+                no_data => sub {
                     return 1;
                   }
             ],
@@ -587,6 +582,54 @@ sub parse {
             ],
             message => 'prompt found'
         },
+        list_tasks => {
+            do => sub {
+                my $state = shift;
+
+                $state->notes('parser')->set_buffer($state);
+
+            },
+            on_exit => sub {
+                my $state = shift;
+                $state->notes('parser')->is_cmd_changed(0);
+            },
+            rules => [
+                command_submission => sub {
+
+                    my $state = shift;
+
+                    return ( $state->notes('line') =~
+                          $state->notes('parser')->get_prompt_regex() );
+
+                },
+                list_tasks => sub { return 1; }
+            ],
+            message => 'prompt found'
+        },
+        list_servers => {
+            do => sub {
+                my $state = shift;
+
+                $state->notes('parser')->set_buffer($state);
+
+            },
+            on_exit => sub {
+                my $state = shift;
+                $state->notes('parser')->is_cmd_changed(0);
+            },
+            rules => [
+                command_submission => sub {
+
+                    my $state = shift;
+
+                    return ( $state->notes('line') =~
+                          $state->notes('parser')->get_prompt_regex() );
+
+                },
+                list_servers => sub { return 1; }
+            ],
+            message => 'prompt found'
+        },
         load_preferences => {
             do => sub {
                 my $state = shift;
@@ -616,11 +659,14 @@ sub parse {
 
                 my $state = shift;
 
+                print 'command_submission got "', $state->notes('line'), "\"\n"
+                  if ( $ENV{SIEBEL_SRVRMGR_DEBUG} );
+
                 my $cmd =
                   ( $state->notes('line') =~
                       $state->notes('parser')->get_prompt_regex() )[1];
 
-                if ( defined($cmd) ) {
+                if ( ( defined($cmd) ) and ( $cmd ne '' ) ) {
 
                     # removing spaces from command
                     $cmd =~ s/^\s+//;
@@ -630,11 +676,12 @@ sub parse {
                 }
                 else {
 
-                    if ( $state->notes('parser')->is_warn_enabled() ) {
+                    if ( $ENV{SIEBEL_SRVRMGR_DEBUG} ) {
 
                         warn 'got prompt, but no command submitted in line '
-                          . $state->notes('line_num') . "\n"
-                          unless ( defined($cmd) );
+                          . $state->notes('line_num') . "\n";
+
+                        $state->notes('parser')->set_last_command('');
 
                     }
 
@@ -704,6 +751,45 @@ sub parse {
                     }
 
                 },
+                list_tasks => sub {
+
+                    my $state = shift;
+
+           # :TODO:20/12/2011 18:05:33:: replace the regex for a precompiled one
+                    if ( $state->notes('parser')->get_last_command() =~
+/list\stasks(\sfor\sserver\s\w+\scomponent\sgroup?\s\w+)?/
+                      )
+                    {
+
+                        return 1;
+
+                    }
+                    else {
+
+                        return 0;
+
+                    }
+
+                },
+                list_servers => sub {
+
+                    my $state = shift;
+
+           # :TODO:20/12/2011 18:05:33:: replace the regex for a precompiled one
+                    if ( $state->notes('parser')->get_last_command() =~
+                        /list\sserver(s)?.*/ )
+                    {
+
+                        return 1;
+
+                    }
+                    else {
+
+                        return 0;
+
+                    }
+
+                },
                 list_comp_def => sub {
 
                     my $state = shift;
@@ -743,6 +829,9 @@ sub parse {
                 },
 
      # :TODO:06/07/2011 13:38:58:: add other possibilities here of list commands
+                command_submission =>
+                  sub { return 1; }    # this must be the last item
+
             ],
             message => 'command submitted'
         }
@@ -761,6 +850,8 @@ sub parse {
 
 # :TODO:07/07/2011 14:56:04:: this should be changed to avoid circular references
             $state->notes( parser => $self );
+
+            #            weaken( $state->notes('parser') );
 
         }
 
@@ -789,12 +880,12 @@ sub parse {
 
 =head1 CAVEATS
 
-Checkout the POD for the C<Siebel::Srvrmgr::ListParser::Output> objects to see details about which kind of output is expected if you're getting errors from the parser. There 
+Checkout the POD for the L<Siebel::Srvrmgr::ListParser::Output> objects to see details about which kind of output is expected if you're getting errors from the parser. There 
 are details regarding how the settings of srvrmgr are expect for output of list commands.
 
 =head1 SEE ALSO
 
-=over 5 
+=over 6 
 
 =item *
 
@@ -815,6 +906,10 @@ L<Siebel::Srvrmgr::ListParser::OutputFactory>
 =item *
 
 L<Siebel::Srvrmgr::ListParser::Buffer>
+
+=item *
+
+L<Siebel::Srvrmgr::Regexes>
 
 =back
 
@@ -843,5 +938,6 @@ along with Siebel Monitoring Tools.  If not, see <http://www.gnu.org/licenses/>.
 
 =cut
 
-no Moose;
 __PACKAGE__->meta->make_immutable;
+
+1;

@@ -74,7 +74,9 @@ our %table_mapping = (
     'list_comp_def'    => 'ListCompDef',
     'greetings'        => 'Greetings',
     'list_comp_types'  => 'ListCompTypes',
-    'load_preferences' => 'LoadPreferences'
+    'load_preferences' => 'LoadPreferences',
+    'list_tasks'       => 'ListTasks',
+    'list_servers'     => 'ListServers'
 );
 
 sub can_create {

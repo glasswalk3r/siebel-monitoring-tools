@@ -1,13 +1,12 @@
 package Siebel::Srvrmgr::ListParser::Output::ListServers;
 use Moose;
 use namespace::autoclean;
-use feature 'switch';
 
 =pod
 
 =head1 NAME
 
-Siebel::Srvrmgr::ListParser::Output::ListCompTypes - subclass to parse list comp types command
+Siebel::Srvrmgr::ListParser::Output::ListServers - subclass to parse list servers command
 
 =cut
 
@@ -21,17 +20,7 @@ See L<Siebel::Srvrmgr::ListParser::Output> for examples.
 
 =head1 DESCRIPTION
 
-This subclass of L<Siebel::Srvrmgr::ListParser::Output> parses the output of the command C<list comp types>.
-
-This is the list configuration of the C<srvrmgr> expected by the module:
-
-	srvrmgr> configure list comp type
-		CT_NAME (76):  Component type name
-		CT_RUNMODE (31):  Supported run mode
-		CT_ALIAS (31):  Component type alias
-		CT_DESC_TEXT (251):  Description of component type
-
-If the configuration is not setup as this, the parsing will fail and the module may raise exceptions.
+This subclass of L<Siebel::Srvrmgr::ListParser::Output> parses the output of the command C<list servers>.
 
 =head1 ATTRIBUTES
 
