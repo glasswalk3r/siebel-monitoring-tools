@@ -19,7 +19,7 @@ sub constructor : Tests(8) {
 
     #extended method tests
     can_ok( $class,
-        qw(get_parsed_tree get_prompt_regex set_prompt_regex get_hello_regex set_hello_regex get_last_command is_cmd_changed is_warn_enabled set_last_command set_buffer clear_buffer count_parsed clear_parsed_tree set_parsed_tree append_output parse)
+        qw(get_parsed_tree get_prompt_regex set_prompt_regex get_hello_regex set_hello_regex get_last_command is_cmd_changed set_last_command set_buffer clear_buffer count_parsed clear_parsed_tree set_parsed_tree append_output parse)
     );
 
     my @data = <Test::ListParser::DATA>;
