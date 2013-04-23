@@ -1,6 +1,7 @@
 package Siebel::Srvrmgr::ListParser::Output::ListServers;
 use Moose;
 use namespace::autoclean;
+use feature 'switch';
 
 =pod
 
