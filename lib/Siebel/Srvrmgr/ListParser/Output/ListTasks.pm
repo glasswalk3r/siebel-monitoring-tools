@@ -234,10 +234,6 @@ sub parse {
                 $parsed_lines{$server_name} = []
                   unless ( exists( $parsed_lines{$server_name} ) );
 
-				  use Data::Dumper;
-
-				  print Dumper(@fields_values);
-
                 if (@fields_values) {
 
                     my %attribs = (

@@ -42,6 +42,23 @@ has attribs => (
 
 =head1 METHODS
 
+All methods from superclass plus some additional ones described below.
+
+The hash reference returned by C<get_data_parsed> will look like that:
+
+	siebfoobar' => HASH
+	  'end_time' => ''
+	  'host_name' => 'siebfoobar'
+	  'install_dir' => '/app/siebel/siebsrvr'
+	  'sblmgr_pid' => 20452
+	  'sblsrvr_group_name' => ''
+	  'sblsrvr_state' => 'Running'
+	  'sblsrvr_status' => '8.1.1.7 [21238] LANG_INDEPENDENT'
+	  'start_time' => '2013-04-22 15:32:25'
+	  'sv_disp_state' => 'Running'
+
+where the keys are the Siebel servers names, each one holding a reference to another hash with the keys shown above.
+
 =head2 get_attribs
 
 Returns the array reference stored in the C<types_attribs> attribute.
