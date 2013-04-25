@@ -244,7 +244,6 @@ sub parse {
 
             }
 
-            #SV_NAME     CC_ALIAS
             if ( $line =~ /^PA_ALIAS\s.*\sPA_NAME/ ) {    # this is the header
 
                 my @columns = split( /\s{2,}/, $line );
