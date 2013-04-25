@@ -1,22 +1,98 @@
 package Siebel::Srvrmgr::ListParser::Output::ListTasks::Task;
 use Moose;
+use MooseX::FollowPBP;
 use namespace::autoclean;
 
 =pod
 
 =head1 NAME
 
-Siebel::Srvrmgr::ListParser::Output::ListServers - subclass to parse list tasks command
+Siebel::Srvrmgr::ListParser::Output::ListTasks::Task - class to represent a Siebel task
 
 =head1 SYNOPSIS
 
-See L<Siebel::Srvrmgr::ListParser::Output> for examples.
+        my $task = $class->new(
+            {
+                server_name    => 'siebfoobar',
+                comp_alias     => 'SRProc',
+                id             => 5242888,
+                pid            => 20503,
+                run_mode       => 'Interactive',
+                start          => '2013-04-22 15:32:28',
+                end            => '2000-00-00 00:00:00',
+                status         => 'Running',
+                cg_alias       => 'SystemAux',
+                parent_id      => 0,
+                incarn_num     => 0,
+                label          => '',
+                type           => 'Normal',
+                last_ping_time => ''
+            }
+        )
 
 =head1 DESCRIPTION
 
-This subclass of L<Siebel::Srvrmgr::ListParser::Output> parses the output of the command C<list tasks>.
+An object that represents each task from a C<list tasks> command output from srvrmgr program.
 
 =head1 ATTRIBUTES
+
+All attributes are required unless documented that is not.
+
+=head2 server_name
+
+Name of the Siebel server where the task information was recovered.
+
+=head2 comp_alias
+
+The component alias corresponding to the task.
+
+=head2 id
+
+The task id.
+
+=head2 pid
+
+The corresponding process identifier from the running OS of the task (in fact, the PID from the related component process).
+
+=head2 run_mode
+
+Task run mode.
+
+=head2 start
+
+Task start time.
+
+=head2 end
+
+Task end time.
+
+=head2 status
+
+Task-reported status.
+
+=head2 cg_alias
+
+Component group alias.
+
+=head2 parent_id
+
+Parent task id. Not required.
+
+=head2 incarn_num
+
+Incarnation Number.
+
+=head2 label
+
+Task Label. Not required.
+
+=head2 type
+
+Task Type.
+
+=head2 last_ping_time
+
+Last ping time for task. Not required.
 
 =cut
 
@@ -25,7 +101,6 @@ has 'comp_alias'     => ( is => 'ro', isa => 'Str', required => 1 );
 has 'id'             => ( is => 'ro', isa => 'Int', required => 1 );
 has 'pid'            => ( is => 'ro', isa => 'Int', required => 1 );
 has 'run_mode'       => ( is => 'ro', isa => 'Str', required => 1 );
-has 'comp_alias'     => ( is => 'ro', isa => 'Str', required => 1 );
 has 'start'          => ( is => 'ro', isa => 'Str', required => 1 );
 has 'end'            => ( is => 'ro', isa => 'Str', required => 1 );
 has 'status'         => ( is => 'ro', isa => 'Str', required => 1 );
@@ -40,17 +115,25 @@ has 'last_ping_time' => ( is => 'ro', isa => 'Str', required => 0 );
 
 =head1 METHODS
 
+All attributes have a getter named "get_<attribute name>".
+
+Since all attributes are read-only there is no corresponding setter.
+
 =head1 SEE ALSO
 
-=over 2
+=over 3
 
 =item *
 
-L<Siebel::Srvrmgr::ListParser::Output>
+L<Siebel::Srvrmgr::ListParser::Output::ListTasks>
 
 =item *
 
 L<Moose>
+
+=item *
+
+L<MooseX::FollowPBP>
 
 =back
 
@@ -60,7 +143,7 @@ Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<E<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2012 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<E<gt>
+This software is copyright (c) 2013 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<E<gt>
 
 This file is part of Siebel Monitoring Tools.
 

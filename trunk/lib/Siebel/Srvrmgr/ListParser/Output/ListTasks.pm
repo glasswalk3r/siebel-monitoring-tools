@@ -8,7 +8,7 @@ use feature qw(switch);
 
 =head1 NAME
 
-Siebel::Srvrmgr::ListParser::Output::ListServers - subclass to parse list tasks command
+Siebel::Srvrmgr::ListParser::Output::ListTasks - subclass to parse list tasks command
 
 =cut
 
@@ -21,6 +21,8 @@ extends 'Siebel::Srvrmgr::ListParser::Output';
 See L<Siebel::Srvrmgr::ListParser::Output> for examples.
 
 =head1 DESCRIPTION
+
+This class is still a working progress, which means it is not working as expected. Please check CAVEATS for details.
 
 This subclass of L<Siebel::Srvrmgr::ListParser::Output> parses the output of the command C<list tasks>.
 
@@ -287,6 +289,17 @@ sub parse {
 
 =pod
 
+=head1 CAVEATS
+
+Unfornately, to the present moment this class is not working as expected.
+
+Even though a L<Siebel::Srvrmgr::ListParser> instance is capable of identifying a C<list tasks> command output, this class is not being able to properly
+parse the output from the command.
+
+The problem is that the output is not following the expected fixed width as setup with the C<configure list tasks show...> command: with that, the output
+width is resized depending on the content of each column and thus impossible to predict how to parse it correctly. The result is messy since the output
+is not fixed sized neither separated by a character and the content (and width of it) cannot be predicted.
+
 =head1 SEE ALSO
 
 =over 2
@@ -307,7 +320,7 @@ Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<E<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2012 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<E<gt>
+This software is copyright (c) 2013 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<E<gt>
 
 This file is part of Siebel Monitoring Tools.
 
