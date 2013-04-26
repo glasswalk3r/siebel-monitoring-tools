@@ -11,7 +11,15 @@ my $path = File::Spec->catfile( getcwd(), 't', 'output', $output_filename );
 
 open( my $in, '<', $path ) or die "Cannot read $path: $!\n";
 
-my @data = <$in>;
+my @data;
+
+while (<$in>) {
+
+    s/\r\n$//;
+    s/\n$//;
+    push( @data, $_ );
+
+}
 
 close($in);
 
