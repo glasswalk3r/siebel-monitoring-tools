@@ -659,8 +659,12 @@ sub parse {
 
                 my $state = shift;
 
-                print 'command_submission got "', $state->notes('line'), "\"\n"
-                  if ( $ENV{SIEBEL_SRVRMGR_DEBUG} );
+                if ( $ENV{SIEBEL_SRVRMGR_DEBUG} ) {
+
+                    my $line = $state->notes('line');
+                    print "command_submission got [$line]\n";
+
+                }
 
                 my $cmd =
                   ( $state->notes('line') =~
@@ -816,6 +820,22 @@ sub parse {
                     if ( $state->notes('parser')->get_last_command() eq
                         'load preferences' )
                     {
+
+                        return 1;
+
+                    }
+                    else {
+
+                        return 0;
+
+                    }
+
+                },
+                no_data => sub {
+
+                    my $state = shift;
+
+                    if ( $state->notes('parser')->get_last_command() eq '' ) {
 
                         return 1;
 
