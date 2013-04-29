@@ -16,7 +16,6 @@ Siebel::Srvrmgr::ListParser - state model parser to idenfity which output type w
 
 use Moose;
 use FSA::Rules;
-use Siebel::AssertOS;
 use Siebel::Srvrmgr::ListParser::OutputFactory;
 use Siebel::Srvrmgr::ListParser::Buffer;
 use Siebel::Srvrmgr::Regexes qw(SRVRMGR_PROMPT CONN_GREET);
