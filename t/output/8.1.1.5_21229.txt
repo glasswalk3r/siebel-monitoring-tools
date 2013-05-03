@@ -1,4 +1,4 @@
-﻿Siebel Enterprise Applications Siebel Server Manager, Version 8.1.1.5 [21229] LANG_INDEPENDENT 
+Siebel Enterprise Applications Siebel Server Manager, Version 8.1.1.5 [21229] LANG_INDEPENDENT 
 Copyright (c) 1990-2008, Oracle. All rights reserved.
 
 The Programs (which include both the software and documentation) contain
