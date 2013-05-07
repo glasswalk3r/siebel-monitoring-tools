@@ -14,6 +14,7 @@ See L<Siebel::Srvrmgr::ListParser::Output>.
 
 use Moose;
 use Siebel::Srvrmgr::Regexes;
+use feature 'switch';
 
 extends 'Siebel::Srvrmgr::ListParser::Output';
 
@@ -59,15 +60,14 @@ has 'patch' =>
 
 =head2 copyright
 
-A string that represents the copyright information of the Siebel enterprise where the connection was stablished. This is a read-only attribute.
+An array reference that represents the copyright information of the Siebel enterprise where the connection was stablished. This is a read-only attribute.
 
 =cut
 
 has 'copyright' => (
     is     => 'ro',
-    isa    => 'Str',
-    reader => 'get_copyright',
-    writer => '_set_copyright'
+    isa    => 'ArrayRef[Str]',
+    reader => 'get_copyright'
 );
 
 =pod
@@ -98,6 +98,21 @@ has 'total_connected' => (
     isa    => 'Int',
     reader => 'get_total_conn',
     writer => '_set_total_conn'
+);
+
+=pod
+
+=head2 help
+
+A string representing how to invoke online help within C<srvrmgr> program. This is a read-only attribute.
+
+=cut
+
+has 'help' => (
+    is     => 'ro',
+    isa    => 'Str',
+    reader => 'get_help',
+    writer => '_set_help'
 );
 
 =pod
@@ -146,14 +161,20 @@ sub parse {
 
     my $hello_regex = Siebel::Srvrmgr::Regexes::CONN_GREET;
 
+    my $is_copyright = 0;
+
     foreach my $line ( @{$data_ref} ) {
 
         chomp($line);
-        next if $line eq '';
 
-      SWITCH: {
+        given ($line) {
 
-            if ( $line =~ /$hello_regex/ ) {
+            when ('') {
+
+                # do nothing
+            }
+
+            when (/$hello_regex/) {
 
 #Siebel Enterprise Applications Siebel Server Manager, Version 7.5.3 [16157] LANG_INDEPENDENT
                 my @words = split( /\s/, $line );
@@ -162,20 +183,24 @@ sub parse {
                 $words[8] =~ tr/[]//d;
                 $self->_set_patch( $words[8] );
 
-                last SWITCH;
-
             }
 
-            if ( $line =~ /^Copyright/ ) {
+            when (/^Copyright/) {
 
                 #Copyright (c) 2001 Siebel Systems, Inc.  All rights reserved.
-
                 $self->_set_copyright($line);
+                $is_copyright = 1;
 
-                last SWITCH;
             }
 
-            if ( $line =~ /^Connected/ ) {
+            when (/^Type\s\"help\"/) {
+
+                $self->_set_help($line);
+                $is_copyright = 0;
+
+            }
+
+            when (/^Connected/) {
 
        #Connected to 1 server(s) out of a total of 1 server(s) in the enterprise
        #Connected to 2 server(s) out of a total of 2 server(s) in the enterprise
@@ -184,12 +209,42 @@ sub parse {
                 $self->_set_total_servers( $words[9] );
                 $self->_set_total_conn( $words[2] );
 
-                last SWITCH;
+            }
+
+            when (/^[\w\(]+/) {
+
+                $self->_set_copyright($line) if ($is_copyright);
+
+            }
+
+            default {
+
+                die 'Invalid data from line [' . $line . ']';
+
             }
 
         }
 
     }
+
+}
+
+=pod
+
+=head2 _set_copyright
+
+"Private" method to set the copyright information.
+
+=cut
+
+sub _set_copyright {
+
+    my $self = shift;
+    my $line = shift;
+
+    push( @{ $self->{copyright} }, $line );
+
+    return 1;
 
 }
 

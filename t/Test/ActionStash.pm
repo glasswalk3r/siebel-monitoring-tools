@@ -2,6 +2,7 @@ package Test::ActionStash;
 
 use Test::Most;
 use Siebel::Srvrmgr::ListParser;
+use Test::Moose 'has_attribute_ok';
 use base 'Test::Class';
 
 sub class { 'Siebel::Srvrmgr::Daemon::ActionStash' }
@@ -11,7 +12,7 @@ sub startup : Tests(startup => 1) {
     use_ok $test->class;
 }
 
-sub constructor : Tests(7) {
+sub constructor : Tests(8) {
 
     my $test  = shift;
     my $class = $test->class;
@@ -22,6 +23,8 @@ sub constructor : Tests(7) {
     my $stash_param;
 
     ok( $stash = $class->new(), 'the constructor should succeed' );
+
+	has_attribute_ok($stash, 'stash');
 
     dies_ok(
         sub {

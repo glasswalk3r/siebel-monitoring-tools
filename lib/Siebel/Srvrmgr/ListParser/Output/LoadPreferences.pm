@@ -10,6 +10,7 @@ Siebel::Srvrmgr::ListParser::Output::LoadPreferences - subclass to parse load pr
 
 use Moose;
 use Siebel::Srvrmgr::Regexes;
+use feature 'switch';
 
 extends 'Siebel::Srvrmgr::ListParser::Output';
 
@@ -74,29 +75,32 @@ sub parse {
 
         chomp($line);
 
-      SWITCH: {
+        given ($line) {
 
-            if ( $line =~ /$response/ ) {
+            when (/$response/) {
 
                 my @data = split( /\:\s/, $line );
 
                 $self->set_location( $data[-1] );
                 $parsed_lines{answer} = $line;
 
-                last SWITCH;
-
             }
 
-            if ( $line =~ /$command/ ) {
+            when ( $line =~ /$command/ ) {
 
                 $parsed_lines{command} = $line;
-                last SWITCH;
 
             }
 
-            if ( $line eq '' ) {
+            when ( $line eq '' ) {
 
-                last SWITCH;
+                next;
+
+            }
+
+            default {
+
+                die 'Invalid data in line [' . $line . ']';
 
             }
 

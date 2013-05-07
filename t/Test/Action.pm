@@ -2,6 +2,7 @@ package Test::Action;
 
 use Test::Most;
 use Siebel::Srvrmgr::ListParser;
+use Test::Moose 'has_attribute_ok';
 use base 'Test::Class';
 
 sub class { 'Siebel::Srvrmgr::Daemon::Action' }
@@ -11,7 +12,7 @@ sub startup : Tests(startup => 1) {
     use_ok $test->class;
 }
 
-sub constructor : Tests(6) {
+sub constructor : Tests(8) {
 
     my $test  = shift;
     my $class = $test->class;
@@ -30,6 +31,9 @@ sub constructor : Tests(6) {
         ),
         'the constructor should suceed'
     );
+
+	has_attribute_ok($action, 'parser');
+	has_attribute_ok($action, 'params');
 
     isa_ok( $action->get_parser(), 'Siebel::Srvrmgr::ListParser',
         'get_parser returned object' );

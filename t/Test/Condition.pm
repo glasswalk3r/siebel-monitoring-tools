@@ -2,6 +2,7 @@ package Test::Condition;
 
 use Test::Most;
 use Siebel::Srvrmgr::ListParser;
+use Test::Moose 'has_attribute_ok';
 use base 'Test::Class';
 
 sub class { 'Siebel::Srvrmgr::Daemon::Condition' }
@@ -11,7 +12,7 @@ sub startup : Tests(startup => 1) {
     use_ok $test->class;
 }
 
-sub constructor : Tests(18) {
+sub constructor : Tests(24) {
 
     my $test  = shift;
     my $class = $test->class;
@@ -31,6 +32,13 @@ sub constructor : Tests(18) {
         ),
         'the constructor should suceed'
     );
+
+	has_attribute_ok($condition, 'is_infinite');
+	has_attribute_ok($condition, 'max_cmd_idx');
+	has_attribute_ok($condition, 'total_commands');
+	has_attribute_ok($condition, 'cmd_counter');
+	has_attribute_ok($condition, 'output_used');
+	has_attribute_ok($condition, 'cmd_sent');
 
     ok( $condition->check(), 'check methods must return true' );
 

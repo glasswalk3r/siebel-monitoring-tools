@@ -1,7 +1,7 @@
 package Test::ListTasks;
 
 use Test::Most;
-use Test::Moose;
+use Test::Moose qw(has_attribute_ok);
 use base 'Test::Class';
 
 sub class { 'Siebel::Srvrmgr::ListParser::Output::ListTasks' }

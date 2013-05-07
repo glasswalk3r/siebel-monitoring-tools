@@ -1,6 +1,7 @@
 package Test::ListParams;
 
 use Test::Most;
+use Test::Moose 'has_attribute_ok';
 use base 'Test::Class';
 
 sub class { 'Siebel::Srvrmgr::ListParser::Output::ListParams' }
@@ -11,7 +12,7 @@ sub startup : Tests(startup => 1) {
     use_ok $test->class;
 }
 
-sub constructor : Tests(8) {
+sub constructor : Tests(11) {
 
     my $test  = shift;
     my $class = $test->class;
@@ -36,6 +37,10 @@ sub constructor : Tests(8) {
         ),
         '... and the constructor should succeed'
     );
+
+    has_attribute_ok( $params, 'params' );
+    has_attribute_ok( $params, 'server' );
+    has_attribute_ok( $params, 'comp_alias' );
 
     isa_ok( $params, $class, '... and the object it returns' );
 

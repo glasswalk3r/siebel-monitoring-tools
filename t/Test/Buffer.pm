@@ -1,6 +1,7 @@
 package Test::Buffer;
 
 use Test::Most;
+use Test::Moose 'has_attribute_ok';
 use base 'Test::Class';
 
 sub class { 'Siebel::Srvrmgr::ListParser::Buffer' }
@@ -10,7 +11,7 @@ sub startup : Tests(startup => 1) {
     use_ok $test->class;
 }
 
-sub constructor : Tests(4) {
+sub constructor : Tests(7) {
 
     my $test  = shift;
     my $class = $test->class;
@@ -26,6 +27,10 @@ sub constructor : Tests(4) {
 
     ok( $buffer = $class->new( { type => 'output', cmd_line => '' } ),
         'the constructor should suceed' );
+
+    has_attribute_ok( $buffer, 'type' );
+    has_attribute_ok( $buffer, 'cmd_line' );
+    has_attribute_ok( $buffer, 'content' );
 
     ok( $buffer->set_content( $data[0] ), 'is ok to add lines to it' );
 

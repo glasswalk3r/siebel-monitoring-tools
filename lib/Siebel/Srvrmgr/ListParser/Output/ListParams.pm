@@ -216,9 +216,9 @@ sub parse {
 
         chomp($line);
 
-      SWITCH: {
+        given ($line) {
 
-            if ( $line =~ /^\-+\s/ ) {    # this is the header line
+            when (/^\-+\s/) {    # this is the header line
 
                 my @columns = split( /\s{2}/, $line );
 
@@ -234,26 +234,22 @@ sub parse {
 
                 $self->_set_fields_pattern($pattern);
 
-                last SWITCH;
+            }
+
+            when ( $line eq '' ) {
+
+                next;
 
             }
 
-            if ( $line eq '' ) {
-
-                last SWITCH;
-
-            }
-
-            if ( $line =~ /^PA_ALIAS\s.*\sPA_NAME/ ) {    # this is the header
+            when (/^PA_ALIAS\s.*\sPA_NAME/) {    # this is the header
 
                 my @columns = split( /\s{2,}/, $line );
 
                 $self->set_params( \@columns );
 
-                last SWITCH;
-
             }
-            else {
+            default {
 
                 my @fields_values =
                   unpack( $self->get_fields_pattern(), $line );
@@ -275,7 +271,7 @@ sub parse {
                 }
                 else {
 
-                    warn "got nothing\n";
+                    die 'Could not parse [' . $line . ']';
 
                 }
 

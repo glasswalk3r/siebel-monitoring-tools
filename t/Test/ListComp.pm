@@ -1,6 +1,7 @@
 package Test::ListComp;
 
 use Test::Most;
+use Test::Moose 'has_attribute_ok';
 use base 'Test::Class';
 
 sub class { 'Siebel::Srvrmgr::ListParser::Output::ListComp' }
@@ -11,7 +12,7 @@ sub startup : Tests(startup => 1) {
     use_ok $test->class;
 }
 
-sub constructor : Tests(9) {
+sub constructor : Tests(12) {
 
     my $test  = shift;
     my $class = $test->class;
@@ -36,6 +37,10 @@ sub constructor : Tests(9) {
         ),
         '... and the constructor should succeed'
     );
+
+    has_attribute_ok( $comps, 'last_server' );
+    has_attribute_ok( $comps, 'comp_attribs' );
+    has_attribute_ok( $comps, 'servers' );
 
     isa_ok( $comps, $class, '... and the object it returns' );
 
