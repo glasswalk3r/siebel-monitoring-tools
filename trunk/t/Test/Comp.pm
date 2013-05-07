@@ -1,6 +1,7 @@
 package Test::Comp;
 
 use Test::Most;
+use Test::Moose 'has_attribute_ok';
 use base 'Test::Class';
 use Siebel::Srvrmgr::ListParser::Output::ListComp;
 
@@ -12,7 +13,7 @@ sub startup : Tests(startup => 1) {
     use_ok $test->class;
 }
 
-sub constructor : Tests(18) {
+sub constructor : Tests(35) {
 
     my $test  = shift;
     my $class = $test->class;
@@ -47,6 +48,24 @@ sub constructor : Tests(18) {
     );
 
     isa_ok( $comp, $class, '... and the object it returns' );
+
+	has_attribute_ok($comp, 'data');
+	has_attribute_ok($comp, 'cc_alias');
+	has_attribute_ok($comp, 'cc_name');
+	has_attribute_ok($comp, 'ct_alias');
+	has_attribute_ok($comp, 'ct_name');
+	has_attribute_ok($comp, 'cg_alias');
+	has_attribute_ok($comp, 'cc_runmode');
+	has_attribute_ok($comp, 'cp_disp_run_state');
+	has_attribute_ok($comp, 'cp_num_run_tasks');
+	has_attribute_ok($comp, 'cp_max_tasks');
+	has_attribute_ok($comp, 'cp_actv_mts_procs');
+	has_attribute_ok($comp, 'cp_max_mts_procs');
+	has_attribute_ok($comp, 'cp_start_time');
+	has_attribute_ok($comp, 'cp_end_time');
+	has_attribute_ok($comp, 'cp_status');
+	has_attribute_ok($comp, 'cc_incarn_no');
+	has_attribute_ok($comp, 'cc_desc_text');
 
     is( $comp->cp_num_run_tasks(),
         2, 'cp_num_run_tasks returns the correct value' );

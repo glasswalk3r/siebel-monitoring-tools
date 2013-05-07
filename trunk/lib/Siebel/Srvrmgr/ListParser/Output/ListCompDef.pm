@@ -9,6 +9,7 @@ Siebel::Srvrmgr::ListParser::Output::ListCompDef - subclass to parse component d
 =cut
 
 use Moose;
+use feature 'switch';
 
 extends 'Siebel::Srvrmgr::ListParser::Output';
 
@@ -97,9 +98,9 @@ sub parse {
 
         chomp($line);
 
-      SWITCH: {
+        given ($line) {
 
-            if ( $line =~ /^\-+\s/ ) {    # this is the header line
+            when ( $line =~ /^\-+\s/ ) {    # this is the header line
 
                 my @columns = split( /\s{2}/, $line );
 
@@ -115,27 +116,23 @@ sub parse {
 
                 $self->_set_fields_pattern($pattern);
 
-                last SWITCH;
-
             }
 
-            if ( $line eq '' ) {
-
-                last SWITCH;
-
-            }
-
-            if ( $line =~ /^CC_NAME\s.*\sCC_INCARN_NO\s*$/ )
-            {    # this is the header
+            when (/^CC_NAME\s.*\sCC_INCARN_NO\s*$/) {    # this is the header
 
                 my @columns = split( /\s{2,}/, $line );
 
                 $self->set_comp_defs( \@columns );
 
-                last SWITCH;
+            }
+
+            when ('') {
+
+                # do nothing
 
             }
-            else {
+
+            default {
 
                 my @fields_values;
 
@@ -173,7 +170,7 @@ sub parse {
                 }
                 else {
 
-                    warn "got nothing\n";
+                    die 'Could not parse line [' . $line . ']';
 
                 }
 

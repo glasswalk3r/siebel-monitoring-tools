@@ -1,6 +1,7 @@
 package Test::Server;
 
 use Test::Most;
+use Test::Moose qw(has_attribute_ok);
 use base 'Test::Class';
 use Siebel::Srvrmgr::ListParser::Output::ListComp;
 
@@ -12,7 +13,7 @@ sub startup : Tests(startup => 1) {
     use_ok $test->class;
 }
 
-sub constructor : Tests(8) {
+sub constructor : Tests(10) {
 
     my $test  = shift;
     my $class = $test->class;
@@ -38,6 +39,9 @@ sub constructor : Tests(8) {
         my $server = $list_comp->get_server('foobar'),
         '... and the constructor should succeed'
     );
+
+    has_attribute_ok( $server, 'name' );
+    has_attribute_ok( $server, 'data' );
 
     isa_ok( $server, $class, '... and the object it returns' );
 

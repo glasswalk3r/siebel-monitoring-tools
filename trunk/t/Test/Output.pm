@@ -1,6 +1,7 @@
 package Test::Output;
 
 use Test::Most;
+use Test::Moose qw(has_attribute_ok);
 use base 'Test::Class';
 
 sub class { 'Siebel::Srvrmgr::ListParser::Output' }
@@ -10,7 +11,7 @@ sub startup : Tests(startup => 1) {
     use_ok $test->class;
 }
 
-sub constructor : Tests(3) {
+sub constructor : Tests(8) {
 
     my $test  = shift;
     my $class = $test->class;
@@ -29,6 +30,12 @@ sub constructor : Tests(3) {
             { data_type => 'output', raw_data => \@data, cmd_line => '' } );
     }
     'the constructor must fail';
+
+    has_attribute_ok( $class, 'data_type' );
+    has_attribute_ok( $class, 'raw_data' );
+    has_attribute_ok( $class, 'data_parsed' );
+    has_attribute_ok( $class, 'cmd_line' );
+    has_attribute_ok( $class, 'fields_pattern' );
 
 }
 

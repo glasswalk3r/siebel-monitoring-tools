@@ -3,6 +3,7 @@ package Test::Daemon;
 use Cwd;
 use Test::Most;
 use File::Spec;
+use Test::Moose 'has_attribute_ok';
 use base 'Test::Class';
 
 sub class { 'Siebel::Srvrmgr::Daemon' }
@@ -13,7 +14,7 @@ sub startup : Tests(startup => 1) {
     use_ok $test->class;
 }
 
-sub constructor : Tests(27) {
+sub constructor : Tests(43) {
 
     my $test  = shift;
     my $class = $test->class;
@@ -96,6 +97,23 @@ sub constructor : Tests(27) {
         ),
         '... and the constructor should succeed'
     );
+
+    has_attribute_ok( $daemon, 'server' );
+    has_attribute_ok( $daemon, 'gateway' );
+    has_attribute_ok( $daemon, 'enterprise' );
+    has_attribute_ok( $daemon, 'user' );
+    has_attribute_ok( $daemon, 'password' );
+    has_attribute_ok( $daemon, 'wait_time' );
+    has_attribute_ok( $daemon, 'commands' );
+    has_attribute_ok( $daemon, 'bin' );
+    has_attribute_ok( $daemon, 'write_fh' );
+    has_attribute_ok( $daemon, 'read_fh' );
+    has_attribute_ok( $daemon, 'pid' );
+    has_attribute_ok( $daemon, 'is_infinite' );
+    has_attribute_ok( $daemon, 'last_exec_cmd' );
+    has_attribute_ok( $daemon, 'cmd_stack' );
+    has_attribute_ok( $daemon, 'params_stack' );
+    has_attribute_ok( $daemon, 'action_stack' );
 
     foreach my $attrib (@data) {
 
