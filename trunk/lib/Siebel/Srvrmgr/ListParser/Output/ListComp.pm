@@ -12,6 +12,7 @@ use Moose;
 use namespace::autoclean;
 use Siebel::Srvrmgr::ListParser::Output::ListComp::Server;
 use Siebel::Srvrmgr::ListParser::Output::ListComp::Comp;
+use feature 'switch';
 
 =head1 SYNOPSIS
 
@@ -261,9 +262,9 @@ sub parse {
 
         chomp($line);
 
-      SWITCH: {
+        given ($line) {
 
-            if ( $line =~ /^\-+\s/ ) {
+            when (/^\-+\s/) {
 
                 my @columns = split( /\s{2}/, $line );
 
@@ -279,18 +280,16 @@ sub parse {
 
                 $self->_set_fields_pattern($pattern);
 
-                last SWITCH;
-
             }
 
-            if ( $line eq '' ) {
+            when ('') {
 
-                last SWITCH;
+                next;
 
             }
 
             #SV_NAME     CC_ALIAS
-            if ( $line =~ /^SV_NAME\s+CC_ALIAS/ ) {
+            when (/^SV_NAME\s+CC_ALIAS/) {
 
                 my @columns = split( /\s{2,}/, $line );
 
@@ -302,10 +301,9 @@ sub parse {
 
                 $self->_set_comp_attribs( \@columns );
 
-                last SWITCH;
-
             }
-            else {
+
+            default {
 
                 my @fields_values;
 

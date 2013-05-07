@@ -3,7 +3,7 @@ use strict;
 use File::Spec;
 use Siebel::Srvrmgr::ListParser;
 use Cwd;
-use Test::More tests => 10;
+use Test::More tests => 11;
 
 my $output_filename = '8.1.1.5_21229.txt';
 
@@ -30,6 +30,7 @@ $parser->parse( \@data );
 my $res = $parser->get_parsed_tree();
 
 my @expected = (
+    'Siebel::Srvrmgr::ListParser::Output::Greetings',
     'Siebel::Srvrmgr::ListParser::Output::LoadPreferences',
     'Siebel::Srvrmgr::ListParser::Output::ListComp',
     'Siebel::Srvrmgr::ListParser::Output::ListCompTypes',
