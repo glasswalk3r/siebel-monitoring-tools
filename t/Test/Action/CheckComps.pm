@@ -99,7 +99,7 @@ sub constructor : Tests(5) {
 __DATA__
 srvrmgr> list comp
 
-SV_NAME     CC_ALIAS              CC_NAME                               CT_ALIAS  CG_ALIAS      CC_RUNMODE   CP_DISP_RUN_STATE  CP_NUM_RUN_TASKS  CP_MAX_TASKS  CP_ACTV_MTS_PROCS  CP_MAX_MTS_PROCS  CP_START_TIME        CP_END_TIME          CP_STATUS  CC_INCARN_NO  CC_DESC_TEXT  
+SV_NAME      CC_ALIAS              CC_NAME                               CT_ALIAS  CG_ALIAS      CC_RUNMODE   CP_DISP_RUN_STATE  CP_NUM_RUN_TASKS  CP_MAX_TASKS  CP_ACTV_MTS_PROCS  CP_MAX_MTS_PROCS  CP_START_TIME        CP_END_TIME          CP_STATUS  CC_INCARN_NO  CC_DESC_TEXT  
 -----------  --------------------  ------------------------------------  --------  ------------  -----------  -----------------  ----------------  ------------  -----------------  ----------------  -------------------  -------------------  ---------  ------------  ------------  
 sieb_foobar  ClientAdmin           Client Administration                           System        Background   Activated          0                 1                                                  2012-02-18 17:11:56                                                              
 sieb_foobar  CommConfigMgr         Communications Configuration Manager            CommMgmt      Batch        Activated          0                 20            1                  1                 2012-02-18 17:11:56                                                              
