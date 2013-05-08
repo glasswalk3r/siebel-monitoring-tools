@@ -147,13 +147,16 @@ Returns a integer as the value of total_connected attribute.
 
 =head2 parse
 
+This method overrides the superclass method since Siebel::Srvrmgr::ListParser::Output::Greetings simply does not follows the same sequence
+as the other subclasses.
+
 Parses the data available in the C<raw_data> attribute, setting the attribute C<data_parsed> at the end of process.
 
 Also the attribute C<raw_data> has his reference changed to an empty array reference and the end of process.
 
 =cut
 
-sub parse {
+override 'parse' => sub {
 
     my $self = shift;
 
@@ -227,7 +230,7 @@ sub parse {
 
     }
 
-}
+};
 
 =pod
 

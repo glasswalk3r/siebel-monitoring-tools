@@ -74,22 +74,6 @@ Until now there is no method implementation that would return a parameter name a
 
 =head1 ATTRIBUTES
 
-=head2 params
-
-An array reference with the parameters attributes representing the output of the command C<list comp params>. If this description looks confusing, is the same
-columns shown in the command C<configure list params>.
-
-=cut
-
-has 'params' => (
-    is     => 'rw',
-    isa    => 'ArrayRef',
-    reader => 'get_params',
-    writer => 'set_params'
-);
-
-=pod
-
 =head2 server
 
 An string representing the server from where the parameter were got.
@@ -115,16 +99,6 @@ has comp_alias => (
 );
 
 =pod
-
-=head1 METHODS
-
-=head2 get_params
-
-Returns the attribute params.
-
-=head2 set_params
-
-Set the attribute params. Expects an array reference as parameter.
 
 =head2 _set_details
 
@@ -187,102 +161,40 @@ sub BUILD {
 
 }
 
-=pod
+sub _set_header_regex {
 
-=head2 parse
+    return qr/^PA_ALIAS\s.*\sPA_NAME/;
 
-Parses the data in the C<raw_data> attribute setting the C<data_parsed> at the end of process.
+}
 
-Beware that the C<raw_data> attribute will be set to an empty array reference at the end of the process.
+sub _parse_data {
 
-=cut
+    my $self       = shift;
+    my $fields_ref = shift;
+    my $parsed_ref = shift;
 
-sub parse {
+    if ( @{$fields_ref} ) {
 
-    my $self = shift;
+        my $pa_alias    = $fields_ref->[0];
+        my $list_len    = scalar( @{$fields_ref} );
+        my $columns_ref = $self->get_header_cols();
 
-    my $data_ref = $self->get_raw_data();
+        for ( my $i = 1 ; $i < $list_len ; $i++ )
+        {    # starting from 1 to skip the field PA_ALIAS
 
-    my %parsed_lines;
-
-# removing the three last lines Siebel 7.5.3 (one blank line followed by a line amount of lines returned followed by a blank line)
-    for ( 1 .. 3 ) {
-
-        pop( @{$data_ref} );
-
-    }
-
-    foreach my $line ( @{$data_ref} ) {
-
-        chomp($line);
-
-        given ($line) {
-
-            when (/^\-+\s/) {    # this is the header line
-
-                my @columns = split( /\s{2}/, $line );
-
-                my $pattern;
-
-                foreach my $column (@columns) {
-
-                    $pattern .= 'A'
-                      . ( length($column) + 2 )
-                      ; # + 2 because of the spaces after the "---" that will be trimmed
-
-                }
-
-                $self->_set_fields_pattern($pattern);
-
-            }
-
-            when ( $line eq '' ) {
-
-                next;
-
-            }
-
-            when (/^PA_ALIAS\s.*\sPA_NAME/) {    # this is the header
-
-                my @columns = split( /\s{2,}/, $line );
-
-                $self->set_params( \@columns );
-
-            }
-            default {
-
-                my @fields_values =
-                  unpack( $self->get_fields_pattern(), $line );
-
-                if (@fields_values) {
-
-                    my $pa_alias    = $fields_values[0];
-                    my $list_len    = scalar(@fields_values);
-                    my $columns_ref = $self->get_params();
-
-                    for ( my $i = 1 ; $i < $list_len ; $i++ )
-                    {    # starting from 1 to skip the field PA_ALIAS
-
-                        $parsed_lines{$pa_alias}->{ $columns_ref->[$i] } =
-                          $fields_values[$i];
-
-                    }
-
-                }
-                else {
-
-                    die 'Could not parse [' . $line . ']';
-
-                }
-
-            }
+            $parsed_ref->{$pa_alias}->{ $columns_ref->[$i] } =
+              $fields_ref->[$i];
 
         }
 
-    }
+        return 1;
 
-    $self->set_data_parsed( \%parsed_lines );
-    $self->set_raw_data( [] );
+    }
+    else {
+
+        return 0;
+
+    }
 
 }
 

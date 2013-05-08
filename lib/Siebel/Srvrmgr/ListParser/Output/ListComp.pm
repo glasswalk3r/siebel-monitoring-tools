@@ -12,7 +12,7 @@ use Moose;
 use namespace::autoclean;
 use Siebel::Srvrmgr::ListParser::Output::ListComp::Server;
 use Siebel::Srvrmgr::ListParser::Output::ListComp::Comp;
-use feature 'switch';
+use feature qw(switch say);
 
 =head1 SYNOPSIS
 
@@ -233,139 +233,77 @@ sub _set_last_server {
 
 }
 
-=pod
+sub _set_header_regex {
 
-=head2 parse
+    return qr/^SV_NAME\s+CC_ALIAS/;
 
-Parsers the data available in the C<raw_data> attribute, populating the C<data_parsed> attribute.
+}
 
-The C<raw_data> attribute will be set to an empty array reference once the parsing is finished.
-
-=cut
-
-sub parse {
+override '_set_header' => sub {
 
     my $self = shift;
+    my $line = shift;
 
-    my $data_ref = $self->get_raw_data();
+    my $columns_ref = $self->split_fields($line);
 
-    my %parsed_lines;
+    #SV_NAME is useless here
+    shift( @{$columns_ref} );
 
-    # removing the three last lines Siebel 7.5.3
-    for ( 1 .. 3 ) {
+    # component alias do not need to be maintained here
+    shift( @{$columns_ref} );
 
-        pop( @{$data_ref} );
+    $self->_set_comp_attribs($columns_ref);
+
+    return 1;
+
+};
+
+sub _parse_data {
+
+    my $self       = shift;
+    my $fields_ref = shift;
+    my $parsed_ref = shift;
+
+    my $server = shift( @{$fields_ref} );
+
+    # do not need the servername again
+    if (   ( $self->get_last_server() eq '' )
+        or ( $self->get_last_server() ne $server ) )
+    {
+
+        $self->_set_last_server($server);
 
     }
 
-    foreach my $line ( @{$data_ref} ) {
+    my $comp_alias = shift( @{$fields_ref} );
 
-        chomp($line);
+    my $list_len = scalar( @{$fields_ref} );
 
-        given ($line) {
+ # :TODO      :08/05/2013 18:19:48:: replace comp_attribs with header_cols? seems to be the same thing
+    my $columns_ref = $self->get_comp_attribs();
 
-            when (/^\-+\s/) {
+    confess "Cannot continue without defining fields names"
+      unless ( defined($columns_ref) );
 
-                my @columns = split( /\s{2}/, $line );
+    if ( @{$fields_ref} ) {
 
-                my $pattern;
+        for ( my $i = 0 ; $i < $list_len ; $i++ ) {
 
-                foreach my $column (@columns) {
+            my $server = $self->get_last_server();
 
-                    $pattern .= 'A'
-                      . ( length($column) + 2 )
-                      ; # + 2 because of the spaces after the "---" that will be trimmed
-
-                }
-
-                $self->_set_fields_pattern($pattern);
-
-            }
-
-            when ('') {
-
-                next;
-
-            }
-
-            #SV_NAME     CC_ALIAS
-            when (/^SV_NAME\s+CC_ALIAS/) {
-
-                my @columns = split( /\s{2,}/, $line );
-
-                #SV_NAME is usuless here
-                shift(@columns);
-
-                # component alias do not need to be maintained here
-                shift(@columns);
-
-                $self->_set_comp_attribs( \@columns );
-
-            }
-
-            default {
-
-                my @fields_values;
-
-                if ( $self->get_fields_pattern() ) {
-
-                    @fields_values =
-                      unpack( $self->get_fields_pattern(), $line );
-
-                }
-                else {
-
-                    die
-                      "Cannot continue since fields pattern was not defined\n";
-
-                }
-
-                my $server = shift(@fields_values);
-
-                # do not need the servername again
-                if (   ( $self->get_last_server() eq '' )
-                    or ( $self->get_last_server() ne $server ) )
-                {
-
-                    $self->_set_last_server($server);
-
-                }
-
-                my $comp_alias = shift(@fields_values);
-
-                my $list_len = scalar(@fields_values);
-
-                my $columns_ref = $self->get_comp_attribs();
-
-                confess "Cannot continue without defining fields names"
-                  unless ( defined($columns_ref) );
-
-                if (@fields_values) {
-
-                    for ( my $i = 0 ; $i < $list_len ; $i++ ) {
-
-                        my $server = $self->get_last_server();
-
-                        $parsed_lines{$server}->{$comp_alias}
-                          ->{ $columns_ref->[$i] } = $fields_values[$i];
-
-                    }
-
-                }
-                else {
-
-                    warn "got nothing\n";
-
-                }
-
-            }
+            $parsed_ref->{$server}->{$comp_alias}->{ $columns_ref->[$i] } =
+              $fields_ref->[$i];
 
         }
 
-    }
+        return 1;
 
-    $self->set_data_parsed( \%parsed_lines );
-    $self->set_raw_data( [] );
+    }
+    else {
+
+        return 0;
+
+    }
 
 }
 

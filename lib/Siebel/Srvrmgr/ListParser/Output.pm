@@ -24,6 +24,7 @@ use Moose;
 use MooseX::Storage;
 use namespace::autoclean;
 use Carp;
+use feature 'switch';
 
 with Storage( io => 'StorableFile' );
 
@@ -119,6 +120,35 @@ has 'fields_pattern' => (
     default => sub { '' }
 );
 
+has 'header_regex' => (
+    is      => 'ro',
+    isa     => 'RegexpRef',
+    builder => '_set_header_regex',
+    reader  => 'get_header_regex',
+    lazy    => 1
+);
+
+has 'col_sep' => (
+    is      => 'ro',
+    isa     => 'RegexpRef',
+    builder => '_set_col_sep',
+    reader  => 'get_col_sep',
+    lazy    => 1
+);
+
+=head2 header_cols
+
+An array reference with all the header columns names.
+
+=cut
+
+has 'header_cols' => (
+    is     => 'rw',
+    isa    => 'ArrayRef',
+    reader => 'get_header_cols',
+    writer => 'set_header_cols'
+);
+
 =pod
 
 =head1 METHODS
@@ -180,7 +210,135 @@ The method that actually does the parse of C<raw_data> attribute. It should be o
 
 sub parse {
 
-    die 'parse method must be overrided by subclasses of ' . __PACKAGE__;
+    my $self = shift;
+
+    my $data_ref = $self->get_raw_data();
+
+    my %parsed_lines;
+
+    my $line_header_regex = qr/^\-+\s/;
+
+# removing the three last lines (one blank line followed by a line amount of lines returned followed by a blank line)
+    for ( 1 .. 3 ) {
+
+        pop( @{$data_ref} );
+
+    }
+
+    foreach my $line ( @{$data_ref} ) {
+
+        chomp($line);
+
+        given ($line) {
+
+            when ('') {
+
+                # do nothing
+            }
+
+            when ($line_header_regex) { # this is the '-------' below the header
+
+                my @columns = split( /\s{2}/, $line );
+
+                my $pattern;
+
+                foreach my $column (@columns) {
+
+                    $pattern .= 'A'
+                      . ( length($column) + 2 )
+                      ; # + 2 because of the spaces after the "---" that will be trimmed
+
+                }
+
+                $self->_set_fields_pattern($pattern);
+
+            }
+
+            # this is the header
+            when ( $line =~ $self->get_header_regex() ) {
+
+                $self->_set_header($line);
+
+            }
+
+            default {
+
+                my @fields_values;
+
+                # :TODO:5/1/2012 16:33:37:: copy this check to the other parsers
+                if ( defined( $self->get_fields_pattern() ) ) {
+
+                    @fields_values =
+                      unpack( $self->get_fields_pattern(), $line );
+
+                }
+                else {
+
+                    confess
+                      "Cannot continue without having fields pattern defined";
+
+                }
+
+                unless ( $self->_parse_data( \@fields_values, \%parsed_lines ) )
+                {
+
+                    die 'Could not parse fields from line [' . $line . ']';
+
+                }
+
+            }
+
+        }
+
+    }
+
+    $self->set_data_parsed( \%parsed_lines );
+    $self->set_raw_data( [] );
+
+}
+
+sub _set_col_sep {
+
+    return qr/\s{2,}/;
+
+}
+
+sub split_fields {
+
+    my $self = shift;
+    my $line = shift;
+
+    my @columns = split( $self->get_col_sep(), $line );
+
+    return \@columns;
+
+}
+
+sub _set_header {
+
+    my $self = shift;
+    my $line = shift;
+
+    my $columns_ref = $self->split_fields($line);
+
+    $self->set_header_cols($columns_ref);
+
+    return 1;
+
+}
+
+# :TODO      :08/05/2013 18:21:53:: should change this to a real method? Seems to be that almost all subclasses does the same
+# process to parse their respective details besides header
+sub _parse_data {
+
+    die '_parse_data method must be overrided by subclasses of ' . __PACKAGE__;
+
+}
+
+sub _set_header_regex {
+
+    die '_set_header_regex method must be overrided by subclasses of '
+      . __PACKAGE__;
 
 }
 

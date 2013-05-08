@@ -40,22 +40,7 @@ The order of the fields and their configuration must follow the pattern defined 
 
 =head1 ATTRIBUTES
 
-All attributes of L<SiebeL::Srvrmgr::ListParser::Output> plus the ones explaned below.
-
-=head2 comp_params
-
-An array reference with all the definitions of the component informed in the command C<list comp def>.
-
-=cut
-
-has 'comp_defs' => (
-    is     => 'rw',
-    isa    => 'ArrayRef',
-    reader => 'get_comp_defs',
-    writer => 'set_comp_defs'
-);
-
-=pod
+All attributes of L<SiebeL::Srvrmgr::ListParser::Output>.
 
 =head1 METHODS
 
@@ -79,109 +64,44 @@ It raises an exception when the parser is not able to define the C<fields_patter
 
 =cut
 
-sub parse {
+sub _set_header_regex {
 
-    my $self = shift;
+    return qr/^CC_NAME\s.*\sCC_INCARN_NO\s*$/;
 
-    my $data_ref = $self->get_raw_data();
+}
 
-    my %parsed_lines;
+sub _parse_data {
 
-# removing the three last lines Siebel 7.5.3 (one blank line followed by a line amount of lines returned followed by a blank line)
-    for ( 1 .. 3 ) {
+    my $self       = shift;
+    my $fields_ref = shift;
+    my $parsed_ref = shift;
 
-        pop( @{$data_ref} );
+    my $cc_name = $fields_ref->[0];
 
-    }
+    my $list_len = scalar( @{$fields_ref} );
 
-    foreach my $line ( @{$data_ref} ) {
+    my $columns_ref = $self->get_header_cols();
 
-        chomp($line);
+    die "Cannot continue without defining fields names"
+      unless ( defined($columns_ref) );
 
-        given ($line) {
+    if ( @{$fields_ref} ) {
 
-            when ( $line =~ /^\-+\s/ ) {    # this is the header line
+        for ( my $i = 0 ; $i < $list_len ; $i++ ) {
 
-                my @columns = split( /\s{2}/, $line );
-
-                my $pattern;
-
-                foreach my $column (@columns) {
-
-                    $pattern .= 'A'
-                      . ( length($column) + 2 )
-                      ; # + 2 because of the spaces after the "---" that will be trimmed
-
-                }
-
-                $self->_set_fields_pattern($pattern);
-
-            }
-
-            when (/^CC_NAME\s.*\sCC_INCARN_NO\s*$/) {    # this is the header
-
-                my @columns = split( /\s{2,}/, $line );
-
-                $self->set_comp_defs( \@columns );
-
-            }
-
-            when ('') {
-
-                # do nothing
-
-            }
-
-            default {
-
-                my @fields_values;
-
-                if ( $self->get_fields_pattern() ) {
-
-                    @fields_values =
-                      unpack( $self->get_fields_pattern(), $line );
-
-                }
-                else {
-
-                    die
-                      "Cannot continue since fields pattern was not defined\n";
-
-                }
-
-                my $cc_name = $fields_values[0];
-
-                my $list_len = scalar(@fields_values);
-
-                my $columns_ref = $self->get_comp_defs();
-
-                confess "Cannot continue without defining fields names"
-                  unless ( defined($columns_ref) );
-
-                if (@fields_values) {
-
-                    for ( my $i = 0 ; $i < $list_len ; $i++ ) {
-
-                        $parsed_lines{$cc_name}->{ $columns_ref->[$i] } =
-                          $fields_values[$i];
-
-                    }
-
-                }
-                else {
-
-                    die 'Could not parse line [' . $line . ']';
-
-                }
-
-            }
+            $parsed_ref->{$cc_name}->{ $columns_ref->[$i] } =
+              $fields_ref->[$i];
 
         }
 
-    }
+        return 1;
 
-    $self->set_data_parsed( \%parsed_lines );
-    $self->set_raw_data( [] );
+    }
+    else {
+
+        return 0;
+
+    }
 
 }
 

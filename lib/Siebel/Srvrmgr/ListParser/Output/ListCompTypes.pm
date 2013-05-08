@@ -33,20 +33,7 @@ If the configuration is not setup as this, the parsing will fail and the module 
 
 =head1 ATTRIBUTES
 
-=head2 types_attribs
-
-An array reference with all the component types attributes. Each index will be an hash reference with the fields CT_NAME, CT_RUNMODE, CT_ALIAS and CT_DESC_TEXT.
-
-=cut
-
-has 'types_attribs' => (
-    is     => 'rw',
-    isa    => 'ArrayRef',
-    reader => 'get_attribs',
-    writer => 'set_attribs'
-);
-
-=pod
+All from superclass.
 
 =head1 METHODS
 
@@ -58,122 +45,46 @@ Returns the array reference stored in the C<types_attribs> attribute.
 
 Sets the attribute C<types_attribs>. Expects an array reference as parameter.
 
-=head2 parse
-
-Parses the data stored in the C<raw_data> attribute, setting the C<parsed_lines> attribute.
-
-The C<raw_data> will be set to a reference to an empty array at the end of the process.
-
 =cut
 
-sub parse {
+sub _set_header_regex {
 
-    my $self = shift;
+    return qr/^CT_NAME\s.*\sCT_DESC_TEXT(\s+)?$/;
 
-    my $data_ref = $self->get_raw_data();
+}
 
-    my %parsed_lines;
+sub _parse_data {
 
-# removing the three last lines Siebel 7.5.3 (one blank line followed by a line amount of lines returned followed by a blank line)
-    for ( 1 .. 3 ) {
+    my $self       = shift;
+    my $fields_ref = shift;
+    my $parsed_ref = shift;
 
-        pop( @{$data_ref} );
+    my $ct_name = $fields_ref->[0];
 
-    }
+    my $list_len = scalar( @{$fields_ref} );
 
-    foreach my $line ( @{$data_ref} ) {
+    my $columns_ref = $self->get_header_cols();
 
-        chomp($line);
+    confess "Could not retrieve the name of the fields"
+      unless ( defined($columns_ref) );
 
-      SWITCH: {
+    if ( @{$fields_ref} ) {
 
-            if ( $line =~ /^\-+\s/ ) {    # this is the header line
+        for ( my $i = 0 ; $i < $list_len ; $i++ ) {
 
-                my @columns = split( /\s{2}/, $line );
-
-                my $pattern;
-
-                foreach my $column (@columns) {
-
-                    $pattern .= 'A'
-                      . ( length($column) + 2 )
-                      ; # + 2 because of the spaces after the "---" that will be trimmed
-
-                }
-
-                $self->_set_fields_pattern($pattern);
-
-                last SWITCH;
-
-            }
-
-            if ( $line eq '' ) {
-
-                last SWITCH;
-
-            }
-
-            if ( $line =~ /^CT_NAME\s.*\sCT_DESC_TEXT(\s+)?$/ )
-            {    # this is the header
-
-                my @columns = split( /\s{2,}/, $line );
-
-                $self->set_attribs( \@columns );
-
-                last SWITCH;
-
-            }
-            else {
-
-                my @fields_values;
-
-                # :TODO:5/1/2012 16:33:37:: copy this check to the other parsers
-                if ( defined( $self->get_fields_pattern() ) ) {
-
-                    @fields_values =
-                      unpack( $self->get_fields_pattern(), $line );
-
-                }
-                else {
-
-                    confess
-                      "Cannot continue without having fields pattern defined";
-
-                }
-
-                my $ct_name = $fields_values[0];
-
-                my $list_len = scalar(@fields_values);
-
-                my $columns_ref = $self->get_attribs();
-
-                confess "Could not retrieve the name of the fields"
-                  unless ( defined($columns_ref) );
-
-                if (@fields_values) {
-
-                    for ( my $i = 0 ; $i < $list_len ; $i++ ) {
-
-                        $parsed_lines{$ct_name}->{ $columns_ref->[$i] } =
-                          $fields_values[$i];
-
-                    }
-
-                }
-                else {
-
-                    warn "got nothing\n";
-
-                }
-
-            }
+            $parsed_ref->{$ct_name}->{ $columns_ref->[$i] } =
+              $fields_ref->[$i];
 
         }
 
-    }
+        return 1;
 
-    $self->set_data_parsed( \%parsed_lines );
-    $self->set_raw_data( [] );
+    }
+    else {
+
+        return 0;
+
+    }
 
 }
 

@@ -12,15 +12,12 @@ sub startup : Tests(startup => 1) {
     use_ok $test->class;
 }
 
-sub constructor : Tests(7) {
+sub constructor : Tests(5) {
 
     my $test  = shift;
     my $class = $test->class;
 
     can_ok( $class, 'new' );
-
-    #extended method tests
-    can_ok( $class, qw(parse get_comp_defs set_comp_defs) );
 
     my @data = <Test::ListCompDef::DATA>;
     close(Test::ListCompDef::DATA);
@@ -36,21 +33,13 @@ sub constructor : Tests(7) {
         '... and the constructor should succeed'
     );
 
-	has_attribute_ok($comps, 'comp_defs');
-
+    isa_ok( $comps, 'Siebel::Srvrmgr::ListParser::Output' );
     isa_ok( $comps, $class, '... and the object it returns' );
     is(
         $comps->get_fields_pattern(),
         'A78A78A33A33A63A118A78A33A25',
         'fields_patterns is correct'
     );
-
-    my $default_comp_defs = [
-        qw(CC_NAME CT_NAME CC_RUNMODE CC_ALIAS CC_DISP_ENABLE_ST CC_DESC_TEXT CG_NAME CG_ALIAS CC_INCARN_NO)
-    ];
-
-    is_deeply( $comps->get_comp_defs(), $default_comp_defs,
-        'get_fields_pattern returns a correct set of attributes' );
 
 }
 
