@@ -11,7 +11,7 @@ sub startup : Tests(startup => 1) {
     use_ok $test->class;
 }
 
-sub constructor : Tests(8) {
+sub constructor : Tests(11) {
 
     my $test  = shift;
     my $class = $test->class;
@@ -19,7 +19,7 @@ sub constructor : Tests(8) {
     can_ok( $class, 'new' );
 
     can_ok( $class,
-        qw(new get_data_type get_raw_data set_raw_data get_data_parsed set_data_parsed get_cmd_line parse get_fields_pattern)
+        qw(new get_data_type get_raw_data set_raw_data get_data_parsed set_data_parsed get_cmd_line parse get_fields_pattern get_header_regex _set_header_regex _set_col_sep get_col_sep get_header_cols set_header_cols split_fields)
     );
 
     my @data = <Test::Output::DATA>;
@@ -31,11 +31,14 @@ sub constructor : Tests(8) {
     }
     'the constructor must fail';
 
-    has_attribute_ok( $class, 'data_type' );
-    has_attribute_ok( $class, 'raw_data' );
-    has_attribute_ok( $class, 'data_parsed' );
-    has_attribute_ok( $class, 'cmd_line' );
-    has_attribute_ok( $class, 'fields_pattern' );
+    my @attribs =
+      qw(data_type raw_data data_parsed cmd_line fields_pattern header_regex col_sep header_cols);
+
+    foreach my $attrib_name (@attribs) {
+
+        has_attribute_ok( $class, $attrib_name );
+
+    }
 
 }
 

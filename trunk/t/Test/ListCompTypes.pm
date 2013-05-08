@@ -1,7 +1,6 @@
 package Test::ListCompTypes;
 
 use Test::Most;
-use Test::Moose 'has_attribute_ok';
 use base 'Test::Class';
 
 sub class { 'Siebel::Srvrmgr::ListParser::Output::ListCompTypes' }
@@ -12,15 +11,12 @@ sub startup : Tests(startup => 1) {
     use_ok $test->class;
 }
 
-sub constructor : Tests(5) {
+sub constructor : Tests(4) {
 
     my $test  = shift;
     my $class = $test->class;
 
     can_ok( $class, 'new' );
-
-    #extended method tests
-    can_ok( $class, qw(parse get_attribs set_attribs) );
 
     my @data = <Test::ListCompTypes::DATA>;
     close(Test::ListCompTypes::DATA);
@@ -36,8 +32,7 @@ sub constructor : Tests(5) {
         '... and the constructor should succeed'
     );
 
-    has_attribute_ok( $comps, 'types_attribs' );
-
+    isa_ok( $comps, 'Siebel::Srvrmgr::ListParser::Output' );
     isa_ok( $comps, $class, '... and the object it returns' );
 
 }

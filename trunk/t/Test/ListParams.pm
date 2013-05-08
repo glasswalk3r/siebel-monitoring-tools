@@ -12,7 +12,7 @@ sub startup : Tests(startup => 1) {
     use_ok $test->class;
 }
 
-sub constructor : Tests(11) {
+sub constructor : Tests(10) {
 
     my $test  = shift;
     my $class = $test->class;
@@ -21,7 +21,7 @@ sub constructor : Tests(11) {
 
     #extended method tests
     can_ok( $class,
-        qw(parse get_params set_params get_server get_comp_alias _set_details)
+        qw(parse get_server get_comp_alias _set_details)
     );
 
     my @data = <Test::ListParams::DATA>;
@@ -38,7 +38,6 @@ sub constructor : Tests(11) {
         '... and the constructor should succeed'
     );
 
-    has_attribute_ok( $params, 'params' );
     has_attribute_ok( $params, 'server' );
     has_attribute_ok( $params, 'comp_alias' );
 
@@ -51,7 +50,7 @@ sub constructor : Tests(11) {
         qw(PA_ALIAS PA_VALUE PA_DATATYPE PA_SCOPE PA_SUBSYSTEM PA_SETLEVEL PA_DISP_SETLEVEL PA_NAME)
     ];
 
-    is_deeply( $params->get_params(), $default_params,
+    is_deeply( $params->get_header_cols(), $default_params,
         'get_fields_pattern returns a correct set of attributes' );
 
     my $server = 'foo';
