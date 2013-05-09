@@ -1,7 +1,6 @@
 package Test::ListTasks;
 
 use Test::Most;
-use Test::Moose qw(has_attribute_ok);
 use base 'Test::Class';
 
 sub class { 'Siebel::Srvrmgr::ListParser::Output::ListTasks' }
@@ -12,14 +11,10 @@ sub startup : Tests(startup => 1) {
     use_ok $test->class;
 }
 
-sub constructor : Tests(5) {
+sub constructor : Tests(3) {
 
     my $test  = shift;
     my $class = $test->class;
-
-    can_ok( $class, 'new', 'get_attribs' );
-
-	has_attribute_ok($class, 'attribs', 'has the attribute "attribs"');
 
     ok(
         my $list_tasks = $class->new(

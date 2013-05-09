@@ -205,7 +205,8 @@ has commands => (
     is       => 'rw',
     required => 1,
     reader   => 'get_commands',
-    writer   => 'set_commands'
+    writer   => 'set_commands',
+    trigger  => \&_setup_commands
 );
 
 =pod
@@ -439,15 +440,15 @@ Returns the content of the attribute C<cmd_stack>.
 
 Returns the content of the attribute C<params_stack>.
 
-=head2 setup_commands
+=head2 _setup_commands
 
-Populates the attributes C<cmd_stack>, C<action_stack> and C<params_stack> depending on the values available on the C<commands> attribute.
+"Private" method: populates the attributes C<cmd_stack>, C<action_stack> and C<params_stack> depending on the values available on the C<commands> attribute.
 
-This method must be invoked everytime the C<commands> attribute is changed.
+This method is internally invoked everytime the C<commands> attribute is changed.
 
 =cut
 
-sub setup_commands {
+sub _setup_commands {
 
     my $self     = shift;
     my $cmds_ref = $self->get_commands();
@@ -469,22 +470,6 @@ sub setup_commands {
     $self->_set_params_stack( \@params );
 
     return 1;
-
-}
-
-=pod
-
-=head2 BUILD
-
-This method is invoked right after the class instance is created. It invokes the method C<setup_commands>.
-
-=cut
-
-sub BUILD {
-
-    my $self = shift;
-
-    $self->setup_commands();
 
 }
 

@@ -1,7 +1,6 @@
 package Siebel::Srvrmgr::ListParser::Output::ListServers;
 use Moose;
 use namespace::autoclean;
-use feature 'switch';
 
 =pod
 
@@ -25,20 +24,7 @@ This subclass of L<Siebel::Srvrmgr::ListParser::Output> parses the output of the
 
 =head1 ATTRIBUTES
 
-=head2 attribs
-
-An array reference with the attributes of each Siebel Server listed by C<list servers> command.
-
-=cut
-
-has attribs => (
-    is     => 'ro',
-    isa    => 'ArrayRef',
-    reader => 'get_attribs',
-    writer => '_set_attribs'
-);
-
-=pod
+All from parent class.
 
 =head1 METHODS
 
@@ -59,119 +45,56 @@ The hash reference returned by C<get_data_parsed> will look like that:
 
 where the keys are the Siebel servers names, each one holding a reference to another hash with the keys shown above.
 
-=head2 get_attribs
-
-Returns the array reference stored in the C<types_attribs> attribute.
-
-=head2 parse
-
-Parses the data stored in the C<raw_data> attribute, setting the C<parsed_lines> attribute.
-
-The C<raw_data> will be set to a reference to an empty array at the end of the process.
-
 =cut
 
-sub parse {
+sub _set_header_regex {
 
+    return qr/^SBLSRVR_NAME\s.*\sSBLSRVR_STATUS(\s+)?$/;
+
+}
+
+around '_split_fields' => sub {
+
+    my $orig = shift;
     my $self = shift;
 
-    my $data_ref = $self->get_raw_data();
+    my $line = lc(shift);
 
-    my %parsed_lines;
+    $self->$orig($line);
 
-# removing the three last lines Siebel 7.5.3 (one blank line followed by a line amount of lines returned followed by a blank line)
-    for ( 1 .. 3 ) {
+};
 
-        pop( @{$data_ref} );
+sub _parse_data {
 
-    }
+    my $self       = shift;
+    my $fields_ref = shift;
+    my $parsed_ref = shift;
 
-    foreach my $line ( @{$data_ref} ) {
+    my $list_len    = scalar( @{$fields_ref} );
+    my $server_name = $fields_ref->[0];
 
-        chomp($line);
+    my $columns_ref = $self->get_header_cols();
 
-        given ($line) {
+    confess "Could not retrieve the name of the fields"
+      unless ( defined($columns_ref) );
 
-            when (/^\-+\s/) {    # this is the header line
+    if ( @{$fields_ref} ) {
 
-                my @columns = split( /\s{2}/, $line );
+        for ( my $i = 1 ; $i < $list_len ; $i++ ) {
 
-                my $pattern;
-
-                foreach my $column (@columns) {
-
-                    $pattern .= 'A'
-                      . ( length($column) + 2 )
-                      ; # + 2 because of the spaces after the "---" that will be trimmed
-
-                }
-
-                $self->_set_fields_pattern($pattern);
-
-            }
-
-            when ('') { }    # do nothing
-
-# SBLSRVR_NAME SBLSRVR_GROUP_NAME HOST_NAME INSTALL_DIR SBLMGR_PID SV_DISP_STATE SBLSRVR_STATE START_TIME END_TIME SBLSRVR_STATUS
-            when (/^SBLSRVR_NAME\s.*\sSBLSRVR_STATUS(\s+)?$/)
-            {                # this is the header
-
-                my @columns = split( /\s{2,}/, lc($line) );
-
-                $self->_set_attribs( \@columns );
-
-            }
-
-            default {
-
-                my @fields_values;
-
-                # :TODO:5/1/2012 16:33:37:: copy this check to the other parsers
-                if ( defined( $self->get_fields_pattern() ) ) {
-
-                    @fields_values =
-                      unpack( $self->get_fields_pattern(), $line );
-
-                }
-                else {
-
-                    confess
-                      "Cannot continue without having fields pattern defined";
-
-                }
-
-                my $list_len    = scalar(@fields_values);
-                my $server_name = $fields_values[0];
-
-                my $columns_ref = $self->get_attribs();
-
-                confess "Could not retrieve the name of the fields"
-                  unless ( defined($columns_ref) );
-
-                if (@fields_values) {
-
-                    for ( my $i = 1 ; $i < $list_len ; $i++ ) {
-
-                        $parsed_lines{$server_name}->{ $columns_ref->[$i] } =
-                          $fields_values[$i];
-
-                    }
-
-                }
-                else {
-
-                    warn "got nothing\n";
-
-                }
-
-            }
+            $parsed_ref->{$server_name}->{ $columns_ref->[$i] } =
+              $fields_ref->[$i];
 
         }
 
-    }
+        return 1;
 
-    $self->set_data_parsed( \%parsed_lines );
-    $self->set_raw_data( [] );
+    }
+    else {
+
+        return 0;
+
+    }
 
 }
 

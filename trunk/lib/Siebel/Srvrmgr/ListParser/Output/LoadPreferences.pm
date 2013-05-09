@@ -60,7 +60,7 @@ The C<raw_data> attribute will be set to an reference to an empty array.
 
 =cut
 
-sub parse {
+override 'parse' => sub {
 
     my $self = shift;
 
@@ -114,7 +114,7 @@ sub parse {
     $self->set_data_parsed( \%parsed_lines );
     $self->set_raw_data( [] );
 
-}
+};
 
 =pod
 

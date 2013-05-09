@@ -24,7 +24,8 @@ extends 'Siebel::Srvrmgr::ListParser::Output';
 
 C<Siebel::Srvrmgr::ListParser::Output::Greetings> extends C<Siebel::Srvrmgr::ListParser::Output>.
 
-Normally this class would be created by L<Siebel::Srvrmgr::ListParser::OutputFactory> C<create> static method. See the automated tests for examples of direct instatiation.
+Normally this class would be created by L<Siebel::Srvrmgr::ListParser::OutputFactory> C<create> static method. See the automated tests for examples of direct 
+instatiation.
 
 It is possible to recover some useful information from the object methods but most of it is simple copyrigh information.
 
