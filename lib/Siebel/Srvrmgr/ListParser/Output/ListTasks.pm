@@ -99,22 +99,9 @@ has 'data_parsed' => (
       'HashRef[ArrayRef[Siebel::Srvrmgr::ListParser::Output::ListTasks::Task]]'
 );
 
-=head2 attribs
-
-An array reference with the attributes of each Siebel Server listed by C<list servers> command.
-
-=cut
-
-has attribs => (
-    is     => 'ro',
-    isa    => 'ArrayRef[Str]',
-    reader => 'get_attribs'
-);
-
-sub _set_attribs {
+after '_set_header' => sub {
 
     my $self = shift;
-    my $data = shift;
 
     my @expected_attribs = (
         'SV_NAME',           'CC_ALIAS',
@@ -126,6 +113,8 @@ sub _set_attribs {
         'TK_LABEL',          'TK_TASKTYPE',
         'TK_PING_TIME'
     );
+
+    my $data = $self->get_header_cols();
 
     for ( my $i = 0 ; $i <= $#expected_attribs ; $i++ ) {
 
@@ -140,150 +129,85 @@ sub _set_attribs {
 
     }
 
-    $self->{attribs} = $data;
-
-}
+};
 
 =pod
 
 =head1 METHODS
 
-=head2 parse
+=cut
 
-Parses the data stored in the C<raw_data> attribute, setting the C<parsed_lines> attribute.
+sub _set_header_regex {
 
-The C<raw_data> will be set to a reference to an empty array at the end of the process.
+    return qr/^SV_NAME\s.*\sTK_PING_TIME(\s+)?$/;
+
+}
+
+=pod
+
+=head2 _parse_data
 
 =cut
 
-sub parse {
+sub _parse_data {
 
-    my $self = shift;
+    my $self       = shift;
+    my $fields_ref = shift;
+    my $parsed_ref = shift;
 
-    my $data_ref = $self->get_raw_data();
+    my $columns_ref = $self->get_header_cols();
 
-    my %parsed_lines;
+    confess "Could not retrieve the name of the fields"
+      unless ( defined($columns_ref) );
 
-# removing the three last lines Siebel 7.5.3 (one blank line followed by a line amount of lines returned followed by a blank line)
-    for ( 1 .. 3 ) {
+    my $list_len    = scalar( @{$fields_ref} );
+    my $server_name = $fields_ref->[0];
 
-        pop( @{$data_ref} );
+    $parsed_ref->{$server_name} = []
+      unless ( exists( $parsed_ref->{$server_name} ) );
 
-    }
+    if ( @{$fields_ref} ) {
 
-    foreach my $line ( @{$data_ref} ) {
+        my %attribs = (
+            server_name => $fields_ref->[0],
+            comp_alias  => $fields_ref->[1],
+            id          => $fields_ref->[2],
+            pid         => $fields_ref->[3],
+            run_mode    => $fields_ref->[4],
+            comp_alias  => $fields_ref->[5],
+            start       => $fields_ref->[6],
+            end         => $fields_ref->[7],
+            status      => $fields_ref->[8],
+            cg_alias    => $fields_ref->[9],
+            incarn_num  => $fields_ref->[11],
+            type        => $fields_ref->[13]
+        );
 
-        chomp($line);
+        $attribs{parent_id} = $fields_ref->[10]
+          if (  ( defined( $fields_ref->[10] ) )
+            and ( $fields_ref->[10] ne '' ) );
+        $attribs{label} = $fields_ref->[12]
+          if ( defined( $fields_ref->[12] ) );
+        $attribs{last_ping_time} = $fields_ref->[15]
+          if ( defined( $fields_ref->[15] ) );
 
-        given ($line) {
+# :TODO      :09/05/2013 11:48:34:: verify if it is not useful to reduce memory usage by creating a coderef
+# to use as a iterator to create those objects on the fly
+        push(
+            @{ $parsed_ref->{$server_name} },
+            Siebel::Srvrmgr::ListParser::Output::ListTasks::Task->new(
+                \%attribs
+            )
+        );
 
-            when (/^\-+\s/) {    # this is the header line
-
-                my @columns = split( /\s{2}/, $line );
-
-                my $pattern;
-
-                foreach my $column (@columns) {
-
-                    $pattern .= 'A'
-                      . ( length($column) + 2 )
-                      ; # + 2 because of the spaces after the "---" that will be trimmed
-
-                }
-
-                $self->_set_fields_pattern($pattern);
-
-            }
-
-            when ('') { }    # do nothing
-
-# SV_NAME	CC_ALIAS	TK_TASKID	TK_PID	TK_DISP_RUNSTATE	CC_RUNMODE	TK_START_TIME	TK_END_TIME	TK_STATUS	CG_ALIAS
-# TK_PARENT_TASKNUM	CC_INCARN_NO	TK_LABEL	TK_TASKTYPE	TK_PING_TIME
-
-            when (/^SV_NAME\s.*\sTK_PING_TIME(\s+)?$/) {    # this is the header
-
-                my @columns = split( /\s{2,}/, $line );
-
-                $self->_set_attribs( \@columns );
-
-            }
-
-            default {
-
-                my @fields_values;
-
-                if ( defined( $self->get_fields_pattern() ) ) {
-
-                    @fields_values = 
-                      unpack( $self->get_fields_pattern(), $line );
-
-                }
-                else {
-
-                    confess
-                      "Cannot continue without having fields pattern defined";
-
-                }
-
-                my $columns_ref = $self->get_attribs();
-
-                confess "Could not retrieve the name of the fields"
-                  unless ( defined($columns_ref) );
-
-                my $list_len    = scalar(@fields_values);
-                my $server_name = $fields_values[0];
-
-                $parsed_lines{$server_name} = []
-                  unless ( exists( $parsed_lines{$server_name} ) );
-
-                if (@fields_values) {
-
-                    my %attribs = (
-                        server_name => $fields_values[0],
-                        comp_alias  => $fields_values[1],
-                        id          => $fields_values[2],
-                        pid         => $fields_values[3],
-                        run_mode    => $fields_values[4],
-                        comp_alias  => $fields_values[5],
-                        start       => $fields_values[6],
-                        end         => $fields_values[7],
-                        status      => $fields_values[8],
-                        cg_alias    => $fields_values[9],
-                        incarn_num  => $fields_values[11],
-                        type        => $fields_values[13]
-                    );
-
-                    $attribs{parent_id} = $fields_values[10]
-                      if (  ( defined( $fields_values[10] ) )
-                        and ( $fields_values[10] ne '' ) );
-                    $attribs{label} = $fields_values[12]
-                      if ( defined( $fields_values[12] ) );
-                    $attribs{last_ping_time} = $fields_values[15]
-                      if ( defined( $fields_values[15] ) );
-
-                    push(
-                        @{ $parsed_lines{$server_name} },
-                        Siebel::Srvrmgr::ListParser::Output::ListTasks::Task
-                          ->new(
-                            \%attribs
-                          )
-                    );
-
-                }
-                else {
-
-                    warn "got nothing\n";
-
-                }
-
-            }
-
-        }
+        return 1;
 
     }
+    else {
 
-    $self->set_data_parsed( \%parsed_lines );
-    $self->set_raw_data( [] );
+        return 0;
+
+    }
 
 }
 

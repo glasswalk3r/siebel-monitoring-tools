@@ -19,7 +19,7 @@ sub constructor : Tests(11) {
     can_ok( $class, 'new' );
 
     can_ok( $class,
-        qw(new get_data_type get_raw_data set_raw_data get_data_parsed set_data_parsed get_cmd_line parse get_fields_pattern get_header_regex _set_header_regex _set_col_sep get_col_sep get_header_cols set_header_cols split_fields)
+        qw(new get_data_type get_raw_data set_raw_data get_data_parsed set_data_parsed get_cmd_line parse get_fields_pattern get_header_regex _set_header_regex _set_col_sep get_col_sep get_header_cols set_header_cols _split_fields)
     );
 
     my @data = <Test::Output::DATA>;

@@ -8,20 +8,20 @@ Siebel::Srvrmgr::Daemon::ActionStash - singleton to stash data returned by Siebe
 
 =head1 SYNOPSIS
 
-package MyAction;
-use Moose;
-use namespace::autoclean;
+    package MyAction;
+    use Moose;
+    use namespace::autoclean;
 
-extends 'Siebel::Srvrmgr::Daemon::Action';
+    extends 'Siebel::Srvrmgr::Daemon::Action';
 
-	my $stash = Siebel::Srvrmgr::Daemon::ActionStash->initialize(
-		{
-			key1 => 'foobar', 
-			key2 => 'foobar'
-		}
-	);
+    my $stash = Siebel::Srvrmgr::Daemon::ActionStash->initialize(
+        {
+            key1 => 'foobar', 
+            key2 => 'foobar'
+        }
+    );
 
-package main;
+    package main;
 
 	my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
 

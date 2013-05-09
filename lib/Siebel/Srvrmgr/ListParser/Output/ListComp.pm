@@ -244,7 +244,7 @@ override '_set_header' => sub {
     my $self = shift;
     my $line = shift;
 
-    my $columns_ref = $self->split_fields($line);
+    my $columns_ref = $self->_split_fields($line);
 
     #SV_NAME is useless here
     shift( @{$columns_ref} );

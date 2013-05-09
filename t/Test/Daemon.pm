@@ -36,8 +36,8 @@ sub constructor : Tests(43) {
             'get_write',      'get_read',
             'is_infinite',    'get_last_cmd',
             'get_cmd_stack',  'get_params_stack',
-            'setup_commands', 'BUILD',
-            'run',            'DEMOLISH'
+            '_setup_commands', 'run',
+            'DEMOLISH'
         )
     );
 
@@ -129,7 +129,7 @@ sub constructor : Tests(43) {
 
     is( $daemon->is_infinite(), 0, 'is_infinite must return false' );
 
-    ok( $daemon->setup_commands(), 'setup_commands works' );
+    ok( $daemon->_setup_commands(), '_setup_commands works' );
 
     ok( $daemon->run(), 'run method executes successfuly' );
 
