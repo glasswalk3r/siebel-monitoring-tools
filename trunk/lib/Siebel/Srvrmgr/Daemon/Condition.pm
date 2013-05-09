@@ -217,7 +217,7 @@ The conditions that are taken in consideration:
 
 =item *
 
-The execution loop is infinite or not
+The execution loop is infinite or not.
 
 =item *
 
