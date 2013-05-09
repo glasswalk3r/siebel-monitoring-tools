@@ -14,12 +14,8 @@ Siebel::Srvrmgr::Daemon::ActionStash - singleton to stash data returned by Siebe
 
     extends 'Siebel::Srvrmgr::Daemon::Action';
 
-    my $stash = Siebel::Srvrmgr::Daemon::ActionStash->initialize(
-        {
-            key1 => 'foobar', 
-            key2 => 'foobar'
-        }
-    );
+    my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
+	$stash->set_stash([{foobar => foobar}, [qw(one two three)]]);
 
     package main;
 
@@ -60,8 +56,15 @@ If undefined, this attribute will returned an empty array reference.
 
 =cut
 
-has stash =>
-  ( is => 'rw', isa => 'Ref', required => 0, default => sub { return [] } );
+has stash => (
+    is => 'rw',
+
+# :TODO      :09/05/2013 16:42:51:: use array references to push any reference, should create set_stash to allow that to work
+#    isa      => 'ArrayRef[Ref]',
+    isa      => 'Ref',
+    required => 0,
+    default  => sub { return [] }
+);
 
 =pod
 

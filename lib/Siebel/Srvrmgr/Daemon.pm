@@ -78,6 +78,7 @@ use Siebel::Srvrmgr::ListParser;
 use Siebel::Srvrmgr::Regexes qw(SRVRMGR_PROMPT LOAD_PREF_RESP);
 use Siebel::Srvrmgr::Daemon::Command;
 use POSIX ":sys_wait_h";
+use feature qw(say);
 
 # :TODO:29/2/2012 18:49:06:: implement debug messages
 
@@ -548,7 +549,7 @@ sub run {
     }
     else {
 
-        print 'Reusing ', $self->get_pid(), "\n"
+        print 'Reusing PID ', $self->get_pid(), "\n"
           if ( $ENV{SIEBEL_SRVRMGR_DEBUG} );
 
     }
@@ -577,6 +578,8 @@ sub run {
         exit if ($SIG_INT);
 
       READ: while (<$rdr>) {
+
+# :TODO      :09/05/2013 19:11:28:: must set time-out for expecting output from srvrmgr
 
             exit if ($SIG_INT);
 
@@ -643,6 +646,23 @@ sub run {
                 unless ( defined($prompt) ) {
 
                     $prompt = $_;
+
+# if prompt was undefined, that means that this is might be rest of output of previous command
+# and thus can be safely ignored
+                    if (@input_buffer) {
+
+                        if ( $input_buffer[0] eq '' ) {
+
+                            say "ignoring output $_"
+                              if ( $ENV{SIEBEL_SRVRMGR_DEBUG} );
+
+                            $condition->set_cmd_sent(0);
+                            @input_buffer = ();
+                            last READ;
+
+                        }
+
+                    }
 
                 }
 
@@ -721,6 +741,9 @@ sub run {
               if ( $condition->can_increment() );
 
             my $cmd = $self->get_cmd_stack()->[ $condition->get_cmd_counter() ];
+
+            say "submiting command $cmd"
+              if ( $ENV{SIEBEL_SRVRMGR_DEBUG} );
 
             syswrite $self->get_write(), "$cmd\n";
 
