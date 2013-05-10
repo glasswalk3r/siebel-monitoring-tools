@@ -486,6 +486,8 @@ Those operations will be executed in a loop as long the C<check> method from the
 
 =cut
 
+# :WORKAROUND:10/05/2013 15:23:52:: using a state machine with FSA::Rules is difficult here because it is necessary to loop over output from
+# srvrmgr but the program will hang if there is no output left to be read from srvrmgr.
 sub run {
 
     my $self = shift;
@@ -727,7 +729,6 @@ sub run {
             );
 
             $condition->set_output_used( $action->do( \@input_buffer ) );
-
             @input_buffer = ();
 
         }
@@ -742,8 +743,13 @@ sub run {
 
             my $cmd = $self->get_cmd_stack()->[ $condition->get_cmd_counter() ];
 
-            say "submiting command $cmd"
-              if ( $ENV{SIEBEL_SRVRMGR_DEBUG} );
+            unless ( defined($cmd) ) {
+
+                use Data::Dumper;
+                print Dumper( $self->get_cmd_stack() );
+                die "invalid cmd received";
+
+            }
 
             syswrite $self->get_write(), "$cmd\n";
 
@@ -751,8 +757,10 @@ sub run {
 # this is necessary to give a hint to the parser about the command submitted
             push( @input_buffer, $prompt . $cmd );
             $self->_set_last_cmd( $prompt . $cmd );
-            $condition->set_cmd_sent(1);
+
             $condition->set_output_used(0);
+            $condition->set_cmd_sent(1);
+
             sleep( $self->get_wait_time() );
 
         }
@@ -792,6 +800,8 @@ sub DEMOLISH {
         unless ($SIG_PIPE) {
 
             if ( $ENV{SIEBEL_SRVRMGR_DEBUG} ) {
+
+                warn 'DEMOLISH invoked, getting last output from srvrmgr';
 
                 my $rdr = $self->get_read()
                   ;    # diamond operator does not like method calls inside it

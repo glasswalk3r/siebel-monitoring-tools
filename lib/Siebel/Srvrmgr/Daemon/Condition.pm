@@ -17,10 +17,9 @@ Siebel::Srvrmgr::Daemon::Condition - object that checks which conditions should 
 
 =cut
 
-use warnings;
-use strict;
 use Moose;
 use namespace::autoclean;
+use feature qw(say switch);
 
 =pod
 
@@ -58,7 +57,7 @@ It's automatically set to C<total_commands> - 1 right after object creation.
 =cut
 
 has max_cmd_idx =>
-  ( isa => 'Int', is => 'ro', required => 0, writer => '_set_max_cmd_idx' );
+  ( isa => 'Int', is => 'ro', required => 0, builder => '_set_max', lazy => 1 );
 
 =pod
 
@@ -153,7 +152,12 @@ sub set_output_used {
 
     $self->_set_output_used($value);
 
-    $self->set_cmd_sent(0) if ($value);
+    if ($value) {
+
+		# if there is a single command to execute, there is no reason to reset the cmd_sent attribute
+        $self->set_cmd_sent(0) unless ( $self->max_cmd_idx() == 0 );
+
+    }
 
 }
 
@@ -175,22 +179,6 @@ Returns an integer based on the content of C<max_cmd_idx> attribute.
 
 Returns a true or false based on the content of C<is_infinite> attribute.
 
-=head2 BUILD
-
-After the object creation, the C<BUILD> method will set the attribute C<max_cmd_idx> automatically.
-
-=cut
-
-sub BUILD {
-
-    my $self = shift;
-
-    $self->_set_max_cmd_idx( ( $self->total_commands() ) - 1 );
-
-}
-
-=pod
-
 =head2 reduce_total_cmd
 
 This method subtracts one from the C<total_cmd> attribute.
@@ -202,6 +190,23 @@ sub reduce_total_cmd {
     my $self = shift;
 
     $self->_set_total_commands( $self->total_commands() - 1 );
+
+}
+
+sub _set_max {
+
+    my $self = shift;
+
+    if ( $self->total_commands() >= 1 ) {
+
+        $self->{max_cmd_idx} = $self->total_commands() - 1;
+
+    }
+    else {
+
+        warn "total_commands has zero commands?";
+
+    }
 
 }
 
@@ -367,17 +372,28 @@ returns false.
 
 sub is_last_cmd {
 
-	my $self = shift;
+    my $self = shift;
 
-	if ($self->get_cmd_counter() == $self->max_cmd_idx()) {
+    if ( $self->get_cmd_counter() == $self->max_cmd_idx() ) {
 
-		return 1;
+        if ( ( $self->max_cmd_idx() == 1 ) and ( not( $self->is_cmd_sent() ) ) )
+        {
 
-	} else {
+            return 1;
 
-		return 0;
+        }
+        else {
 
-	}
+            return 0;
+
+        }
+
+    }
+    else {
+
+        return 0;
+
+    }
 
 }
 
@@ -395,7 +411,7 @@ sub reset_cmd_counter {
 
     $self->_set_cmd_counter(0);
 
-	return 1;
+    return 1;
 
 }
 

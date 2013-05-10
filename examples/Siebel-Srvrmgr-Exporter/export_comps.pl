@@ -30,11 +30,12 @@ use Siebel::Srvrmgr::ListParser::Output::ListComp::Server;
 use Siebel::Srvrmgr::ListParser::Output::ListParams;
 use Siebel::Srvrmgr::Daemon::Command;
 use Siebel::Srvrmgr::Exporter::ListCompDef;
-use Siebel::Srvrmgr::Exporter::ListComps;
+use Siebel::Srvrmgr::Exporter::ListComp;
 use Siebel::Srvrmgr::Exporter::ListCompTypes;
 use File::Spec;
 use Getopt::Std;
 use feature qw(say);
+use Term::Pulse;
 
 $Getopt::Std::STANDARD_HELP_VERSION = 1;
 
@@ -65,6 +66,7 @@ The parameters below are obligatory:
 -u: user for authentication
 -p: password for authentication
 -b: the complete path to the srvrmgr program
+-r: regular expression to match component alias to export
 
 BLOCK
 
@@ -74,13 +76,19 @@ BLOCK
 
 our %opts;
 
-getopts( 's:g:e:u:p:b:', \%opts );
+getopts( 's:g:e:u:p:b:r:', \%opts );
 
-foreach my $option (qw(s g e u p b)) {
+foreach my $option (qw(s g e u p b r)) {
 
     HELP_MESSAGE($option) unless ( defined( $opts{$option} ) );
 
 }
+
+pulse_start(
+    name   => 'Connecting to Siebel and getting initial data...',
+    rotate => 1,
+    time   => 1
+);
 
 my $daemon = Siebel::Srvrmgr::Daemon->new(
     {
@@ -115,7 +123,7 @@ my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
 
 $daemon->run();
 my $comp_types_ref = $stash->get_stash();
-$stash->set_stash([]);
+$stash->set_stash( [] );
 
 $daemon->set_commands(
     [
@@ -130,27 +138,34 @@ $daemon->set_commands(
 
 $daemon->run();
 my $comp_defs_ref = $stash->get_stash();
+$stash->set_stash( [] );
 
-die "could not fetch 'list comp def' output"
-  unless ( ref($comp_defs_ref) eq 'HASH' );
+#die "could not fetch 'list comp def' output"
+#  unless ( ref($comp_defs_ref) eq 'HASH' );
 
 $daemon->set_commands(
     [
         Siebel::Srvrmgr::Daemon::Command->new(
             {
                 command => 'list comp',
-                action  => 'Siebel::Srvrmgr::Exporter::ListComps'
+                action  => 'Siebel::Srvrmgr::Exporter::ListComp'
             }
         )
     ]
 );
 
 $daemon->run();
-
-my $sieb_srv     = $stash->get_stash();
+my $sieb_srv = $stash->get_stash();
+$stash->set_stash( [] );
 my $server_comps = $sieb_srv->get_comps();
 
+my $comp_regex = qr/$opts{r}/;
+
+pulse_stop();
+
 foreach my $comp_alias ( @{$server_comps} ) {
+
+    next unless ( $comp_alias =~ $comp_regex );
 
     my $command =
         'list params for server '

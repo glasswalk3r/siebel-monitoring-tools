@@ -1,4 +1,4 @@
-package Siebel::Srvrmgr::Exporter::ListComps;
+package Siebel::Srvrmgr::Exporter::ListComp;
 
 =pod
 
@@ -53,10 +53,8 @@ override 'do' => sub {
 
     super();
 
-    $self->get_parser()->parse($buffer);
-
     my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
-
+    $self->get_parser()->parse($buffer);
     my $tree = $self->get_parser()->get_parsed_tree();
 
     foreach my $obj ( @{$tree} ) {
