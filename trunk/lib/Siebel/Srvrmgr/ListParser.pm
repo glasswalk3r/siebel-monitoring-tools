@@ -20,6 +20,7 @@ use Siebel::Srvrmgr::ListParser::OutputFactory;
 use Siebel::Srvrmgr::ListParser::Buffer;
 use Siebel::Srvrmgr::Regexes qw(SRVRMGR_PROMPT CONN_GREET);
 use Scalar::Util qw(weaken);
+use feature qw(say);
 
 =pod
 
@@ -428,7 +429,7 @@ sub parse {
     my $fsa = FSA::Rules->new(
         no_data => {
             do => sub {
-                print "Searching for useful data\n"
+                say 'Searching for useful data'
                   if ( $ENV{SIEBEL_SRVRMGR_DEBUG} );
             },
             rules => [
@@ -660,8 +661,8 @@ sub parse {
 
                 if ( $ENV{SIEBEL_SRVRMGR_DEBUG} ) {
 
-                    my $line = $state->notes('line');
-                    print "command_submission got [$line]\n";
+                    say 'command_submission got ['
+                      . $state->notes('line') . ']';
 
                 }
 
