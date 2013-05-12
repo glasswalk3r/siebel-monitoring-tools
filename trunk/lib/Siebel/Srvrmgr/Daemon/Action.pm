@@ -44,7 +44,8 @@ This can be accomplish using something like this in the C<do> method:
 
 Where MyOutputSubclassName is a subclass of L<Siebel::Srvrmgr::ListParser::Output>.
 
-If this kind of output is not identified and the proper C<return> given, L<Siebel::Srvrmgr::Daemon> can enter in a infinite loop.
+If this kind of output is not identified and the proper C<return> given, L<Siebel::Srvrmgr::Daemon> can enter in a 
+infinite loop.
 
 =cut
 
@@ -59,7 +60,8 @@ use Carp;
 
 =head2 parser
 
-A reference to a L<Siebel::Srvrmgr::ListParser> object. This attribute is required during object creation and is read-only.
+A reference to a L<Siebel::Srvrmgr::ListParser> object. This attribute is required during object creation 
+and is read-only.
 
 =cut
 
@@ -75,7 +77,7 @@ has parser => (
 =head2 params
 
 An array reference. C<params> is an optional attribute during the object creation and it is used to pass additional parameters. How
-those parameters are going to be used is left who is creating subclasses of L<Siebel::Srvrmgr::Daemon::Action>.
+those parameters are going to be used is left to who is creating subclasses of L<Siebel::Srvrmgr::Daemon::Action>.
 
 This attribute is read-only.
 

@@ -30,15 +30,19 @@ sub constructor : Tests(24) {
                 total_commands => 5
             }
         ),
-        'the constructor should suceed'
+        'the constructor works'
     );
 
-	has_attribute_ok($condition, 'is_infinite');
-	has_attribute_ok($condition, 'max_cmd_idx');
-	has_attribute_ok($condition, 'total_commands');
-	has_attribute_ok($condition, 'cmd_counter');
-	has_attribute_ok($condition, 'output_used');
-	has_attribute_ok($condition, 'cmd_sent');
+    my @attribs = (
+        'is_infinite', 'max_cmd_idx', 'total_commands', 'cmd_counter',
+        'output_used', 'cmd_sent'
+    );
+
+    foreach my $attrib (@attribs) {
+
+        has_attribute_ok( $condition, $attrib );
+
+    }
 
     ok( $condition->check(), 'check methods must return true' );
 

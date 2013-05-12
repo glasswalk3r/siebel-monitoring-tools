@@ -154,7 +154,7 @@ sub set_output_used {
 
     if ($value) {
 
-		# if there is a single command to execute, there is no reason to reset the cmd_sent attribute
+# if there is a single command to execute, there is no reason to reset the cmd_sent attribute
         $self->set_cmd_sent(0) unless ( $self->max_cmd_idx() == 0 );
 
     }
@@ -378,6 +378,11 @@ sub is_last_cmd {
 
         if ( ( $self->max_cmd_idx() == 1 ) and ( not( $self->is_cmd_sent() ) ) )
         {
+
+            return 1;
+
+        }
+        elsif ( $self->is_output_used() ) {
 
             return 1;
 
