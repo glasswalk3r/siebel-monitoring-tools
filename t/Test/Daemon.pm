@@ -25,17 +25,17 @@ sub constructor : Tests(43) {
     can_ok(
         $class,
         (
-            'get_server',     'set_server',
-            'get_gateway',    'set_gateway',
-            'get_enterprise', 'set_enterprise',
-            'get_user',       'set_user',
-            'get_password',   'set_password',
-            'get_wait_time',  'set_wait_time',
-            'get_commands',   'set_commands',
-            'get_bin',        'set_bin',
-            'get_write',      'get_read',
-            'is_infinite',    'get_last_cmd',
-            'get_cmd_stack',  'get_params_stack',
+            'get_server',      'set_server',
+            'get_gateway',     'set_gateway',
+            'get_enterprise',  'set_enterprise',
+            'get_user',        'set_user',
+            'get_password',    'set_password',
+            'get_wait_time',   'set_wait_time',
+            'get_commands',    'set_commands',
+            'get_bin',         'set_bin',
+            'get_write',       'get_read',
+            'is_infinite',     'get_last_cmd',
+            'get_cmd_stack',   'get_params_stack',
             '_setup_commands', 'run',
             'DEMOLISH'
         )
@@ -98,22 +98,18 @@ sub constructor : Tests(43) {
         '... and the constructor should succeed'
     );
 
-    has_attribute_ok( $daemon, 'server' );
-    has_attribute_ok( $daemon, 'gateway' );
-    has_attribute_ok( $daemon, 'enterprise' );
-    has_attribute_ok( $daemon, 'user' );
-    has_attribute_ok( $daemon, 'password' );
-    has_attribute_ok( $daemon, 'wait_time' );
-    has_attribute_ok( $daemon, 'commands' );
-    has_attribute_ok( $daemon, 'bin' );
-    has_attribute_ok( $daemon, 'write_fh' );
-    has_attribute_ok( $daemon, 'read_fh' );
-    has_attribute_ok( $daemon, 'pid' );
-    has_attribute_ok( $daemon, 'is_infinite' );
-    has_attribute_ok( $daemon, 'last_exec_cmd' );
-    has_attribute_ok( $daemon, 'cmd_stack' );
-    has_attribute_ok( $daemon, 'params_stack' );
-    has_attribute_ok( $daemon, 'action_stack' );
+    my @attribs = (
+        'server',        'gateway',   'enterprise',   'user',
+        'password',      'wait_time', 'commands',     'bin',
+        'write_fh',      'read_fh',   'pid',          'is_infinite',
+        'last_exec_cmd', 'cmd_stack', 'params_stack', 'action_stack'
+    );
+
+    foreach my $attribute (@attribs) {
+
+        has_attribute_ok( $daemon, $attribute );
+
+    }
 
     foreach my $attrib (@data) {
 

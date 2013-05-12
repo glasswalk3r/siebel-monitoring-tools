@@ -48,10 +48,17 @@ This module was created to work close with Nagios concepts, especially regarding
 
 The new method returns a instance of L<Siebel::Srvrmgr::Daemon::Action::CheckComps>. The parameter expected are the same ones of any subclass of 
 L<Siebel::Srvrmgr::Daemon::Action>, but the C<params> attribute has a important difference: it expects an array reference with instances of classes
+<<<<<<< .mine
+that have the role L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Server>. The way that the classes will get the 
+information about which component to check per server is not important as long as they keep the same methods defined by 
+the roles L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Server> and 
+L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Component>.
+=======
 that have the role L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Server>. The way that the classes will get the information about which component 
 information is available per server is not important as long as they keep the same methods defined by the roles 
 L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Server> for a Siebel server and L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Component> for a Siebel
 server component.
+>>>>>>> .r136
 
 See the examples directory of this distribution to check a XML file used for configuration for more details.
 
@@ -78,7 +85,7 @@ sub BUILD {
 
 =head2 do
 
-Expects a array reference as the buffer output from srvrmgr program as a parameter.
+Expects a array reference as the buffer output from C<srvrmgr> program as a parameter.
 
 This method will check the output from C<srvrmgr> program parsed by L<Siebel::Srvrmgr::ListParser::Output::ListComp> object and compare each component recovered status
 with the status defined in the array reference given to C<params> method during object creation.
@@ -86,7 +93,7 @@ with the status defined in the array reference given to C<params> method during 
 It will return 1 if this operation was executed successfuly and request a instance of L<Siebel::Srvrmgr::Daemon::ActionStash>, calling it's method C<instance> and then
 C<set_stash> with a hash reference as it's content. Otherwise, the method will return 0 and no data will be set to the ActionStash object.
 
-The hash reference stored at the ActionStash object will have the following structure:
+The hash reference stored in the ActionStash object will have the following structure:
 
 	$VAR1 = {
 			  'foobar_server' => {
