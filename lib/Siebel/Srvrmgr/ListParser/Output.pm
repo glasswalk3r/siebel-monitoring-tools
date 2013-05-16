@@ -24,7 +24,7 @@ use Moose;
 use MooseX::Storage;
 use namespace::autoclean;
 use Carp;
-use feature 'switch';
+use feature qw(switch current_sub);
 
 with Storage( io => 'StorableFile' );
 
@@ -422,7 +422,7 @@ The method must return true or false depending on the result of parsing the fiel
 # process to parse their respective details besides header
 sub _parse_data {
 
-    die '_parse_data method must be overrided by subclasses of ' . __PACKAGE__;
+    die __SUB__ . ' method must be overrided by subclasses of ' . __PACKAGE__;
 
 }
 
@@ -439,8 +439,7 @@ superclass knows nothing about the format of the header from the list command ou
 
 sub _set_header_regex {
 
-    die '_set_header_regex method must be overrided by subclasses of '
-      . __PACKAGE__;
+    die __SUB__ . ' method must be overrided by subclasses of ' . __PACKAGE__;
 
 }
 

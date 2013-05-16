@@ -1,4 +1,5 @@
-use lib inc; use Devel::AssertOS qw(Linux AIX Solaris HPUX MSWin32);
+use lib inc;
+use Devel::AssertOS qw(Linux AIX Solaris HPUX MSWin32);
 
 use 5.010;
 use ExtUtils::MakeMaker;
@@ -6,9 +7,8 @@ use ExtUtils::MakeMaker;
 my %config = (
     NAME             => 'Siebel::Srvrmgr',
     VERSION_FROM     => 'lib/Siebel/Srvrmgr.pm',    # finds $VERSION
-    MIN_PERL_VERSION => 5.010,
+    MIN_PERL_VERSION => 5.016,
     PREREQ_PM        => {
-        Carp                         => 1.04,
         namespace::autoclean         => 0.13,
         Moose                        => 2.0401,
         FSA::Rules                   => 0.29,
@@ -17,7 +17,8 @@ my %config = (
         MooseX::Params::Validate     => 0.15,
         MooseX::AbstractFactory      => 0.004000,
         MooseX::Singleton            => 0.27,
-        MooseX::FollowPBP            => 0.05
+        MooseX::FollowPBP            => 0.05,
+        Log::Log4perl                => 1.41
     },
     BUILD_REQUIRES => {
         Test::Exception     => 0.27,
