@@ -56,17 +56,22 @@ sub HELP_MESSAGE {
 export_comps - version $VERSION
 
 This program will connect to a Siebel server and exports all components configuration in the form of "create component" commands.
-Those commands can be used with srvrmgr program to recreate those components in another Siebel server. Think of it something like a "component dumper".
-The program will print the "create component" to STDOUT.
+Those commands can be used with srvrmgr program to recreate those components in another Siebel server. Think of it something like a "Siebel component dumper".
+The program will print the "create component" to standard output.
+
 The parameters below are obligatory:
 
--s: the Siebel Server
--g: the Siebel Gateway
--e: the Siebel Enterprise
--u: user for authentication
--p: password for authentication
--b: the complete path to the srvrmgr program
--r: regular expression to match component alias to export
+-s: expects as parameter the Siebel Server name as parameter
+-g: expects as parameter the Siebel Gateway hostname as parameter
+-e: expects as parameter the Siebel Enterprise name as parameter
+-u: expects as parameter the user for authentication as parameter
+-p: expects as parameter the password for authentication as parameter
+-b: expects as parameter the complete path to the srvrmgr program as parameter
+-r: expects as parameter the regular expression to match component alias to export as parameter
+
+The parameters below are optional:
+
+-x: if present, the program will exclude component parameters with empty values from the generated 'created component' command
 
 BLOCK
 
@@ -76,7 +81,7 @@ BLOCK
 
 our %opts;
 
-getopts( 's:g:e:u:p:b:r:', \%opts );
+getopts( 's:g:e:u:p:b:r:x', \%opts );
 
 foreach my $option (qw(s g e u p b r)) {
 
@@ -203,7 +208,8 @@ foreach my $comp_alias ( @{$server_comps} ) {
             or ( $param->{PA_SETLEVEL} eq 'SIS_NEVER_SET' ) )
         {
 
-            push( @params, $param_alias . '=' . $param->{PA_VALUE} );
+            push( @params, $param_alias . '=' . $param->{PA_VALUE} )
+              unless ( ( $param->{PA_VALUE} eq '' ) and ( $opts{x} ) );
 
         }
 

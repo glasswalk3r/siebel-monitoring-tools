@@ -1,6 +1,22 @@
 package Siebel::Srvrmgr;
+use warnings;
+use strict;
 
 our $VERSION = '0.09';
+
+sub logging_cfg {
+
+    my $cfg = undef;
+
+    local $/;
+
+    $cfg = <Siebel::Srvrmgr::DATA>;
+
+    return $cfg;
+
+}
+
+1;
 
 =pod
 
@@ -10,12 +26,27 @@ Siebel::Srvrmgr - utilities to be used with the Siebel srvrmgr program
 
 =head1 DESCRIPTION
 
-This package is only Pod, no code is available from here.
-
 The distribution Siebel-Srvrmgr was created to define a set of tools to interact with the C<srvrmgr> program from Siebel.
 
-It was started initially to create a parser for the project Siebel Monitoring Tools (L<< http://code.google.com/p/siebel-monitoring-tools/ >>) and latter was grown to a set of more generic functionality, thus
-making sense to be published at CPAN.
+It was started initially to create a parser for the project Siebel Monitoring Tools (L<http://code.google.com/p/siebel-monitoring-tools/>) and later was grown to a 
+set of more generic functionality, thus making sense to be published at CPAN.
+
+This package used to be only Pod, but since release 0.09 it has a logging feature. See logging_cfg for details.
+
+=head1 CLASS METHODS
+
+=head2 logging_cfg
+
+Returns a string with the configuration to be used by a L<Log::Log4perl> instance.
+
+The configuration of L<Log::Log4perl> is available after the C<__DATA__> code block of this package. Logging is disabled by default, but can be enabled by
+only commenting the line:
+
+    log4perl.threshold = OFF
+
+with the default "#" Perl comment character.
+
+Logging is quite flexible (see L<Log::Log4Perl> for details) but the default configuration uses only DEBUG level printing messages to STDOUT.
 
 =head1 SEE ALSO
 
@@ -57,3 +88,12 @@ You should have received a copy of the GNU General Public License
 along with Siebel Monitoring Tools.  If not, see <http://www.gnu.org/licenses/>.
 
 =cut
+
+__DATA__
+log4perl.threshold = OFF
+log4perl.logger.Siebel.Srvrmgr.Daemon=DEBUG, A1
+log4perl.appender.A1=Log::Dispatch::Screen
+log4perl.appender.A1.stderr=0
+log4perl.appender.A1.layout=Log::Log4perl::Layout::PatternLayout
+log4perl.appender.A1.layout.ConversionPattern=%d %p> %F{1}:%L %M - %m%n
+log4perl.logger.Siebel.Srvrmgr.ListParser=DEBUG, A1
