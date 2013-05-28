@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ns1:siebelMonitor xmlns:ns1="http://foobar.org">
+<ns1:siebelMonitor xmlns:ns1="http://code.google.com/p/siebel-monitoring-tools/">
 	<ns1:connection>
 		<ns1:siebelServer/>
 		<ns1:srvrmgrPath>C:\Siebel\8.1\Client_1\BIN</ns1:srvrmgrPath>
