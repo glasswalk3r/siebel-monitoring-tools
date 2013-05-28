@@ -17,6 +17,10 @@ WriteMakefile(
           )
         : ()
     ),
+    BUILD_REQUIRES => {
+        'Test::Pod'           => 1.22,
+        'Test::Pod::Coverage' => 1.08
+    },
     EXE_FILES  => ['export_comps.pl'],
     META_MERGE => {
         resources => {

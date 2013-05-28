@@ -1,9 +1,0 @@
-﻿<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<siebelRemote>
-	<db>
-		<DSN>dbi:ODBC:FOOBAR</DSN>
-		<user>FOO</user>
-		<password>BAR</password>
-	</db>
-	<time-out>15</time-out>
-</siebelRemote>
