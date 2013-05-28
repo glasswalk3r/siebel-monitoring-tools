@@ -1,0 +1,9 @@
+Changes
+gpl.txt
+lib/Nagios/Plugin/Siebel/Remote.pm
+Makefile.PL
+MANIFEST
+README
+siebrem.cfg
+siebrem.pl
+t/Nagios-Plugin-Siebel-Remote.t
