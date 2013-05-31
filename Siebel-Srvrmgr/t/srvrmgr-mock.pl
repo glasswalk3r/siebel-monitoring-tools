@@ -159,6 +159,7 @@ load_preferences:
   - "srvrmgr> load preferences\n"
   - "File: C:\\Siebel\\8.1\\Client\\BIN\\.Siebel_svrmgr.pref\n"
 ls_comp: 
+  - "\n"
   - "SV_NAME     CC_ALIAS                   CC_NAME                                              CT_ALIAS         CG_ALIAS        CC_RUNMODE   CP_DISP_RUN_STATE  CP_NUM_RUN_TASKS  CP_MAX_TASKS  CP_ACTV_MTS_PROCS  CP_MAX_MTS_PROCS  CP_START_TIME        CP_END_TIME  CP_STATUS  CC_INCARN_NO  CC_DESC_TEXT  \n"
   - "----------  -------------------------  ---------------------------------------------------  ---------------  --------------  -----------  -----------------  ----------------  ------------  -----------------  ----------------  -------------------  -----------  ---------  ------------  ------------  \n"
   - "siebfoobar  ADMBatchProc               Application Deployment Manager Batch Processor       BusSvcMgr        ADM             Batch        Online             0                 1             1                  1                 2013-04-22 15:32:31               Enabled                                \n"
@@ -217,6 +218,7 @@ ls_comp:
   - "52 rows returned.\n"
   - "\n"
 ls_comp_def_srproc: 
+  - "\n"
   - "CC_NAME                                                                       CT_NAME                                                                       CC_RUNMODE                       CC_ALIAS                         CC_DISP_ENABLE_ST                                              CC_DESC_TEXT                                                                                                                                                                                                                                                 CG_NAME                                                                       CG_ALIAS                         CC_INCARN_NO             \n"
   - "----------------------------------------------------------------------------  ----------------------------------------------------------------------------  -------------------------------  -------------------------------  -------------------------------------------------------------  --------------------------------------------------------------------------------------------------------------------  ----------------------------------------------------------------------------  -------------------------------  -----------------------  \n"
   - "Server Request Processor                                                      Server Request Processor (SRP)                                                Interactive                      SRProc                           Active                                                         Server Request scheduler and request/notification store and forward processor                                                                                                                                                                                Auxiliary System Management                                                   SystemAux                        0                        \n"
@@ -224,6 +226,7 @@ ls_comp_def_srproc:
   - "1 row returned.\n"
   - "\n"
 ls_comp_types: 
+  - "\n"
   - "CT_NAME                                                                       CT_RUNMODE                       CT_ALIAS                                                       CT_DESC_TEXT                                                                                                                                                                                                                                                 \n"
   - "----------------------------------------------------------------------------  -------------------------------  -------------------------------------------------------------  --------------------------------------------------------------------------------------------------------------------  \n"
   - "ABO Bulk Request GoToView Svc                                                 Batch                            ABO Bulk Request GoToView Svc                                  ABO Bulk Request GoToView Svc Service                                                                                                                                                                                                                        \n"
@@ -492,6 +495,7 @@ ls_comp_types:
   - "262 rows returned.\n"
   - "\n"
 ls_params: 
+  - "\n"
   - "PA_ALIAS                               PA_VALUE                                                                                 PA_DATATYPE  PA_SCOPE   PA_SUBSYSTEM                                   PA_SETLEVEL       PA_DISP_SETLEVEL      PA  PA  PA  PA  PA_NAME                                                                                                                                                                  \n"
   - "-------------------------------------  ---------------------------------------------------------------------------------------  -----------  ---------  ---------------------------------------------  ----------------  --------------------  --  --  --  --  --------------------------------------------------------------------------------------------------------------------  \n"
   - "16KTblSpace                                                                                                                     String       Subsystem  Database Access                                Never set         Never set             Y   N   N   N   16K Tablespace Name                                                                                                                                                      \n"
@@ -896,6 +900,7 @@ ls_params:
   - "398 rows returned.\n"
   - "\n"
 ls_params_srproc: 
+  - "\n"
   - "PA_ALIAS                 PA_VALUE                                                 PA_DATATYPE  PA_SCOPE   PA_SUBSYSTEM                 PA_SETLEVEL       PA_DISP_SETLEVEL                PA  PA  PA  PA  PA_NAME                                            \n"
   - "-----------------------  -------------------------------------------------------  -----------  ---------  ---------------------------  ----------------  ------------------------------  --  --  --  --  -------------------------------------------------  \n"
   - "16KTblSpace                                                                       String       Subsystem  Database Access              Never set         Never set                       Y   N   N   N   16K Tablespace Name                                \n"
@@ -993,6 +998,7 @@ ls_params_srproc:
   - "91 rows returned.\n"
   - "\n"
 ls_servers: 
+  - "\n"
   - "SBLSRVR_NAME  SBLSRVR_GROUP_NAME  HOST_NAME   INSTALL_DIR           SBLMGR_PID  SV_DISP_STATE  SBLSRVR_STATE  START_TIME           END_TIME  SBLSRVR_STATUS                    \n"
   - "------------  ------------------  ----------  --------------------  ----------  -------------  -------------  -------------------  --------  --------------------------------  \n"
   - "siebfoobar                        siebfoobar  /app/siebel/siebsrvr  20452       Running        Running        2013-04-22 15:32:25            8.1.1.7 [21238] LANG_INDEPENDENT  \n"
@@ -1000,6 +1006,7 @@ ls_servers:
   - "1 row returned.\n"
   - "\n"
 ls_tasks: 
+  - "\n"
   - "SV_NAME     CC_ALIAS                   TK_TASKID  TK_PID  TK_DISP_RUNSTATE   CC_RUNMODE   TK_START_TIME        TK_END_TIME          TK_STATUS                                                                                                         CG_ALIAS        TK_PARENT_TASKNUM  CC_INCARN_NO  TK_LABEL             TK_TASKTYPE  TK_PING_TIME  \n"
   - "----------  -------------------------  ---------  ------  -----------------  -----------  -------------------  -------------------  ----------------------------------------------------------------------------------------------------------------  --------------  -----------------  ------------  -------------------  -----------  ------------  \n"
   - "siebfoobar  ServerMgr                  46137346   22151   Running            Interactive  2013-04-22 19:03:08  2000-00-00 00:00:00  Processing \"List Tasks\" command                                                                                   System                             0                                  Normal                     \n"
@@ -1125,6 +1132,7 @@ ls_tasks:
   - "119 rows returned.\n"
   - "\n"
 ls_tasks_srproc: 
+  - "\n"
   - "SV_NAME     CC_ALIAS  TK_TASKID  TK_PID  TK_DISP_RUNSTATE  CC_RUNMODE   TK_START_TIME        TK_END_TIME          TK_STATUS  CG_ALIAS   TK_PARENT_TASKNUM  CC_INCARN_NO  TK_LABEL         TK_TASKTYPE  TK_PING_TIME  \n"
   - "----------  --------  ---------  ------  ----------------  -----------  -------------------  -------------------  ---------  ---------  -----------------  ------------  ---------------  -----------  ------------  \n"
   - "siebfoobar  SRProc    5242888    20503   Running           Interactive  2013-04-22 15:32:28  2000-00-00 00:00:00             SystemAux                     0                              Normal                     \n"
