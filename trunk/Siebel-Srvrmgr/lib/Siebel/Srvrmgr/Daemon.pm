@@ -749,6 +749,18 @@ sub run {
                 }
             );
 
+            if ( $logger->is_debug() ) {
+
+                $logger->debug('First three lines of buffer sent for parsing');
+
+                for ( my $i = 0 ; $i <= 2 ; $i++ ) {
+
+                    $logger->debug( $input_buffer[$i] );
+
+                }
+
+            }
+
             $condition->set_output_used( $action->do( \@input_buffer ) );
             @input_buffer = ();
 

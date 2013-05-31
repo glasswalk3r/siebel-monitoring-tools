@@ -47,6 +47,8 @@ sub constructor : Tests(43) {
 
     my $is_infinite = 0;
 
+    $SIG{INT} = \&_clean_up;
+
     my $cmd = File::Spec->catfile( getcwd(), 't', 'srvrmgr-mock.pl' );
 
 # this data structure will make more sense when saw in use by the following foreach loop
@@ -128,6 +130,12 @@ sub constructor : Tests(43) {
     ok( $daemon->_setup_commands(), '_setup_commands works' );
 
     ok( $daemon->run(), 'run method executes successfuly' );
+
+    _clean_up();
+
+}
+
+sub _clean_up {
 
     # removes the dump files
     my $dir = getcwd();
