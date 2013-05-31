@@ -32,6 +32,12 @@ while (1) {
 
     given ($command) {
 
+		when (/^list\sblockme/) { 
+
+			# do nothing to get a deadlock when reading STDOUT with Siebel::Srvrmgr::Daemon
+
+		}
+
         when (/^list\scomp\stype/) {
 
             put_text( $data_ref->{ls_comp_types} );
