@@ -1,39 +1,47 @@
 package Test::Action::Dumper;
 
-use base 'Test::Class';
-use Test::Most;
-use Siebel::Srvrmgr::ListParser;
+#use Test::Output qw(:stdout);
+use base 'Test::Action';
 
 sub class { 'Siebel::Srvrmgr::Daemon::Action::Dumper' }
 
-sub startup : Tests(startup => 1) {
+sub class_methods : Test(+1) {
+
     my $test = shift;
-    use_ok $test->class;
-}
+    $test->SUPER::class_methods();
 
-sub constructor : Tests(3) {
+    my $regex = qr/^\$VAR1\s\=\s\[\n\s{10}\'SV_NAME/;
 
-    my $test  = shift;
-    my $class = $test->class;
+    my @data = <DATA>;
+    close(DATA);
+#    stdout_like { $test->{action}->do(\@data) } $regex, 'got correct dumped content';
+#    stdout_like( \&foobar($test), $regex, 'got correct dumped content' );
 
-    can_ok( $class, qw(new get_params get_parser get_params do) );
+	my $temp = 'output_test.txt';
 
-    my $action;
+	open(STDOUT, '>', $temp) or die "fucked $temp: $!";
+	$test->{action}->do(\@data);
+close(STDOUT);
+my $data;
 
-    ok(
-        $action = $class->new(
-            {
-                parser =>
-                  Siebel::Srvrmgr::ListParser->new( { is_warn_enabled => 1 } )
-            }
-        ),
-        'the constructor should suceed'
-    );
+{
 
-    isa_ok( $action->get_parser(), 'Siebel::Srvrmgr::ListParser',
-        'get_parser returned object' );
+	local $/ = 0;
+	$data = <
 
 }
+
+}
+
+#sub foobar {
+#
+#    my $test = shift;
+#
+#    my @data = <DATA>;
+#    close(DATA);
+#    $test->{action}->do( \@data );
+#
+#}
 
 1;
 

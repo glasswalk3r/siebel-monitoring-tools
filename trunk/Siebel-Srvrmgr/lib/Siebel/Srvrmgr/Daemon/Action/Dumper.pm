@@ -25,6 +25,18 @@ use Data::Dumper;
 
 extends 'Siebel::Srvrmgr::Daemon::Action';
 
+=head1 METHODS
+
+=head2 do
+
+Expects an array reference as buffer parameter.
+
+It will print the content of the array reference to C<STDOUT> by using L<Data::Dumper> C<Dump> function.
+
+This functions always returns true.
+
+=cut
+
 override 'do' => sub {
 
     my $self   = shift;
@@ -33,6 +45,8 @@ override 'do' => sub {
     super();
 
     print Dumper($buffer);
+
+    return 1;
 
 };
 

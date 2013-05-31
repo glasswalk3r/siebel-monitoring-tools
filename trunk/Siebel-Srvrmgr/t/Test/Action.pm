@@ -7,45 +7,58 @@ use base 'Test::Class';
 
 sub class { 'Siebel::Srvrmgr::Daemon::Action' }
 
-sub startup : Tests(startup => 1) {
+sub startup : Tests(startup => 2) {
+
     my $test = shift;
     use_ok $test->class;
-}
-
-sub constructor : Tests(8) {
-
-    my $test  = shift;
-    my $class = $test->class;
-
-    can_ok( $class, qw(new get_params get_parser get_params do) );
-
-    my $action;
 
     ok(
-        $action = $class->new(
+        $test->{action} = $test->class()->new(
             {
-                parser =>
-                  Siebel::Srvrmgr::ListParser->new( { is_warn_enabled => 1 } ),
+                parser => Siebel::Srvrmgr::ListParser->new(),
                 params => ['foobar']
             }
         ),
         'the constructor should suceed'
     );
 
-	has_attribute_ok($action, 'parser');
-	has_attribute_ok($action, 'params');
+}
 
-    isa_ok( $action->get_parser(), 'Siebel::Srvrmgr::ListParser',
-        'get_parser returned object' );
+sub class_attributes : Tests(2) {
+
+    my $test = shift;
+
+    foreach my $attrib (qw(parser params)) {
+
+        has_attribute_ok( $test->{action}, $attrib );
+
+    }
+
+}
+
+sub class_methods : Tests(6) {
+
+    my $test = shift;
+
+    my $parser_class = 'Siebel::Srvrmgr::ListParser';
+
+    isa_ok( $test->{action}->get_parser(),
+        $parser_class, "get_parser returns a $parser_class object" );
+
+    can_ok( $test->class(), qw(new get_params get_parser get_params do) );
 
     my @data = qw(foo bar something);
 
-    ok( $action->do( \@data ), 'do method works with an array reference' );
+    ok( $test->{action}->do( \@data ),
+        'do method works with an array reference' );
 
-    dies_ok( sub { $action->do('simple string') },
+    is( $test->{action}->do( \@data ),
+        1, 'do method returns 1 if output is used' );
+
+    dies_ok( sub { $test->{action}->do('simple string') },
         'do method raises an exception with wrong type of parameter' );
 
-    my $params_ref = $action->get_params();
+    my $params_ref = $test->{action}->get_params();
 
     is( $params_ref->[0], 'foobar', 'get_params returns the correct content' );
 
