@@ -1,6 +1,5 @@
 package Test::Action::Dumper;
 
-#use Test::Output qw(:stdout);
 use base 'Test::Action';
 use Test::More;
 
@@ -20,10 +19,6 @@ sub class_methods : Test(+1) {
 
     my @data = <DATA>;
     close(DATA);
-
-#    stdout_like { $test->{action}->do(\@data) } $regex, 'got correct dumped content';
-#    stdout_like( \&foobar($test), $regex, 'got correct dumped content' );
-
     close(STDOUT);
     $test_data = undef;
     open( STDOUT, '>', \$test_data )
@@ -38,16 +33,6 @@ sub class_methods : Test(+1) {
     );
 
 }
-
-#sub foobar {
-#
-#    my $test = shift;
-#
-#    my @data = <DATA>;
-#    close(DATA);
-#    $test->{action}->do( \@data );
-#
-#}
 
 1;
 

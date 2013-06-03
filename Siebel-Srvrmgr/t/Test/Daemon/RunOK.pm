@@ -4,7 +4,7 @@ use Test::More;
 use Cwd;
 use base 'Test::Daemon';
 
-sub class_exec_processing : Test {
+sub class_exec_processing : Test(+1) {
 
     my $test  = shift;
     my $class = $test->class;
