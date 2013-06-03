@@ -1,4 +1,4 @@
-use lib inc;
+use lib 'inc';
 use Devel::AssertOS qw(Linux AIX Solaris HPUX MSWin32);
 
 use 5.010;
@@ -20,7 +20,9 @@ my %config = (
         'MooseX::AbstractFactory'      => 0.004000,
         'MooseX::Singleton'            => 0.27,
         'MooseX::FollowPBP'            => 0.05,
-        'Log::Log4perl'                => 1.41
+        'Log::Log4perl'                => 1.41,
+        'Log::Dispatch'                => 2.39,
+        'YAML::Syck'                   => 1.27
     },
     BUILD_REQUIRES => {
         'Test::Exception'     => 0.27,

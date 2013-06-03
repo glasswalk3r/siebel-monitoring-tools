@@ -2,34 +2,40 @@ package Test::Action::Dumper;
 
 #use Test::Output qw(:stdout);
 use base 'Test::Action';
+use Test::More;
 
 sub class { 'Siebel::Srvrmgr::Daemon::Action::Dumper' }
 
 sub class_methods : Test(+1) {
 
     my $test = shift;
-    $test->SUPER::class_methods();
 
-    my $regex = qr/^\$VAR1\s\=\s\[\n\s{10}\'SV_NAME/;
+# :WORKAROUND:03-06-2013:arfreitas: Test::Output is not working, so redirecting STDOUT to avoid having problems with TAP
+    close(STDOUT);
+    my $test_data;
+    open( STDOUT, '>', \$test_data )
+      or die "Failed to redirect STDOUT to in-memory file: $!";
+    $test->SUPER::class_methods();
+    close(STDOUT);
 
     my @data = <DATA>;
     close(DATA);
+
 #    stdout_like { $test->{action}->do(\@data) } $regex, 'got correct dumped content';
 #    stdout_like( \&foobar($test), $regex, 'got correct dumped content' );
 
-	my $temp = 'output_test.txt';
+    close(STDOUT);
+    $test_data = undef;
+    open( STDOUT, '>', \$test_data )
+      or die "Failed to redirect STDOUT to in-memory file: $!";
+    $test->{action}->do( \@data );
+    close(STDOUT);
 
-	open(STDOUT, '>', $temp) or die "fucked $temp: $!";
-	$test->{action}->do(\@data);
-close(STDOUT);
-my $data;
-
-{
-
-	local $/ = 0;
-	$data = <
-
-}
+    like(
+        $test_data,
+        qr/^\$VAR1\s\=\s\[\n\s+\'\n\'\,\n\s+\'SV_NAME\s+CC_ALIAS/,
+        'Dumper output matches expected regular expression'
+    );
 
 }
 
@@ -46,6 +52,7 @@ my $data;
 1;
 
 __DATA__
+
 SV_NAME  CC_ALIAS        TK_TASKID  TK_PID  TK_DISP_RUNSTATE  CC_RUNMODE   TK_START_TIME        TK_END_TIME          TK_STATUS                                                                                CG_ALIAS   TK_PARENT_T  CC_INCARN_NO  TK_LABEL                  TK_TASKTYPE  TK_PING_TIM  
 -------  --------------  ---------  ------  ----------------  -----------  -------------------  -------------------  ---------------------------------------------------------------------------------------  ---------  -----------  ------------  ------------------------  -----------  -----------  
 SUsrvr   ServerMgr       32505858   916     Running           Interactive  2012-02-13 08:14:36  2000-00-00 00:00:00  Processing "List Tasks" command                                                          System                  0                                       Normal                    
