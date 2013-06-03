@@ -81,20 +81,23 @@ use POSIX ":sys_wait_h";
 use feature qw(say);
 use Log::Log4perl;
 use Siebel::Srvrmgr;
+use Data::Dumper;
 
 my $cfg = Siebel::Srvrmgr->logging_cfg();
 
 die "Could not start logging facilities"
   unless ( Log::Log4perl->init_once( \$cfg ) );
 
-my $logger = Log::Log4perl->get_logger('Siebel::Srvrmgr::Daemon');
+our $logger = Log::Log4perl->get_logger('Siebel::Srvrmgr::Daemon');
 
-# both variables below exist to deal with requested termination of the program gracefully
+# variables below exist to deal with requested termination of the program gracefully
 $SIG{INT}  = \&_term_INT;
 $SIG{PIPE} = \&_term_PIPE;
+$SIG{ALRM} = \&_term_ALARM;
 
-our $SIG_INT  = 0;
-our $SIG_PIPE = 0;
+our $SIG_INT   = 0;
+our $SIG_PIPE  = 0;
+our $SIG_ALARM = 0;
 
 =pod
 
@@ -599,26 +602,36 @@ sub run {
 
     my $rdr = $self->get_read();
 
+    my $read_timeout = 5;
+
     do {
 
         exit if ($SIG_INT);
 
-      READ: while (<$rdr>) {
+        $logger->debug(
+            "Setting $read_timeout seconds for read srvrmgr output time out")
+          if ( $logger->is_debug() );
+        alarm($read_timeout);
 
-# :TODO      :09/05/2013 19:11:28:: must set time-out for expecting output from srvrmgr
+      READ: while (<$rdr>) {
 
             exit if ($SIG_INT);
 
-            s/\r\n//;
-            chomp();
+            my $line = $_;
+
+            $line =~ s/\r\n//;
+            $line =~ s/\n//;
+
+            $logger->debug("Read [$line] from srvrmgr")
+              if ( $logger->is_debug() );
 
             # caught an specific error
-            if (/^SBL\-\w{3}\-\d+/) {
+            if ( $line =~ /^SBL\-\w{3}\-\d+/ ) {
 
                 if ( $logger->is_debug() ) {
 
-                    $logger->debug(
-"Caught an unrecoverable failure from srvrmgr! Error message is: [$_]"
+                    $logger->fatal(
+"Caught an unrecoverable failure from srvrmgr! Error message is: [$line]"
                     );
 
                 }
@@ -652,10 +665,10 @@ sub run {
             }
 
 # :TRICKY:29/06/2011 21:23:11:: bufferization in srvrmgr.exe ruins the day: the prompt will never come out unless a little push is given
-            if (/^\d+\srows?\sreturned\./) {
+            if ( $line =~ /^\d+\srows?\sreturned\./ ) {
 
                 # parsers will consider the lines below
-                push( @input_buffer, $_ );
+                push( @input_buffer, $line );
                 push( @input_buffer, '' );
 
                 syswrite $self->get_write(), "\n";
@@ -665,11 +678,11 @@ sub run {
 
             # prompt was returned, end of output
             # first execution should bring only informations about Siebel
-            if (/$prompt_regex/) {
+            if ( $line =~ /$prompt_regex/ ) {
 
                 unless ( defined($prompt) ) {
 
-                    $prompt = $_;
+                    $prompt = $line;
 
 # if prompt was undefined, that means that this is might be rest of output of previous command
 # and thus can be safely ignored
@@ -677,7 +690,7 @@ sub run {
 
                         if ( $input_buffer[0] eq '' ) {
 
-                            $logger->debug("Ignoring output [$_]");
+                            $logger->debug("Ignoring output [$line]");
 
                             $condition->set_cmd_sent(0);
                             @input_buffer = ();
@@ -711,7 +724,7 @@ sub run {
 # this is specific for load preferences response since it may contain the prompt string (Siebel 7.5.3.17)
                     if (/$load_pref_regex/) {
 
-                        push( @input_buffer, $_ );
+                        push( @input_buffer, $line );
                         syswrite $self->get_write(), "\n";
                         last READ;
 
@@ -722,11 +735,19 @@ sub run {
             }
             else {   # no prompt detection, keep reading output from srvrmgr.exe
 
-                push( @input_buffer, $_ );
+ # :WARNING   :03/06/2013 18:22:40:: might cause a deadlock if the srvrmgr does not have anything else to read
+                push( @input_buffer, $line );
 
             }
 
         }    # end of READ block
+
+        my $time_remaining = 0;
+        $time_remaining = alarm(0);
+
+        $logger->debug(
+"Reseting the time out for reading srvrmgr output (time remaing $time_remaining seconds)"
+        ) if ( $logger->is_debug() );
 
         # below is the place for a Action object
         if ( scalar(@input_buffer) >= 1 ) {
@@ -739,6 +760,14 @@ sub run {
 
             my $class =
               $self->get_action_stack()->[ $condition->get_cmd_counter() ];
+
+            if ( $logger->is_debug() ) {
+
+                $logger->debug(
+"Creating Siebel::Srvrmgr::Daemon::Action subclass $class instance"
+                );
+
+            }
 
             my $action = Siebel::Srvrmgr::Daemon::ActionFactory->create(
                 $class,
@@ -762,14 +791,22 @@ sub run {
             }
 
             $condition->set_output_used( $action->do( \@input_buffer ) );
+
+            $logger->debug( 'Is output used? ' . $condition->is_output_used() )
+              if ( $logger->is_debug() );
             @input_buffer = ();
 
         }
+
+        $logger->debug('Finished processing buffer') if ( $logger->is_debug() );
 
 # :TODO:27/2/2012 17:43:42:: must deal with command stack when the loop is infinite (invoke reset method)
 
         # begin of session, sending command to the prompt
         unless ( $condition->is_cmd_sent() or $condition->is_last_cmd() ) {
+
+            $logger->debug('Preparing to execute command')
+              if ( $logger->is_debug() );
 
             $condition->add_cmd_counter()
               if ( $condition->can_increment() );
@@ -778,9 +815,14 @@ sub run {
 
             unless ( defined($cmd) ) {
 
-                use Data::Dumper;
-                print Dumper( $self->get_cmd_stack() );
-                die "invalid cmd received";
+                $logger->logwarn('Invalid command received for execution');
+                $logger->logdie( Dumper( $self->get_cmd_stack() ) );
+
+            }
+            else {
+
+                $logger->debug("Submitting $cmd")
+                  if ( $logger->is_debug() );
 
             }
 
@@ -797,6 +839,15 @@ sub run {
             sleep( $self->get_wait_time() );
 
         }
+        else {
+
+            $logger->debug('Not yet read to execute a command')
+              if ( $logger->is_debug() );
+
+        }
+
+        $logger->debug( 'Continue executing? ' . $condition->check() )
+          if ( $logger->is_debug() );
 
     } while ( $condition->check() );
 
@@ -823,7 +874,9 @@ sub DEMOLISH {
     my $self = shift;
 
     if (    ( defined( $self->get_write() ) )
-        and ( defined( $self->get_read() ) ) )
+        and ( defined( $self->get_read() ) )
+        and ( not($SIG_PIPE) )
+        and ( not($SIG_ALARM) ) )
     {
 
         syswrite $self->get_write(), "exit\n";
@@ -858,47 +911,53 @@ sub DEMOLISH {
 
             }
 
-            close( $self->get_read() );
-            close( $self->get_write() );
-
-            if ( kill 0, $self->get_pid() ) {
-
-                sleep( $self->get_child_timeout() );
-
-                if ( $logger->is_debug() ) {
-
-                    $logger->debug(
-                        'srvrmgr is still running, trying to kill it');
-
-                }
-
-                my $ret = waitpid( $self->get_pid(), WNOHANG );
-
-                if ( $logger->is_debug() ) {
-
-                    if ( $? == 0 ) {
-
-                        $logger->debug('child pid finished successfully');
-
-                    }
-                    else {
-
-                        $logger->debug(
-'Something went bad with child process: look for zombie process on the computer'
-                        );
-
-                    }
-
-                    $logger->debug(
-"Ripped PID = $ret, status = $?, child error native = ${^CHILD_ERROR_NATIVE}"
-                    );
-                }
-
-            }
-
         }
 
     }
+
+    close( $self->get_read() )  if ( defined( $self->get_read() ) );
+    close( $self->get_write() ) if ( defined( $self->get_write() ) );
+
+    $logger->logdie(
+        'Cannot try to finish the child process: returned PID is invalid')
+      unless ( ( defined( $self->get_pid() ) )
+        and ( $self->get_pid() =~ /\d+/ ) );
+
+    if ( kill 0, $self->get_pid() ) {
+
+        sleep( $self->get_child_timeout() );
+
+        if ( $logger->is_debug() ) {
+
+            $logger->debug('srvrmgr is still running, trying to kill it');
+
+        }
+
+        my $ret = waitpid( $self->get_pid(), WNOHANG );
+
+        if ( $logger->is_debug() ) {
+
+            if ( $? == 0 ) {
+
+                $logger->debug('child pid finished successfully');
+
+            }
+            else {
+
+                $logger->debug(
+'Something went bad with child process: look for zombie process on the computer'
+                );
+
+            }
+
+            $logger->debug(
+"Ripped PID = $ret, status = $?, child error native = ${^CHILD_ERROR_NATIVE}"
+            );
+        }
+
+    }
+
+    $logger->logdie("Program termination was forced") if ($SIG_ALARM);
 
 }
 
@@ -908,9 +967,10 @@ sub _term_INT {
 
     if ( $logger->is_debug() ) {
 
-        $logger->debug("A interrupt signal was caught: <$sig>");
+        $logger->debug("A interrupt (<$sig>) signal was caught");
 
     }
+
     $SIG_INT = 1;
 
 }
@@ -920,10 +980,27 @@ sub _term_PIPE {
     my ($sig) = @_;
     if ( $logger->is_debug() ) {
 
-        $logger->debug("A interrupt signal was caught: <$sig>");
+        $logger->debug("A interrupt PIPE (<$sig>) signal was caught");
 
     }
+
     $SIG_PIPE = 1;
+
+}
+
+sub _term_ALARM {
+
+    my ($sig) = @_;
+
+    if ( $logger->is_debug() ) {
+
+        $logger->warn("Reading from srvrmgr timed-out: caught <$sig> signal");
+        $logger->warn('Terminating program execution');
+
+    }
+
+    $SIG_ALARM = 1;
+    exit 1;
 
 }
 

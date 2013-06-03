@@ -4,7 +4,7 @@ use Cwd;
 use Test::Most;
 use base 'Test::Daemon';
 
-sub class_bad_exec : Tests(2) {
+sub class_bad_exec : Tests(+1) {
 
     my $test  = shift;
     my $class = $test->class;
@@ -13,13 +13,24 @@ sub class_bad_exec : Tests(2) {
         [
             Siebel::Srvrmgr::Daemon::Command->new(
                 command => 'list blockme',
-                action  => 'Dumper'
+                action => 'Dummy'    # this one is to get the initial message
+            ),
+            Siebel::Srvrmgr::Daemon::Command->new(
+                command => 'list blockme',
+                action =>
+                  'Dummy'    # this one is to get the "list blockme" message
             ),
         ]
     );
 
-#    dies_ok { $test->{daemon}->run() } 'run method fail due timeout';
-ok($test->{daemon}->run(), 'run method fail due timeout');
+    dies_ok { $test->{daemon}->run() } 'run method fail due timeout';
+#    ok($test->{daemon}->run(), 'run method fail due timeout');
+
+}
+
+sub _terminate {
+
+    BAIL_OUT('Got a SIGALRM signal due timeout');
 
 }
 

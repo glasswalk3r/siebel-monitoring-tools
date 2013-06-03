@@ -22,7 +22,7 @@ my %config = (
         'MooseX::FollowPBP'            => 0.05,
         'Log::Log4perl'                => 1.41,
         'Log::Dispatch'                => 2.39,
-        'YAML::Syck'                   => 1.27
+        'YAML::Syck'                   => 1.25
     },
     BUILD_REQUIRES => {
         'Test::Exception'     => 0.27,

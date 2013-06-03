@@ -28,15 +28,19 @@ while (1) {
 
     put_text('srvrmgr> ');
 
-    chomp( my $command = <STDIN> );
+    my $command = <STDIN>;
+
+    chomp($command);
 
     given ($command) {
 
-		when (/^list\sblockme/) { 
+        when (/^list\sblockme/) {
 
-			# do nothing to get a deadlock when reading STDOUT with Siebel::Srvrmgr::Daemon
+ # do nothing to get a deadlock when reading STDOUT with Siebel::Srvrmgr::Daemon
+            sleep(20);
+            put_text( [ "\n", "yada yada yada\n", "\n", "1 row returned.\n", "\n" ] );
 
-		}
+        }
 
         when (/^list\scomp\stype/) {
 
@@ -56,11 +60,11 @@ while (1) {
 
         }
 
-		when (/^list\sservers?/) {
+        when (/^list\sservers?/) {
 
-			put_text($data_ref->{ls_servers})
+            put_text( $data_ref->{ls_servers} )
 
-		}
+        }
 
         when ('load preferences') {
 
@@ -71,8 +75,10 @@ while (1) {
         }
 
         when ('exit') {
+
             put_text("\nDisconnecting...\n");
-            last;
+            exit(0);
+
         }
 
         when ('') {
@@ -81,12 +87,27 @@ while (1) {
 
         }
 
+        when ('help') {
+
+            put_text(
+                [
+                    "Available commands are:\n",
+                    "list servers\n",
+                    "list comp\n",
+                    "exit\n",
+                    "list comp def\n",
+                    "list comp type\n",
+                    "list blockme\n",
+                    "\n"
+                ]
+            );
+
+        }
+
         default { put_text("Invalid command\n") }
 
     }
 }
-
-exit 0;
 
 # to avoid buffering
 # expects an array reference OR a scalar to print
