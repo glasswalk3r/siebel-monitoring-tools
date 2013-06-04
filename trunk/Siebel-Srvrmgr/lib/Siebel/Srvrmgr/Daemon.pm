@@ -568,8 +568,8 @@ sub run {
 
         unless ( kill 0, $self->get_pid() ) {
 
-            die $self->get_bin()
-              . " process returned a fatal error: ${^CHILD_ERROR_NATIVE}\n";
+            $logger->logdie( $self->get_bin()
+                  . " process returned a fatal error: ${^CHILD_ERROR_NATIVE}" );
 
         }
 
@@ -579,7 +579,8 @@ sub run {
     }
     else {
 
-        $logger->debug( 'Reusing PID ', $self->get_pid() );
+        $logger->debug( 'Reusing PID ', $self->get_pid() )
+          if ( $logger->is_debug() );
 
     }
 
@@ -602,7 +603,7 @@ sub run {
 
     my $rdr = $self->get_read();
 
-    my $read_timeout = 5;
+    my $read_timeout = 10;
 
     do {
 
@@ -735,7 +736,7 @@ sub run {
             }
             else {   # no prompt detection, keep reading output from srvrmgr.exe
 
- # :WARNING   :03/06/2013 18:22:40:: might cause a deadlock if the srvrmgr does not have anything else to read
+# :WARNING   :03/06/2013 18:22:40:: might cause a deadlock if the srvrmgr does not have anything else to read
                 push( @input_buffer, $line );
 
             }
@@ -873,37 +874,44 @@ sub DEMOLISH {
 
     my $self = shift;
 
-    if (    ( defined( $self->get_write() ) )
-        and ( defined( $self->get_read() ) )
-        and ( not($SIG_PIPE) )
-        and ( not($SIG_ALARM) ) )
+    # only the parent process has the pid defined
+    if (    ( defined( $self->get_pid() ) )
+        and ( $self->get_pid() =~ /\d+/ ) )
     {
 
-        syswrite $self->get_write(), "exit\n";
-        syswrite $self->get_write(), "\n";
+        if (    ( defined( $self->get_write() ) )
+            and ( defined( $self->get_read() ) )
+            and ( not($SIG_PIPE) )
+            and ( not($SIG_ALARM) ) )
+        {
 
-        # after the exit command the srvrmgr program already exited
-        unless ($SIG_PIPE) {
+            syswrite $self->get_write(), "exit\n";
+            syswrite $self->get_write(), "\n";
 
-            if ( $logger->is_debug() ) {
+            # after the exit command the srvrmgr program already exited
+            unless ($SIG_PIPE) {
 
-                $logger->debug(
-                    'DEMOLISH invoked, getting last output from srvrmgr');
+                if ( $logger->is_debug() ) {
 
-                my $rdr = $self->get_read()
-                  ;    # diamond operator does not like method calls inside it
+                    $logger->debug(
+                        'DEMOLISH invoked, getting last output from srvrmgr');
 
-                while (<$rdr>) {
+                    my $rdr = $self->get_read()
+                      ;  # diamond operator does not like method calls inside it
 
-                    if (/^Disconnecting from server\./) {
+                    while (<$rdr>) {
 
-                        $logger->debug($_);
-                        last;
+                        if (/^Disconnecting from server\./) {
 
-                    }
-                    else {
+                            $logger->debug($_);
+                            last;
 
-                        $logger->debug($_);
+                        }
+                        else {
+
+                            $logger->debug($_);
+
+                        }
 
                     }
 
@@ -913,51 +921,46 @@ sub DEMOLISH {
 
         }
 
-    }
+        close( $self->get_read() )  if ( defined( $self->get_read() ) );
+        close( $self->get_write() ) if ( defined( $self->get_write() ) );
 
-    close( $self->get_read() )  if ( defined( $self->get_read() ) );
-    close( $self->get_write() ) if ( defined( $self->get_write() ) );
+        if ( kill 0, $self->get_pid() ) {
 
-    $logger->logdie(
-        'Cannot try to finish the child process: returned PID is invalid')
-      unless ( ( defined( $self->get_pid() ) )
-        and ( $self->get_pid() =~ /\d+/ ) );
+            sleep( $self->get_child_timeout() );
 
-    if ( kill 0, $self->get_pid() ) {
+            if ( $logger->is_debug() ) {
 
-        sleep( $self->get_child_timeout() );
-
-        if ( $logger->is_debug() ) {
-
-            $logger->debug('srvrmgr is still running, trying to kill it');
-
-        }
-
-        my $ret = waitpid( $self->get_pid(), WNOHANG );
-
-        if ( $logger->is_debug() ) {
-
-            if ( $? == 0 ) {
-
-                $logger->debug('child pid finished successfully');
+                $logger->debug('srvrmgr is still running, trying to kill it');
 
             }
-            else {
+
+            my $ret = waitpid( $self->get_pid(), WNOHANG );
+
+            if ( $logger->is_debug() ) {
+
+                if ( $? == 0 ) {
+
+                    $logger->debug('child pid finished successfully');
+
+                }
+                else {
+
+                    $logger->debug(
+'Something went bad with child process: look for zombie process on the computer'
+                    );
+
+                }
 
                 $logger->debug(
-'Something went bad with child process: look for zombie process on the computer'
+"Ripped PID = $ret, status = $?, child error native = ${^CHILD_ERROR_NATIVE}"
                 );
-
             }
 
-            $logger->debug(
-"Ripped PID = $ret, status = $?, child error native = ${^CHILD_ERROR_NATIVE}"
-            );
         }
 
-    }
+        $logger->info("Program termination was forced") if ($SIG_ALARM);
 
-    $logger->logdie("Program termination was forced") if ($SIG_ALARM);
+    }
 
 }
 
@@ -999,8 +1002,7 @@ sub _term_ALARM {
 
     }
 
-    $SIG_ALARM = 1;
-    exit 1;
+	die 'SIGALRM caught';
 
 }
 

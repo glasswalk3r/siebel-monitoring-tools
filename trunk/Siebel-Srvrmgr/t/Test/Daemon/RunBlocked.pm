@@ -4,7 +4,7 @@ use Cwd;
 use Test::Most;
 use base 'Test::Daemon';
 
-sub class_bad_exec : Tests(+1) {
+sub class_run : Test(+1) {
 
     my $test  = shift;
     my $class = $test->class;
@@ -24,7 +24,6 @@ sub class_bad_exec : Tests(+1) {
     );
 
     dies_ok { $test->{daemon}->run() } 'run method fail due timeout';
-#    ok($test->{daemon}->run(), 'run method fail due timeout');
 
 }
 
