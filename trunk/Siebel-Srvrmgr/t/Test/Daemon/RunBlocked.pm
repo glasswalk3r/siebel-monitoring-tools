@@ -1,7 +1,7 @@
 package Test::Daemon::RunBlocked;
 
-use Cwd;
 use Test::Most;
+use Config;
 use base 'Test::Daemon';
 
 sub class_run : Test(+1) {
@@ -23,15 +23,15 @@ sub class_run : Test(+1) {
         ]
     );
 
-    dies_ok { $test->{daemon}->run() } 'run method fail due timeout';
+  SKIP: {
 
-}
+        skip 'alarm does not work as expected in Microsoft Windows OS', 1
+          if ( $Config{osname} eq 'MSWin32' );
 
-sub _terminate {
+        dies_ok { $test->{daemon}->run() } 'run method fail due timeout';
 
-    BAIL_OUT('Got a SIGALRM signal due timeout');
+    }
 
 }
 
 1;
-

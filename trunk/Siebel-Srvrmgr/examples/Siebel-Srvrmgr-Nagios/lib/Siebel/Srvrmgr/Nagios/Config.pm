@@ -1,7 +1,7 @@
 package Siebel::Srvrmgr::Nagios::Config;
 use XML::Rabbit::Root;
 
-add_xpath_namespace 'ns1' => 'http://code.google.com/p/siebel-monitoring-tools/';
+add_xpath_namespace 'ns1' => 'http://code.google.com/p/siebel-monitoring-tools';
 
 =pod
 

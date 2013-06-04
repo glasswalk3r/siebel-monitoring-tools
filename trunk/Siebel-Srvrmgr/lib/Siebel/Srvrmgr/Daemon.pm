@@ -623,8 +623,20 @@ sub run {
             $line =~ s/\r\n//;
             $line =~ s/\n//;
 
-            $logger->debug("Read [$line] from srvrmgr")
-              if ( $logger->is_debug() );
+            if ( $logger->is_debug() ) {
+
+                if ( defined($line) ) {
+
+                    $logger->debug("Read [$line] from srvrmgr");
+
+                }
+                else {
+
+                    $logger->debug("Read [undefined content] from srvrmgr");
+
+                }
+
+            }
 
             # caught an specific error
             if ( $line =~ /^SBL\-\w{3}\-\d+/ ) {
@@ -723,7 +735,7 @@ sub run {
                     }
 
 # this is specific for load preferences response since it may contain the prompt string (Siebel 7.5.3.17)
-                    if (/$load_pref_regex/) {
+                    if ($line =~ /$load_pref_regex/) {
 
                         push( @input_buffer, $line );
                         syswrite $self->get_write(), "\n";
@@ -1002,7 +1014,7 @@ sub _term_ALARM {
 
     }
 
-	die 'SIGALRM caught';
+    die 'SIGALRM caught';
 
 }
 

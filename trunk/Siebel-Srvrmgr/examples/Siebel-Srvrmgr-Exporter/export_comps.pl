@@ -45,7 +45,7 @@ sub HELP_MESSAGE {
 
     my $option = shift;
 
-    if ( defined($option) ) {
+    if ( ( defined($option) ) and ( ref($option) eq '' ) ) {
 
         say "'-$option' parameter cannot be null";
 
@@ -61,17 +61,18 @@ The program will print the "create component" to standard output.
 
 The parameters below are obligatory:
 
--s: expects as parameter the Siebel Server name as parameter
--g: expects as parameter the Siebel Gateway hostname as parameter
--e: expects as parameter the Siebel Enterprise name as parameter
--u: expects as parameter the user for authentication as parameter
--p: expects as parameter the password for authentication as parameter
--b: expects as parameter the complete path to the srvrmgr program as parameter
--r: expects as parameter the regular expression to match component alias to export as parameter
+	-s: expects as parameter the Siebel Server name as parameter
+	-g: expects as parameter the Siebel Gateway hostname as parameter
+	-e: expects as parameter the Siebel Enterprise name as parameter
+	-u: expects as parameter the user for authentication as parameter
+	-p: expects as parameter the password for authentication as parameter
+	-b: expects as parameter the complete path to the srvrmgr program as parameter
+	-r: expects as parameter the regular expression to match component alias to export as parameter (case sensitive)
 
 The parameters below are optional:
 
--x: if present, the program will exclude component parameters with empty values from the generated 'created component' command
+	-x: if present, the program will exclude component parameters with empty values from the generated 'created component' command
+	-h: prints this help message and exists
 
 BLOCK
 
@@ -81,7 +82,9 @@ BLOCK
 
 our %opts;
 
-getopts( 's:g:e:u:p:b:r:x', \%opts );
+getopts( 's:g:e:u:p:b:r:xh', \%opts );
+
+HELP_MESSAGE() if ( exists( $opts{h} ) );
 
 foreach my $option (qw(s g e u p b r)) {
 
@@ -144,9 +147,6 @@ $daemon->set_commands(
 $daemon->run();
 my $comp_defs_ref = $stash->get_stash();
 $stash->set_stash( [] );
-
-#die "could not fetch 'list comp def' output"
-#  unless ( ref($comp_defs_ref) eq 'HASH' );
 
 $daemon->set_commands(
     [

@@ -5,7 +5,7 @@ use File::Spec::Functions qw(tmpdir catfile);
 use Nagios::Plugin;
 use Siebel::Srvrmgr::Daemon::ActionStash;
 use lib '.';
-use Siebel::Monitor::Config;
+use Siebel::Srvrmgr::Nagios::Config;
 
 #    COPYRIGHT AND LICENCE
 #
@@ -56,11 +56,13 @@ $np->getopts();
 
 my $stash;
 my $cfg;
+my $comps;
 
 eval {
 
-    $cfg = Siebel::Monitor::Config->new( file => $np->opts->configuration() );
-    $comps = parse_config($config);
+    $cfg =
+      Siebel::Srvrmgr::Nagios::Config->new(
+        file => $np->opts->configuration() );
 
     my $daemon = Siebel::Srvrmgr::Daemon->new(
         {
@@ -68,6 +70,7 @@ eval {
             enterprise  => $cfg->enterprise(),
             user        => $cfg->user(),
             password    => $cfg->password(),
+            server      => $cfg->server(),
             bin         => catfile( $cfg->srvrmgrPath(), $cfg->srvrmgrBin() ),
             is_infinite => 0,
             timeout     => 0,
@@ -104,39 +107,44 @@ my $threshold = $np->set_thresholds(
 );
 
 $np->nagios_exit(
-    return_code => $np->check_threshold( $status ),
-    message     => 'Components status is '. $status
+    return_code => $np->check_threshold($status),
+    message     => 'Components status is ' . $status
 );
 
 sub calc_status {
 
-    my $comps   = shift;    # array ref[hash ref]
-    my $results = shift;    # Siebel::Srvrmgr::Daemon::ActionStash object
-    my $server  = shift;
+    my $cfg     = shift;
+    my $results = shift;
 
     my $status = 0;
 
     my $result_data = $results->get_stash();
 
-    if ( exists( $result_data->{$server} ) ) {
+    if ( exists( $result_data->{ $cfg->server() } ) ) {
 
-        my $comps_status = $result_data->{$server};
+        my $server = $result_data->{ $cfg->server() };
 
-        foreach my $comp ( @{$comps} ) {
+        foreach my $comp_name ( keys( %{$server} ) ) {
 
-            if ( exists( $comps_status->{ $comp->{name} } ) ) {
+     # by convention, each component will have 1 if the status is fine, 0 if not
+            unless ( $server->{$comp_name} ) {
 
-                unless ( $comps_status->{ $comp->{name} } ) {
+                my $servers = $cfg->servers();
 
-                    $status += $comp->{criticality};
+                my $comps = $servers->[0]->components();
+
+ # :TODO      :04/06/2013 19:14:18:: should check if the returned component has the corresponding component in the configuration
+ # and issue a warning if not,  at least
+ # looping over the available components is not efficient too
+                foreach my $comp ( @{$comps} ) {
+
+                    if ( $comp->name() eq $comp_name ) {
+
+                        $status += $comp->criticality();
+
+                    }
 
                 }
-
-            }
-            else {
-
-                $status = -1;
-                last;    # a component verification is missing
 
             }
 
@@ -145,7 +153,7 @@ sub calc_status {
     }
     else {
 
-        $status = -1;
+        return -1;
 
     }
 

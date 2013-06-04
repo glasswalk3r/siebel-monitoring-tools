@@ -48,17 +48,14 @@ This module was created to work close with Nagios concepts, especially regarding
 
 The new method returns a instance of L<Siebel::Srvrmgr::Daemon::Action::CheckComps>. The parameter expected are the same ones of any subclass of 
 L<Siebel::Srvrmgr::Daemon::Action>, but the C<params> attribute has a important difference: it expects an array reference with instances of classes
-<<<<<<< .mine
 that have the role L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Server>. The way that the classes will get the 
 information about which component to check per server is not important as long as they keep the same methods defined by 
 the roles L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Server> and 
 L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Component>.
-=======
 that have the role L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Server>. The way that the classes will get the information about which component 
 information is available per server is not important as long as they keep the same methods defined by the roles 
 L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Server> for a Siebel server and L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Component> for a Siebel
 server component.
->>>>>>> .r136
 
 See the examples directory of this distribution to check a XML file used for configuration for more details.
 
@@ -199,10 +196,10 @@ override 'do' => sub {
                                     $checked_comps{ $exp_srv->name() }
                                       ->{ $exp_comp->name() } = 0;
 
-                                    warn 'invalid status got for ',
-                                      $exp_comp->name(),          ' ',
-                                      $comp->cp_disp_run_state(), "\n"
-                                      if ( $ENV{SIEBEL_SRVRMGR_DEBUG} );
+# :TODO      :04/06/2013 19:16:51:: must use a environment variable to indicate Log::Log4perl configuration and then enable logging here
+#                                    warn 'invalid status got for ',
+#                                      $exp_comp->name(), ' ',
+#                                      $comp->cp_disp_run_state();
 
                                 }
 
