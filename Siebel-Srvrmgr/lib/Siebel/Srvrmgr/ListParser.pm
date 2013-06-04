@@ -15,7 +15,6 @@ Siebel::Srvrmgr::ListParser - state model parser to idenfity which output type w
 =cut
 
 use Moose;
-use FSA::Rules;
 use Siebel::Srvrmgr::ListParser::OutputFactory;
 use Siebel::Srvrmgr::ListParser::Buffer;
 use Siebel::Srvrmgr::Regexes qw(SRVRMGR_PROMPT CONN_GREET);
@@ -438,7 +437,16 @@ sub parse {
     warn "received an empty buffer" unless ( @{$data_ref} );
 
     my $fsa = Siebel::Srvrmgr::ListParser::FSA->get_fsa($logger);
+
     $fsa->done( sub { ( $self->get_last_command() eq 'exit' ) ? 1 : 0 } );
+
+    # creates a image representing all the states used and their relationship
+#    if ( $logger->is_debug() ) {
+#
+#        my $graph = $fsa->graph( layout => 'neato', overlap => 'false' );
+#        $graph->as_png('pretty.png');
+#
+#    }
 
     my $state;
     my $line_number = 0;

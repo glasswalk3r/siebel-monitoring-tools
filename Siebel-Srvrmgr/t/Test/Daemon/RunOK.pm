@@ -30,7 +30,7 @@ sub clean_up : Test(shutdown) {
 
         if ( $file =~ /^dump\w/ ) {
 
-            unlink $file or die "Cannot remove $file: $!\n";
+            unlink $file or warn "Cannot remove $file: $!\n";
 
         }
 

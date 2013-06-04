@@ -1,4 +1,4 @@
-package Siebel::Monitor::Nagios::Server;
+package Siebel::Srvrmgr::Nagios::Server;
 use XML::Rabbit;
 
 =pod

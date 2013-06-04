@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
-<xs:schema targetNamespace="http://foobar.org" xmlns="http://foobar.org" xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified" elementFormDefault="qualified">
+<xs:schema targetNamespace="http://code.google.com/p/siebel-monitoring-tools/" xmlns="http://code.google.com/p/siebel-monitoring-tools/" xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified" elementFormDefault="qualified">
   <xs:element name="siebelMonitor">
     <xs:complexType>
       <xs:sequence minOccurs="1" maxOccurs="1">
