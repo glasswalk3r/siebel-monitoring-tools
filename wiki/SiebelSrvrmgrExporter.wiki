@@ -3,7 +3,7 @@
 
 = Introduction =
 
-The Siebel-Srvrmgr-Exporter is another proof of concept of usage of the Siebel-Srvrmgr API.
+The Siebel-Srvrmgr-Exporter is another proof of concept of usage of the Siebel-Srvrmgr API and it is part of this Perl distribution (see _examples_ directory).
 
 Siebel-Srvrmgr-Exporter is a Perl distribution itself, and it provides a program that connects to a Siebel Server, recover all information regarding the components available in the server and "dump" their information to standard output in the form of `create component` commands to be executed in `srvrmgr` program itself.
 
