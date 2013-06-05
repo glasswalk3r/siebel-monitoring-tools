@@ -1,0 +1,52 @@
+Nagios-Plugin-Siebel-Remote
+=====================
+
+This distribution is part of the project Siebel Monitoring Tools.
+
+The goal of this project is to make possible to monitor Siebel servers.
+
+This specific Perl distribution is a Nagios plugin to monitor Siebel Remote pending transactions to be routed to Siebel Remote users,
+which could identify an issue with the related components if the number of pending transactions is higher than a predefined threshold.
+
+INSTALLATION
+
+To install this module type the following:
+
+   perl Makefile.PL
+   make
+   make test
+   make install
+
+DEPENDENCIES
+
+Please check the Makefile.PL for the dependencies of modules of this distribution.
+
+SUPPORT AND DOCUMENTATION
+
+You can look for information at:
+
+    Bug tracker
+        http://code.google.com/p/siebel-monitoring-tools/issues/list
+    CPAN Ratings
+        http://cpanratings.perl.org/dist/Siebel-Srvrmgr
+    Search CPAN
+        http://search.cpan.org/dist/Siebel-Srvrmgr/
+
+COPYRIGHT AND LICENCE
+
+This software is copyright (c) 2013 of Alceu Rodrigues de Freitas Junior, arfreitas@cpan.org
+
+This file is part of Siebel Monitoring Tools.
+
+Siebel Monitoring Tools is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Siebel Monitoring Tools is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Siebel Monitoring Tools.  If not, see <http://www.gnu.org/licenses/>.
