@@ -105,11 +105,11 @@ perl comp_mon.pl --warning=0 --critical=4 --configuration=/etc/comp_mon.xml
 
 There is a on-line help too, if the plug-in is invoked with `--help` argument:
 
-{{{
+<code lang="perl">
 jackal@yggdrasil$ perl comp_mon.pl --help
 comp_mon.pl 0.1
 
-This nagios plugin is free software, and comes with ABSOLUTELY NO WARRANTY. 
+This Nagios plug-in is free software, and comes with ABSOLUTELY NO WARRANTY. 
 It may be used, redistributed and/or modified under the terms of the GNU 
 General Public Licence (see http://www.fsf.org/licensing/licenses/gpl.txt).
 
@@ -131,4 +131,4 @@ Usage: comp_mon.pl -w -c -f
    Seconds before plugin times out (default: 15)
  -v, --verbose
    Show details for command-line debugging (can repeat up to 3 times)
-}}}
+</code>
