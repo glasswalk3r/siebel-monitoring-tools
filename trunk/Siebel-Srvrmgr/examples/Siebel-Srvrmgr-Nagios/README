@@ -12,7 +12,7 @@ that has the srvrmgr.exe program installed, since comp_mon.pl will use such prog
 
 The NSC is not obligatory, but you will need to have srvrmgr program available somewhere (even in the Nagios box) to check the components.
 
-Beware that event that the XML and XML Schema files and the current API permits to configure multiple Siebel Servers, the program comp_mon.pl expects
+Beware that even that the XML and XML Schema files and the current API permits to configure multiple Siebel Servers, the program comp_mon.pl expects
 to use a single Siebel Server in a Siebel Enterprise to monitor: the reason for this is to give at least some more detail if something goes bad in some
 components since at least the problem will be detected in a specific Siebel Server.
 
