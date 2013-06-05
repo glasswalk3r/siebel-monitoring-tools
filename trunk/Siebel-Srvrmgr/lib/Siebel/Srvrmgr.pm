@@ -39,14 +39,14 @@ This package used to be only Pod, but since release 0.09 it has a logging featur
 
 Returns a string with the configuration to be used by a L<Log::Log4perl> instance.
 
-The configuration of L<Log::Log4perl> is available after the C<__DATA__> code block of this package. Logging is disabled by default, but can be enabled by
+The configuration of L<Log::Log4perl> is available after the C<__DATA__> code block of this package. Logging is disabled by default, but it can be enabled by
 only commenting the line:
 
     log4perl.threshold = OFF
 
 with the default "#" Perl comment character.
 
-Logging is quite flexible (see L<Log::Log4Perl> for details) but the default configuration uses only DEBUG level printing messages to STDOUT.
+Logging is quite flexible (see L<Log::Log4Perl> for details) but the default configuration uses only FATAL level printing messages to STDOUT.
 
 =head1 SEE ALSO
 
