@@ -25,16 +25,26 @@ DEPENDENCIES
 
 This module requires these other modules and libraries:
 
-  blah blah blah
+   Siebel::Srvrmgr
+   Term::Pulse
+   Test::Pod
+   Test::Pod::Coverage
 
 COPYRIGHT AND LICENCE
 
-Put the correct copyright and licence information here.
+This software is copyright (c) 2013 of Alceu Rodrigues de Freitas Junior, arfreitas@cpan.org
 
-Copyright (C) 2013 by A. U. Thor
+This file is part of Siebel Monitoring Tools.
 
-This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself, either Perl version 5.16.3 or,
-at your option, any later version of Perl 5 you may have available.
+Siebel Monitoring Tools is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
+Siebel Monitoring Tools is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
+You should have received a copy of the GNU General Public License
+along with Siebel Monitoring Tools.  If not, see <http://www.gnu.org/licenses/>.

@@ -6,7 +6,11 @@ use strict;
 WriteMakefile(
     NAME         => 'Siebel::Srvrmgr::Nagios',
     VERSION_FROM => 'lib/Siebel/Srvrmgr/Nagios.pm',    # finds $VERSION
-    PREREQ_PM => { 'Nagios::Plugin' => 0.36, 'XML::Rabbit' => 0.30 },
+    PREREQ_PM    => {
+        'Nagios::Plugin'  => 0.36,
+        'XML::Rabbit'     => 0.30,
+        'Siebel::Srvrmgr' => 0.09
+    },
     (
         $] >= 5.005
         ?    ## Add these new keywords supported since 5.005
