@@ -18,6 +18,14 @@ The plug-in works by using the steps described below:
 
 == Setup ==
 
+This Nagios plug-in needs to have some Perl distributions installed (see Makefile.PL) from CPAN and, of course, need to have installed Perl (any distribution should do it) with the minimum version being 5.16. More details about installing Perl and CPAN modules is available at PerlDistroSetup.
+
+After downloading and unpacking the plug-in tar.gz file, just run:
+
+  # perl Makefile.PL
+  # make
+  # make install
+
 The plug-in uses a configuration file that looks like this:
 
 <code language="ini">
@@ -32,8 +40,6 @@ timeout parameter is the value, in seconds, that the program should wait to conn
 
 The values FOOBAR (the ODBC DSN to be used), FOO and BAR are the values that you want to change for ODBC connection.
 
-The Nagios plug-in needs to have some Perl distributions installed (see Makefile.PL) from CPAN and, of course, need to have installed Perl (any distribution should do it) with the minimum version being 5.16.
-
 The plug-in can be executed by Nagios by using three methods:
 
   * Directly from the Nagios servers.
@@ -43,3 +49,9 @@ The plug-in can be executed by Nagios by using three methods:
 In any case, besides the Perl interpreter and distributions, an ODBC configuration is necessary. This may be changed to pure Perl DBI connections in future releases. 
 
 Considering the flexibility, the suggested setup is to use any other server that is not running the Siebel Enterprise.
+
+== Usage ==
+
+After installing, you will have the Perl script `siebrem.pl` available in your users PATH for execution.
+
+It is recommended to run the script before starting Nagios configuration, specially to allow you to fine tune the command line parameters. The screen shot below shows the online help:
