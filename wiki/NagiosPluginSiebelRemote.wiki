@@ -5,7 +5,12 @@
 
 The plug-in monitors if the Siebel Remote transactions pending to be routed to Siebel Clients number is lower or higher than the thresholds defined by command line options: depending on the values recovered, the output generated to Nagios will take care of the next configured steps.
 
-This plug-in does not the Siebel-Srvrmgr.
+Why is this plug-in useful?
+
+  * Sometimes the Transaction Router has a OK status (like "Running" or "Online") but the transactions are not being routed due a failure in a tasks or a intermittent database problem.
+  * Sometimes nothing is generating errors, but for some reason (like an unknown huge data load) the Siebel Transaction Router and/or the database have a bottleneck problem and are not being able to route all those transactions.
+
+This plug-in does not the Siebel-Srvrmgr API: all that is necessary is to have a database connection to the Siebel Enterprise database.
 
 = Details =
 
@@ -58,3 +63,7 @@ After installing, you will have the Perl script `siebrem.pl` available in your u
 It is recommended to run the script before starting Nagios configuration, specially to allow you to fine tune the command line parameters. The screen shot below shows the online help:
 
 [http://siebel-monitoring-tools.googlecode.com/files/siebrem1.png]
+
+The parameter `--pending` defines the minimum amount of pending transactions to consider in the Siebel Remote tables. You problem won't care about something below 300 transactions, but this depends strongly on your Siebel environment.
+
+The other two parameters `--warning` and `--critical` are the thresholds to help Nagios understanding which value should be considered only a warning (like 301, for example) or critical (like 1000).
