@@ -19,7 +19,7 @@ sub startup : Tests(startup => 2) {
                 params => ['foobar']
             }
         ),
-        'the constructor should suceed'
+        'the constructor should succeed'
     );
 
 }
