@@ -13,14 +13,6 @@ The plug-in works executing the following operations in sequence after is invoke
   # compare the components states with the expected ones read from the XML configuration file;
   # return the comparison as a format understood by Nagios;
 
-== Installation ==
-
-Regarding the OS platform requirements, since the Nagios plugin depends on the Nagios core, it will not be available on OS platforms where Nagios is not available *but* it is possible to use the plug-in installed in any OS that have a `srvrmgr` program available (for example, Microsoft Windows).
-
-The Nagios plug-in needs to have the Siebel-Srvrmgr Perl distribution installed from CPAN to work and, of course, need to have installed Perl (any distribution should do it) with the minimum version being 5.16. 
-
-To setup the Siebel-Srvrmgr please check the wiki PerlDistroSetup.
-
 This plug-in also can be executed from a shell, but the features will be limited to print to STDOUT one of the options below:
 
   * Everything is OK
@@ -28,8 +20,27 @@ This plug-in also can be executed from a shell, but the features will be limited
   * A critical level problem was detected
   * The plug-in could not be executed correctly, so Siebel components state is unknown.
 
-== Configuration ==
+Executing the plug-in from Nagios have much more features (all of them provided by Nagios). Please check the [http://www.nagios.org/ Nagios web page for more details].
 
+== Installation ==
+
+Regarding the OS platform requirements, since the Nagios plugin depends on the Nagios core, it will not be available on OS platforms where Nagios is not available *but* it is possible to use the plug-in installed in any OS that have a `srvrmgr` program available (for example, Microsoft Windows).
+
+The Nagios plug-in needs to have the Siebel-Srvrmgr Perl distribution installed from CPAN to work and, of course, need to have installed Perl (any distribution should do it) with the minimum version being 5.16.
+
+The plug-in can be executed by Nagios by using three methods:
+
+  * Directly from the Nagios servers: this requires that the srvrmgr is available.
+  * Using the NSC client to communicate with a Microsoft Windows computer/server where srvrmgr program is available.
+  * Using NRPE client to to communicate with a Linux computer/server where srvrmgr program is available.
+
+Considering the flexibility, the suggested setup is to use any other server that is not running the Siebel Enterprise: since communication is done by using SISNAPI, memory and CPU consumption should be negligible in the monitored Siebel Enterprise.
+
+To setup the Siebel-Srvrmgr please check the wiki PerlDistroSetup.
+
+Beware that even that the XML and XML Schema files and the current API permits to configure multiple Siebel Servers, the program comp_mon.pl expects to use a single Siebel Server in a Siebel Enterprise to monitor: the reason for this is to give at least some more detail if something goes bad in some components since at least the problem will be detected in a specific Siebel Server instead of identifying that there in a problem in a group of servers, but without indicating which one has a problem.
+
+== Configuration ==
 
 The XML configuration file looks like this:
 
