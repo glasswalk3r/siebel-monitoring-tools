@@ -44,7 +44,7 @@ Beware that even that the XML and XML Schema files and the current API permits t
 
 The XML configuration file looks like this:
 
-<code language="xml">
+{{{
 <?xml version="1.0" encoding="UTF-8"?>
 <ns1:siebelMonitor xmlns:ns1="http://code.google.com/p/siebel-monitoring-tools">
 <ns1:connection>
@@ -70,7 +70,7 @@ The XML configuration file looks like this:
     </componentsGroups>
   </server>
 </servers>
-</code>
+}}}
 
 Each component description includes:
 
