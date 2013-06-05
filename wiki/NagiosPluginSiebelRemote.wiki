@@ -1,4 +1,5 @@
 #summary description of Nagios-Plugin-Siebel-Remote plug-in.
+#labels Featured
 
 = Introduction =
 
@@ -55,3 +56,5 @@ Considering the flexibility, the suggested setup is to use any other server that
 After installing, you will have the Perl script `siebrem.pl` available in your users PATH for execution.
 
 It is recommended to run the script before starting Nagios configuration, specially to allow you to fine tune the command line parameters. The screen shot below shows the online help:
+
+[http://siebel-monitoring-tools.googlecode.com/files/siebrem1.png]
