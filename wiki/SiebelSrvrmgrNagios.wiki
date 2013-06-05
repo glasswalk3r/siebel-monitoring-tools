@@ -3,7 +3,7 @@
 
 = Introduction =
 
-This Nagios plug-in is part of the current Siebel-Srvrmgr distribution as a proof of concept of implementing a application by using the API (see the examples directory of the distribution) 
+This Nagios plug-in is part of the current Siebel-Srvrmgr distribution as a proof of concept of implementing a application by using the API (see the examples directory of the distribution).
 
 The plug-in works executing the following operations in sequence after is invoked by Nagios (directly or indirectly):
 
