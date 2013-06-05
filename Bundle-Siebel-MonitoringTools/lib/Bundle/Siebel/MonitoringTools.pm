@@ -40,6 +40,9 @@ None by default.
     DBD::ODBC [1.43]
     DBI [1.623]
     Nagios::Plugin [0.36]
+	Config::Tiny [2.14]
+	DBD::ODBC [1.43]
+	DBI [1.623]
 
 =head1 SEE ALSO
 
