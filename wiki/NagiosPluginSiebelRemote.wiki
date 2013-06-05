@@ -1,0 +1,29 @@
+#summary description of Nagios-Plugin-Siebel-Remote plug-in.
+
+= Introduction =
+
+The plug-in monitors if the Siebel Remote transactions pending to be routed to Siebel Clients number is lower or higher than the thresholds defined by command line options: depending on the values recovered, the output generated to Nagios will take care of the next configured steps.
+
+This plug-in does not the Siebel-Srvrmgr.
+
+= Details =
+
+The plug-in works by using the steps described below:
+
+  # Connect to the configured ODBC DSN in the configuration file.
+  # Execute a query (SELECT only) to the database to recover the number of pending transactions.
+  # Compare the returned values with the thresholds defined by the command line parameters.
+  # Returns to standard output a string in a format expected by Nagios
+  # Based on the returned string Nagios server will proceed as configured.
+
+== Configuration ==
+
+The plug-in uses a configuration file that looks like this:
+
+<code language="ini">
+timeout = 15
+[ODBC]
+dsn = dbi:ODBC:FOOBAR
+user = FOO
+password = BAR
+</code>
