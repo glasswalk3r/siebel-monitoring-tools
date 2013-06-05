@@ -29,7 +29,9 @@ A result of a running session, using all recovered parameters *with values* from
 
 == Setup ==
 
-For installing, go the _examples_ directory from the Siebel-Srvrmgr distribution, then to _Siebel-Srvrmgr-Exporter_ directory.
+First, installing the Siebel-Srvrmgr Perl distribution is a requirement. Check out PerlDistroSetup for details.
+
+Then go to the _examples_ directory from the Siebel-Srvrmgr distribution, then to _Siebel-Srvrmgr-Exporter_ directory.
 
 Once there, type the commands below:
 
