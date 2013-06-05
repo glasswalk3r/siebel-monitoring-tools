@@ -27,13 +27,13 @@ The problem with this method is that you will need to solve the dependencies nec
 You will need to rename the extracted directory from the tarball, appending a dot to it. For example, let suppose that you have the following directory:
 
 {{{
-Siebel-Srvrmgr-0.05
+Siebel-Srvrmgr-<version>
 }}}
 
 You will need to rename it to:
 
 {{{
-Siebel-Srvrmgr-0.05.
+Siebel-Srvrmgr-<version>.
 }}}
 
 Inside a shell, type:
@@ -47,7 +47,7 @@ If you never used the CPAN shell before, you will need to reply some questions t
 After that, inside the CPAN shell type:
 
 {{{
-install Siebel-Srvrmgr-0.05.
+install Siebel-Srvrmgr-<version>.
 }}}
 
 The CPAN shell will find the Makefile.PL, process it, solve all needed dependencies and copy the files to the correct places.
