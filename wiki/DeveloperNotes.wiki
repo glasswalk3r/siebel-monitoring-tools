@@ -1,4 +1,5 @@
 #summary Details of the project intended for developers
+#labels Featured
 
 <wiki:toc max_depth="2" />
 
@@ -16,14 +17,14 @@ The main parser of this API is the Siebel::Srvrmgr::!ListParser class, which ide
 
 http://siebel-monitoring-tools.googlecode.com/files/pretty.png
 
-The supported commands can be checked by seen the subclasses of Siebel::Srvrmgr::!ListParser::Output superclass.
+The supported commands can be checked by seen the subclasses of http://search.cpan.org/perldoc?Siebel::Srvrmgr::!ListParser::Output Siebel::Srvrmgr::!ListParser::Output] superclass.
 
 = Rules of thumb for developing =
 
 These are very general rules and are open for discussion: having bad definitions are better then none.
 
 This is a Perl project, so any developer should be comfortable dealing with:
-  * Perl objects;
+  * Perl objects ([http://moose.iinteractive.com/ Moose] specifically);
   * Parsers;
   * Siebel concepts;
 
