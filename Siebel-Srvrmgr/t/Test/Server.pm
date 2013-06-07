@@ -2,7 +2,7 @@ package Test::Server;
 
 use Test::Most;
 use Test::Moose qw(has_attribute_ok);
-use base 'Test::Class';
+use base 'Test';
 use Siebel::Srvrmgr::ListParser::Output::ListComp;
 
 sub class { 'Siebel::Srvrmgr::ListParser::Output::ListComp::Server' }
@@ -24,13 +24,10 @@ sub constructor : Tests(10) {
     can_ok( $class,
         qw(get_data get_name load store get_comps get_comp get_comp_data) );
 
-    my @data = <Test::Server::DATA>;
-    close(Test::Server::DATA);
-
     my $list_comp = Siebel::Srvrmgr::ListParser::Output::ListComp->new(
         {
             data_type => 'list_comp',
-            raw_data  => \@data,
+            raw_data  => $test->get_my_data(),
             cmd_line  => 'list comp'
         }
     );

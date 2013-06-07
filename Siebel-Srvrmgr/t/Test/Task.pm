@@ -2,7 +2,7 @@ package Test::Task;
 
 use Test::Most;
 use Test::Moose;
-use base 'Test::Class';
+use base 'Test';
 
 sub class { 'Siebel::Srvrmgr::ListParser::Output::ListTasks::Task' }
 

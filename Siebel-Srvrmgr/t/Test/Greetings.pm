@@ -1,7 +1,7 @@
 package Test::Greetings;
 
 use Test::Most;
-use base 'Test::Class';
+use base 'Test';
 use Test::Moose 'has_attribute_ok';
 
 sub class { 'Siebel::Srvrmgr::ListParser::Output::Greetings' }
@@ -23,30 +23,28 @@ sub constructor : Tests(15) {
         qw(get_version get_patch get_copyright get_total_servers get_total_conn get_help)
     );
 
-    my @data = <Test::Greetings::DATA>;
-    close(Test::Greetings::DATA);
-
     ok(
         my $hello = $class->new(
-            { data_type => 'greetings', raw_data => \@data, cmd_line => '' }
+            {
+                data_type => 'greetings',
+                raw_data  => $test->get_my_data(),
+                cmd_line  => ''
+            }
         ),
         '... and the constructor should succeed'
     );
 
-	has_attribute_ok($hello, 'version');
-	has_attribute_ok($hello, 'patch');
-	has_attribute_ok($hello, 'copyright');
-	has_attribute_ok($hello, 'total_servers');
-	has_attribute_ok($hello, 'total_connected');
-	has_attribute_ok($hello, 'help');
+    has_attribute_ok( $hello, 'version' );
+    has_attribute_ok( $hello, 'patch' );
+    has_attribute_ok( $hello, 'copyright' );
+    has_attribute_ok( $hello, 'total_servers' );
+    has_attribute_ok( $hello, 'total_connected' );
+    has_attribute_ok( $hello, 'help' );
     isa_ok( $hello, $class, '... and the object it returns' );
     is( $hello->get_version(), '7.5.3', 'can get the correct version' );
     is( $hello->get_patch(),   '16157', 'can get the correct patch' );
-    is(
-        ref($hello->get_copyright()),
-		'ARRAY', 
-        'can get the correct copyright'
-    );
+    is( ref( $hello->get_copyright() ),
+        'ARRAY', 'can get the correct copyright' );
     is( $hello->get_total_servers(),
         1, 'can get the correct number of configured servers' );
 

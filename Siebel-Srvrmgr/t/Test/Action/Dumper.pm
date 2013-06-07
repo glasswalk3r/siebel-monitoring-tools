@@ -1,6 +1,6 @@
 package Test::Action::Dumper;
 
-use base 'Test::Action';
+use base qw(Test Test::Action);
 use Test::More;
 
 sub class { 'Siebel::Srvrmgr::Daemon::Action::Dumper' }
@@ -9,7 +9,7 @@ sub class_methods : Test(+1) {
 
     my $test = shift;
 
-# :WORKAROUND:03-06-2013:arfreitas: Test::Output is not working, so redirecting STDOUT to avoid having problems with TAP
+# :WORKAROUND:03-06-2013:arfreitas: redirecting STDOUT to avoid having problems with TAP
     close(STDOUT);
     my $test_data;
     open( STDOUT, '>', \$test_data )
@@ -17,13 +17,11 @@ sub class_methods : Test(+1) {
     $test->SUPER::class_methods();
     close(STDOUT);
 
-    my @data = <DATA>;
-    close(DATA);
     close(STDOUT);
     $test_data = undef;
     open( STDOUT, '>', \$test_data )
       or die "Failed to redirect STDOUT to in-memory file: $!";
-    $test->{action}->do( \@data );
+    $test->{action}->do( $test->get_my_data() );
     close(STDOUT);
 
     like(

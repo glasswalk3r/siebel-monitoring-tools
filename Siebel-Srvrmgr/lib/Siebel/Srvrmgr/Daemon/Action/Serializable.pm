@@ -64,7 +64,7 @@ sub BUILD {
 
     }
 
-    my $file = shift( @{$params_ref} );
+    my $file = $params_ref->[0];
 
     if ( ( defined($file) ) and ( $file ne '' ) ) {
 

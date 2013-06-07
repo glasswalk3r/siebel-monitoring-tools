@@ -2,7 +2,7 @@ package Test::ListComp;
 
 use Test::Most;
 use Test::Moose 'has_attribute_ok';
-use base 'Test::Class';
+use base 'Test';
 
 sub class { 'Siebel::Srvrmgr::ListParser::Output::ListComp' }
 
@@ -24,14 +24,11 @@ sub constructor : Tests(12) {
         qw(get_fields_pattern get_comp_attribs get_last_server get_servers get_server)
     );
 
-    my @data = <Test::ListComp::DATA>;
-    close(Test::ListComp::DATA);
-
     ok(
         my $comps = $class->new(
             {
                 data_type => 'list_comp',
-                raw_data  => \@data,
+                raw_data  => $test->get_my_data(),
                 cmd_line  => 'list comp'
             }
         ),

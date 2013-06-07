@@ -1,4 +1,4 @@
 use lib 't';
-use Test::Action::ListCompDef;
+use Test::Action::Serializable::ListCompDef;
 
 Test::Class->runtests;

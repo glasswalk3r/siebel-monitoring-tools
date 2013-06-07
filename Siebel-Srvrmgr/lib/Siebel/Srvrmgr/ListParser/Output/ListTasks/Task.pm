@@ -100,16 +100,16 @@ has 'server_name'    => ( is => 'ro', isa => 'Str', required => 1 );
 has 'comp_alias'     => ( is => 'ro', isa => 'Str', required => 1 );
 has 'id'             => ( is => 'ro', isa => 'Int', required => 1 );
 has 'pid'            => ( is => 'ro', isa => 'Int', required => 1 );
-has 'run_mode'       => ( is => 'ro', isa => 'Str', required => 1 );
-has 'start'          => ( is => 'ro', isa => 'Str', required => 1 );
-has 'end'            => ( is => 'ro', isa => 'Str', required => 1 );
+#has 'run_mode'       => ( is => 'ro', isa => 'Str', required => 1 );
+#has 'start'          => ( is => 'ro', isa => 'Str', required => 1 );
+#has 'end'            => ( is => 'ro', isa => 'Str', required => 1 );
 has 'status'         => ( is => 'ro', isa => 'Str', required => 1 );
-has 'cg_alias'       => ( is => 'ro', isa => 'Str', required => 1 );
-has 'parent_id'      => ( is => 'ro', isa => 'Int', required => 0 );
-has 'incarn_num'     => ( is => 'ro', isa => 'Int', required => 1 );
-has 'label'          => ( is => 'ro', isa => 'Str', required => 0 );
-has 'type'           => ( is => 'ro', isa => 'Str', required => 1 );
-has 'last_ping_time' => ( is => 'ro', isa => 'Str', required => 0 );
+#has 'cg_alias'       => ( is => 'ro', isa => 'Str', required => 1 );
+#has 'parent_id'      => ( is => 'ro', isa => 'Int', required => 0 );
+#has 'incarn_num'     => ( is => 'ro', isa => 'Int', required => 1 );
+#has 'label'          => ( is => 'ro', isa => 'Str', required => 0 );
+#has 'type'           => ( is => 'ro', isa => 'Str', required => 1 );
+#has 'last_ping_time' => ( is => 'ro', isa => 'Str', required => 0 );
 
 =pod
 

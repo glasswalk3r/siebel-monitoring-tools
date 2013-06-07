@@ -2,7 +2,7 @@ package Test::Comp;
 
 use Test::Most;
 use Test::Moose 'has_attribute_ok';
-use base 'Test::Class';
+use base 'Test';
 use Siebel::Srvrmgr::Daemon::Command;
 
 sub class { 'Siebel::Srvrmgr::Daemon::Command' }

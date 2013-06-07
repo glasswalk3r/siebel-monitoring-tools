@@ -1,55 +1,22 @@
-package Test::Action::ListComp;
+package Test::Action::Serializable::ListComp;
 
-use base 'Test::Class';
+use utf8;
+use base 'Test::Action::Serializable';
 use Test::Most;
 use Siebel::Srvrmgr::ListParser;
 use Siebel::Srvrmgr::ListParser::Output::ListComp::Server;
 
 sub class { 'Siebel::Srvrmgr::Daemon::Action::ListComps' }
 
-sub startup : Tests(startup => 1) {
+sub recover_me : Tests(+1) {
+
     my $test = shift;
-    use_ok $test->class;
-}
 
-sub constructor : Tests(6) {
-
-    my $test  = shift;
-    my $class = $test->class;
-
-    can_ok( $class,
-        qw(new get_params get_parser get_params do get_dump_file set_dump_file)
-    );
-
-    my $file = 'list_comp_def.storable';
-
-    my $action;
-
-    ok(
-        $action = $class->new(
-            {
-                parser =>
-                  Siebel::Srvrmgr::ListParser->new( { is_warn_enabled => 1 } ),
-                params => [$file]
-            }
-        ),
-        'the constructor should suceed'
-    );
-
-    is( $action->get_dump_file(),
-        $file, 'get_dump_file returns the correct string' );
-
-    ok( $action->set_dump_file($file), 'set_dump_file works' );
-
-    my @data = <Test::Action::ListComp::DATA>;
-    close(Test::Action::ListComp::DATA);
-
-    ok( $action->do( \@data ), 'do methods works fine' );
-
-    $file .= '_sieb__crm01';
+    $test->SUPER::recover_me();
 
     my $server =
-      Siebel::Srvrmgr::ListParser::Output::ListComp::Server->load($file);
+      Siebel::Srvrmgr::ListParser::Output::ListComp::Server->load(
+        $test->get_other_dump() );
 
     isa_ok(
         $server,
@@ -57,7 +24,22 @@ sub constructor : Tests(6) {
         'an server object can be recovered from file with serialized data'
     );
 
-    unlink($file) or die "Cannot remove $file: $!\n";
+}
+
+# generated dump has the Siebel server name appended to the value of get_dump_file method
+sub get_other_dump {
+
+    my $test = shift;
+    return $test->SUPER::get_dump() . '_sieb__crm01'
+
+}
+
+sub DESTROY {
+
+    my $test = shift;
+
+    unlink( $test->get_other_dump() )
+      or warn 'Cannot remove ' . $test->get_other_dump() . ': ' . $!;
 
 }
 
@@ -81,20 +63,20 @@ sieb__crm01  FSMSrvr               File System Manager                          
 sieb__crm01  GenNewDb              Generate New Database                           Remote        Batch        Ativado            0                 1                                                  2012-02-18 17:11:56                                                              
 sieb__crm01  GenTrig               Generate Triggers                               Workflow      Batch        Ativado            0                 1                                                  2012-02-18 17:11:56                                                              
 sieb__crm01  PageMgr               Page Manager                                    CommMgmt      Background   Ativado            0                 20                                                 2012-02-18 17:11:56                                                              
-sieb__crm01  PDbXtract             Parallel Database Extract                       Remote        Batch        Em execução        4                 10            1                  1                 2012-02-18 17:11:56                                                              
-sieb__crm01  ServerMgr             Server Manager                                  System        Interactive  Em execução        1                 20                                                 2012-02-18 17:11:56                                                              
-sieb__crm01  SRBroker              Server Request Broker                           System        Interactive  Em execução        10                100           1                  1                 2012-02-18 17:11:56                                                              
-sieb__crm01  SRProc                Server Request Processor                        System        Interactive  Em execução        2                 20            1                  1                 2012-02-18 17:11:56                                                              
+sieb__crm01  PDbXtract             Parallel Database Extract                       Remote        Batch        Em execuÃ§Ã£o        4                 10            1                  1                 2012-02-18 17:11:56                                                              
+sieb__crm01  ServerMgr             Server Manager                                  System        Interactive  Em execuÃ§Ã£o        1                 20                                                 2012-02-18 17:11:56                                                              
+sieb__crm01  SRBroker              Server Request Broker                           System        Interactive  Em execuÃ§Ã£o        10                100           1                  1                 2012-02-18 17:11:56                                                              
+sieb__crm01  SRProc                Server Request Processor                        System        Interactive  Em execuÃ§Ã£o        2                 20            1                  1                 2012-02-18 17:11:56                                                              
 sieb__crm01  SynchMgr              Synchronization Manager                         Remote        Interactive  Ativado            0                 100           1                  1                 2012-02-18 17:11:56                                                              
-sieb__crm01  TxnMerge              Transaction Merger                              Remote        Background   Em execução        1                 10                                                 2012-02-18 17:11:56                                                              
-sieb__crm01  TxnProc               Transaction Processor                           Remote        Background   Em execução        1                 1                                                  2012-02-18 17:11:56                                                              
-sieb__crm01  TxnRoute              Transaction Router                              Remote        Background   Em execução        3                 10                                                 2012-02-18 17:11:56                                                              
+sieb__crm01  TxnMerge              Transaction Merger                              Remote        Background   Em execuÃ§Ã£o        1                 10                                                 2012-02-18 17:11:56                                                              
+sieb__crm01  TxnProc               Transaction Processor                           Remote        Background   Em execuÃ§Ã£o        1                 1                                                  2012-02-18 17:11:56                                                              
+sieb__crm01  TxnRoute              Transaction Router                              Remote        Background   Em execuÃ§Ã£o        3                 10                                                 2012-02-18 17:11:56                                                              
 sieb__crm01  UpgKitBldr            Upgrade Kit Builder                             SiebAnywhere  Batch        Ativado            0                 1             1                  1                 2012-02-18 17:11:56                                                              
 sieb__crm01  WorkActn              Workflow Action Agent                           Workflow      Background   Ativado            0                 5                                                  2012-02-18 17:11:56                                                              
-sieb__crm01  WorkMon               Workflow Monitor Agent                          Workflow      Background   Em execução        1                 1                                                  2012-02-18 17:11:56                                                              
+sieb__crm01  WorkMon               Workflow Monitor Agent                          Workflow      Background   Em execuÃ§Ã£o        1                 1                                                  2012-02-18 17:11:56                                                              
 sieb__crm01  WfProcBatchMgr        Workflow Process Batch Manager                  Workflow      Batch        Ativado            0                 20            1                  1                 2012-02-18 17:11:56                                                              
 sieb__crm01  WfProcMgr             Workflow Process Manager                        Workflow      Batch        Ativado            0                 20            1                  1                 2012-02-18 17:11:56                                                              
-sieb__crm01  ePharmaObjMgr_ptb     ePharma Object Manager (PTB)                    LifeSciences  Interactive  Em execução        3                 60            1                  2                 2012-02-18 17:11:56                                                              
+sieb__crm01  ePharmaObjMgr_ptb     ePharma Object Manager (PTB)                    LifeSciences  Interactive  Em execuÃ§Ã£o        3                 60            1                  2                 2012-02-18 17:11:56                                                              
 
 51 rows returned.
 

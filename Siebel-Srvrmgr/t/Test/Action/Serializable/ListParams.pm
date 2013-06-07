@@ -1,60 +1,23 @@
 package Test::Action::ListParams;
 
-use base 'Test::Class';
+use base 'Test::Action::Serializable';
 use Test::Most;
 use Siebel::Srvrmgr::ListParser;
 use Storable;
 
 sub class { 'Siebel::Srvrmgr::Daemon::Action::ListParams' }
 
-sub startup : Tests(startup => 1) {
+sub recover_me : Test(+1) {
+
     my $test = shift;
-    use_ok $test->class;
-}
 
-sub constructor : Tests(6) {
-
-    my $test  = shift;
-    my $class = $test->class;
-
-    can_ok( $class,
-        qw(new get_params get_parser get_params do get_dump_file set_dump_file)
-    );
-
-    my $file = 'list_comp_def.storable';
-
-    my $action;
-
-    ok(
-        $action = $class->new(
-            {
-                parser =>
-                  Siebel::Srvrmgr::ListParser->new( { is_warn_enabled => 1 } ),
-                params => [$file]
-            }
-        ),
-        'the constructor should suceed'
-    );
-
-    is( $action->get_dump_file(),
-        $file, 'get_dump_file returns the correct string' );
-
-    ok( $action->set_dump_file($file), 'set_dump_file works' );
-
-    my @data = <Test::Action::ListParams::DATA>;
-    close(Test::Action::ListParams::DATA);
-
-    ok( $action->do( \@data ), 'do methods works fine' );
-
-    my $params = retrieve($file);
+    my $params = retrieve( $test->get_dump() );
 
     isa_ok(
         $params,
         'Siebel::Srvrmgr::ListParser::Output::ListParams',
         'component definitions were recovered successfuly'
     );
-
-    unlink($file) or die "Cannot remove $file: $!\n";
 
 }
 

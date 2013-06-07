@@ -3,7 +3,7 @@ package Test::ActionStash;
 use Test::Most;
 use Siebel::Srvrmgr::ListParser;
 use Test::Moose 'has_attribute_ok';
-use base 'Test::Class';
+use base 'Test';
 
 sub class { 'Siebel::Srvrmgr::Daemon::ActionStash' }
 

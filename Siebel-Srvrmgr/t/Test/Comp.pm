@@ -2,7 +2,7 @@ package Test::Comp;
 
 use Test::Most;
 use Test::Moose 'has_attribute_ok';
-use base 'Test::Class';
+use base 'Test';
 use Siebel::Srvrmgr::ListParser::Output::ListComp;
 
 sub class { 'Siebel::Srvrmgr::ListParser::Output::ListComp::Comp' }
@@ -25,13 +25,10 @@ sub constructor : Tests(35) {
         qw(get_data cc_alias cc_name ct_alias ct_name cg_alias cc_runmode cp_disp_run_state cp_num_run_tasks cp_max_tasks cp_actv_mts_procs cp_max_mts_procs cp_start_time cp_end_time cp_status cc_incarn_no cc_desc_text)
     );
 
-    my @data = <Test::Comp::DATA>;
-    close(Test::Comp::DATA);
-
     my $list_comp = Siebel::Srvrmgr::ListParser::Output::ListComp->new(
         {
             data_type => 'list_comp',
-            raw_data  => \@data,
+            raw_data  => $test->get_my_data(),
             cmd_line  => 'list comp'
         }
     );
@@ -49,23 +46,23 @@ sub constructor : Tests(35) {
 
     isa_ok( $comp, $class, '... and the object it returns' );
 
-	has_attribute_ok($comp, 'data');
-	has_attribute_ok($comp, 'cc_alias');
-	has_attribute_ok($comp, 'cc_name');
-	has_attribute_ok($comp, 'ct_alias');
-	has_attribute_ok($comp, 'ct_name');
-	has_attribute_ok($comp, 'cg_alias');
-	has_attribute_ok($comp, 'cc_runmode');
-	has_attribute_ok($comp, 'cp_disp_run_state');
-	has_attribute_ok($comp, 'cp_num_run_tasks');
-	has_attribute_ok($comp, 'cp_max_tasks');
-	has_attribute_ok($comp, 'cp_actv_mts_procs');
-	has_attribute_ok($comp, 'cp_max_mts_procs');
-	has_attribute_ok($comp, 'cp_start_time');
-	has_attribute_ok($comp, 'cp_end_time');
-	has_attribute_ok($comp, 'cp_status');
-	has_attribute_ok($comp, 'cc_incarn_no');
-	has_attribute_ok($comp, 'cc_desc_text');
+    has_attribute_ok( $comp, 'data' );
+    has_attribute_ok( $comp, 'cc_alias' );
+    has_attribute_ok( $comp, 'cc_name' );
+    has_attribute_ok( $comp, 'ct_alias' );
+    has_attribute_ok( $comp, 'ct_name' );
+    has_attribute_ok( $comp, 'cg_alias' );
+    has_attribute_ok( $comp, 'cc_runmode' );
+    has_attribute_ok( $comp, 'cp_disp_run_state' );
+    has_attribute_ok( $comp, 'cp_num_run_tasks' );
+    has_attribute_ok( $comp, 'cp_max_tasks' );
+    has_attribute_ok( $comp, 'cp_actv_mts_procs' );
+    has_attribute_ok( $comp, 'cp_max_mts_procs' );
+    has_attribute_ok( $comp, 'cp_start_time' );
+    has_attribute_ok( $comp, 'cp_end_time' );
+    has_attribute_ok( $comp, 'cp_status' );
+    has_attribute_ok( $comp, 'cc_incarn_no' );
+    has_attribute_ok( $comp, 'cc_desc_text' );
 
     is( $comp->cp_num_run_tasks(),
         2, 'cp_num_run_tasks returns the correct value' );

@@ -2,7 +2,7 @@ package Test::ActionFactory;
 
 use Test::Most;
 use Siebel::Srvrmgr::ListParser;
-use base 'Test::Class';
+use base 'Test';
 
 sub class { 'Siebel::Srvrmgr::Daemon::ActionFactory' }
 

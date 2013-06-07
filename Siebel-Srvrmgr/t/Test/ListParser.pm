@@ -2,7 +2,7 @@ package Test::ListParser;
 
 use Test::Most;
 use Test::Moose 'has_attribute_ok';
-use base 'Test::Class';
+use base 'Test';
 
 sub class { 'Siebel::Srvrmgr::ListParser' }
 
@@ -23,9 +23,6 @@ sub constructor : Tests(15) {
         qw(get_parsed_tree get_prompt_regex set_prompt_regex get_hello_regex set_hello_regex get_last_command is_cmd_changed set_last_command set_buffer clear_buffer count_parsed clear_parsed_tree set_parsed_tree append_output parse)
     );
 
-    my @data = <Test::ListParser::DATA>;
-    close(Test::ListParser::DATA);
-
     ok( my $parser = $class->new( { is_warn_enabled => 1 } ),
         '... and the constructor should succeed' );
 
@@ -39,7 +36,7 @@ sub constructor : Tests(15) {
 
     isa_ok( $parser, $class, '... and the object it returns' );
 
-    ok( $parser->parse( \@data ), 'parse method works' );
+    ok( $parser->parse( $test->get_my_data() ), 'parse method works' );
 
     ok( $parser->has_tree, 'the parser has a parsed tree' );
 
