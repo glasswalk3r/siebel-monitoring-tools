@@ -13,7 +13,7 @@ To provide monitoring of Siebel environments, this project considers obtaining (
 
 To be able to work with the `srvrmgr` program and parsing its output, a general usage API was developed for this end. There are several packages/classes available in the [http://search.cpan.org/perldoc?Siebel::Srvrmgr Siebel::Srvrmgr] namespace.
 
-The main parser of this API is the [[http://search.cpan.org/perldoc?Siebel::Srvrmgr::ListParser Siebel::Srvrmgr::ListParser] class, which identify the commands and their respective output as read from default output from `srvrmgr` program. This class is a state machine parser and it's different states can be checked below:
+The main parser of this API is the [http://search.cpan.org/perldoc?Siebel::Srvrmgr::ListParser Siebel::Srvrmgr::ListParser] class, which identify the commands and their respective output as read from default output from `srvrmgr` program. This class is a state machine parser and it's different states can be checked below:
 
 http://siebel-monitoring-tools.googlecode.com/files/pretty.png
 
