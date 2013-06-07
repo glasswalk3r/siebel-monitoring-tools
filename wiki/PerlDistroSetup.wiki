@@ -3,7 +3,7 @@
 
 = Siebel-Srvrmgr setup procedures =
 
-The Siebel-Srvrmgr download-able tarball (see [http://http://search.cpan.org/perldoc?Siebel::Srvrmgr/] for it) includes a Makefile.PL to make it easier to install the application. After unpacking the tarball, there are two ways to install it:
+The Siebel-Srvrmgr download-able tarball (see [http://search.cpan.org/perldoc?Siebel::Srvrmgr/] for it) includes a Makefile.PL to make it easier to install the application. After unpacking the tarball, there are two ways to install it:
 
   * the good and old "perl Makefile.PL; make; make install".
   * using the CPAN shell.
