@@ -20,9 +20,42 @@ $ make
 $ make install
 }}}
 
-The problem with this method is that you will need to solve the dependencies necessary for the finder.pl script manually. If you have Internet connection available, the CPAN shell method should be easier to use.
+The problem with this method is that you will need to solve the dependencies necessary for the finder.pl script manually. If you have Internet connection available, the CPAN shell method should be much easier to use.
 
 == Using the CPAN shell ==
+
+There are several ways to use the CPAN shell to install the Perl modules dependencies. The explained methods are from the easiest to the hardest.
+
+=== Use the Bundle ===
+
+There is a CPAN Bundle available for installing all Perl modules dependencies that this project need.
+
+You even do not have to understand what is a CPAN Bundle: just use the sequence of commands show below:
+
+{{{
+$ perl -MCPAN -e shell
+}}}
+
+After this command the CPAN shell will be opened to you:
+
+{{{
+cpan shell -- CPAN exploration and modules installation (v2.00)
+Enter 'h' for help.
+
+cpan>
+}}}
+
+Then type:
+
+{{{
+install Bundle::Siebel::MonitoringTools
+}}}
+
+And that's it!
+
+You can find more information about the bundle in it's [http://search.cpan.org/~arfreitas/Bundle-Siebel-MonitoringTools-0.01/lib/Bundle/Siebel/MonitoringTools.pm Perl Pod].
+
+=== Use the CPAN experimental feature ===
 
 You will need to rename the extracted directory from the tarball, appending a dot to it. For example, let suppose that you have the following directory:
 
