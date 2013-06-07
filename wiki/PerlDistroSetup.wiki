@@ -85,4 +85,4 @@ install Siebel-Srvrmgr-<version>.
 
 The CPAN shell will find the Makefile.PL, process it, solve all needed dependencies and copy the files to the correct places.
 
-More information about this feature of CPAN shell can be seen at [http://search.cpan.org/~andk/CPAN-1.9800/lib/CPAN.pm#Integrating_local_directories].
+More information about this feature of CPAN shell can be seen at [http://search.cpan.org/perldoc?CPAN#Integrating_local_directories].
