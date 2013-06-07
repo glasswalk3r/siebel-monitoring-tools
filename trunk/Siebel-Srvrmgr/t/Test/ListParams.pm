@@ -2,7 +2,7 @@ package Test::ListParams;
 
 use Test::Most;
 use Test::Moose 'has_attribute_ok';
-use base 'Test::Class';
+use base 'Test';
 
 sub class { 'Siebel::Srvrmgr::ListParser::Output::ListParams' }
 
@@ -24,14 +24,11 @@ sub constructor : Tests(10) {
         qw(parse get_server get_comp_alias _set_details)
     );
 
-    my @data = <Test::ListParams::DATA>;
-    close(Test::ListParams::DATA);
-
     ok(
         my $params = $class->new(
             {
                 data_type => 'list_params',
-                raw_data  => \@data,
+                raw_data  => $test->get_my_data(),
                 cmd_line  => 'list params for server foo component bar'
             }
         ),

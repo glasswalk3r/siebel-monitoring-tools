@@ -2,7 +2,7 @@ package Test::LoadPreferences;
 
 use Test::Most;
 use Test::Moose qw(has_attribute_ok);
-use base 'Test::Class';
+use base qw(Test::Class Test);
 
 sub class { 'Siebel::Srvrmgr::ListParser::Output::LoadPreferences' }
 
@@ -22,14 +22,11 @@ sub constructor : Tests(6) {
     #extended method tests
     can_ok( $class, qw(parse get_location set_location) );
 
-    my @data = <Test::LoadPreferences::DATA>;
-    close(Test::LoadPreferences::DATA);
-
     ok(
         my $prefs = $class->new(
             {
                 data_type => 'load_preferences',
-                raw_data  => \@data,
+                raw_data  => $test->get_my_data(), 
                 cmd_line  => 'load preferences'
             }
         ),

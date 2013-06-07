@@ -2,7 +2,7 @@ package Test::Buffer;
 
 use Test::Most;
 use Test::Moose 'has_attribute_ok';
-use base 'Test::Class';
+use base 'Test';
 
 sub class { 'Siebel::Srvrmgr::ListParser::Buffer' }
 
@@ -20,9 +20,6 @@ sub constructor : Tests(7) {
 
     can_ok( $class, qw(get_cmd_line get_content set_content) );
 
-    my @data = <Test::Buffer::DATA>;
-    close(Test::Buffer::DATA);
-
     my $buffer;
 
     ok( $buffer = $class->new( { type => 'output', cmd_line => '' } ),
@@ -32,7 +29,8 @@ sub constructor : Tests(7) {
     has_attribute_ok( $buffer, 'cmd_line' );
     has_attribute_ok( $buffer, 'content' );
 
-    ok( $buffer->set_content( $data[0] ), 'is ok to add lines to it' );
+    ok( $buffer->set_content( $test->get_my_data()->[0] ),
+        'is ok to add lines to it' );
 
 }
 

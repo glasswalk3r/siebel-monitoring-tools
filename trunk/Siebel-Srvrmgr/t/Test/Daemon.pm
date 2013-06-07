@@ -4,7 +4,7 @@ use Cwd;
 use Test::Most;
 use File::Spec;
 use Test::Moose 'has_attribute_ok';
-use base 'Test::Class';
+use base 'Test';
 
 sub class { 'Siebel::Srvrmgr::Daemon' }
 

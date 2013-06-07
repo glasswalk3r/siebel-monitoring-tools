@@ -1,7 +1,7 @@
 package Test::ListServers;
 
 use Test::Most;
-use base 'Test::Class';
+use base 'Test';
 
 sub class { 'Siebel::Srvrmgr::ListParser::Output::ListServers' }
 
@@ -18,14 +18,11 @@ sub constructor : Tests(4) {
 
     can_ok( $class, 'new' );
 
-    my @data = <Test::ListServers::DATA>;
-    close(Test::ListServers::DATA);
-
     ok(
         my $servers = $class->new(
             {
                 data_type => 'list_servers',
-                raw_data  => \@data,
+                raw_data  => $test->get_my_data(),
                 cmd_line  => 'list servers'
             }
         ),

@@ -1,7 +1,7 @@
 package Test::OutputFactory;
 
 use Test::Most;
-use base 'Test::Class';
+use base 'Test';
 
 sub class { 'Siebel::Srvrmgr::ListParser::OutputFactory' }
 

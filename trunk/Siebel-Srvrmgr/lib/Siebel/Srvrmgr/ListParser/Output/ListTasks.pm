@@ -55,16 +55,6 @@ srvrmgr> configure list tasks
         TK_TASKID (11):  Internal task id
         TK_PID (11):  Task process id
         TK_DISP_RUNSTATE (61):  Task run state
-        CC_RUNMODE (31):  Task run mode
-        TK_START_TIME (21):  Task start time
-        TK_END_TIME (21):  Task end time
-        TK_STATUS (251):  Task-reported status
-        CG_ALIAS (31):  Component group alias
-        TK_PARENT_TASKNUM (17):  Parent task id
-        CC_INCARN_NO (23):  Incarnation Number
-        TK_LABEL (76):  Task Label
-        TK_TASKTYPE (31):  Task Type
-        TK_PING_TIME (12):  Last ping time for task
 
 because this class will expect to have all columns names without being truncated. This class will check those columns names and order and it 
 will raise an exception if it found something different from the expected.
@@ -106,12 +96,7 @@ after '_set_header' => sub {
     my @expected_attribs = (
         'SV_NAME',           'CC_ALIAS',
         'TK_TASKID',         'TK_PID',
-        'TK_DISP_RUNSTATE',  'CC_RUNMODE',
-        'TK_START_TIME',     'TK_END_TIME',
-        'TK_STATUS',         'CG_ALIAS',
-        'TK_PARENT_TASKNUM', 'CC_INCARN_NO',
-        'TK_LABEL',          'TK_TASKTYPE',
-        'TK_PING_TIME'
+        'TK_DISP_RUNSTATE'
     );
 
     my $data = $self->get_header_cols();
@@ -139,7 +124,7 @@ after '_set_header' => sub {
 
 sub _set_header_regex {
 
-    return qr/^SV_NAME\s.*\sTK_PING_TIME(\s+)?$/;
+    return qr/^SV_NAME\s.*\sTK_DISP_RUNSTATE$/;
 
 }
 
@@ -173,23 +158,24 @@ sub _parse_data {
             comp_alias  => $fields_ref->[1],
             id          => $fields_ref->[2],
             pid         => $fields_ref->[3],
-            run_mode    => $fields_ref->[4],
-            comp_alias  => $fields_ref->[5],
-            start       => $fields_ref->[6],
-            end         => $fields_ref->[7],
-            status      => $fields_ref->[8],
-            cg_alias    => $fields_ref->[9],
-            incarn_num  => $fields_ref->[11],
-            type        => $fields_ref->[13]
+            status      => $fields_ref->[4],
+#            run_mode    => $fields_ref->[4],
+#            comp_alias  => $fields_ref->[5],
+#            start       => $fields_ref->[6],
+#            end         => $fields_ref->[7],
+#            status      => $fields_ref->[8],
+#            cg_alias    => $fields_ref->[9],
+#            incarn_num  => $fields_ref->[11],
+#            type        => $fields_ref->[13]
         );
 
-        $attribs{parent_id} = $fields_ref->[10]
-          if (  ( defined( $fields_ref->[10] ) )
-            and ( $fields_ref->[10] ne '' ) );
-        $attribs{label} = $fields_ref->[12]
-          if ( defined( $fields_ref->[12] ) );
-        $attribs{last_ping_time} = $fields_ref->[15]
-          if ( defined( $fields_ref->[15] ) );
+#        $attribs{parent_id} = $fields_ref->[10]
+#          if (  ( defined( $fields_ref->[10] ) )
+#            and ( $fields_ref->[10] ne '' ) );
+#        $attribs{label} = $fields_ref->[12]
+#          if ( defined( $fields_ref->[12] ) );
+#        $attribs{last_ping_time} = $fields_ref->[15]
+#          if ( defined( $fields_ref->[15] ) );
 
 # :TODO      :09/05/2013 11:48:34:: verify if it is not useful to reduce memory usage by creating a coderef
 # to use as a iterator to create those objects on the fly

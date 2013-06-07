@@ -83,7 +83,12 @@ This attribute is read-only.
 
 =cut
 
-has params => ( isa => 'ArrayRef', is => 'ro', reader => 'get_params' );
+has params => (
+    isa     => 'ArrayRef',
+    is      => 'ro',
+    reader  => 'get_params',
+    default => sub { [] }
+);
 
 =pod
 

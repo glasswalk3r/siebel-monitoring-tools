@@ -1,40 +1,31 @@
 package Test::Action::LoadPreferences;
 
-use base 'Test::Class';
+# :WARNING   :07/06/2013 17:39:55:: subclasses of Test::Action must "use base" Test::ReadMyself first due get_my_data method
+use base qw(Test Test::Action);
 use Test::Most;
 use Siebel::Srvrmgr::ListParser;
-use Storable;
 
 sub class { 'Siebel::Srvrmgr::Daemon::Action::LoadPreferences' }
 
-sub startup : Tests(startup => 1) {
+sub startup : Tests(startup => +1) {
     my $test = shift;
-    use_ok $test->class;
-}
-
-sub constructor : Tests(3) {
-
-    my $test  = shift;
-    my $class = $test->class;
-
-    can_ok( $class, qw(new get_params get_parser get_params do) );
-
-    my $action;
-
+    $test->SUPER::startup();
     ok(
-        $action = $class->new(
+        $test->{action} = $test->class()->new(
             {
-                parser =>
-                  Siebel::Srvrmgr::ListParser->new( { is_warn_enabled => 1 } )
+                parser => Siebel::Srvrmgr::ListParser->new()
             }
         ),
-        'the constructor should suceed'
+        'the constructor should succeed'
     );
+}
 
-    my @data = <Test::Action::LoadPreferences::DATA>;
-    close(Test::Action::LoadPreferences::DATA);
+sub class_methods : Test(+1) {
 
-    ok( $action->do( \@data ), 'do methods works fine' );
+    my $test = shift;
+    $test->SUPER::class_methods();
+
+    ok( $test->{action}->do( $test->get_my_data() ), 'do methods works fine' );
 
 }
 

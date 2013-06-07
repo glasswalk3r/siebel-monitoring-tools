@@ -2,7 +2,7 @@ package Test::ListCompDef;
 
 use Test::Most;
 use Test::Moose 'has_attribute_ok';
-use base 'Test::Class';
+use base 'Test';
 
 sub class { 'Siebel::Srvrmgr::ListParser::Output::ListCompDef' }
 
@@ -19,14 +19,11 @@ sub constructor : Tests(5) {
 
     can_ok( $class, 'new' );
 
-    my @data = <Test::ListCompDef::DATA>;
-    close(Test::ListCompDef::DATA);
-
     ok(
         my $comps = $class->new(
             {
                 data_type => 'list_comp_def',
-                raw_data  => \@data,
+                raw_data  => $test->get_my_data(),
                 cmd_line  => 'list comp def Foo'
             }
         ),
