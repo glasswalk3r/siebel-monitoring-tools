@@ -39,8 +39,6 @@ Considering this situation, the interface of this class should be considered exp
 
 =cut
 
-use warnings;
-use strict;
 use MooseX::Singleton;
 use MooseX::FollowPBP;
 

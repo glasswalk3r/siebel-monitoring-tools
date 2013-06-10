@@ -50,7 +50,7 @@ sub class_methods : Tests(6) {
     my $parser_class = 'Siebel::Srvrmgr::ListParser';
 
     isa_ok( $test->{action}->get_parser(),
-        $parser_class, "get_parser returns a $parser_class object" );
+        $parser_class, "get_parser returns" );
 
     can_ok( $test->{action}, qw(new get_params get_parser get_params do) );
 

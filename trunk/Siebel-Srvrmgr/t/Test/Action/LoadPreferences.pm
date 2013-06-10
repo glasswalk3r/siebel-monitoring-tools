@@ -23,7 +23,6 @@ sub startup : Tests(startup => +1) {
 sub class_methods : Test(+1) {
 
     my $test = shift;
-    $test->SUPER::class_methods();
 
     ok( $test->{action}->do( $test->get_my_data() ), 'do methods works fine' );
 
