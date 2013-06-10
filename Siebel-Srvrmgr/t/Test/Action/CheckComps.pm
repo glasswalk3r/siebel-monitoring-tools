@@ -1,6 +1,6 @@
 package Test::Action::CheckComps;
 
-use base 'Test::Class';
+use base qw(Test Test::Action);
 use Test::Most;
 use Siebel::Srvrmgr::ListParser;
 use Siebel::Srvrmgr::Daemon::Action::CheckComps;
@@ -10,23 +10,11 @@ use Test::Action::CheckComps::Component;
 
 sub class { 'Siebel::Srvrmgr::Daemon::Action::CheckComps' }
 
-sub startup : Tests(startup => 1) {
+sub startup : Tests(startup => +2) {
 
     my $test = shift;
-    use_ok $test->class;
 
-}
-
-sub constructor : Tests(5) {
-
-    my $test  = shift;
-    my $class = $test->class;
-
-    can_ok( $class, qw(new do) );
-
-    my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
-
-	# applying roles as expected by Siebel::Srvrmgr::Daemon::Action::CheckComps
+    # applying roles as expected by Siebel::Srvrmgr::Daemon::Action::CheckComps
     my $comp1 = Test::Action::CheckComps::Component->new(
         {
             name           => 'SynchMgr',
@@ -46,49 +34,67 @@ sub constructor : Tests(5) {
         }
     );
 
-    my $server1 = Test::Action::CheckComps::Server->new(
-        { name => 'sieb_foobar', components => [ $comp1, $comp2 ] } );
-    my $server2 = Test::Action::CheckComps::Server->new(
-        { name => 'foobar', components => [ $comp1, $comp2 ] } );
-
-    my $action;
+    # should be able to reuse the same parser if there is no concurrency
+    my $parser = Siebel::Srvrmgr::ListParser->new();
 
     ok(
-        $action = $class->new(
+        $test->{action} = $test->class()->new(
             {
-                parser => Siebel::Srvrmgr::ListParser->new(),
-                params => [$server1]
+                parser => $parser,
+                params => [
+                    Test::Action::CheckComps::Server->new(
+                        {
+                            name       => 'sieb_foobar',
+                            components => [ $comp1, $comp2 ]
+                        }
+                    )
+                ]
             }
         ),
         'the constructor should succeed'
     );
 
-    # mocking the returned data from srvrmgr
-    my @input_data = <Test::Action::CheckComps::DATA>;
-    close(Test::Action::CheckComps::DATA);
+    ok(
+        $test->{action2} = $test->class()->new(
+            {
+                parser => $parser,
+                params => [
+                    Test::Action::CheckComps::Server->new(
+                        { name => 'foobar', components => [ $comp1, $comp2 ] }
+                    )
+                ]
+            }
+        ),
+        'the constructor should succeed'
+    );
 
-    ok( $action->do( \@input_data ), 'do() can process the input data' );
+}
+
+sub class_methods : Tests(+3) {
+
+    my $test = shift;
+
+    my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
+
+    ok(
+        $test->{action}->do( $test->get_my_data() ),
+        'do() can process the input data'
+    );
 
     # data expected to be returned from the stash
-    my $expected_data = {
-        'sieb_foobar' => {
-            'SynchMgr'  => 0,
-            'WfProcMgr' => 0
-        }
-    };
-
-    is_deeply( $stash->get_stash(), $expected_data,
-        'data returned by the stash is the expected one' );
-
-    my $other_action = $class->new(
+    is_deeply(
+        $stash->get_stash(),
         {
-            parser => Siebel::Srvrmgr::ListParser->new(),
-            params => [$server2]
-        }
+            'sieb_foobar' => {
+                'SynchMgr'  => 0,
+                'WfProcMgr' => 0
+            }
+        },
+        'data returned by the stash is the expected one'
     );
 
     dies_ok(
-        sub { $other_action->do( \@input_data ) },
+        sub { $test->{action2}->do( $test->get_my_data() ) },
         'do method must die because the expected server will not be available'
     );
 

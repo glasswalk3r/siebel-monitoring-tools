@@ -248,6 +248,8 @@ sub parse {
 
     }
 
+    die 'raw data became invalid after initial cleanup' unless ( @{$data_ref} );
+
     foreach my $line ( @{$data_ref} ) {
 
         chomp($line);
@@ -288,7 +290,6 @@ sub parse {
 
                 my @fields_values;
 
-                # :TODO:5/1/2012 16:33:37:: copy this check to the other parsers
                 if ( defined( $self->get_fields_pattern() ) ) {
 
                     @fields_values =

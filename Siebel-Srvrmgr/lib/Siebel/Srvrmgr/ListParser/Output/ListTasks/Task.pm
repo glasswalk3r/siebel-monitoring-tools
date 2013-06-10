@@ -17,16 +17,7 @@ Siebel::Srvrmgr::ListParser::Output::ListTasks::Task - class to represent a Sieb
                 comp_alias     => 'SRProc',
                 id             => 5242888,
                 pid            => 20503,
-                run_mode       => 'Interactive',
-                start          => '2013-04-22 15:32:28',
-                end            => '2000-00-00 00:00:00',
-                status         => 'Running',
-                cg_alias       => 'SystemAux',
-                parent_id      => 0,
-                incarn_num     => 0,
-                label          => '',
-                type           => 'Normal',
-                last_ping_time => ''
+                status         => 'Running'
             }
         )
 
@@ -54,45 +45,9 @@ The task id.
 
 The corresponding process identifier from the running OS of the task (in fact, the PID from the related component process).
 
-=head2 run_mode
-
-Task run mode.
-
-=head2 start
-
-Task start time.
-
-=head2 end
-
-Task end time.
-
 =head2 status
 
 Task-reported status.
-
-=head2 cg_alias
-
-Component group alias.
-
-=head2 parent_id
-
-Parent task id. Not required.
-
-=head2 incarn_num
-
-Incarnation Number.
-
-=head2 label
-
-Task Label. Not required.
-
-=head2 type
-
-Task Type.
-
-=head2 last_ping_time
-
-Last ping time for task. Not required.
 
 =cut
 
@@ -100,16 +55,7 @@ has 'server_name'    => ( is => 'ro', isa => 'Str', required => 1 );
 has 'comp_alias'     => ( is => 'ro', isa => 'Str', required => 1 );
 has 'id'             => ( is => 'ro', isa => 'Int', required => 1 );
 has 'pid'            => ( is => 'ro', isa => 'Int', required => 1 );
-#has 'run_mode'       => ( is => 'ro', isa => 'Str', required => 1 );
-#has 'start'          => ( is => 'ro', isa => 'Str', required => 1 );
-#has 'end'            => ( is => 'ro', isa => 'Str', required => 1 );
 has 'status'         => ( is => 'ro', isa => 'Str', required => 1 );
-#has 'cg_alias'       => ( is => 'ro', isa => 'Str', required => 1 );
-#has 'parent_id'      => ( is => 'ro', isa => 'Int', required => 0 );
-#has 'incarn_num'     => ( is => 'ro', isa => 'Int', required => 1 );
-#has 'label'          => ( is => 'ro', isa => 'Str', required => 0 );
-#has 'type'           => ( is => 'ro', isa => 'Str', required => 1 );
-#has 'last_ping_time' => ( is => 'ro', isa => 'Str', required => 0 );
 
 =pod
 

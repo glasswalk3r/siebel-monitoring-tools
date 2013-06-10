@@ -864,136 +864,268 @@ Server Request Processor                                                      Se
 
 srvrmgr> list tasks
 
-SV_NAME     CC_ALIAS                   TK_TASKID  TK_PID  TK_DISP_RUNSTATE   CC_RUNMODE   TK_START_TIME        TK_END_TIME          TK_STATUS                                                                                                         CG_ALIAS        TK_PARENT_TASKNUM  CC_INCARN_NO  TK_LABEL             TK_TASKTYPE  TK_PING_TIME  
-----------  -------------------------  ---------  ------  -----------------  -----------  -------------------  -------------------  ----------------------------------------------------------------------------------------------------------------  --------------  -----------------  ------------  -------------------  -----------  ------------  
-siebfoobar  ServerMgr                  46137346   22151   Running            Interactive  2013-04-22 19:03:08  2000-00-00 00:00:00  Processing "List Tasks" command                                                                                   System                             0                                  Normal                     
-siebfoobar  ServerMgr                  45088770   22145   Completed          Interactive  2013-04-22 19:01:40  2013-04-22 19:01:43                                                                                                                    System                             0                                  Normal                     
-siebfoobar  eCommunicationsObjMgr_enu  39845898   21139   Completed          Interactive  2013-04-22 15:34:14  2013-04-22 15:39:31                                                                                                                    Communications                     0             guestcst             Normal                     
-siebfoobar  EAIObjMgr_enu              37748863   20903   Running            Interactive  2013-04-22 18:01:18  2000-00-00 00:00:00  Waiting for command                                                                                               EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748860   20903   Running            Interactive  2013-04-22 18:01:17  2000-00-00 00:00:00  Waiting for command                                                                                               EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748857   20903   Running            Interactive  2013-04-22 18:01:17  2000-00-00 00:00:00  Waiting for command                                                                                               EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748854   20903   Running            Interactive  2013-04-22 18:01:17  2000-00-00 00:00:00  Waiting for command                                                                                               EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748851   20903   Running            Interactive  2013-04-22 18:01:17  2000-00-00 00:00:00  Waiting for command                                                                                               EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748848   20903   Running            Interactive  2013-04-22 18:01:16  2000-00-00 00:00:00  Waiting for command                                                                                               EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748845   20903   Running            Interactive  2013-04-22 18:01:16  2000-00-00 00:00:00  Waiting for command                                                                                               EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748842   20903   Running            Interactive  2013-04-22 18:01:16  2000-00-00 00:00:00  Waiting for command                                                                                               EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748839   20903   Running            Interactive  2013-04-22 18:01:16  2000-00-00 00:00:00  Waiting for command                                                                                               EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748836   20903   Running            Interactive  2013-04-22 18:01:16  2000-00-00 00:00:00  Waiting for command                                                                                               EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748833   20903   Running            Interactive  2013-04-22 18:01:15  2000-00-00 00:00:00  Waiting for command                                                                                               EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748830   20903   Running            Interactive  2013-04-22 18:01:15  2000-00-00 00:00:00  Waiting for command                                                                                               EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748827   20903   Running            Interactive  2013-04-22 18:01:15  2000-00-00 00:00:00  Waiting for command                                                                                               EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748824   20903   Running            Interactive  2013-04-22 18:01:15  2000-00-00 00:00:00  Waiting for command                                                                                               EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748821   20903   Running            Interactive  2013-04-22 18:01:14  2000-00-00 00:00:00  Waiting for command                                                                                               EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748818   20903   Running            Interactive  2013-04-22 18:01:14  2000-00-00 00:00:00  Waiting for command                                                                                               EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748815   20903   Running            Interactive  2013-04-22 18:01:14  2000-00-00 00:00:00  Waiting for command                                                                                               EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748812   20903   Running            Interactive  2013-04-22 18:01:14  2000-00-00 00:00:00  Waiting for command                                                                                               EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748809   20903   Running            Interactive  2013-04-22 18:01:14  2000-00-00 00:00:00  Waiting for command                                                                                               EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748806   20903   Running            Interactive  2013-04-22 18:01:13  2000-00-00 00:00:00  Waiting for command                                                                                               EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748803   20903   Completed          Interactive  2013-04-22 15:56:57  2013-04-22 18:01:18                                                                                                                    EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748800   20903   Completed          Interactive  2013-04-22 15:56:57  2013-04-22 18:01:17                                                                                                                    EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748797   20903   Completed          Interactive  2013-04-22 15:56:56  2013-04-22 18:01:17                                                                                                                    EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748794   20903   Completed          Interactive  2013-04-22 15:56:56  2013-04-22 18:01:17                                                                                                                    EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748791   20903   Completed          Interactive  2013-04-22 15:56:56  2013-04-22 18:01:17                                                                                                                    EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748788   20903   Completed          Interactive  2013-04-22 15:56:56  2013-04-22 18:01:16                                                                                                                    EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748785   20903   Completed          Interactive  2013-04-22 15:56:56  2013-04-22 18:01:16                                                                                                                    EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748782   20903   Completed          Interactive  2013-04-22 15:56:55  2013-04-22 18:01:16                                                                                                                    EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748779   20903   Completed          Interactive  2013-04-22 15:56:55  2013-04-22 18:01:16                                                                                                                    EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748776   20903   Completed          Interactive  2013-04-22 15:56:55  2013-04-22 18:01:16                                                                                                                    EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748773   20903   Completed          Interactive  2013-04-22 15:56:55  2013-04-22 18:01:15                                                                                                                    EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748770   20903   Completed          Interactive  2013-04-22 15:56:55  2013-04-22 18:01:15                                                                                                                    EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748767   20903   Completed          Interactive  2013-04-22 15:56:54  2013-04-22 18:01:15                                                                                                                    EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748764   20903   Completed          Interactive  2013-04-22 15:56:54  2013-04-22 18:01:15                                                                                                                    EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748761   20903   Completed          Interactive  2013-04-22 15:56:54  2013-04-22 18:01:14                                                                                                                    EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748758   20903   Completed          Interactive  2013-04-22 15:56:54  2013-04-22 18:01:14                                                                                                                    EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748755   20903   Completed          Interactive  2013-04-22 15:56:54  2013-04-22 18:01:14                                                                                                                    EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748752   20903   Completed          Interactive  2013-04-22 15:56:53  2013-04-22 18:01:14                                                                                                                    EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748749   20903   Completed          Interactive  2013-04-22 15:56:53  2013-04-22 18:01:13                                                                                                                    EAI                                0             AIAUSER              Normal                     
-siebfoobar  EAIObjMgr_enu              37748746   20903   Completed          Interactive  2013-04-22 15:56:12  2013-04-22 18:01:13                                                                                                                    EAI                                0             AIAUSER              Normal                     
-siebfoobar  WfProcBatchMgr             34603065   20770   Completed          Batch        2013-04-22 19:00:00  2013-04-22 19:00:22                                                                                                                    Workflow                           0                                  Normal                     
-siebfoobar  WfProcBatchMgr             34603064   20770   Completed          Batch        2013-04-22 19:00:00  2013-04-22 19:00:22                                                                                                                    Workflow                           0                                  Normal                     
-siebfoobar  WfProcBatchMgr             34603063   20770   Exited with error  Batch        2013-04-22 19:00:00  2013-04-22 19:00:05  SBL-OMS-00203: Error 6750317 invoking method "RunBatch" for Bus                                                   Workflow                           0                                  Normal                     
-siebfoobar  WfProcBatchMgr             34603062   20770   Exited with error  Batch        2013-04-22 18:50:01  2013-04-22 18:50:05  SBL-OMS-00203: Error 6750317 invoking method "RunBatch" for Bus                                                   Workflow                           0                                  Normal                     
-siebfoobar  WfProcBatchMgr             34603061   20770   Exited with error  Batch        2013-04-22 18:40:02  2013-04-22 18:40:06  SBL-OMS-00203: Error 6750317 invoking method "RunBatch" for Bus                                                   Workflow                           0                                  Normal                     
-siebfoobar  WfProcBatchMgr             34603060   20770   Exited with error  Batch        2013-04-22 18:30:03  2013-04-22 18:30:07  SBL-OMS-00203: Error 6750317 invoking method "RunBatch" for Bus                                                   Workflow                           0                                  Normal                     
-siebfoobar  WfProcBatchMgr             34603059   20770   Exited with error  Batch        2013-04-22 18:20:03  2013-04-22 18:20:07  SBL-OMS-00203: Error 6750317 invoking method "RunBatch" for Bus                                                   Workflow                           0                                  Normal                     
-siebfoobar  WfProcBatchMgr             34603058   20770   Exited with error  Batch        2013-04-22 18:10:04  2013-04-22 18:10:09  SBL-OMS-00203: Error 6750317 invoking method "RunBatch" for Bus                                                   Workflow                           0                                  Normal                     
-siebfoobar  WfProcBatchMgr             34603057   20770   Completed          Batch        2013-04-22 18:00:05  2013-04-22 18:00:26                                                                                                                    Workflow                           0                                  Normal                     
-siebfoobar  WfProcBatchMgr             34603056   20770   Completed          Batch        2013-04-22 18:00:05  2013-04-22 18:00:26                                                                                                                    Workflow                           0                                  Normal                     
-siebfoobar  WfProcBatchMgr             34603055   20770   Exited with error  Batch        2013-04-22 18:00:05  2013-04-22 18:00:10  SBL-OMS-00203: Error 6750317 invoking method "RunBatch" for Bus                                                   Workflow                           0                                  Normal                     
-siebfoobar  WfProcBatchMgr             34603054   20770   Exited with error  Batch        2013-04-22 17:50:06  2013-04-22 17:50:10  SBL-OMS-00203: Error 6750317 invoking method "RunBatch" for Bus                                                   Workflow                           0                                  Normal                     
-siebfoobar  WfProcBatchMgr             34603053   20770   Exited with error  Batch        2013-04-22 17:40:07  2013-04-22 17:40:12  SBL-OMS-00203: Error 6750317 invoking method "RunBatch" for Bus                                                   Workflow                           0                                  Normal                     
-siebfoobar  WfProcBatchMgr             34603052   20770   Exited with error  Batch        2013-04-22 17:30:08  2013-04-22 17:30:12  SBL-OMS-00203: Error 6750317 invoking method "RunBatch" for Bus                                                   Workflow                           0                                  Normal                     
-siebfoobar  WfProcBatchMgr             34603051   20770   Exited with error  Batch        2013-04-22 17:20:09  2013-04-22 17:20:12  SBL-OMS-00203: Error 6750317 invoking method "RunBatch" for Bus                                                   Workflow                           0                                  Normal                     
-siebfoobar  WfProcBatchMgr             34603050   20770   Exited with error  Batch        2013-04-22 17:10:10  2013-04-22 17:10:13  SBL-OMS-00203: Error 6750317 invoking method "RunBatch" for Bus                                                   Workflow                           0                                  Normal                     
-siebfoobar  WfProcBatchMgr             34603049   20770   Completed          Batch        2013-04-22 17:00:00  2013-04-22 17:00:21                                                                                                                    Workflow                           0                                  Normal                     
-siebfoobar  WfProcBatchMgr             34603048   20770   Completed          Batch        2013-04-22 17:00:00  2013-04-22 17:00:21                                                                                                                    Workflow                           0                                  Normal                     
-siebfoobar  WfProcBatchMgr             34603047   20770   Exited with error  Batch        2013-04-22 17:00:00  2013-04-22 17:00:05  SBL-OMS-00203: Error 6750317 invoking method "RunBatch" for Bus                                                   Workflow                           0                                  Normal                     
-siebfoobar  WfProcBatchMgr             34603046   20770   Exited with error  Batch        2013-04-22 16:50:01  2013-04-22 16:50:05  SBL-OMS-00203: Error 6750317 invoking method "RunBatch" for Bus                                                   Workflow                           0                                  Normal                     
-siebfoobar  eCommunicationsObjMgr_ptb  30408717   21078   Completed          Interactive  2013-04-22 17:15:17  2013-04-22 17:16:20                                                                                                                    Communications                     0             DEL3004              Normal                     
-siebfoobar  eCommunicationsObjMgr_ptb  30408714   21078   Completed          Interactive  2013-04-22 15:33:45  2013-04-22 15:39:04                                                                                                                    Communications                     0             guestcst             Normal                     
-siebfoobar  TaskLogCleanup             28311554   20932   Running            Background   2013-04-22 15:32:34  2000-00-00 00:00:00  Method CleanTaskLog for service Task Log Cleanup Service has executed 42 times -- Sleeping                        TaskUI                             0             SADMIN               Normal                     
-siebfoobar  WfProcMgr                  16777245   20818   Completed          Batch        2013-04-22 15:33:41  2013-04-22 15:33:41                                                                                                                    Workflow                           0             SADMIN               Normal                     
-siebfoobar  WfProcMgr                  16777244   20818   Completed          Batch        2013-04-22 15:33:41  2013-04-22 15:33:41                                                                                                                    Workflow                           0                                  Normal                     
-siebfoobar  SERAssetWorkMon            13631489   20806   Running            Background   2013-04-22 15:32:31  2000-00-00 00:00:00  Processed 0 requests                                                                                              Workflow                           0                                  Normal                     
-siebfoobar  WorkMonSWI                 12582914   20803   Running            Background   2013-04-22 15:32:31  2000-00-00 00:00:00  Sleeping for 5 seconds...                                                                                         Workflow                           0                                  Normal                     
-siebfoobar  SERAssetRecCMon            11534337   20761   Running            Background   2013-04-22 15:32:31  2000-00-00 00:00:00  Processed 0 requests                                                                                              Workflow                           0                                  Normal                     
-siebfoobar  SvrTblCleanup              8388610    20562   Running            Background   2013-04-22 15:32:26  2000-00-00 00:00:00  Method DelCompletedDelExpiredReq for service Message Board Maintenance Service has executed 42 times -- Sleeping  SystemAux                          0             SADMIN               Normal                     
-siebfoobar  SvrTaskPersist             7340034    20543   Running            Background   2013-04-22 15:32:26  2000-00-00 00:00:00  Method InsertUpdateTaskHistory for service Message Board Maintenance Service has executed 420 times -- Sleeping   SystemAux                          0             SADMIN               Normal                     
-siebfoobar  SRProc                     5242888    20503   Running            Interactive  2013-04-22 15:32:28  2000-00-00 00:00:00                                                                                                                    SystemAux                          0                                  Normal                     
-siebfoobar  SRProc                     5242885    20503   Running            Interactive  2013-04-22 15:32:28  2000-00-00 00:00:00                                                                                                                    SystemAux                          0             Forwarding Task      Worker                     
-siebfoobar  FSMSrvr                    4194336    20500   Completed          Batch        2013-04-22 17:16:18  2013-04-22 17:16:20                                                                                                                    SystemAux                          0                                  Normal                     
-siebfoobar  FSMSrvr                    4194335    20500   Completed          Batch        2013-04-22 17:15:22  2013-04-22 17:15:22                                                                                                                    SystemAux                          0                                  Normal                     
-siebfoobar  FSMSrvr                    4194334    20500   Completed          Batch        2013-04-22 17:15:21  2013-04-22 17:15:21                                                                                                                    SystemAux                          0                                  Normal                     
-siebfoobar  FSMSrvr                    4194333    20500   Completed          Batch        2013-04-22 17:15:21  2013-04-22 17:15:21                                                                                                                    SystemAux                          0                                  Normal                     
-siebfoobar  FSMSrvr                    4194332    20500   Completed          Batch        2013-04-22 17:15:21  2013-04-22 17:15:21                                                                                                                    SystemAux                          0                                  Normal                     
-siebfoobar  SCBroker                   3145730    20493   Running            Background   2013-04-22 15:32:25  2000-00-00 00:00:00                                                                                                                    System                             0                                  Normal                     
-siebfoobar  SRBroker                   2097198    20490   Running            Interactive  2013-04-22 17:15:21  2000-00-00 00:00:00                                                                                                                    System                             0             COMP:FSMSrvr         Worker                     
-siebfoobar  SRBroker                   2097196    20490   Running            Interactive  2013-04-22 15:34:42  2000-00-00 00:00:00                                                                                                                    System                             0             COMP:WfProcBatchMgr  Worker                     
-siebfoobar  SRBroker                   2097194    20490   Running            Interactive  2013-04-22 15:33:41  2000-00-00 00:00:00                                                                                                                    System                             0             COMP:WfProcMgr       Worker                     
-siebfoobar  SRBroker                   2097193    20490   Running            Interactive  2013-04-22 15:32:54  2000-00-00 00:00:00                                                                                                                    System                             0                                  Normal                     
-siebfoobar  SRBroker                   2097192    20490   Running            Interactive  2013-04-22 15:32:46  2000-00-00 00:00:00                                                                                                                    System                             0                                  Normal                     
-siebfoobar  SRBroker                   2097191    20490   Running            Interactive  2013-04-22 15:32:44  2000-00-00 00:00:00                                                                                                                    System                             0                                  Normal                     
-siebfoobar  SRBroker                   2097190    20490   Running            Interactive  2013-04-22 15:32:43  2000-00-00 00:00:00                                                                                                                    System                             0                                  Normal                     
-siebfoobar  SRBroker                   2097189    20490   Running            Interactive  2013-04-22 15:32:39  2000-00-00 00:00:00                                                                                                                    System                             0                                  Normal                     
-siebfoobar  SRBroker                   2097188    20490   Running            Interactive  2013-04-22 15:32:39  2000-00-00 00:00:00                                                                                                                    System                             0                                  Normal                     
-siebfoobar  SRBroker                   2097187    20490   Running            Interactive  2013-04-22 15:32:39  2000-00-00 00:00:00                                                                                                                    System                             0                                  Normal                     
-siebfoobar  SRBroker                   2097186    20490   Running            Interactive  2013-04-22 15:32:39  2000-00-00 00:00:00                                                                                                                    System                             0                                  Normal                     
-siebfoobar  SRBroker                   2097185    20490   Running            Interactive  2013-04-22 15:32:38  2000-00-00 00:00:00                                                                                                                    System                             0                                  Normal                     
-siebfoobar  SRBroker                   2097184    20490   Running            Interactive  2013-04-22 15:32:38  2000-00-00 00:00:00                                                                                                                    System                             0                                  Normal                     
-siebfoobar  SRBroker                   2097183    20490   Running            Interactive  2013-04-22 15:32:38  2000-00-00 00:00:00                                                                                                                    System                             0                                  Normal                     
-siebfoobar  SRBroker                   2097182    20490   Running            Interactive  2013-04-22 15:32:38  2000-00-00 00:00:00                                                                                                                    System                             0                                  Normal                     
-siebfoobar  SRBroker                   2097181    20490   Running            Interactive  2013-04-22 15:32:37  2000-00-00 00:00:00                                                                                                                    System                             0                                  Normal                     
-siebfoobar  SRBroker                   2097180    20490   Running            Interactive  2013-04-22 15:32:36  2000-00-00 00:00:00                                                                                                                    System                             0                                  Normal                     
-siebfoobar  SRBroker                   2097179    20490   Running            Interactive  2013-04-22 15:32:36  2000-00-00 00:00:00                                                                                                                    System                             0                                  Normal                     
-siebfoobar  SRBroker                   2097178    20490   Running            Interactive  2013-04-22 15:32:36  2000-00-00 00:00:00                                                                                                                    System                             0                                  Normal                     
-siebfoobar  SRBroker                   2097177    20490   Running            Interactive  2013-04-22 15:32:37  2000-00-00 00:00:00                                                                                                                    System                             0                                  Normal                     
-siebfoobar  SRBroker                   2097176    20490   Running            Interactive  2013-04-22 15:32:36  2000-00-00 00:00:00                                                                                                                    System                             0                                  Normal                     
-siebfoobar  SRBroker                   2097175    20490   Running            Interactive  2013-04-22 15:32:36  2000-00-00 00:00:00                                                                                                                    System                             0                                  Normal                     
-siebfoobar  SRBroker                   2097174    20490   Running            Interactive  2013-04-22 15:32:35  2000-00-00 00:00:00                                                                                                                    System                             0                                  Normal                     
-siebfoobar  SRBroker                   2097173    20490   Running            Interactive  2013-04-22 15:32:35  2000-00-00 00:00:00                                                                                                                    System                             0                                  Normal                     
-siebfoobar  SRBroker                   2097172    20490   Running            Interactive  2013-04-22 15:32:35  2000-00-00 00:00:00                                                                                                                    System                             0                                  Normal                     
-siebfoobar  SRBroker                   2097171    20490   Running            Interactive  2013-04-22 15:32:33  2000-00-00 00:00:00                                                                                                                    System                             0                                  Normal                     
-siebfoobar  SRBroker                   2097170    20490   Running            Interactive  2013-04-22 15:32:32  2000-00-00 00:00:00                                                                                                                    System                             0                                  Normal                     
-siebfoobar  SRBroker                   2097169    20490   Running            Interactive  2013-04-22 15:32:31  2000-00-00 00:00:00                                                                                                                    System                             0                                  Normal                     
-siebfoobar  SRBroker                   2097168    20490   Running            Interactive  2013-04-22 15:32:31  2000-00-00 00:00:00                                                                                                                    System                             0                                  Normal                     
-siebfoobar  SRBroker                   2097167    20490   Running            Interactive  2013-04-22 15:32:31  2000-00-00 00:00:00                                                                                                                    System                             0                                  Normal                     
-siebfoobar  SRBroker                   2097166    20490   Running            Interactive  2013-04-22 15:32:31  2000-00-00 00:00:00                                                                                                                    System                             0                                  Normal                     
-siebfoobar  SRBroker                   2097164    20490   Running            Interactive  2013-04-22 15:32:28  2000-00-00 00:00:00                                                                                                                    System                             0                                  Normal                     
-siebfoobar  SRBroker                   2097163    20490   Running            Interactive  2013-04-22 15:32:26  2000-00-00 00:00:00                                                                                                                    System                             0                                  Normal                     
-siebfoobar  SRBroker                   2097162    20490   Running            Interactive  2013-04-22 15:32:26  2000-00-00 00:00:00                                                                                                                    System                             0             Task creation task   Worker                     
-siebfoobar  SRBroker                   2097161    20490   Running            Interactive  2013-04-22 15:32:26  2000-00-00 00:00:00                                                                                                                    System                             0             Store task           Worker                     
-siebfoobar  SRBroker                   2097160    20490   Running            Interactive  2013-04-22 15:32:26  2000-00-00 00:00:00                                                                                                                    System                             0             Response task        Worker                     
-siebfoobar  SRBroker                   2097159    20490   Running            Interactive  2013-04-22 15:32:26  2000-00-00 00:00:00                                                                                                                    System                             0                                  Normal                     
-siebfoobar  SRBroker                   2097157    20490   Running            Interactive  2013-04-22 15:32:26  2000-00-00 00:00:00                                                                                                                    System                             0             Information caching task  Worker                     
+SV_NAME      CC_ALIAS                   TK_TASKID  TK_PID  TK_DISP_RUNSTATE  
+-----------  -------------------------  ---------  ------  ----------------  
+siebfoobar1  ServerMgr                  54525954   9780    Running           
+siebfoobar1  ServerMgr                  53477378   6888    Running           
+siebfoobar1  ServerMgr                  51380226   27718   Completed         
+siebfoobar1  eCommunicationsObjMgr_ptb  50331821   27452   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  50331818   27452   Completed         
+siebfoobar1  eCommunicationsObjMgr_ptb  50331815   27452   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  50331809   27452   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  50331806   27452   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  50331800   27452   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  50331797   27452   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  50331788   27452   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  50331782   27452   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  50331779   27452   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  50331776   27452   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  50331769   27452   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  50331766   27452   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  50331724   27452   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  50331721   27452   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  50331712   27452   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  50331709   27452   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  50331688   27452   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  50331670   27452   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  50331661   27452   Completed         
+siebfoobar1  eCommunicationsObjMgr_ptb  49283275   27104   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  49283272   27104   Completed         
+siebfoobar1  eCommunicationsObjMgr_ptb  49283269   27104   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  49283266   27104   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  49283263   27104   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  49283260   27104   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  49283257   27104   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  49283240   27104   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  49283234   27104   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  49283231   27104   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  49283183   27104   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  49283161   27104   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  49283152   27104   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  49283126   27104   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  49283107   27104   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  49283085   27104   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  47186112   26862   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  47186109   26862   Completed         
+siebfoobar1  eCommunicationsObjMgr_ptb  47186106   26862   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  47186103   26862   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  47186100   26862   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  47186097   26862   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  47186094   26862   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  47186078   26862   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  47186068   26862   Completed         
+siebfoobar1  eCommunicationsObjMgr_ptb  47186051   26862   Completed         
+siebfoobar1  eCommunicationsObjMgr_ptb  47186048   26862   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  47186045   26862   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  47185987   26862   Completed         
+siebfoobar1  eCommunicationsObjMgr_ptb  47185981   26862   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  47185975   26862   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  47185972   26862   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  47185960   26862   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  47185957   26862   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  47185945   26862   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  47185942   26862   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  45088979   26676   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  45088976   26676   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  45088973   26676   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  45088970   26676   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  45088967   26676   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  45088964   26676   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  45088961   26676   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  45088947   26676   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  45088928   26676   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  45088858   26676   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  45088855   26676   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  45088846   26676   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  45088843   26676   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  45088840   26676   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  45088834   26676   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  45088825   26676   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  45088822   26676   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  45088819   26676   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  45088801   26676   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  45088795   26676   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  45088791   26676   Completed         
+siebfoobar1  eChannelCMEObjMgr_ptb      42992051   26517   Running           
+siebfoobar1  eChannelCMEObjMgr_ptb      42992048   26517   Completed         
+siebfoobar1  eChannelCMEObjMgr_ptb      42992045   26517   Running           
+siebfoobar1  eChannelCMEObjMgr_ptb      42992042   26517   Running           
+siebfoobar1  eChannelCMEObjMgr_ptb      42992039   26517   Completed         
+siebfoobar1  eChannelCMEObjMgr_ptb      42992036   26517   Running           
+siebfoobar1  eChannelCMEObjMgr_ptb      42992033   26517   Completed         
+siebfoobar1  eChannelCMEObjMgr_ptb      42992030   26517   Completed         
+siebfoobar1  eChannelCMEObjMgr_ptb      42992027   26517   Completed         
+siebfoobar1  eChannelCMEObjMgr_ptb      42992024   26517   Running           
+siebfoobar1  eChannelCMEObjMgr_ptb      42992021   26517   Completed         
+siebfoobar1  eChannelCMEObjMgr_ptb      42992009   26517   Completed         
+siebfoobar1  eChannelCMEObjMgr_ptb      42992003   26517   Completed         
+siebfoobar1  eChannelCMEObjMgr_ptb      42992000   26517   Running           
+siebfoobar1  eChannelCMEObjMgr_ptb      42991985   26517   Running           
+siebfoobar1  eChannelCMEObjMgr_ptb      42991982   26517   Completed         
+siebfoobar1  eChannelCMEObjMgr_ptb      42991967   26517   Completed         
+siebfoobar1  eChannelCMEObjMgr_ptb      42991943   26517   Running           
+siebfoobar1  eChannelCMEObjMgr_ptb      42991895   26517   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  40894625   26427   Completed         
+siebfoobar1  eCommunicationsObjMgr_ptb  38797520   26086   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  38797517   26086   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  38797514   26086   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  38797511   26086   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  38797498   26086   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  38797495   26086   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  38797492   26086   Completed         
+siebfoobar1  eCommunicationsObjMgr_ptb  38797485   26086   Completed         
+siebfoobar1  eCommunicationsObjMgr_ptb  38797410   26086   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  38797407   26086   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  38797404   26086   Completed         
+siebfoobar1  eCommunicationsObjMgr_ptb  38797386   26086   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  38797383   26086   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  38797380   26086   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  38797371   26086   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  38797368   26086   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  38797362   26086   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  38797358   26086   Completed         
+siebfoobar1  eCommunicationsObjMgr_ptb  38797352   26086   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  38797346   26086   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  37748983   25890   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  37748980   25890   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  37748977   25890   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  37748968   25890   Completed         
+siebfoobar1  eCommunicationsObjMgr_ptb  37748962   25890   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  37748951   25890   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  37748945   25890   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  37748929   25890   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  37748893   25890   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  37748873   25890   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  37748867   25890   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  37748828   25890   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  37748807   25890   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  37748782   25890   Completed         
+siebfoobar1  ServerMgr                  36700162   17579   Completed         
+siebfoobar1  eChannelCMEObjMgr_ptb      35652338   17194   Running           
+siebfoobar1  eChannelCMEObjMgr_ptb      35652335   17194   Running           
+siebfoobar1  eChannelCMEObjMgr_ptb      35652332   17194   Completed         
+siebfoobar1  eChannelCMEObjMgr_ptb      35652329   17194   Completed         
+siebfoobar1  eChannelCMEObjMgr_ptb      35652326   17194   Completed         
+siebfoobar1  eChannelCMEObjMgr_ptb      35652323   17194   Running           
+siebfoobar1  eChannelCMEObjMgr_ptb      35652320   17194   Completed         
+siebfoobar1  eChannelCMEObjMgr_ptb      35652317   17194   Completed         
+siebfoobar1  eChannelCMEObjMgr_ptb      35652314   17194   Completed         
+siebfoobar1  eChannelCMEObjMgr_ptb      35652311   17194   Running           
+siebfoobar1  eChannelCMEObjMgr_ptb      35652308   17194   Completed         
+siebfoobar1  eChannelCMEObjMgr_ptb      35652305   17194   Running           
+siebfoobar1  eChannelCMEObjMgr_ptb      35652299   17194   Running           
+siebfoobar1  eChannelCMEObjMgr_ptb      35652293   17194   Completed         
+siebfoobar1  eChannelCMEObjMgr_ptb      35652290   17194   Completed         
+siebfoobar1  eChannelCMEObjMgr_ptb      35652236   17194   Completed         
+siebfoobar1  eChannelCMEObjMgr_ptb      35652191   17194   Running           
+siebfoobar1  eChannelCMEObjMgr_ptb      35652164   17194   Running           
+siebfoobar1  eChannelCMEObjMgr_ptb      35652152   17194   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  34603453   17179   Completed         
+siebfoobar1  eCommunicationsObjMgr_ptb  34603450   17179   Completed         
+siebfoobar1  eCommunicationsObjMgr_ptb  34603447   17179   Completed         
+siebfoobar1  eCommunicationsObjMgr_ptb  34603444   17179   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  34603441   17179   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  34603435   17179   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  34603432   17179   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  34603426   17179   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  34603418   17179   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  34603409   17179   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  34603385   17179   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  34603355   17179   Completed         
+siebfoobar1  eCommunicationsObjMgr_ptb  34603337   17179   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  34603334   17179   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  34603328   17179   Running           
+siebfoobar1  eCommunicationsObjMgr_ptb  34603319   17179   Completed         
+siebfoobar1  TaskLogCleanup             33554434   17155   Running           
+siebfoobar1  WfProcMgr                  17826167   16875   Completed         
+siebfoobar1  WfProcMgr                  17826166   16875   Completed         
+siebfoobar1  WfProcMgr                  17826165   16875   Completed         
+siebfoobar1  WfProcMgr                  17826164   16875   Completed         
+siebfoobar1  WfProcMgr                  17826163   16875   Completed         
+siebfoobar1  WfProcMgr                  17826162   16875   Completed         
+siebfoobar1  WfProcMgr                  17826161   16875   Completed         
+siebfoobar1  WfProcMgr                  17826160   16875   Completed         
+siebfoobar1  WfProcMgr                  17826159   16875   Completed         
+siebfoobar1  WfProcMgr                  17826158   16875   Completed         
+siebfoobar1  WfProcMgr                  17826157   16875   Completed         
+siebfoobar1  WfProcMgr                  17826156   16875   Completed         
+siebfoobar1  WfProcMgr                  17826155   16875   Completed         
+siebfoobar1  WfProcMgr                  17826154   16875   Completed         
+siebfoobar1  WfProcMgr                  17826153   16875   Completed         
+siebfoobar1  WfProcMgr                  17826152   16875   Completed         
+siebfoobar1  WfProcMgr                  17826151   16875   Completed         
+siebfoobar1  WfProcMgr                  17826150   16875   Completed         
+siebfoobar1  WfProcMgr                  17826149   16875   Completed         
+siebfoobar1  WfProcMgr                  17826148   16875   Completed         
+siebfoobar1  SERWorkMonOrderItem        14680066   16893   Running           
+siebfoobar1  SvrTblCleanup              8388610    16709   Running           
+siebfoobar1  SvrTaskPersist             7340034    16673   Running           
+siebfoobar1  SRProc                     5242888    16693   Running           
+siebfoobar1  SRProc                     5242885    16693   Running           
+siebfoobar1  SCBroker                   3145730    16650   Running           
+siebfoobar1  SRBroker                   2097216    16649   Completed         
+siebfoobar1  SRBroker                   2097215    16649   Running           
+siebfoobar1  SRBroker                   2097214    16649   Running           
+siebfoobar1  SRBroker                   2097213    16649   Completed         
+siebfoobar1  SRBroker                   2097212    16649   Running           
+siebfoobar1  SRBroker                   2097211    16649   Completed         
+siebfoobar1  SRBroker                   2097210    16649   Running           
+siebfoobar1  SRBroker                   2097209    16649   Completed         
+siebfoobar1  SRBroker                   2097208    16649   Running           
+siebfoobar1  SRBroker                   2097207    16649   Completed         
+siebfoobar1  SRBroker                   2097206    16649   Completed         
+siebfoobar1  SRBroker                   2097205    16649   Completed         
+siebfoobar1  SRBroker                   2097204    16649   Running           
+siebfoobar1  SRBroker                   2097203    16649   Running           
+siebfoobar1  SRBroker                   2097201    16649   Running           
+siebfoobar1  SRBroker                   2097199    16649   Running           
+siebfoobar1  SRBroker                   2097198    16649   Running           
+siebfoobar1  SRBroker                   2097197    16649   Running           
+siebfoobar1  SRBroker                   2097196    16649   Running           
+siebfoobar1  SRBroker                   2097193    16649   Running           
+siebfoobar1  SRBroker                   2097192    16649   Running           
+siebfoobar1  SRBroker                   2097191    16649   Running           
+siebfoobar1  SRBroker                   2097190    16649   Running           
+siebfoobar1  SRBroker                   2097189    16649   Running           
+siebfoobar1  SRBroker                   2097188    16649   Running           
+siebfoobar1  SRBroker                   2097187    16649   Running           
+siebfoobar1  SRBroker                   2097186    16649   Running           
+siebfoobar1  SRBroker                   2097185    16649   Running           
+siebfoobar1  SRBroker                   2097184    16649   Running           
+siebfoobar1  SRBroker                   2097183    16649   Running           
+siebfoobar1  SRBroker                   2097182    16649   Running           
+siebfoobar1  SRBroker                   2097181    16649   Running           
+siebfoobar1  SRBroker                   2097180    16649   Running           
+siebfoobar1  SRBroker                   2097179    16649   Running           
+siebfoobar1  SRBroker                   2097178    16649   Running           
+siebfoobar1  SRBroker                   2097177    16649   Running           
+siebfoobar1  SRBroker                   2097176    16649   Running           
+siebfoobar1  SRBroker                   2097175    16649   Running           
+siebfoobar1  SRBroker                   2097174    16649   Running           
+siebfoobar1  SRBroker                   2097173    16649   Running           
+siebfoobar1  SRBroker                   2097172    16649   Running           
+siebfoobar1  SRBroker                   2097171    16649   Running           
+siebfoobar1  SRBroker                   2097170    16649   Running           
+siebfoobar1  SRBroker                   2097169    16649   Running           
+siebfoobar1  SRBroker                   2097168    16649   Running           
+siebfoobar1  SRBroker                   2097167    16649   Running           
+siebfoobar1  SRBroker                   2097166    16649   Running           
+siebfoobar1  SRBroker                   2097164    16649   Running           
+siebfoobar1  SRBroker                   2097163    16649   Running           
+siebfoobar1  SRBroker                   2097162    16649   Running           
+siebfoobar1  SRBroker                   2097161    16649   Running           
+siebfoobar1  SRBroker                   2097160    16649   Running           
+siebfoobar1  SRBroker                   2097159    16649   Running           
+siebfoobar1  SRBroker                   2097157    16649   Running           
 
-119 rows returned.
+251 rows returned.
 
 srvrmgr> list tasks for component SRProc
 
-SV_NAME     CC_ALIAS  TK_TASKID  TK_PID  TK_DISP_RUNSTATE  CC_RUNMODE   TK_START_TIME        TK_END_TIME          TK_STATUS  CG_ALIAS   TK_PARENT_TASKNUM  CC_INCARN_NO  TK_LABEL         TK_TASKTYPE  TK_PING_TIME  
-----------  --------  ---------  ------  ----------------  -----------  -------------------  -------------------  ---------  ---------  -----------------  ------------  ---------------  -----------  ------------  
-siebfoobar  SRProc    5242888    20503   Running           Interactive  2013-04-22 15:32:28  2000-00-00 00:00:00             SystemAux                     0                              Normal                     
-siebfoobar  SRProc    5242885    20503   Running           Interactive  2013-04-22 15:32:28  2000-00-00 00:00:00             SystemAux                     0             Forwarding Task  Worker                     
+SV_NAME      CC_ALIAS  TK_TASKID  TK_PID  TK_DISP_RUNSTATE  
+-----------  --------  ---------  ------  ----------------  
+siebfoobar1  SRProc    5242888    16693   Running           
+siebfoobar1  SRProc    5242885    16693   Running           
 
 2 rows returned.
 

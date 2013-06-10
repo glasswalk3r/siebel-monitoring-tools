@@ -2,7 +2,6 @@ package Siebel::Srvrmgr::ListParser::Output::ListTasks;
 use Moose;
 use Siebel::Srvrmgr::ListParser::Output::ListTasks::Task;
 use namespace::autoclean;
-use feature qw(switch);
 
 =pod
 
@@ -63,8 +62,7 @@ To enable that, execute the following commands in the C<srvrmgr> program:
 
 	set ColumnWidth true
     
-	configure list tasks show SV_NAME(31), CC_ALIAS(31), TK_TASKID(11), TK_PID(11), TK_DISP_RUNSTATE(61), CC_RUNMODE(31), TK_START_TIME(21), 
-	TK_END_TIME(21), TK_STATUS(251), CG_ALIAS(31), TK_PARENT_TASKNUM(17), CC_INCARN_NO(23), TK_LABEL(76), TK_TASKTYPE(31), TK_PING_TIME(12)
+	configure list tasks show SV_NAME(31), CC_ALIAS(31), TK_TASKID(11), TK_PID(11), TK_DISP_RUNSTATE(61)
 
 Saving this configuration as a preference and loading it everytime is a good idea too.
 
@@ -77,7 +75,7 @@ Order of the fields is important too: everytime those fields are parsed, if they
 An hash reference with the data parsed from C<raw_data> attribute.
 
 This hash reference is different from the base class since it expects that the key values to be array references with a list of instances
-of Siebel::Srvrmgr::ListParser::Output::ListTasks::Task class.
+of L<Siebel::Srvrmgr::ListParser::Output::ListTasks::Task> class.
 
 =cut
 
@@ -89,24 +87,34 @@ has 'data_parsed' => (
       'HashRef[ArrayRef[Siebel::Srvrmgr::ListParser::Output::ListTasks::Task]]'
 );
 
+has expected_attribs => (
+    is      => 'ro',
+    reader  => 'get_exp_attribs',
+    isa     => 'ArrayRef[Str]',
+    builder => '_get_my_attribs',
+    lazy    => 1
+);
+
+sub _get_my_attribs {
+
+    return [ 'SV_NAME', 'CC_ALIAS', 'TK_TASKID', 'TK_PID', 'TK_DISP_RUNSTATE' ];
+
+}
+
 after '_set_header' => sub {
 
     my $self = shift;
 
-    my @expected_attribs = (
-        'SV_NAME',           'CC_ALIAS',
-        'TK_TASKID',         'TK_PID',
-        'TK_DISP_RUNSTATE'
-    );
+    my $expected = $self->get_exp_attribs();
 
     my $data = $self->get_header_cols();
 
-    for ( my $i = 0 ; $i <= $#expected_attribs ; $i++ ) {
+    for ( my $i = 0 ; $i <= $#{$expected} ; $i++ ) {
 
-        unless ( $data->[$i] eq $expected_attribs[$i] ) {
+        unless ( $data->[$i] eq $expected->[$i] ) {
 
             die 'invalid attribute name recovered from output: expected '
-              . $expected_attribs[$i]
+              . $expected->[$i]
               . ', got '
               . $data->[$i];
 
@@ -120,19 +128,29 @@ after '_set_header' => sub {
 
 =head1 METHODS
 
+All from parent class. Some are overrided.
+
 =cut
 
+# :TODO      :10/06/2013 17:29:08:: other classes that must have specific columns configuration should build their regex during compilation time
+# maybe a Moose Role would be ideal?
 sub _set_header_regex {
 
-    return qr/^SV_NAME\s.*\sTK_DISP_RUNSTATE$/;
+    my $self = shift;
+
+    my $regex = '^';
+
+# :TODO      :10/06/2013 18:11:53:: implement get_col_sep and get_col_sep_regex into Siebel::Srvrmgr::ListParser::Output
+#    $regex .= join( $self->get_col_sep(), @{ $self->get_exp_attribs() } );
+    $regex .= join( '\s{2,}', @{ $self->get_exp_attribs() } );
+
+    #    $regex .= $self->get_col_sep() . '?$';
+    $regex .= '(\s{2,})?$';
+
+    #	$regex = '^SV_NAME\s{2,}CC_ALIAS\s{2,}';
+    return qr/$regex/;
 
 }
-
-=pod
-
-=head2 _parse_data
-
-=cut
 
 sub _parse_data {
 
@@ -142,7 +160,8 @@ sub _parse_data {
 
     my $columns_ref = $self->get_header_cols();
 
-    confess "Could not retrieve the name of the fields"
+    confess
+'Could not retrieve the name of the fields: check get_header_regex() output'
       unless ( defined($columns_ref) );
 
     my $list_len    = scalar( @{$fields_ref} );
@@ -159,23 +178,7 @@ sub _parse_data {
             id          => $fields_ref->[2],
             pid         => $fields_ref->[3],
             status      => $fields_ref->[4],
-#            run_mode    => $fields_ref->[4],
-#            comp_alias  => $fields_ref->[5],
-#            start       => $fields_ref->[6],
-#            end         => $fields_ref->[7],
-#            status      => $fields_ref->[8],
-#            cg_alias    => $fields_ref->[9],
-#            incarn_num  => $fields_ref->[11],
-#            type        => $fields_ref->[13]
         );
-
-#        $attribs{parent_id} = $fields_ref->[10]
-#          if (  ( defined( $fields_ref->[10] ) )
-#            and ( $fields_ref->[10] ne '' ) );
-#        $attribs{label} = $fields_ref->[12]
-#          if ( defined( $fields_ref->[12] ) );
-#        $attribs{last_ping_time} = $fields_ref->[15]
-#          if ( defined( $fields_ref->[15] ) );
 
 # :TODO      :09/05/2013 11:48:34:: verify if it is not useful to reduce memory usage by creating a coderef
 # to use as a iterator to create those objects on the fly

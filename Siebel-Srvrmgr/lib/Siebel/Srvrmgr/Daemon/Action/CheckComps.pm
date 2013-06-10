@@ -27,6 +27,7 @@ use Moose;
 use namespace::autoclean;
 use Moose::Util qw(does_role);
 use Siebel::Srvrmgr::Daemon::ActionStash;
+use Carp qw(confess);
 
 extends 'Siebel::Srvrmgr::Daemon::Action';
 
@@ -73,7 +74,7 @@ sub BUILD {
 
     foreach my $object ( @{ $self->get_params() } ) {
 
-        die "all params items must be classes with $role role applied"
+        confess "all params items must be classes with $role role applied"
           unless ( does_role( $object, $role ) );
 
     }
