@@ -1,12 +1,12 @@
-package Test::Action::CheckComps;
+package Test::Siebel::Srvrmgr::Action::CheckComps;
 
-use base qw(Test Test::Action);
+use base qw(Test::Siebel::Srvrmgr Test::Siebel::Srvrmgr::Action);
 use Test::Most;
 use Siebel::Srvrmgr::ListParser;
 use Siebel::Srvrmgr::Daemon::Action::CheckComps;
 use Siebel::Srvrmgr::ListParser::Output::ListComp::Server;
-use Test::Action::CheckComps::Server;
-use Test::Action::CheckComps::Component;
+use Test::Siebel::Srvrmgr::Action::CheckComps::Server;
+use Test::Siebel::Srvrmgr::Action::CheckComps::Component;
 
 sub class { 'Siebel::Srvrmgr::Daemon::Action::CheckComps' }
 
@@ -15,7 +15,7 @@ sub startup : Tests(startup => +2) {
     my $test = shift;
 
     # applying roles as expected by Siebel::Srvrmgr::Daemon::Action::CheckComps
-    my $comp1 = Test::Action::CheckComps::Component->new(
+    my $comp1 = Test::Siebel::Srvrmgr::Action::CheckComps::Component->new(
         {
             name           => 'SynchMgr',
             description    => 'foobar',
@@ -24,7 +24,7 @@ sub startup : Tests(startup => +2) {
             criticality    => 5
         }
     );
-    my $comp2 = Test::Action::CheckComps::Component->new(
+    my $comp2 = Test::Siebel::Srvrmgr::Action::CheckComps::Component->new(
         {
             name           => 'WfProcMgr',
             description    => 'foobar',
@@ -42,7 +42,7 @@ sub startup : Tests(startup => +2) {
             {
                 parser => $parser,
                 params => [
-                    Test::Action::CheckComps::Server->new(
+                    Test::Siebel::Srvrmgr::Action::CheckComps::Server->new(
                         {
                             name       => 'sieb_foobar',
                             components => [ $comp1, $comp2 ]
@@ -59,7 +59,7 @@ sub startup : Tests(startup => +2) {
             {
                 parser => $parser,
                 params => [
-                    Test::Action::CheckComps::Server->new(
+                    Test::Siebel::Srvrmgr::Action::CheckComps::Server->new(
                         { name => 'foobar', components => [ $comp1, $comp2 ] }
                     )
                 ]

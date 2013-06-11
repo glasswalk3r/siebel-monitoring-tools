@@ -1,8 +1,8 @@
-package Test::Server;
+package Test::Siebel::Srvrmgr::Server;
 
 use Test::Most;
 use Test::Moose qw(has_attribute_ok);
-use base 'Test';
+use base 'Test::Siebel::Srvrmgr';
 use Siebel::Srvrmgr::ListParser::Output::ListComp;
 
 sub class { 'Siebel::Srvrmgr::ListParser::Output::ListComp::Server' }

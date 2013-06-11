@@ -1,4 +1,4 @@
-package Test::Action;
+package Test::Siebel::Srvrmgr::Action;
 
 use Test::Most;
 use Siebel::Srvrmgr::ListParser;

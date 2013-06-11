@@ -1,8 +1,8 @@
-package Test::ListParser;
+package Test::Siebel::Srvrmgr::ListParser;
 
 use Test::Most;
 use Test::Moose 'has_attribute_ok';
-use base 'Test';
+use base 'Test::Siebel::Srvrmgr';
 
 sub class { 'Siebel::Srvrmgr::ListParser' }
 

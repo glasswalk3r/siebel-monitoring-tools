@@ -1,4 +1,4 @@
 use lib 't';
-use Test::ActionStash;
+use Test::Siebel::Srvrmgr::ActionStash;
 
 Test::Class->runtests;

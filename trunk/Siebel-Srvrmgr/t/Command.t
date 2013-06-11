@@ -1,4 +1,4 @@
 use lib 't';
-use Test::Command;
+use Test::Siebel::Srvrmgr::Command;
 
 Test::Class->runtests;

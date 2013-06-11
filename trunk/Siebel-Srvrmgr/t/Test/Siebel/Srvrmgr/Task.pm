@@ -1,8 +1,8 @@
-package Test::Task;
+package Test::Siebel::Srvrmgr::Task;
 
 use Test::Most;
 use Test::Moose;
-use base 'Test';
+use base 'Test::Siebel::Srvrmgr';
 
 sub class { 'Siebel::Srvrmgr::ListParser::Output::ListTasks::Task' }
 

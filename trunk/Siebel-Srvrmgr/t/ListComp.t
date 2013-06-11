@@ -1,4 +1,4 @@
 use lib 't';
-use Test::ListComp;
+use Test::Siebel::Srvrmgr::ListComp;
 
 Test::Class->runtests;

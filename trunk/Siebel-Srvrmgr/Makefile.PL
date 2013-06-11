@@ -29,7 +29,6 @@ my %config = (
         'Test::Most'          => 0.25,
         'Test::Pod'           => 1.22,
         'Test::Pod::Coverage' => 1.08,
-        'Test::Output'        => 1.01,
         'Test::Class'         => 0.36,
         'Test::Moose'         => 2.0801
     },

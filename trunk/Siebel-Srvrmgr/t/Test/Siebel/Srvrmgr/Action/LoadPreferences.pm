@@ -1,7 +1,7 @@
-package Test::Action::LoadPreferences;
+package Test::Siebel::Srvrmgr::Action::LoadPreferences;
 
 # :WARNING   :07/06/2013 17:39:55:: subclasses of Test::Action must "use base" Test::ReadMyself first due get_my_data method
-use base qw(Test Test::Action);
+use base qw(Test::Siebel::Srvrmgr Test::Siebel::Srvrmgr::Action);
 use Test::Most;
 use Siebel::Srvrmgr::ListParser;
 

@@ -1,8 +1,8 @@
-package Test::ActionFactory;
+package Test::Siebel::Srvrmgr::ActionFactory;
 
 use Test::Most;
 use Siebel::Srvrmgr::ListParser;
-use base 'Test';
+use base 'Test::Siebel::Srvrmgr';
 
 sub class { 'Siebel::Srvrmgr::Daemon::ActionFactory' }
 

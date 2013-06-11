@@ -1,4 +1,4 @@
 use lib 't';
-use Test::Server;
+use Test::Siebel::Srvrmgr::Server;
 
 Test::Class->runtests;

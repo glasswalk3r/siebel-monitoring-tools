@@ -1,4 +1,4 @@
 use lib 't';
-use Test::Buffer;
+use Test::Siebel::Srvrmgr::Buffer;
 
 Test::Class->runtests;

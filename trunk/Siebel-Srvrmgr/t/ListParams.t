@@ -1,4 +1,4 @@
 use lib 't';
-use Test::ListParams;
+use Test::Siebel::Srvrmgr::ListParams;
 
 Test::Class->runtests;

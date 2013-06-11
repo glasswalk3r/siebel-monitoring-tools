@@ -1,7 +1,7 @@
-package Test::Greetings;
+package Test::Siebel::Srvrmgr::Greetings;
 
 use Test::Most;
-use base 'Test';
+use base 'Test::Siebel::Srvrmgr';
 use Test::Moose 'has_attribute_ok';
 
 sub class { 'Siebel::Srvrmgr::ListParser::Output::Greetings' }

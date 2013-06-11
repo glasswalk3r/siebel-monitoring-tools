@@ -1,5 +1,5 @@
 use lib 't';
-use Test::Daemon::RunBlocked;
+use Test::Siebel::Srvrmgr::Daemon::RunBlocked;
 use Siebel::Srvrmgr::Daemon;
 
 Test::Class->runtests;

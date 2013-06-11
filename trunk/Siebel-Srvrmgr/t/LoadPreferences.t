@@ -1,4 +1,4 @@
 use lib 't';
-use Test::LoadPreferences;
+use Test::Siebel::Srvrmgr::LoadPreferences;
 
 Test::Class->runtests;

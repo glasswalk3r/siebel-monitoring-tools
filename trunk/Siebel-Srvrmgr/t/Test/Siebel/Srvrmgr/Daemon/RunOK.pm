@@ -1,8 +1,8 @@
-package Test::Daemon::RunOK;
+package Test::Siebel::Srvrmgr::Daemon::RunOK;
 
 use Test::More;
 use Cwd;
-use base 'Test::Daemon';
+use base 'Test::Siebel::Srvrmgr::Daemon';
 
 sub class_exec_processing : Test(+1) {
 

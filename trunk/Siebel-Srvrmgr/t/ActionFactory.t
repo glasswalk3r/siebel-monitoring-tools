@@ -1,4 +1,4 @@
 use lib 't';
-use Test::ActionFactory;
+use Test::Siebel::Srvrmgr::ActionFactory;
 
 Test::Class->runtests;

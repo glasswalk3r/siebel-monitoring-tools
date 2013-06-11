@@ -1,9 +1,9 @@
-package Test::ActionStash;
+package Test::Siebel::Srvrmgr::ActionStash;
 
 use Test::Most;
 use Siebel::Srvrmgr::ListParser;
 use Test::Moose 'has_attribute_ok';
-use base 'Test';
+use base 'Test::Siebel::Srvrmgr';
 
 sub class { 'Siebel::Srvrmgr::Daemon::ActionStash' }
 
