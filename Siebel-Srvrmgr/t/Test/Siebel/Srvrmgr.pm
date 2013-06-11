@@ -1,4 +1,4 @@
-package Test;
+package Test::Siebel::Srvrmgr;
 
 use base qw(Test::Class);
 

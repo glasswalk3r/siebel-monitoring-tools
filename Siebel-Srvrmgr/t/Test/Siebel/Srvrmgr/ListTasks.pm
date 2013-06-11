@@ -1,9 +1,9 @@
-package Test::ListTasks;
+package Test::Siebel::Srvrmgr::ListTasks;
 
 use Test::Most;
 use Siebel::Srvrmgr::ListParser::Output::ListTasks::Task;
 use Siebel::Srvrmgr::ListParser::Output::ListTasks;
-use base qw(Test);
+use base qw(Test::Siebel::Srvrmgr);
 
 sub class { 'Siebel::Srvrmgr::ListParser::Output::ListTasks' }
 

@@ -1,10 +1,10 @@
-package Test::Daemon;
+package Test::Siebel::Srvrmgr::Daemon;
 
 use Cwd;
 use Test::Most;
 use File::Spec;
 use Test::Moose 'has_attribute_ok';
-use base 'Test';
+use base 'Test::Siebel::Srvrmgr';
 
 sub class { 'Siebel::Srvrmgr::Daemon' }
 

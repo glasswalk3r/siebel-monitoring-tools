@@ -1,8 +1,8 @@
-package Test::LoadPreferences;
+package Test::Siebel::Srvrmgr::LoadPreferences;
 
 use Test::Most;
 use Test::Moose qw(has_attribute_ok);
-use base qw(Test::Class Test);
+use base qw(Test::Siebel::Srvrmgr);
 
 sub class { 'Siebel::Srvrmgr::ListParser::Output::LoadPreferences' }
 

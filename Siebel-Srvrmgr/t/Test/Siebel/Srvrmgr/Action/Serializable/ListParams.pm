@@ -1,6 +1,6 @@
-package Test::Action::ListParams;
+package Test::Siebel::Srvrmgr::Action::ListParams;
 
-use base 'Test::Action::Serializable';
+use base 'Test::Siebel::Srvrmgr::Action::Serializable';
 use Test::Most;
 use Siebel::Srvrmgr::ListParser;
 use Storable;

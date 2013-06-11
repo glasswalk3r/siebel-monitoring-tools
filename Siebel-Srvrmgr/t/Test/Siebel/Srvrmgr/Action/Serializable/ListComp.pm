@@ -1,7 +1,7 @@
-package Test::Action::Serializable::ListComp;
+package Test::Siebel::Srvrmgr::Action::Serializable::ListComp;
 
 use utf8;
-use base 'Test::Action::Serializable';
+use base 'Test::Siebel::Srvrmgr::Action::Serializable';
 use Test::Most;
 use Siebel::Srvrmgr::ListParser;
 use Siebel::Srvrmgr::ListParser::Output::ListComp::Server;

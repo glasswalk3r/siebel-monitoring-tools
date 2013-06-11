@@ -1,7 +1,7 @@
-package Test::ListCompTypes;
+package Test::Siebel::Srvrmgr::ListCompTypes;
 
 use Test::Most;
-use base 'Test';
+use base 'Test::Siebel::Srvrmgr';
 
 sub class { 'Siebel::Srvrmgr::ListParser::Output::ListCompTypes' }
 

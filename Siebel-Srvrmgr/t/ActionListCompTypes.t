@@ -1,4 +1,4 @@
 use lib 't';
-use Test::Action::Serializable::ListCompDef;
+use Test::Siebel::Srvrmgr::Action::Serializable::ListCompDef;
 
 Test::Class->runtests;

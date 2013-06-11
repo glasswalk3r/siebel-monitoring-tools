@@ -1,8 +1,8 @@
-package Test::Daemon::RunBlocked;
+package Test::Siebel::Srvrmgr::Daemon::RunBlocked;
 
 use Test::Most;
 use Config;
-use base 'Test::Daemon';
+use base 'Test::Siebel::Srvrmgr::Daemon';
 
 sub class_run : Test(+1) {
 

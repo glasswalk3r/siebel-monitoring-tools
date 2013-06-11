@@ -1,4 +1,4 @@
 use lib 't';
-use Test::OutputFactory;
+use Test::Siebel::Srvrmgr::OutputFactory;
 
 Test::Class->runtests;

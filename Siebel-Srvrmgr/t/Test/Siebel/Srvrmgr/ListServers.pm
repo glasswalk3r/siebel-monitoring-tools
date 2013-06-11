@@ -1,7 +1,7 @@
-package Test::ListServers;
+package Test::Siebel::Srvrmgr::ListServers;
 
 use Test::Most;
-use base 'Test';
+use base 'Test::Siebel::Srvrmgr';
 
 sub class { 'Siebel::Srvrmgr::ListParser::Output::ListServers' }
 
