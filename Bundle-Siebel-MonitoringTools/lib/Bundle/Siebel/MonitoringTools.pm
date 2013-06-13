@@ -43,6 +43,8 @@ None by default.
 	Config::Tiny [2.14]
 	DBD::ODBC [1.43]
 	DBI [1.623]
+	Term::Pulse [0.04]
+	XML::Rabbit [0.3]
 
 =head1 SEE ALSO
 

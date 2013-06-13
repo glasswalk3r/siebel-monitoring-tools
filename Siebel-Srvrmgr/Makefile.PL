@@ -32,6 +32,7 @@ my %config = (
         'Test::Class'         => 0.36,
         'Test::Moose'         => 2.0801
     },
+	EXE_FILES => ['srvrmgr-mock.pl'], 
     META_MERGE => {
         resources => {
             license  => 'http://www.gnu.org/licenses/gpl.txt',
