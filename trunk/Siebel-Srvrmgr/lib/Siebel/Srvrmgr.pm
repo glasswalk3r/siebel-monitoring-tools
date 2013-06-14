@@ -52,7 +52,7 @@ Logging is quite flexible (see L<Log::Log4Perl> for details) but the default con
 
 The classes below might give you a introduction of the available classes and features.
 
-=over 2
+=over 3
 
 =item *
 
@@ -61,6 +61,10 @@ L<Siebel::Srvrmgr::Daemon>
 =item *
 
 L<Siebel::Srvrmgr::ListParser>
+
+=item *
+
+The project web page at L<http://code.google.com/p/siebel-monitoring-tools/> contains more information about project features and state.
 
 =back
 
