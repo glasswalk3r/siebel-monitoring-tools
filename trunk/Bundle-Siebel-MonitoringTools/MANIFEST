@@ -1,6 +1,5 @@
-Changes
+lib/Bundle/Siebel/MonitoringTools.pm
 Makefile.PL
-MANIFEST
+MANIFEST			This list of files
 README
 t/Bundle-Siebel-MonitoringTools.t
-lib/Bundle/Siebel/MonitoringTools.pm
