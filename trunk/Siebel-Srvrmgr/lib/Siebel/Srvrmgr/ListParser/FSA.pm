@@ -15,7 +15,7 @@ sub get_fsa {
     my $ls_servers_regex   = qr/list\sserver(s)?.*/;
     my $ls_comp_defs_regex = qr/list\scomp\sdefs?(\s\w+)?/;
 
-    my $fsa = FSA::Rules->new(
+    return FSA::Rules->new(
         no_data => {
             do => sub {
                 $logger->debug('Searching for useful data');
@@ -439,8 +439,6 @@ sub get_fsa {
             message => 'command submitted'
         }
     );
-
-    return $fsa;
 
 }
 

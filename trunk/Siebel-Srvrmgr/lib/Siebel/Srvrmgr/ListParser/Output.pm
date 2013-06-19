@@ -263,6 +263,7 @@ sub parse {
 
             when ($line_header_regex) { # this is the '-------' below the header
 
+ # :TODO      :17/06/2013 14:02:51:: should use default field separator attribute here
                 my @columns = split( /\s{2}/, $line );
 
                 my $pattern;

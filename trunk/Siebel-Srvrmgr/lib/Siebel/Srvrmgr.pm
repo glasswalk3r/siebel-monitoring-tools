@@ -2,7 +2,7 @@ package Siebel::Srvrmgr;
 use warnings;
 use strict;
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 sub logging_cfg {
 

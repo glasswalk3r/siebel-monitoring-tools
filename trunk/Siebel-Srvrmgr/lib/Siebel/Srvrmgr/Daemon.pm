@@ -82,6 +82,7 @@ use feature qw(say);
 use Log::Log4perl;
 use Siebel::Srvrmgr;
 use Data::Dumper;
+use Scalar::Util qw(weaken);
 
 my $cfg = Siebel::Srvrmgr->logging_cfg();
 
@@ -89,6 +90,7 @@ die "Could not start logging facilities"
   unless ( Log::Log4perl->init_once( \$cfg ) );
 
 our $logger = Log::Log4perl->get_logger('Siebel::Srvrmgr::Daemon');
+weaken($logger);
 
 # variables below exist to deal with requested termination of the program gracefully
 $SIG{INT}  = \&_term_INT;
@@ -512,6 +514,9 @@ method will issue an warning message and immediatly returns false.
 
 Those operations will be executed in a loop as long the C<check> method from the class L<Siebel::Srvrmgr::Daemon::Condition> returns true.
 
+Beware that Siebel::Srvrmgr::Daemon uses a B<single instance> of a L<Siebel::Srvrmgr::ListParser> class to process the parsing requests, so it is not possible
+to execute L<Siebel::Srvrmgr::Daemon::Command> instances in parallel.
+
 =cut
 
 # :WORKAROUND:10/05/2013 15:23:52:: using a state machine with FSA::Rules is difficult here because it is necessary to loop over output from
@@ -604,6 +609,7 @@ sub run {
     my $rdr = $self->get_read();
 
     my $read_timeout = 10;
+    my $parser       = Siebel::Srvrmgr::ListParser->new();
 
     do {
 
@@ -735,7 +741,7 @@ sub run {
                     }
 
 # this is specific for load preferences response since it may contain the prompt string (Siebel 7.5.3.17)
-                    if ($line =~ /$load_pref_regex/) {
+                    if ( $line =~ /$load_pref_regex/ ) {
 
                         push( @input_buffer, $line );
                         syswrite $self->get_write(), "\n";
@@ -785,7 +791,7 @@ sub run {
             my $action = Siebel::Srvrmgr::Daemon::ActionFactory->create(
                 $class,
                 {
-                    parser => Siebel::Srvrmgr::ListParser->new(),
+                    parser => weaken($parser),
                     params => \@params
 
                 }
@@ -838,6 +844,11 @@ sub run {
                   if ( $logger->is_debug() );
 
             }
+
+            # for better security
+            $logger->logdie(
+                "Insecure command from command stack [$cmd]. Execution aborted")
+              unless ( ( $cmd =~ /^load/ ) or ( $cmd =~ /^list/ ) );
 
             syswrite $self->get_write(), "$cmd\n";
 
@@ -1032,7 +1043,7 @@ L<IPC::Cmd> looks like to a portable solution for those problems but that was no
 
 =head1 SEE ALSO
 
-=over 7
+=over 8
 
 =item *
 
@@ -1045,6 +1056,10 @@ L<Moose>
 =item *
 
 L<Siebel::Srvrmgr::Daemon::Condition>
+
+=item *
+
+L<Siebel::Srvrmgr::Daemon::Command>
 
 =item *
 
