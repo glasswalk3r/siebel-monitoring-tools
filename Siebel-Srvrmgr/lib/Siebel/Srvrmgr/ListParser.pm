@@ -18,10 +18,10 @@ use Moose;
 use Siebel::Srvrmgr::ListParser::OutputFactory;
 use Siebel::Srvrmgr::ListParser::Buffer;
 use Siebel::Srvrmgr::Regexes qw(SRVRMGR_PROMPT CONN_GREET);
-use Scalar::Util qw(weaken);
 use Siebel::Srvrmgr;
 use Log::Log4perl;
 use Siebel::Srvrmgr::ListParser::FSA;
+use Scalar::Util qw(weaken);
 
 =pod
 
@@ -430,6 +430,7 @@ sub parse {
       unless ( Log::Log4perl->init_once( \$log_cfg ) );
 
     my $logger = Log::Log4perl->get_logger('Siebel::Srvrmgr::ListParser');
+	weaken($logger);
 
     die "data parameter must be an array reference\n"
       unless ( ref($data_ref) eq 'ARRAY' );
@@ -437,9 +438,11 @@ sub parse {
     warn "received an empty buffer" unless ( @{$data_ref} );
 
     my $fsa = Siebel::Srvrmgr::ListParser::FSA->get_fsa($logger);
+	weaken($fsa);
 
     $fsa->done( sub { ( $self->get_last_command() eq 'exit' ) ? 1 : 0 } );
 
+ # :TODO      :17/06/2013 14:24:41:: fix this
     # creates a image representing all the states used and their relationship
 #    if ( $logger->is_debug() ) {
 #
@@ -458,7 +461,6 @@ sub parse {
             $state = $fsa->start();
 
             $state->notes( parser => $self );
-            weaken( $state->notes('parser') );
 
         }
 
@@ -479,7 +481,32 @@ sub parse {
 
     }
 
+ # :WORKAROUND:17/06/2013 21:31:10:: forcing to destroy references dues memory leak
+	$state->notes(parser => undef);
+	$state->DESTROY();
+	$fsa->DESTROY();
+	undef $fsa;
+
+	undef $data_ref;
+    undef $log_cfg;
+
     return 1;
+
+}
+
+=head2 DEMOLISH
+
+Due issues with memory leak and garbage collectioning, DEMOLISH was implemented to call additional methods from the API to clean buffer and parsed tree
+data.
+
+=cut
+
+sub DEMOLISH {
+
+	my $self = shift;
+
+	$self->clear_buffer();
+	$self->clear_parsed_tree();
 
 }
 
