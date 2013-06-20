@@ -12,7 +12,7 @@ sub startup : Tests(startup => 2) {
 
     my $test = shift;
 
-    my $cmd = File::Spec->catfile( getcwd(), 't', 'srvrmgr-mock.pl' );
+    my $cmd = File::Spec->catfile( getcwd(), 'srvrmgr-mock.pl' );
 
 # this data structure will make more sense when saw in use by the following foreach loop
     $test->{test_data} = [
