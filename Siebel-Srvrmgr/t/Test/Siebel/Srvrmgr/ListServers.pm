@@ -3,8 +3,6 @@ package Test::Siebel::Srvrmgr::ListServers;
 use Test::Most;
 use base 'Test::Siebel::Srvrmgr';
 
-sub class { 'Siebel::Srvrmgr::ListParser::Output::ListServers' }
-
 sub startup : Tests(startup => 1) {
 
     my $test = shift;

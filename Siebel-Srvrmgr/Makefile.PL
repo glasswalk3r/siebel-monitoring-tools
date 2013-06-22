@@ -25,14 +25,15 @@ my %config = (
         'YAML::Syck'                   => 1.25
     },
     BUILD_REQUIRES => {
-        'Test::Exception'     => 0.27,
-        'Test::Most'          => 0.25,
-        'Test::Pod'           => 1.22,
-        'Test::Pod::Coverage' => 1.08,
-        'Test::Class'         => 0.36,
-        'Test::Moose'         => 2.0801
+        'Test::Exception'          => 0.27,
+        'Test::Most'               => 0.25,
+        'Test::Pod'                => 1.22,
+        'Test::Pod::Coverage'      => 1.08,
+        'Test::Class'              => 0.36,
+        'Test::Moose'              => 2.0801,
+        'Class::Data::Inheritable' => 0.08
     },
-	EXE_FILES => ['srvrmgr-mock.pl'], 
+    EXE_FILES  => ['srvrmgr-mock.pl'],
     META_MERGE => {
         resources => {
             license  => 'http://www.gnu.org/licenses/gpl.txt',

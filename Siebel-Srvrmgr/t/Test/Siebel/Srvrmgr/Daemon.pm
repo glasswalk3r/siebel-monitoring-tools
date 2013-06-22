@@ -6,8 +6,6 @@ use File::Spec;
 use Test::Moose 'has_attribute_ok';
 use base 'Test::Siebel::Srvrmgr';
 
-sub class { 'Siebel::Srvrmgr::Daemon' }
-
 sub startup : Tests(startup => 2) {
 
     my $test = shift;

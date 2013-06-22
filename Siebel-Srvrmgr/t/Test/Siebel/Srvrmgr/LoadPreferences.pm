@@ -4,8 +4,6 @@ use Test::Most;
 use Test::Moose qw(has_attribute_ok);
 use base qw(Test::Siebel::Srvrmgr);
 
-sub class { 'Siebel::Srvrmgr::ListParser::Output::LoadPreferences' }
-
 sub startup : Tests(startup => 1) {
 
     my $test = shift;

@@ -3,8 +3,6 @@ package Test::Siebel::Srvrmgr::OutputFactory;
 use Test::Most;
 use base 'Test::Siebel::Srvrmgr';
 
-sub class { 'Siebel::Srvrmgr::ListParser::OutputFactory' }
-
 sub startup : Tests(startup => 1) {
     my $test = shift;
     use_ok $test->class;

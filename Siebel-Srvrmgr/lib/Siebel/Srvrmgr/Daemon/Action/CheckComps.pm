@@ -208,8 +208,8 @@ override 'do' => sub {
                             else {
 
                                 confess
-                                  'Could not find any component with name ',
-                                  $exp_comp->{name}, "\n"
+                                  'Could not find any component with name [',
+                                  $exp_comp->name() . ']'; 
 
                             }
 

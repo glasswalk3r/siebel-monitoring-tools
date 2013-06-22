@@ -5,8 +5,6 @@ use Siebel::Srvrmgr::ListParser;
 use Test::Moose 'has_attribute_ok';
 use base 'Test::Siebel::Srvrmgr';
 
-sub class { 'Siebel::Srvrmgr::Daemon::Condition' }
-
 sub startup : Tests(startup => 1) {
     my $test = shift;
     use_ok $test->class;

@@ -4,8 +4,6 @@ use Test::Most;
 use base 'Test::Siebel::Srvrmgr';
 use Test::Moose 'has_attribute_ok';
 
-sub class { 'Siebel::Srvrmgr::ListParser::Output::Greetings' }
-
 sub startup : Tests(startup => 1) {
     my $test = shift;
     use_ok $test->class;

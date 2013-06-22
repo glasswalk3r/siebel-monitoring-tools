@@ -202,7 +202,8 @@ sub set_last_command {
     my $self = shift;
     my $cmd  = shift;
 
-    # trigger for set_buffer method
+# trigger for set_buffer method
+# :TODO      :21/06/2013 20:58:40:: verify if Moose trigger is not enough for this case
     $self->is_cmd_changed(1);
 
     $self->_set_last_command($cmd);
@@ -222,11 +223,13 @@ sub set_buffer {
     my $self  = shift;
     my $state = shift;
 
+    # :TODO      :21/06/2013 20:39:35:: enable usage of Log::Log4perl here
+
     if ( defined( $state->notes('line') ) ) {
 
         my $buffer_ref = $self->get_buffer();
 
-# already has something, get the last one (only if the log file is valid this will work)
+        # already has something, get the last one
         if ( scalar( @{$buffer_ref} ) >= 1 ) {
 
             my $last_buffer = $buffer_ref->[ $#{$buffer_ref} ];
@@ -430,7 +433,7 @@ sub parse {
       unless ( Log::Log4perl->init_once( \$log_cfg ) );
 
     my $logger = Log::Log4perl->get_logger('Siebel::Srvrmgr::ListParser');
-	weaken($logger);
+    weaken($logger);
 
     die "data parameter must be an array reference\n"
       unless ( ref($data_ref) eq 'ARRAY' );
@@ -438,18 +441,18 @@ sub parse {
     warn "received an empty buffer" unless ( @{$data_ref} );
 
     my $fsa = Siebel::Srvrmgr::ListParser::FSA->get_fsa($logger);
-	weaken($fsa);
+    weaken($fsa);
 
     $fsa->done( sub { ( $self->get_last_command() eq 'exit' ) ? 1 : 0 } );
 
- # :TODO      :17/06/2013 14:24:41:: fix this
+    # :TODO      :17/06/2013 14:24:41:: fix this
     # creates a image representing all the states used and their relationship
-#    if ( $logger->is_debug() ) {
-#
-#        my $graph = $fsa->graph( layout => 'neato', overlap => 'false' );
-#        $graph->as_png('pretty.png');
-#
-#    }
+    #    if ( $logger->is_debug() ) {
+    #
+    #        my $graph = $fsa->graph( layout => 'neato', overlap => 'false' );
+    #        $graph->as_png('pretty.png');
+    #
+    #    }
 
     my $state;
     my $line_number = 0;
@@ -481,14 +484,19 @@ sub parse {
 
     }
 
- # :WORKAROUND:17/06/2013 21:31:10:: forcing to destroy references dues memory leak
-	$state->notes(parser => undef);
-	$state->DESTROY();
-	$fsa->DESTROY();
-	undef $fsa;
+# :WORKAROUND:17/06/2013 21:31:10:: forcing to destroy references dues memory leak
+    $state->notes( parser => undef );
+    $state->DESTROY();
+    $fsa->DESTROY();
+    undef $fsa;
 
-	undef $data_ref;
+    undef $data_ref;
     undef $log_cfg;
+
+# :WORKAROUND:21/06/2013 20:36:08:: if parse method is called twice, without calling clear_buffer, the buffer will be reused
+# and the returned data will be invalid due removal of the last three lines by Siebel::Srvrmgr::ListParser::Output->parse
+# This also should help with memory utilization
+    $self->clear_buffer();
 
     return 1;
 
@@ -503,10 +511,10 @@ data.
 
 sub DEMOLISH {
 
-	my $self = shift;
+    my $self = shift;
 
-	$self->clear_buffer();
-	$self->clear_parsed_tree();
+    $self->clear_buffer();
+    $self->clear_parsed_tree();
 
 }
 

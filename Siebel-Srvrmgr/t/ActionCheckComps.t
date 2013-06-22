@@ -1,4 +1,4 @@
 use lib 't';
-use Test::Siebel::Srvrmgr::Action::CheckComps;
+use Test::Siebel::Srvrmgr::Daemon::Action::CheckComps;
 
 Test::Class->runtests;

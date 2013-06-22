@@ -5,8 +5,6 @@ use Test::Moose 'has_attribute_ok';
 use base 'Test::Siebel::Srvrmgr';
 use Siebel::Srvrmgr::ListParser::Output::ListComp;
 
-sub class { 'Siebel::Srvrmgr::ListParser::Output::ListComp::Comp' }
-
 sub startup : Tests(startup => 1) {
 
     my $test = shift;

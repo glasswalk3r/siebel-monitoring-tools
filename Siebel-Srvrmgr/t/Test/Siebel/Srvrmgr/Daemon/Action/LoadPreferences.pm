@@ -1,11 +1,9 @@
-package Test::Siebel::Srvrmgr::Action::LoadPreferences;
+package Test::Siebel::Srvrmgr::Daemon::Action::LoadPreferences;
 
 # :WARNING   :07/06/2013 17:39:55:: subclasses of Test::Action must "use base" Test::ReadMyself first due get_my_data method
-use base qw(Test::Siebel::Srvrmgr Test::Siebel::Srvrmgr::Action);
+use base qw(Test::Siebel::Srvrmgr Test::Siebel::Srvrmgr::Daemon::Action);
 use Test::Most;
 use Siebel::Srvrmgr::ListParser;
-
-sub class { 'Siebel::Srvrmgr::Daemon::Action::LoadPreferences' }
 
 sub startup : Tests(startup => +1) {
     my $test = shift;
