@@ -1,6 +1,6 @@
-package Test::Siebel::Srvrmgr::Action::Serializable;
+package Test::Siebel::Srvrmgr::Daemon::Action::Serializable;
 
-use base qw(Test::Siebel::Srvrmgr Test::Siebel::Srvrmgr::Action);
+use base qw(Test::Siebel::Srvrmgr Test::Siebel::Srvrmgr::Daemon::Action);
 use Test::Most;
 
 sub get_dump {
@@ -18,11 +18,12 @@ sub get_my_data {
 
     my $test = shift;
 
-# :WORKAROUND:07/06/2013 16:02:18:: the superclass will get a reference of Test::Action::Serializable, but we have no DATA section here
-# so it's better to return the parents'
-    if ( ref($test) eq 'Test::Siebel::Srvrmgr::Action::Serializable' ) {
+# :WORKAROUND:07/06/2013 16:02:18:: the superclass will get a reference of Test::Action::Serializable, but since there is no DATA section there
+# it's better to return the parents'
+    if ( ref($test) eq 'Test::Siebel::Srvrmgr::Daemon::Action::Serializable' ) {
 
-        return Test::Siebel::Srvrmgr::Action::get_my_data;    # abstract method
+        return
+          Test::Siebel::Srvrmgr::Daemon::Action::get_my_data;  # abstract method
 
     }
 

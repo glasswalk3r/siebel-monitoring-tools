@@ -4,14 +4,7 @@ use Test::Most;
 use Test::Moose 'has_attribute_ok';
 use base 'Test::Siebel::Srvrmgr';
 
-sub class { 'Siebel::Srvrmgr::ListParser' }
-
-sub startup : Tests(startup => 1) {
-    my $test = shift;
-    use_ok $test->class;
-}
-
-sub constructor : Tests(15) {
+sub constructor : Tests(18) {
 
     my $test  = shift;
     my $class = $test->class;
@@ -19,12 +12,21 @@ sub constructor : Tests(15) {
     can_ok( $class, 'new' );
 
     #extended method tests
-    can_ok( $class,
-        qw(get_parsed_tree get_prompt_regex set_prompt_regex get_hello_regex set_hello_regex get_last_command is_cmd_changed set_last_command set_buffer clear_buffer count_parsed clear_parsed_tree set_parsed_tree append_output parse)
+    can_ok(
+        $class,
+        (
+            'get_parsed_tree',  'get_prompt_regex',
+            'set_prompt_regex', 'get_hello_regex',
+            'set_hello_regex',  'get_last_command',
+            'is_cmd_changed',   'set_last_command',
+            'set_buffer',       'clear_buffer',
+            'count_parsed',     'clear_parsed_tree',
+            'set_parsed_tree',  'append_output',
+            'parse',            'get_buffer'
+        )
     );
 
-    ok( my $parser = $class->new( { is_warn_enabled => 1 } ),
-        '... and the constructor should succeed' );
+    ok( my $parser = $class->new(), '... and the constructor should succeed' );
 
     has_attribute_ok( $parser, 'parsed_tree' );
     has_attribute_ok( $parser, 'has_tree' );
@@ -36,7 +38,21 @@ sub constructor : Tests(15) {
 
     isa_ok( $parser, $class, '... and the object it returns' );
 
+    is(
+        ref( $parser->get_buffer() ),
+        ref( [] ),
+        'get_buffer returns an array reference'
+    );
+
     ok( $parser->parse( $test->get_my_data() ), 'parse method works' );
+
+    is(
+        scalar( @{ $parser->get_buffer() } ),
+        scalar( @{ [] } ),
+        'calling parse method automatically resets the buffer'
+    );
+
+    ok( $parser->clear_buffer(), 'clear_buffer method works' );
 
     ok( $parser->has_tree, 'the parser has a parsed tree' );
 

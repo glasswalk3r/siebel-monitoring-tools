@@ -5,8 +5,6 @@ use Siebel::Srvrmgr::ListParser::Output::ListTasks::Task;
 use Siebel::Srvrmgr::ListParser::Output::ListTasks;
 use base qw(Test::Siebel::Srvrmgr);
 
-sub class { 'Siebel::Srvrmgr::ListParser::Output::ListTasks' }
-
 sub startup : Tests(startup => 2) {
 
     my $test = shift;

@@ -791,7 +791,7 @@ sub run {
             my $action = Siebel::Srvrmgr::Daemon::ActionFactory->create(
                 $class,
                 {
-                    parser => weaken($parser),
+                    parser => $parser,
                     params => \@params
 
                 }

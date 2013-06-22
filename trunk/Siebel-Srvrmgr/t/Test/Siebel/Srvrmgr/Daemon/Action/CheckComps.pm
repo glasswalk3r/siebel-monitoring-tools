@@ -1,21 +1,21 @@
-package Test::Siebel::Srvrmgr::Action::CheckComps;
+package Test::Siebel::Srvrmgr::Daemon::Action::CheckComps;
 
-use base qw(Test::Siebel::Srvrmgr Test::Siebel::Srvrmgr::Action);
+use base qw(Test::Siebel::Srvrmgr Test::Siebel::Srvrmgr::Daemon::Action);
 use Test::Most;
 use Siebel::Srvrmgr::ListParser;
 use Siebel::Srvrmgr::Daemon::Action::CheckComps;
 use Siebel::Srvrmgr::ListParser::Output::ListComp::Server;
-use Test::Siebel::Srvrmgr::Action::CheckComps::Server;
-use Test::Siebel::Srvrmgr::Action::CheckComps::Component;
+use Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Server;
+use Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Component;
 
-sub class { 'Siebel::Srvrmgr::Daemon::Action::CheckComps' }
-
-sub startup : Tests(startup => +2) {
+# must override parent method
+sub before : Test(setup) {
 
     my $test = shift;
 
     # applying roles as expected by Siebel::Srvrmgr::Daemon::Action::CheckComps
-    my $comp1 = Test::Siebel::Srvrmgr::Action::CheckComps::Component->new(
+    my $comp1 =
+      Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Component->new(
         {
             name           => 'SynchMgr',
             description    => 'foobar',
@@ -23,8 +23,9 @@ sub startup : Tests(startup => +2) {
             OKStatus       => 'Running',
             criticality    => 5
         }
-    );
-    my $comp2 = Test::Siebel::Srvrmgr::Action::CheckComps::Component->new(
+      );
+    my $comp2 =
+      Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Component->new(
         {
             name           => 'WfProcMgr',
             description    => 'foobar',
@@ -32,54 +33,54 @@ sub startup : Tests(startup => +2) {
             OKStatus       => 'Running',
             criticality    => 5
         }
-    );
+      );
 
     # should be able to reuse the same parser if there is no concurrency
     my $parser = Siebel::Srvrmgr::ListParser->new();
 
-    ok(
-        $test->{action} = $test->class()->new(
-            {
-                parser => $parser,
-                params => [
-                    Test::Siebel::Srvrmgr::Action::CheckComps::Server->new(
-                        {
-                            name       => 'sieb_foobar',
-                            components => [ $comp1, $comp2 ]
-                        }
-                    )
-                ]
-            }
-        ),
-        'the constructor should succeed'
+    $test->{action} = $test->class()->new(
+        {
+            parser => $parser,
+            params => [
+                Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Server->new(
+                    {
+                        name       => 'sieb_foobar',
+                        components => [ $comp1, $comp2 ]
+                    }
+                )
+            ]
+        }
     );
 
-    ok(
-        $test->{action2} = $test->class()->new(
-            {
-                parser => $parser,
-                params => [
-                    Test::Siebel::Srvrmgr::Action::CheckComps::Server->new(
-                        { name => 'foobar', components => [ $comp1, $comp2 ] }
-                    )
-                ]
-            }
-        ),
-        'the constructor should succeed'
+    $test->{action2} = $test->class()->new(
+        {
+            parser => $parser,
+            params => [
+                Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Server->new(
+                    { name => 'foobar', components => [ $comp1, $comp2 ] }
+                )
+            ]
+        }
     );
 
 }
 
-sub class_methods : Tests(+3) {
+sub constructor : Tests(+2) {
 
     my $test = shift;
 
-    my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
+    ok( $test->{action2}, 'the other constructor should succeed' );
+    isa_ok( $test->{action2}, $test->class() );
 
-    ok(
-        $test->{action}->do( $test->get_my_data() ),
-        'do() can process the input data'
-    );
+}
+
+sub class_methods : Tests(+2) {
+
+    my $test = shift;
+
+	$test->SUPER::class_methods;
+
+    my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
 
     # data expected to be returned from the stash
     is_deeply(

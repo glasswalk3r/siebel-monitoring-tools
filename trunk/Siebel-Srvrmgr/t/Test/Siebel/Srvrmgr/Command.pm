@@ -5,8 +5,6 @@ use Test::Moose 'has_attribute_ok';
 use base 'Test::Siebel::Srvrmgr';
 use Siebel::Srvrmgr::Daemon::Command;
 
-sub class { 'Siebel::Srvrmgr::Daemon::Command' }
-
 sub startup : Tests(startup => 1) {
 
     my $test = shift;

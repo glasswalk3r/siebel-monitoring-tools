@@ -4,8 +4,6 @@ use Test::Most;
 use Test::Moose;
 use base 'Test::Siebel::Srvrmgr';
 
-sub class { 'Siebel::Srvrmgr::ListParser::Output::ListTasks::Task' }
-
 sub startup : Tests(startup => 1) {
 
     my $test = shift;

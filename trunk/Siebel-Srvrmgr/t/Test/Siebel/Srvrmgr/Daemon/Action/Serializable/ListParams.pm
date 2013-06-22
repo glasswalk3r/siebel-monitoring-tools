@@ -1,11 +1,9 @@
-package Test::Siebel::Srvrmgr::Action::ListParams;
+package Test::Siebel::Srvrmgr::Daemon::Action::ListParams;
 
-use base 'Test::Siebel::Srvrmgr::Action::Serializable';
+use base 'Test::Siebel::Srvrmgr::Daemon::Action::Serializable';
 use Test::Most;
 use Siebel::Srvrmgr::ListParser;
 use Storable;
-
-sub class { 'Siebel::Srvrmgr::Daemon::Action::ListParams' }
 
 sub recover_me : Test(+1) {
 

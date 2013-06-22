@@ -4,8 +4,6 @@ use Test::Most;
 use Siebel::Srvrmgr::ListParser;
 use base 'Test::Siebel::Srvrmgr';
 
-sub class { 'Siebel::Srvrmgr::Daemon::ActionFactory' }
-
 sub startup : Tests(startup => 1) {
 
     my $test = shift;

@@ -1,11 +1,9 @@
-package Test::Siebel::Srvrmgr::Action;
+package Test::Siebel::Srvrmgr::Daemon::Action;
 
 use Test::Most;
 use Siebel::Srvrmgr::ListParser;
 use Test::Moose 'has_attribute_ok';
-use base 'Test::Class';
-
-sub class { 'Siebel::Srvrmgr::Daemon::Action' }
+use base 'Test::Siebel::Srvrmgr';
 
 sub get_my_data {
 
@@ -13,21 +11,26 @@ sub get_my_data {
 
 }
 
-sub startup : Tests(startup => 2) {
+sub before : Tests(setup) {
 
     my $test = shift;
-    use_ok $test->class();
 
     # keeps the subclass of Siebel::Srvrmgr::Daemon as an attribute
-    ok(
-        $test->{action} = $test->class()->new(
-            {
-                parser => Siebel::Srvrmgr::ListParser->new(),
-                params => ['foobar']
-            }
-        ),
-        'the constructor should succeed'
+    $test->{action} = $test->class()->new(
+        {
+            parser => Siebel::Srvrmgr::ListParser->new(),
+            params => ['foobar']
+        }
     );
+
+}
+
+sub constructor : Tests(2) {
+
+    my $test = shift;
+
+    ok( $test->{action}, 'the constructor works' );
+    isa_ok( $test->{action}, $test->class() );
 
 }
 
@@ -50,13 +53,13 @@ sub class_methods : Tests(6) {
     my $parser_class = 'Siebel::Srvrmgr::ListParser';
 
     isa_ok( $test->{action}->get_parser(),
-        $parser_class, "get_parser returns" );
+        $parser_class, "get_parser returns a $parser_class instance" );
 
     can_ok( $test->{action}, qw(new get_params get_parser get_params do) );
 
     ok(
         $test->{action}->do( $test->get_my_data() ),
-        'do method works with an array reference'
+        'do method works with get_my_data() method return'
     );
 
     is( $test->{action}->do( $test->get_my_data() ),
@@ -65,7 +68,7 @@ sub class_methods : Tests(6) {
     dies_ok( sub { $test->{action}->do('simple string') },
         'do method raises an exception with wrong type of parameter' );
 
-    ok( $test->{action}->get_params(), 'get_params works' );
+    ok( $test->{action}->get_params(), 'get_params works returns data' );
 
 }
 
