@@ -1,30 +1,6 @@
 package Test::Siebel::Srvrmgr::Daemon::Action::LoadPreferences;
 
-# :WARNING   :07/06/2013 17:39:55:: subclasses of Test::Action must "use base" Test::ReadMyself first due get_my_data method
-use base qw(Test::Siebel::Srvrmgr Test::Siebel::Srvrmgr::Daemon::Action);
-use Test::Most;
-use Siebel::Srvrmgr::ListParser;
-
-sub startup : Tests(startup => +1) {
-    my $test = shift;
-    $test->SUPER::startup();
-    ok(
-        $test->{action} = $test->class()->new(
-            {
-                parser => Siebel::Srvrmgr::ListParser->new()
-            }
-        ),
-        'the constructor should succeed'
-    );
-}
-
-sub class_methods : Test(+1) {
-
-    my $test = shift;
-
-    ok( $test->{action}->do( $test->get_my_data() ), 'do methods works fine' );
-
-}
+use base qw(Test::Siebel::Srvrmgr::Daemon::Action);
 
 1;
 

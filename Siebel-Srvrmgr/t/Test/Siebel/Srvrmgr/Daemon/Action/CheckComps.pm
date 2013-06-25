@@ -1,6 +1,6 @@
 package Test::Siebel::Srvrmgr::Daemon::Action::CheckComps;
 
-use base qw(Test::Siebel::Srvrmgr Test::Siebel::Srvrmgr::Daemon::Action);
+use base qw(Test::Siebel::Srvrmgr::Daemon::Action);
 use Test::Most;
 use Siebel::Srvrmgr::ListParser;
 use Siebel::Srvrmgr::Daemon::Action::CheckComps;

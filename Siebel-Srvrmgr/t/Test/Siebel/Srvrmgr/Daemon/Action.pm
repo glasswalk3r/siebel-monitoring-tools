@@ -5,12 +5,6 @@ use Siebel::Srvrmgr::ListParser;
 use Test::Moose 'has_attribute_ok';
 use base 'Test::Siebel::Srvrmgr';
 
-sub get_my_data {
-
-    return [qw(foo bar something)];
-
-}
-
 sub before : Tests(setup) {
 
     my $test = shift;

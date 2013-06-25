@@ -1,6 +1,6 @@
 package Test::Siebel::Srvrmgr::Daemon::Action::Dumper;
 
-use base qw(Test::Siebel::Srvrmgr Test::Siebel::Srvrmgr::Daemon::Action);
+use base qw(Test::Siebel::Srvrmgr::Daemon::Action);
 use Test::More;
 
 sub class_methods : Test(+1) {

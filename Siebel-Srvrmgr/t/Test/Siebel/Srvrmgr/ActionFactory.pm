@@ -1,36 +1,49 @@
-package Test::Siebel::Srvrmgr::ActionFactory;
+package Test::Siebel::Srvrmgr::Daemon::ActionFactory;
 
 use Test::Most;
 use Siebel::Srvrmgr::ListParser;
 use base 'Test::Siebel::Srvrmgr';
 
-sub startup : Tests(startup => 1) {
+sub my_interface : Test(+1) {
 
     my $test = shift;
-    use_ok $test->class;
+
+    can_ok( $test->class(), qw(create) );
+
 }
 
-sub constructor : Tests(3) {
+sub create_instances : Tests(+9) {
 
-    my $test  = shift;
-    my $class = $test->class;
+    my $test = shift;
 
-    can_ok( $class, qw(create) );
-
-    isa_ok(
-        $class->create(
-            'ListComps',
-            {
-                parser => Siebel::Srvrmgr::ListParser->new(),
-                params => ['somefile']
-            }
-        ),
-        'Siebel::Srvrmgr::Daemon::Action::ListComps',
-        'create method returns an object'
+    my @available = (
+        'Dummy',         'Dumper',     'ListCompDef',     'ListComps',
+        'ListCompTypes', 'ListParams', 'LoadPreferences'
     );
 
+    foreach my $class (@available) {
+
+        my $full_name = 'Siebel::Srvrmgr::Daemon::Action::' . $class;
+
+        isa_ok(
+            $test->class()->create(
+                $class,
+                {
+                    parser => Siebel::Srvrmgr::ListParser->new(),
+                    params => ['somefile']
+                }
+            ),
+            $full_name,
+"create method returns an $full_name instance with the '$class' string as parameter"
+        );
+
+    }
+
+    dies_ok( sub { $test->class()->create('CheckComps') },
+        'expected to die since CheckComps required additional parameters with Roles applied' );
+
     dies_ok(
-        sub { $class->create('FooBar') },
+        sub { $test->class()->create('FooBar') },
 'create method raises an exception trying to instantiate an object from a invalid class'
     );
 
