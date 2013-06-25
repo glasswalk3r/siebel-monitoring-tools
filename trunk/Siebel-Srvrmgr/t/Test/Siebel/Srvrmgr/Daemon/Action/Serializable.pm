@@ -130,8 +130,6 @@ sub recover_me : Test {
 
     my $test = shift;
 
-    warn __PACKAGE__;
-
 # :WARNING   :07/06/2013 16:58:13:: this tests does not verifies the Siebel::Srvrmgr API, but it will help to
 # detect that a subclass of Serializable was not finished correctly
     ok(

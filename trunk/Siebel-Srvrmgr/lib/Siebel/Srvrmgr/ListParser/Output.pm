@@ -26,6 +26,7 @@ use namespace::autoclean;
 use Carp;
 use feature qw(switch current_sub);
 
+ # :TODO      :25/06/2013 18:42:01:: replace usage of Storable for another backend that supports regexp references
 with Storage( io => 'StorableFile' );
 
 =pod

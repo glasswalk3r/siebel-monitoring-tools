@@ -31,6 +31,10 @@ with 'Siebel::Srvrmgr::Daemon::Action::Serializable';
 This subclass of L<Siebel::Srvrmgr::Daemon::Action> will try to find a L<Siebel::Srvrmgr::ListParser::Output::ListParams> object in the given array reference
 given as parameter to the C<do> method and stores the parsed data from this object in a serialized file.
 
+=head1 CAVEATS
+
+This class is not working due a limitation of L<MooseX::Storable>. See the corresponding test file for more information.
+
 =head1 METHODS
 
 =head2 do
