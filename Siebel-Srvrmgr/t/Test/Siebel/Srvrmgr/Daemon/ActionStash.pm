@@ -1,14 +1,9 @@
-package Test::Siebel::Srvrmgr::ActionStash;
+package Test::Siebel::Srvrmgr::Daemon::ActionStash;
 
 use Test::Most;
 use Siebel::Srvrmgr::ListParser;
 use Test::Moose 'has_attribute_ok';
 use base 'Test::Siebel::Srvrmgr';
-
-sub startup : Tests(startup => 1) {
-    my $test = shift;
-    use_ok $test->class;
-}
 
 sub constructor : Tests(8) {
 

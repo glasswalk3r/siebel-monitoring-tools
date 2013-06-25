@@ -1,33 +1,40 @@
-package Test::Siebel::Srvrmgr::Buffer;
+package Test::Siebel::Srvrmgr::ListParser::Buffer;
 
 use Test::Most;
 use Test::Moose 'has_attribute_ok';
 use base 'Test::Siebel::Srvrmgr';
 
-sub startup : Tests(startup => 1) {
+# forcing to be the first method to be tested
+# this predates the usage of setup and startup, but the first is expensive and the second cannot be used due parent class
+sub _constructor : Tests(1) {
+
     my $test = shift;
-    use_ok $test->class;
+
+    ok(
+        $test->{buffer} =
+          $test->class()->new( { type => 'output', cmd_line => '' } ),
+        'the constructor should succeed'
+    );
+
 }
 
-sub constructor : Tests(7) {
+sub class_attributes : Tests(3) {
 
-    my $test  = shift;
-    my $class = $test->class;
+    my $test = shift;
 
-    can_ok( $class, 'new' );
+    has_attribute_ok( $test->{buffer}, 'type' );
+    has_attribute_ok( $test->{buffer}, 'cmd_line' );
+    has_attribute_ok( $test->{buffer}, 'content' );
 
-    can_ok( $class, qw(get_cmd_line get_content set_content) );
+}
 
-    my $buffer;
+sub class_methods : Tests(2) {
 
-    ok( $buffer = $class->new( { type => 'output', cmd_line => '' } ),
-        'the constructor should suceed' );
+    my $test = shift;
 
-    has_attribute_ok( $buffer, 'type' );
-    has_attribute_ok( $buffer, 'cmd_line' );
-    has_attribute_ok( $buffer, 'content' );
+    can_ok( $test->{buffer}, qw(new get_cmd_line get_content set_content) );
 
-    ok( $buffer->set_content( $test->get_my_data()->[0] ),
+    ok( $test->{buffer}->set_content( $test->get_my_data()->[0] ),
         'is ok to add lines to it' );
 
 }
