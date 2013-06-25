@@ -1,27 +1,13 @@
-package Test::Siebel::Srvrmgr::Comp;
+package Test::Siebel::Srvrmgr::ListParser::Output::ListComp::Comp;
 
 use Test::Most;
 use Test::Moose 'has_attribute_ok';
 use base 'Test::Siebel::Srvrmgr';
 use Siebel::Srvrmgr::ListParser::Output::ListComp;
 
-sub startup : Tests(startup => 1) {
+sub _constructor : Tests(2) {
 
     my $test = shift;
-    use_ok $test->class;
-}
-
-sub constructor : Tests(35) {
-
-    my $test  = shift;
-    my $class = $test->class;
-
-    can_ok( $class, 'new' );
-
-    #extended method tests
-    can_ok( $class,
-        qw(get_data cc_alias cc_name ct_alias ct_name cg_alias cc_runmode cp_disp_run_state cp_num_run_tasks cp_max_tasks cp_actv_mts_procs cp_max_mts_procs cp_start_time cp_end_time cp_status cc_incarn_no cc_desc_text)
-    );
 
     my $list_comp = Siebel::Srvrmgr::ListParser::Output::ListComp->new(
         {
@@ -36,57 +22,79 @@ sub constructor : Tests(35) {
     my $alias = 'SRProc';
 
     ok(
-        my $comp = $class->new(
+        $test->{comp} = $test->class()->new(
             { data => $server->get_data()->{$alias}, cc_alias => $alias }
         ),
-        '... and the constructor should succeed'
+        'the constructor should succeed'
     );
 
-    isa_ok( $comp, $class, '... and the object it returns' );
+    isa_ok( $test->{comp}, $test->class(),
+        'the object is a instance of the correct class' );
 
-    has_attribute_ok( $comp, 'data' );
-    has_attribute_ok( $comp, 'cc_alias' );
-    has_attribute_ok( $comp, 'cc_name' );
-    has_attribute_ok( $comp, 'ct_alias' );
-    has_attribute_ok( $comp, 'ct_name' );
-    has_attribute_ok( $comp, 'cg_alias' );
-    has_attribute_ok( $comp, 'cc_runmode' );
-    has_attribute_ok( $comp, 'cp_disp_run_state' );
-    has_attribute_ok( $comp, 'cp_num_run_tasks' );
-    has_attribute_ok( $comp, 'cp_max_tasks' );
-    has_attribute_ok( $comp, 'cp_actv_mts_procs' );
-    has_attribute_ok( $comp, 'cp_max_mts_procs' );
-    has_attribute_ok( $comp, 'cp_start_time' );
-    has_attribute_ok( $comp, 'cp_end_time' );
-    has_attribute_ok( $comp, 'cp_status' );
-    has_attribute_ok( $comp, 'cc_incarn_no' );
-    has_attribute_ok( $comp, 'cc_desc_text' );
+}
 
-    is( $comp->cp_num_run_tasks(),
+sub class_attributes : Tests(17) {
+
+    my $test = shift;
+
+    my @attribs = (
+        'data',              'cc_alias',
+        'cc_name',           'ct_alias',
+        'ct_name',           'cg_alias',
+        'cc_runmode',        'cp_disp_run_state',
+        'cp_num_run_tasks',  'cp_max_tasks',
+        'cp_actv_mts_procs', 'cp_max_mts_procs',
+        'cp_start_time',     'cp_end_time',
+        'cp_status',         'cc_incarn_no',
+        'cc_desc_text'
+    );
+
+    foreach my $attrib (@attribs) {
+
+        has_attribute_ok( $test->{comp}, $attrib );
+
+    }
+}
+
+sub class_methods : Tests(14) {
+
+    my $test = shift;
+
+    can_ok( $test->{comp},
+        qw(get_data cc_alias cc_name ct_alias ct_name cg_alias cc_runmode cp_disp_run_state cp_num_run_tasks cp_max_tasks cp_actv_mts_procs cp_max_mts_procs cp_start_time cp_end_time cp_status cc_incarn_no cc_desc_text)
+    );
+
+    is( $test->{comp}->cp_num_run_tasks(),
         2, 'cp_num_run_tasks returns the correct value' );
-    is( $comp->cc_incarn_no(), 0, 'cc_incarn_no returns the correct value' );
+    is( $test->{comp}->cc_incarn_no(),
+        0, 'cc_incarn_no returns the correct value' );
     is(
-        $comp->cc_name(),
+        $test->{comp}->cc_name(),
         'Server Request Processor',
         ' returns the correct value'
     );
-    is( $comp->ct_alias(),   '',            ' returns the correct value' );
-    is( $comp->cg_alias(),   'System',      ' returns the correct value' );
-    is( $comp->cc_runmode(), 'Interactive', ' returns the correct value' );
-    is( $comp->cp_disp_run_state(), 'Running', ' returns the correct value' );
-    is( $comp->cp_max_tasks(), 20, 'cp_max_tasks returns the correct value' );
-    is( $comp->cp_actv_mts_procs(),
+    is( $test->{comp}->ct_alias(), '',       ' returns the correct value' );
+    is( $test->{comp}->cg_alias(), 'System', ' returns the correct value' );
+    is( $test->{comp}->cc_runmode(),
+        'Interactive', ' returns the correct value' );
+    is( $test->{comp}->cp_disp_run_state(),
+        'Running', ' returns the correct value' );
+    is( $test->{comp}->cp_max_tasks(),
+        20, 'cp_max_tasks returns the correct value' );
+    is( $test->{comp}->cp_actv_mts_procs(),
         1, 'cp_actv_mts_procs returns the correct value' );
-    is( $comp->cp_max_mts_procs(),
+    is( $test->{comp}->cp_max_mts_procs(),
         1, 'cp_max_mts_procs returns the correct value' );
     is(
-        $comp->cp_start_time(),
+        $test->{comp}->cp_start_time(),
         '2009-09-04 18:37:45',
         'cp_start_time returns the correct value'
     );
-    is( $comp->cp_end_time(),  '', 'cp_end_time returns the correct value' );
-    is( $comp->cp_status(),    '', 'cp_status returns the correct value' );
-    is( $comp->cc_desc_text(), '', 'cc_desc_text returns the correct value' );
+    is( $test->{comp}->cp_end_time(),
+        '', 'cp_end_time returns the correct value' );
+    is( $test->{comp}->cp_status(), '', 'cp_status returns the correct value' );
+    is( $test->{comp}->cc_desc_text(),
+        '', 'cc_desc_text returns the correct value' );
 
 }
 
