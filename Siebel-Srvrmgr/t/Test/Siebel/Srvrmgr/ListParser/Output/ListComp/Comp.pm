@@ -56,7 +56,7 @@ sub class_attributes : Tests(17) {
     }
 }
 
-sub class_methods : Tests(14) {
+sub class_methods : Tests(15) {
 
     my $test = shift;
 

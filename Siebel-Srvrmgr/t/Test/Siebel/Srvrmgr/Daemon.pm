@@ -4,9 +4,11 @@ use Cwd;
 use Test::Most;
 use File::Spec;
 use Test::Moose 'has_attribute_ok';
+use Siebel::Srvrmgr::Daemon;
+use Config;
 use base 'Test::Siebel::Srvrmgr';
 
-sub startup : Tests(startup => 2) {
+sub _constructor : Tests(+2) {
 
     my $test = shift;
 
@@ -23,8 +25,6 @@ sub startup : Tests(startup => 2) {
         [ qw(get_wait_time set_wait_time 1)
         ] # :TRICKY:29/2/2012 17:50:36:: set_wait_time will return the value passed as parameter, so the ok function will complain if passed 0
     ];
-
-    use_ok $test->class;
 
     ok(
         $test->{daemon} = $test->class()->new(
@@ -63,16 +63,16 @@ sub startup : Tests(startup => 2) {
         '... and the constructor should succeed'
     );
 
+	isa_ok($test->{daemon}, $test->class());
+
 }
 
-sub class_methods : Tests(5) {
+sub class_methods : Tests(24) {
 
     my $test = shift;
 
-    can_ok( $test->class(), 'new' );
-
     can_ok(
-        $test->class(),
+        $test->{daemon},
         (
             'get_server',      'set_server',
             'get_gateway',     'set_gateway',
@@ -93,9 +93,22 @@ sub class_methods : Tests(5) {
     ok( $test->{daemon}->_setup_commands(), '_setup_commands works' );
     is( $test->{daemon}->is_infinite(), 0, 'is_infinite must return false' );
 
+    foreach my $attrib ( @{ $test->{test_data} } ) {
+
+        my $get = $attrib->[0];
+        my $set = $attrib->[1];
+
+        is( $test->{daemon}->$get(),
+            $attrib->[2], "$get returns the correct string" );
+        ok( $test->{daemon}->$set( $attrib->[2] ), "$set works" );
+        is( $test->{daemon}->$get(),
+            $attrib->[2], "$get returns the correct string after change" );
+
+    }
+
 }
 
-sub class_attributes : Tests(38) {
+sub class_attributes : Tests(16) {
 
     my $test = shift;
 
@@ -112,16 +125,66 @@ sub class_attributes : Tests(38) {
 
     }
 
-    foreach my $attrib ( @{ $test->{test_data} } ) {
+}
 
-        my $get = $attrib->[0];
-        my $set = $attrib->[1];
+sub runs : Test() {
 
-        is( $test->{daemon}->$get(),
-            $attrib->[2], "$get returns the correct string" );
-        ok( $test->{daemon}->$set( $attrib->[2] ), "$set works" );
-        is( $test->{daemon}->$get(),
-            $attrib->[2], "$get returns the correct string after change" );
+    my $test  = shift;
+
+    $SIG{INT} = \&clean_up;
+
+    ok( $test->{daemon}->run(), 'run method executes successfuly' );
+
+}
+
+sub runs_blocked : Test() {
+
+    my $test  = shift;
+    my $class = $test->class;
+
+    $test->{daemon}->set_commands(
+        [
+            Siebel::Srvrmgr::Daemon::Command->new(
+                command => 'list blockme',
+                action => 'Dummy'    # this one is to get the initial message
+            ),
+            Siebel::Srvrmgr::Daemon::Command->new(
+                command => 'list blockme',
+                action =>
+                  'Dummy'    # this one is to get the "list blockme" message
+            ),
+        ]
+    );
+
+  SKIP: {
+
+        skip 'alarm does not work as expected in Microsoft Windows OS', 1
+          if ( $Config{osname} eq 'MSWin32' );
+
+        dies_ok { $test->{daemon}->run() } 'run method fail due timeout';
+
+    }
+
+}
+
+sub clean_up : Test(shutdown) {
+
+	my $test = shift;
+
+    # removes the dump files
+    my $dir = getcwd();
+
+    opendir( DIR, $dir ) or die "Cannot read $dir: $!\n";
+    my @files = readdir(DIR);
+    close(DIR);
+
+    foreach my $file (@files) {
+
+        if ( $file =~ /^dump\w/ ) {
+
+            unlink $file or warn "Cannot remove $file: $!\n";
+
+        }
 
     }
 
