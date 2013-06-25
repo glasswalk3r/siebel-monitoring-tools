@@ -2,14 +2,12 @@ package Test::Siebel::Srvrmgr::Daemon::Action::ListParams;
 
 use base 'Test::Siebel::Srvrmgr::Daemon::Action::Serializable';
 use Test::Most;
-use Siebel::Srvrmgr::ListParser;
-use Storable;
 
 sub recover_me : Test(+1) {
 
     my $test = shift;
 
-    my $params = retrieve( $test->get_dump() );
+    my $params = $test->recover( $test->get_dump() );
 
     isa_ok(
         $params,

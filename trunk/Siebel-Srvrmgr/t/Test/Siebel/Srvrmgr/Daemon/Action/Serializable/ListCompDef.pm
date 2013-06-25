@@ -2,8 +2,6 @@ package Test::Siebel::Srvrmgr::Daemon::Action::Serializable::ListCompDef;
 
 use base 'Test::Siebel::Srvrmgr::Daemon::Action::Serializable';
 use Test::Most;
-use Siebel::Srvrmgr::ListParser;
-use Storable;
 
 sub recover_me : Test(+1) {
 
@@ -11,7 +9,7 @@ sub recover_me : Test(+1) {
 
     $test->SUPER::recover_me();
 
-    my $defs = retrieve( $test->get_dump() );
+    my $defs = $test->recover( $test->get_dump() );
 
     is( ref($defs), 'HASH',
         'component definitions were recovered successfuly' );

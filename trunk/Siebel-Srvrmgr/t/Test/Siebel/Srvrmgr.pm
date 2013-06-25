@@ -8,13 +8,16 @@ BEGIN {
 }
 
 sub startup : Test( startup => 1 ) {
+
     my $test = shift;
 
 # removes the Test:: from the child class package name, so it is expected that the resulting package name exists in @INC
     ( my $class = ref $test ) =~ s/^Test:://;
     return 1, "$class loaded" if $class eq __PACKAGE__;
+
     use_ok $class or die;
     $test->class($class);
+
 }
 
 sub get_my_data {
@@ -33,7 +36,19 @@ sub get_my_data {
         my @data = <$handle>;
         close($handle);
 
-        return $test->{data} = \@data;
+        if (@data) {
+
+            return $test->{data} = \@data;
+
+        }
+
+# :WORKAROUND:25/06/2013 16:51:19:: to avoid multiple inheritance, this will support subclasses that needs dummy data to be returned
+# as Test::Siebel::Srvrmgr::Action does
+        else {
+
+            return [qw(foo bar something)];
+
+        }
 
     }
 
