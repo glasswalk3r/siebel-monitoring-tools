@@ -1,28 +1,15 @@
-package Test::Siebel::Srvrmgr::Greetings;
+package Test::Siebel::Srvrmgr::ListParser::Output::Greetings;
 
 use Test::Most;
 use base 'Test::Siebel::Srvrmgr';
 use Test::Moose 'has_attribute_ok';
 
-sub startup : Tests(startup => 1) {
+sub _constructor : Test(+2) {
+
     my $test = shift;
-    use_ok $test->class;
-}
-
-sub constructor : Tests(15) {
-
-    my $test  = shift;
-    my $class = $test->class;
-
-    can_ok( $class, 'new' );
-
-    #extended method tests
-    can_ok( $class,
-        qw(get_version get_patch get_copyright get_total_servers get_total_conn get_help)
-    );
 
     ok(
-        my $hello = $class->new(
+        $test->{hello} = $test->class()->new(
             {
                 data_type => 'greetings',
                 raw_data  => $test->get_my_data(),
@@ -32,21 +19,44 @@ sub constructor : Tests(15) {
         '... and the constructor should succeed'
     );
 
-    has_attribute_ok( $hello, 'version' );
-    has_attribute_ok( $hello, 'patch' );
-    has_attribute_ok( $hello, 'copyright' );
-    has_attribute_ok( $hello, 'total_servers' );
-    has_attribute_ok( $hello, 'total_connected' );
-    has_attribute_ok( $hello, 'help' );
-    isa_ok( $hello, $class, '... and the object it returns' );
-    is( $hello->get_version(), '7.5.3', 'can get the correct version' );
-    is( $hello->get_patch(),   '16157', 'can get the correct patch' );
-    is( ref( $hello->get_copyright() ),
+    isa_ok( $test->{hello}, $test->class(), '... and the object it returns' );
+
+}
+
+sub class_attributes : Tests(+6) {
+
+    my $test = shift;
+
+    my @attributes = (
+        'version',         'patch',
+        'copyright',       'total_servers',
+        'total_connected', 'help'
+    );
+
+    foreach my $attrib (@attributes) {
+
+        has_attribute_ok( $test->{hello}, $attrib );
+
+    }
+
+}
+
+sub class_methods : Tests(+6) {
+
+    my $test = shift;
+
+    can_ok( $test->{hello},
+        qw(get_version get_patch get_copyright get_total_servers get_total_conn get_help)
+    );
+
+    is( $test->{hello}->get_version(), '7.5.3', 'can get the correct version' );
+    is( $test->{hello}->get_patch(),   '16157', 'can get the correct patch' );
+    is( ref( $test->{hello}->get_copyright() ),
         'ARRAY', 'can get the correct copyright' );
-    is( $hello->get_total_servers(),
+    is( $test->{hello}->get_total_servers(),
         1, 'can get the correct number of configured servers' );
 
-    is( $hello->get_total_conn(),
+    is( $test->{hello}->get_total_conn(),
         1, 'can get the correct number of available servers' );
 
 }
