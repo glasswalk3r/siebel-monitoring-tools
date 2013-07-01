@@ -308,7 +308,7 @@ sub parse {
                 unless ( $self->_parse_data( \@fields_values, \%parsed_lines ) )
                 {
 
-                    die 'Could not parse fields from line [' . $line . ']';
+                    confess 'Could not parse fields from line [' . $line . ']';
 
                 }
 
@@ -320,6 +320,8 @@ sub parse {
 
     $self->set_data_parsed( \%parsed_lines );
     $self->set_raw_data( [] );
+
+	return 1;
 
 }
 
@@ -425,7 +427,7 @@ The method must return true or false depending on the result of parsing the fiel
 # process to parse their respective details besides header
 sub _parse_data {
 
-    die __SUB__ . ' method must be overrided by subclasses of ' . __PACKAGE__;
+    confess ' _parse_data method must be overrided by subclasses of ' . __PACKAGE__;
 
 }
 
@@ -442,7 +444,7 @@ superclass knows nothing about the format of the header from the list command ou
 
 sub _set_header_regex {
 
-    die __SUB__ . ' method must be overrided by subclasses of ' . __PACKAGE__;
+    confess '_set_header_regex method must be overrided by subclasses of ' . __PACKAGE__;
 
 }
 

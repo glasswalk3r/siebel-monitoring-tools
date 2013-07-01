@@ -2,6 +2,7 @@ package Test::Siebel::Srvrmgr::ListParser::Output;
 
 use Test::Most;
 use Test::Moose 'has_attribute_ok';
+use Hash::Util qw(lock_keys);
 use base 'Test::Siebel::Srvrmgr';
 
 # forcing to be the first method to be tested
@@ -21,7 +22,7 @@ sub is_super {
 
 }
 
-sub get_type {
+sub get_data_type {
 
     return 'output';
 
@@ -30,6 +31,32 @@ sub get_type {
 sub get_cmd_line {
 
     return 'undefined';
+}
+
+sub get_output {
+
+    my $test = shift;
+
+    return $test->{output};
+
+}
+
+# after setting the Siebel::Srvrgmr::ListParser::Output instance,
+# use lock_keys to avoid subclasses to create their own references of instances
+sub set_output {
+
+    my $test  = shift;
+    my $value = shift;
+
+    die "Invalid parameter for set_output"
+      unless ( $value->isa( $test->get_super() ) );
+
+    $test->{output} = $value;
+
+    lock_keys( %{$test} );
+
+    return 1;
+
 }
 
 sub _constructor : Tests(3) {
@@ -43,17 +70,19 @@ sub _constructor : Tests(3) {
           if ( $test->is_super() );
 
         ok(
-            $test->{output} = $test->class()->new(
-                {
-                    data_type => $test->get_type(),
-                    cmd_line  => $test->get_cmd_line(),
-                    raw_data  => $test->get_my_data()
-                }
+            $test->set_output(
+                $test->class()->new(
+                    {
+                        data_type => $test->get_data_type(),
+                        cmd_line  => $test->get_cmd_line(),
+                        raw_data  => $test->get_my_data()
+                    }
+                )
             ),
             'the constructor should succeed'
         );
 
-        isa_ok( $test->{output}, $test->class() );
+        isa_ok( $test->get_output(), $test->class() );
 
     }
 
@@ -68,7 +97,7 @@ sub _constructor : Tests(3) {
 
                 $test->class()->new(
                     {
-                        data_type => $test->get_type(),
+                        data_type => $test->get_data_type(),
                         cmd_line  => $test->get_cmd_line(),
                         raw_data  => $test->get_my_data()
                     }
@@ -98,14 +127,17 @@ sub class_attributes : Tests(8) {
 
 }
 
+# this method returns an Siebel::Srvrmgr::ListParser::Output object or the class name
+# if the instance does not exists
 sub get_test_item {
 
     my $test = shift;
 
-    if ( defined( $test->{output} ) and $test->{output}->isa( $test->class() ) )
+    if ( defined( $test->get_output() )
+        and $test->get_output()->isa( $test->class() ) )
     {
 
-        return $test->{output};
+        return $test->get_output();
 
     }
     else {
@@ -116,7 +148,7 @@ sub get_test_item {
 
 }
 
-sub class_methods : Tests(13) {
+sub class_methods : Tests(12) {
 
     my $test = shift;
 
@@ -137,45 +169,49 @@ sub class_methods : Tests(13) {
 
   SKIP: {
 
-        skip $test->get_super() . ' does not have instance for those tests', 3
+        skip $test->get_super() . ' does not have instance for those tests', 11
           if ( $test->is_super() );
 
         is(
-            $test->{output}->get_data_type(),
+            $test->get_output()->get_data_type(),
             $test->get_data_type(),
             'get_data_type() returns the correct value'
         );
 
-        is( ref( $test->{output}->get_raw_data() ),
+        is( ref( $test->get_output()->get_raw_data() ),
             'ARRAY', 'get_raw_data() returns a array reference' );
 
         ok(
-            $test->{output}->set_raw_data( $test->get_my_data() ),
+            $test->get_output()->set_raw_data( $test->get_my_data() ),
             'set_raw_data accepts an array reference as parameter'
         );
 
-        is( ref( $test->{output}->get_data_parsed() ),
+		# parse must be invoked before trying to get parsed data
+        ok( $test->get_output()->parse(), 'parse() works' );
+
+        is( ref( $test->get_output()->get_data_parsed() ),
             'HASH', 'get_data_parsed returns an hash reference' );
 
         ok(
-            $test->{output}->set_data_parsed( { one => 'value', two => 100 } ),
+            $test->get_output()
+              ->set_data_parsed( { one => 'value', two => 100 } ),
             'set_data_parsed accepts an hash reference as parameter'
         );
 
-        ok( $test->{output}->set_content( $test->get_my_data()->[0] ),
-            'is ok to add lines to it' );
-
-        is( $test->{output}->get_cmd_line(), $test->get_cmd_line() );
+        is( $test->get_output()->get_cmd_line(), $test->get_cmd_line() );
 
         # simple tests
         foreach my $method (
-            qw(get_fields_pattern get_header_regex get_col_sep get_header_cols parse)
+            qw(get_fields_pattern get_header_regex get_col_sep get_header_cols)
           )
         {
 
-            ok( $test->{output}->$method(), "$method() works" );
+            ok( $test->get_output()->$method(), "$method() works" );
 
         }
+
+ # :TODO      :01/07/2013 14:06:16:: test returned values from methods above
+ # :TODO      :01/07/2013 14:06:16:: test "hidden" methods _set_header and _split_fields 
 
     }
 

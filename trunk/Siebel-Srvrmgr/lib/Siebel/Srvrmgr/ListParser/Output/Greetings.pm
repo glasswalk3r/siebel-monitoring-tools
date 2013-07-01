@@ -29,8 +29,6 @@ instatiation.
 
 It is possible to recover some useful information from the object methods but most of it is simple copyrigh information.
 
-Beware that the parse method is called automatically as soon as the object is created.
-
 =head1 ATTRIBUTES
 
 =head2 version
@@ -167,6 +165,8 @@ override 'parse' => sub {
 
     my $is_copyright = 0;
 
+    my %data_parsed;
+
     foreach my $line ( @{$data_ref} ) {
 
         chomp($line);
@@ -184,8 +184,11 @@ override 'parse' => sub {
                 my @words = split( /\s/, $line );
 
                 $self->_set_version( $words[7] );
+                $data_parsed{version} = $words[7];
+
                 $words[8] =~ tr/[]//d;
                 $self->_set_patch( $words[8] );
+                $data_parsed{patch} = $words[8];
 
             }
 
@@ -193,6 +196,7 @@ override 'parse' => sub {
 
                 #Copyright (c) 2001 Siebel Systems, Inc.  All rights reserved.
                 $self->_set_copyright($line);
+                $data_parsed{copyright} = $line;
                 $is_copyright = 1;
 
             }
@@ -200,6 +204,7 @@ override 'parse' => sub {
             when (/^Type\s\"help\"/) {
 
                 $self->_set_help($line);
+                $data_parsed{help} = $line;
                 $is_copyright = 0;
 
             }
@@ -212,12 +217,15 @@ override 'parse' => sub {
 
                 $self->_set_total_servers( $words[9] );
                 $self->_set_total_conn( $words[2] );
+                $data_parsed{total_servers} = $words[9];
+                $data_parsed{total_conn}    = $words[2];
 
             }
 
             when (/^[\w\(]+/) {
 
                 $self->_set_copyright($line) if ($is_copyright);
+                $data_parsed{copyright} = $line;
 
             }
 
@@ -230,6 +238,10 @@ override 'parse' => sub {
         }
 
     }
+
+    $self->set_data_parsed( \%data_parsed );
+
+    return 1;
 
 };
 
@@ -252,7 +264,41 @@ sub _set_copyright {
 
 }
 
+# the methods below are overrided just because
+# the parent class demands, but they are useless for Greetings (they are never invoked internally)
+# since parse method is overrided as well
+override '_set_header_regex' => sub {
+
+    return qr/^.$/;
+
+};
+
+override '_parse_data' => sub {
+
+    return 1;
+
+};
+
+sub BUILD {
+
+    my $self = shift;
+
+    $self->_set_fields_pattern('undefined');
+    $self->set_header_cols( [] );
+
+}
+
 =pod
+
+=head1 CAVEATS
+
+Beware that the parse method is called automatically as soon as the object is created.
+
+Greetings also does not follows the concept of fields from the superclass since it's output isn't tabular, so some related methods have "dummy" 
+implementations since they make no sense at all to be invoked.
+
+This is a good indicator that the superclass should be refactored to separate behaviour of output interpretation from tabular data expectation, so you might
+expect this interface to be changed in future releases.
 
 =head1 SEE ALSO
 
