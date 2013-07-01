@@ -1,31 +1,14 @@
 package Test::Siebel::Srvrmgr::ListParser::Output::Greetings;
 
 use Test::Most;
-use base 'Test::Siebel::Srvrmgr';
+use base 'Test::Siebel::Srvrmgr::ListParser::Output';
 use Test::Moose 'has_attribute_ok';
-
-sub _constructor : Test(+2) {
-
-    my $test = shift;
-
-    ok(
-        $test->{hello} = $test->class()->new(
-            {
-                data_type => 'greetings',
-                raw_data  => $test->get_my_data(),
-                cmd_line  => ''
-            }
-        ),
-        '... and the constructor should succeed'
-    );
-
-    isa_ok( $test->{hello}, $test->class(), '... and the object it returns' );
-
-}
 
 sub class_attributes : Tests(+6) {
 
     my $test = shift;
+
+    $test->SUPER::class_attributes();
 
     my @attributes = (
         'version',         'patch',
@@ -35,9 +18,15 @@ sub class_attributes : Tests(+6) {
 
     foreach my $attrib (@attributes) {
 
-        has_attribute_ok( $test->{hello}, $attrib );
+        has_attribute_ok( $test->get_output(), $attrib );
 
     }
+
+}
+
+sub get_data_type {
+
+	return 'greetings';
 
 }
 
@@ -45,18 +34,22 @@ sub class_methods : Tests(+6) {
 
     my $test = shift;
 
-    can_ok( $test->{hello},
+    $test->SUPER::class_methods();
+
+    can_ok( $test->get_output(),
         qw(get_version get_patch get_copyright get_total_servers get_total_conn get_help)
     );
 
-    is( $test->{hello}->get_version(), '7.5.3', 'can get the correct version' );
-    is( $test->{hello}->get_patch(),   '16157', 'can get the correct patch' );
-    is( ref( $test->{hello}->get_copyright() ),
+    is( $test->get_output()->get_version(),
+        '7.5.3', 'can get the correct version' );
+    is( $test->get_output()->get_patch(), '16157',
+        'can get the correct patch' );
+    is( ref( $test->get_output()->get_copyright() ),
         'ARRAY', 'can get the correct copyright' );
-    is( $test->{hello}->get_total_servers(),
+    is( $test->get_output()->get_total_servers(),
         1, 'can get the correct number of configured servers' );
 
-    is( $test->{hello}->get_total_conn(),
+    is( $test->get_output()->get_total_conn(),
         1, 'can get the correct number of available servers' );
 
 }
