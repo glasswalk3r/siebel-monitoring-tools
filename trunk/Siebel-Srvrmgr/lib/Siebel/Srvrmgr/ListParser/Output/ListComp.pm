@@ -244,7 +244,10 @@ override '_set_header' => sub {
     my $self = shift;
     my $line = shift;
 
-    my $columns_ref = $self->_split_fields($line);
+    # defines header_cols
+    super();
+
+    my $columns_ref = $self->get_header_cols();
 
     #SV_NAME is useless here
     shift( @{$columns_ref} );
@@ -279,7 +282,7 @@ sub _parse_data {
 
     my $list_len = scalar( @{$fields_ref} );
 
- # :TODO      :08/05/2013 18:19:48:: replace comp_attribs with header_cols? seems to be the same thing
+# :TODO      :08/05/2013 18:19:48:: replace comp_attribs with header_cols? seems to be the same thing
     my $columns_ref = $self->get_comp_attribs();
 
     confess "Cannot continue without defining fields names"

@@ -2,34 +2,17 @@ package Test::Siebel::Srvrmgr::ListParser::Output::ListComp;
 
 use Test::Most;
 use Test::Moose 'has_attribute_ok';
-use base 'Test::Siebel::Srvrmgr';
-
-sub _constructor : Tests(+2) {
-
-    my $test = shift;
-
-    ok(
-        $test->{comps} = $test->class()->new(
-            {
-                data_type => 'list_comp',
-                raw_data  => $test->get_my_data(),
-                cmd_line  => 'list comp'
-            }
-        ),
-        '... and the constructor should succeed'
-    );
-
-    isa_ok( $test->{comps}, $test->class() );
-
-}
+use base 'Test::Siebel::Srvrmgr::ListParser::Output';
 
 sub class_attributes : Tests(+3) {
 
     my $test = shift;
 
-    foreach my $attrib (qw(last_server comps_attribs servers)) {
+    $test->SUPER::class_attributes();
 
-        has_attribute_ok( $test->{comps}, $attrib );
+    foreach my $attrib (qw(last_server comp_attribs servers)) {
+
+        has_attribute_ok( $test->get_output(), $attrib );
 
     }
 
@@ -39,12 +22,12 @@ sub class_methods : Tests(+6) {
 
     my $test = shift;
 
-    can_ok( $test->{comps},
+    can_ok( $test->get_output(),
         qw(get_fields_pattern get_comp_attribs get_last_server get_servers get_server)
     );
 
     is(
-        $test->{comps}->get_fields_pattern(),
+        $test->get_output()->get_fields_pattern(),
         'A12A19A41A10A14A13A19A18A14A19A18A21A13A11A14A14',
         'fields_patterns is correct'
     );
@@ -53,20 +36,26 @@ sub class_methods : Tests(+6) {
         qw(CC_NAME CT_ALIAS CG_ALIAS CC_RUNMODE CP_DISP_RUN_STATE CP_NUM_RUN_TASKS CP_MAX_TASKS CP_ACTV_MTS_PROCS CP_MAX_MTS_PROCS CP_START_TIME CP_END_TIME CP_STATUS CC_INCARN_NO CC_DESC_TEXT)
     ];
 
-    is_deeply( $test->{comps}->get_comp_attribs(),
+    is_deeply( $test->get_output()->get_comp_attribs(),
         $comp_attribs,
         'get_fields_pattern returns a correct set of attributes' );
 
-    is( $test->{comps}->get_last_server(),
+    is( $test->get_output()->get_last_server(),
         'foobar', 'get_last_server returns the correct server name' );
 
-    is_deeply( $test->{comps}->get_servers(),
+    is_deeply( $test->get_output()->get_servers(),
         ['foobar'], 'get_servers returns the correct array reference' );
 
     my $server_class = 'Siebel::Srvrmgr::ListParser::Output::ListComp::Server';
 
-    isa_ok( $test->{comps}->get_server( $test->{comps}->get_last_server() ),
-        $server_class, "get_last_server returns a $server_class object" );
+    isa_ok(
+        $test->get_output()
+          ->get_server( $test->get_output()->get_last_server() ),
+        $server_class,
+        "get_last_server returns a $server_class object"
+    );
+
+    $test->SUPER::class_methods();
 
 }
 
