@@ -24,9 +24,9 @@ use Moose;
 use MooseX::Storage;
 use namespace::autoclean;
 use Carp;
-use feature qw(switch current_sub);
+use feature qw(switch);
 
- # :TODO      :25/06/2013 18:42:01:: replace usage of Storable for another backend that supports regexp references
+# :TODO      :25/06/2013 18:42:01:: replace usage of Storable for another backend that supports regexp references
 with Storage( io => 'StorableFile' );
 
 =pod
@@ -264,7 +264,7 @@ sub parse {
 
             when ($line_header_regex) { # this is the '-------' below the header
 
- # :TODO      :17/06/2013 14:02:51:: should use default field separator attribute here
+# :TODO      :17/06/2013 14:02:51:: should use default field separator attribute here
                 my @columns = split( /\s{2}/, $line );
 
                 my $pattern;
@@ -321,7 +321,7 @@ sub parse {
     $self->set_data_parsed( \%parsed_lines );
     $self->set_raw_data( [] );
 
-	return 1;
+    return 1;
 
 }
 
@@ -387,9 +387,7 @@ sub _set_header {
     my $self = shift;
     my $line = shift;
 
-    my $columns_ref = $self->_split_fields($line);
-
-    $self->set_header_cols($columns_ref);
+    $self->set_header_cols( $self->_split_fields($line) );
 
     return 1;
 
@@ -427,7 +425,8 @@ The method must return true or false depending on the result of parsing the fiel
 # process to parse their respective details besides header
 sub _parse_data {
 
-    confess ' _parse_data method must be overrided by subclasses of ' . __PACKAGE__;
+    confess ' _parse_data method must be overrided by subclasses of '
+      . __PACKAGE__;
 
 }
 
@@ -444,7 +443,8 @@ superclass knows nothing about the format of the header from the list command ou
 
 sub _set_header_regex {
 
-    confess '_set_header_regex method must be overrided by subclasses of ' . __PACKAGE__;
+    confess '_set_header_regex method must be overrided by subclasses of '
+      . __PACKAGE__;
 
 }
 

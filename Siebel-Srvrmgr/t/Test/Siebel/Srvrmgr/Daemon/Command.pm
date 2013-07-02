@@ -4,7 +4,7 @@ use Test::Most;
 use Test::Moose 'has_attribute_ok';
 use base 'Test::Siebel::Srvrmgr';
 
-sub _constructor : Test() {
+sub _constructor : Tests(2) {
 
     my $test = shift;
 

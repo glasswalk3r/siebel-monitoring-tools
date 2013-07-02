@@ -1,27 +1,15 @@
-package Test::Siebel::Srvrmgr::Server;
+package Test::Siebel::Srvrmgr::ListParser::Output::ListComp::Server;
 
 use Test::Most;
 use Test::Moose qw(has_attribute_ok);
 use base 'Test::Siebel::Srvrmgr';
 use Siebel::Srvrmgr::ListParser::Output::ListComp;
 
-sub startup : Tests(startup => 1) {
+sub _constructor : Tests(+2) {
 
     my $test = shift;
-    use_ok $test->class;
-}
 
-sub constructor : Tests(10) {
-
-    my $test  = shift;
-    my $class = $test->class;
-
-    can_ok( $class, 'new' );
-
-    #extended method tests
-    can_ok( $class,
-        qw(get_data get_name load store get_comps get_comp get_comp_data) );
-
+    #must parse the output from DATA handle
     my $list_comp = Siebel::Srvrmgr::ListParser::Output::ListComp->new(
         {
             data_type => 'list_comp',
@@ -30,29 +18,48 @@ sub constructor : Tests(10) {
         }
     );
 
-    ok(
-        my $server = $list_comp->get_server('foobar'),
-        '... and the constructor should succeed'
-    );
+    $test->{server} = $list_comp->get_server('foobar');
 
-    has_attribute_ok( $server, 'name' );
-    has_attribute_ok( $server, 'data' );
+    ok( $test->{server}, 'the constructor should succeed' );
+    isa_ok( $test->{server}, $test->class() );
 
-    isa_ok( $server, $class, '... and the object it returns' );
+}
 
-    is( $server->get_name(), 'foobar', 'get_name returns the correct value' );
+sub class_methods : Tests(5) {
+
+    my $test = shift;
+
+    can_ok( $test->{server},
+        qw(new get_data get_name load store get_comps get_comp get_comp_data) );
+
+    is( $test->{server}->get_name(),
+        'foobar', 'get_name returns the correct value' );
 
     isa_ok(
-        $server->get_comp('ClientAdmin'),
+        $test->{server}->get_comp('ClientAdmin'),
         'Siebel::Srvrmgr::ListParser::Output::ListComp::Comp',
         'get_comp returns a Comp object'
     );
 
-    isa_ok( $server->get_comps(), 'ARRAY',
-        'get_comps returns an array reference' );
+    isa_ok( $test->{server}->get_comps(),
+        'ARRAY', 'get_comps returns an array reference' );
 
-    isa_ok( $server->get_comp_data('EIM'),
+    isa_ok( $test->{server}->get_comp_data('EIM'),
         'HASH', 'get_comp_data returns an hash reference' );
+
+}
+
+sub class_attributes : Tests(2) {
+
+    my $test = shift;
+
+    my @attribs = qw(name data);
+
+    foreach my $attrib (@attribs) {
+
+        has_attribute_ok( $test->{server}, $attrib );
+
+    }
 
 }
 
