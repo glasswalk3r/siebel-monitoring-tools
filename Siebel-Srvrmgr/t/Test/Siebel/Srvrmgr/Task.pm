@@ -1,33 +1,15 @@
-package Test::Siebel::Srvrmgr::Task;
+package Test::Siebel::Srvrmgr::ListParser::Output::ListTasks::Task;
 
 use Test::Most;
 use Test::Moose;
 use base 'Test::Siebel::Srvrmgr';
 
-sub startup : Tests(startup => 1) {
+sub _constructor : Tests(3) {
 
     my $test = shift;
-    use_ok $test->class;
-}
-
-sub constructor : Tests(9) {
-
-    my $test  = shift;
-    my $class = $test->class;
-
-    can_ok( $class, 'new', 'get_server_name', 'get_comp_alias',
-        'get_id', 'get_pid', 'get_status' );
-
-    my @attribs = qw(server_name comp_alias id pid status);
-
-    for my $attrib (@attribs) {
-
-        has_attribute_ok( $class, $attrib, "$class has the attribute $attrib" );
-
-    }
 
     ok(
-        my $task = $class->new(
+        $test->{task} = $test->class()->new(
             {
                 server_name => 'siebfoobar',
                 comp_alias  => 'SRProc',
@@ -36,11 +18,11 @@ sub constructor : Tests(9) {
                 status      => 'Running'
             }
         ),
-        '... and the constructor should succeed'
+        'the constructor should succeed'
     );
 
     dies_ok {
-        my $task = $class->new(
+        my $task = $test->class()->new(
             {
                 server_name => 'siebfoobar',
                 comp_alias  => 'SRProc',
@@ -52,7 +34,42 @@ sub constructor : Tests(9) {
     }
     'the constructor cannot accept undefined values for attributes';
 
-    isa_ok( $task, $class, '... and the object it returns' );
+    isa_ok( $test->{task}, $test->class() );
+
+}
+
+sub class_attributes : Tests(5) {
+
+    my $test = shift;
+
+    my @attribs = qw(server_name comp_alias id pid status);
+
+    for my $attrib (@attribs) {
+
+        has_attribute_ok( $test->{task}, $attrib );
+
+    }
+
+}
+
+sub class_methods : Tests(6) {
+
+    my $test = shift;
+
+    can_ok( $test->{task}, 'new', 'get_server_name', 'get_comp_alias',
+        'get_id', 'get_pid', 'get_status' );
+
+    #                server_name => 'siebfoobar',
+    #                comp_alias  => 'SRProc',
+    #                id          => 5242888,
+    #                pid         => 20503,
+    #                status      => 'Running'
+
+    is( $test->{task}->get_server_name(), 'siebfoobar' );
+    is( $test->{task}->get_comp_alias(),  'SRProc' );
+    is( $test->{task}->get_id(),          5242888 );
+    is( $test->{task}->get_pid(),         20503 );
+    is( $test->{task}->get_status(),      'Running' );
 
 }
 
