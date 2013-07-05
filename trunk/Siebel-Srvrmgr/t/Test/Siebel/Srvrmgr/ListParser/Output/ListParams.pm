@@ -1,59 +1,60 @@
-package Test::Siebel::Srvrmgr::ListParams;
+package Test::Siebel::Srvrmgr::ListParser::Output::ListParams;
 
 use Test::Most;
 use Test::Moose 'has_attribute_ok';
-use base 'Test::Siebel::Srvrmgr';
+use base 'Test::Siebel::Srvrmgr::ListParser::Output';
 
-sub startup : Tests(startup => 1) {
+sub get_data_type {
 
-    my $test = shift;
-    use_ok $test->class;
+	return 'list_params';
+
 }
 
-sub constructor : Tests(10) {
+sub get_cmd_line {
 
-    my $test  = shift;
-    my $class = $test->class;
+	return 'list params for server foo component bar';
 
-    can_ok( $class, 'new' );
+}
+
+
+sub class_methods : Tests(+5) {
+
+    my $test = shift;
 
     #extended method tests
-    can_ok( $class,
-        qw(parse get_server get_comp_alias _set_details)
-    );
+    can_ok( $test->get_output(),
+        qw(parse get_server get_comp_alias _set_details) );
 
-    ok(
-        my $params = $class->new(
-            {
-                data_type => 'list_params',
-                raw_data  => $test->get_my_data(),
-                cmd_line  => 'list params for server foo component bar'
-            }
-        ),
-        '... and the constructor should succeed'
-    );
-
-    has_attribute_ok( $params, 'server' );
-    has_attribute_ok( $params, 'comp_alias' );
-
-    isa_ok( $params, $class, '... and the object it returns' );
-
-    is( $params->get_fields_pattern(),
+    is( $test->get_output()->get_fields_pattern(),
         'A22A32A13A11A29A23A23A46', 'fields_patterns is correct' );
 
     my $default_params = [
         qw(PA_ALIAS PA_VALUE PA_DATATYPE PA_SCOPE PA_SUBSYSTEM PA_SETLEVEL PA_DISP_SETLEVEL PA_NAME)
     ];
 
-    is_deeply( $params->get_header_cols(), $default_params,
+    is_deeply( $test->get_output()->get_header_cols(),
+        $default_params,
         'get_fields_pattern returns a correct set of attributes' );
 
     my $server = 'foo';
-    is( $params->get_server(), $server, "get_server returns $server" );
+    is( $test->get_output()->get_server(),
+        $server, "get_server returns $server" );
 
     my $comp_alias = 'bar';
-    is( $params->get_comp_alias(),
+    is( $test->get_output()->get_comp_alias(),
         $comp_alias, "get_comp_alias returns $comp_alias" );
+
+}
+
+sub class_attributes : Tests(+2) {
+
+    my $test = shift;
+
+    foreach my $attrib (qw(server comp_alias)) {
+
+        has_attribute_ok( $test->get_output(), $attrib );
+
+    }
 
 }
 

@@ -1,36 +1,27 @@
-package Test::Siebel::Srvrmgr::ListTasks;
+package Test::Siebel::Srvrmgr::ListParser::Output::ListTasks;
 
 use Test::Most;
 use Siebel::Srvrmgr::ListParser::Output::ListTasks::Task;
 use Siebel::Srvrmgr::ListParser::Output::ListTasks;
-use base qw(Test::Siebel::Srvrmgr);
+use base qw(Test::Siebel::Srvrmgr::ListParser::Output);
 
-sub startup : Tests(startup => 2) {
+sub get_data_type {
 
-    my $test = shift;
+    return 'list_tasks';
 
-    ok(
-        $test->{output} = $test->class()->new(
-            {
-                data_type => 'list_tasks',
-                raw_data  => $test->get_my_data(),
-                cmd_line  => 'list tasks'
-            }
-        ),
-        '... and the constructor should succeed'
-    );
+}
 
-    isa_ok( $test->{output}, $test->class(), '... and the object it returns' );
+sub get_cmd_line {
+
+    return 'list tasks';
 
 }
 
 # :TODO      :10/06/2013 16:40:59:: have to move all test classes to a new package name to avoid clashing with other packages like Test::Output
 # :TODO      :10/06/2013 16:30:22:: this is a subclass, the parent tests are missing! should use inheritance here
-sub class_methods : Tests(6) {
+sub class_methods : Tests(+5) {
 
     my $test = shift;
-
-    can_ok( $test->{output}, qw(new get_data_parsed set_data_parsed) );
 
     my $parsed_data = {
         'siebfoobar1' => [
@@ -84,16 +75,16 @@ sub class_methods : Tests(6) {
         ]
     };
 
-    ok( $test->{output}->get_data_parsed(), 'get_data_parsed works' );
+    ok( $test->get_output()->get_data_parsed(), 'get_data_parsed works' );
 
     cmp_deeply(
         $parsed_data,
-        $test->{output}->get_data_parsed(),
+        $test->get_output()->get_data_parsed(),
         'get_data_parsed() returns the correct data structure'
     );
 
     ok(
-        $test->{output}->set_data_parsed(
+        $test->get_output()->set_data_parsed(
             {
                 'my_server' => [
                     Siebel::Srvrmgr::ListParser::Output::ListTasks::Task->new(
@@ -111,17 +102,17 @@ sub class_methods : Tests(6) {
         'set_data_parsed works with correct parameters'
     );
 
-    dies_ok { $test->{output}->set_data_parsed('foobar') }
+    dies_ok { $test->get_output()->set_data_parsed('foobar') }
     'set_data_parsed dies with incorrect parameters';
 
- # :TODO      :10/06/2013 18:09:50:: Siebel::Srvrmgr::ListParser::Output should be tested against undefined data reference to be parsed
- # after initial clean up
+# :TODO      :10/06/2013 18:09:50:: Siebel::Srvrmgr::ListParser::Output should be tested against undefined data reference to be parsed
+# after initial clean up
     my @invalid_output =
       ( 'foobar', 'bar', 'foo', 'floor', 'for', 'yadayadayada', 'garbage' );
 
-    $test->{output}->set_raw_data( \@invalid_output );
+    $test->get_output()->set_raw_data( \@invalid_output );
 
-    dies_ok { $test->{output}->parse() }
+    dies_ok { $test->get_output()->parse() }
     'dies with invalid output to be parsed due restricted fields/columns';
 
 }
