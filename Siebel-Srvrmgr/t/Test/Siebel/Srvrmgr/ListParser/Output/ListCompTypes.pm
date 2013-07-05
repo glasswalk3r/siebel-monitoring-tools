@@ -1,36 +1,20 @@
-package Test::Siebel::Srvrmgr::ListCompTypes;
+package Test::Siebel::Srvrmgr::ListParser::Output::ListCompTypes;
 
 use Test::Most;
-use base 'Test::Siebel::Srvrmgr';
+use base 'Test::Siebel::Srvrmgr::ListParser::Output';
 
-sub startup : Tests(startup => 1) {
+sub get_data_type {
 
-    my $test = shift;
-    use_ok $test->class;
-}
-
-sub constructor : Tests(4) {
-
-    my $test  = shift;
-    my $class = $test->class;
-
-    can_ok( $class, 'new' );
-
-    ok(
-        my $comps = $class->new(
-            {
-                data_type => 'list_comp_types',
-                raw_data  => $test->get_my_data(),
-                cmd_line  => 'list comp types'
-            }
-        ),
-        '... and the constructor should succeed'
-    );
-
-    isa_ok( $comps, 'Siebel::Srvrmgr::ListParser::Output' );
-    isa_ok( $comps, $class, '... and the object it returns' );
+	return 'list_comp_types';
 
 }
+
+sub get_cmd_line {
+
+	return 'list comp types';
+
+}
+
 
 1;
 

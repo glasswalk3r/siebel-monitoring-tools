@@ -1,33 +1,23 @@
-package Test::Siebel::Srvrmgr::ListServers;
+package Test::Siebel::Srvrmgr::ListParser::Output::ListServers;
 
 use Test::Most;
-use base 'Test::Siebel::Srvrmgr';
+use base 'Test::Siebel::Srvrmgr::ListParser::Output';
 
-sub startup : Tests(startup => 1) {
+sub get_data_type {
 
-    my $test = shift;
-    use_ok $test->class;
+    return 'list_servers';
+
 }
 
-sub constructor : Tests(4) {
+sub get_cmd_line {
 
-    my $test  = shift;
-    my $class = $test->class;
+    return 'list servers';
 
-    can_ok( $class, 'new' );
+}
 
-    ok(
-        my $servers = $class->new(
-            {
-                data_type => 'list_servers',
-                raw_data  => $test->get_my_data(),
-                cmd_line  => 'list servers'
-            }
-        ),
-        '... and the constructor should succeed'
-    );
+sub class_methods : Tests(+1) {
 
-    isa_ok( $servers, $class, '... and the object it returns' );
+    my $test = shift;
 
     # got from Data::Dumper
     my $parsed_data = {
@@ -79,7 +69,7 @@ sub constructor : Tests(4) {
 
     cmp_deeply(
         $parsed_data,
-        $servers->get_data_parsed(),
+        $test->get_output()->get_data_parsed(),
         'get_data_parsed() returns the correct data structure'
     );
 
