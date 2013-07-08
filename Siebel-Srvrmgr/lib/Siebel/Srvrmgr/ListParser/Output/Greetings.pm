@@ -264,6 +264,8 @@ sub _set_copyright {
 
 }
 
+ # :TODO      :08/07/2013 15:51:18:: must separate Output functionality from expectation of output in tabular format
+
 # the methods below are overrided just because
 # the parent class demands, but they are useless for Greetings (they are never invoked internally)
 # since parse method is overrided as well
@@ -278,6 +280,17 @@ override '_parse_data' => sub {
     return 1;
 
 };
+
+=pod
+
+=head2 BUILD
+
+The BUILD method sets defaults values for the attributes C<fields_patterns> and C<header_cols> during object creation, but those values are used
+only for passing tests of the API since they make no sense at all. This method should be removed in future releases of the API when the when the
+classes inheritance schema is changed to separate L<Siebel::Srvrmgr::ListParser::Output> methods and attributes from the expectation of having
+the output in tabular configuration.
+
+=cut
 
 sub BUILD {
 
