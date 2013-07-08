@@ -239,6 +239,14 @@ sub _set_header_regex {
 
 }
 
+=pod
+
+=head2 _set_header
+
+_set_header method is overrided to also set the C<comp_attribs> attribute. The parent class method is also invoked (prior to setting C<comp_attribs>).
+
+=cut
+
 override '_set_header' => sub {
 
     my $self = shift;

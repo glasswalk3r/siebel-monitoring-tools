@@ -3,12 +3,14 @@ package Test::Siebel::Srvrmgr::Daemon::Action;
 use Test::Most;
 use Siebel::Srvrmgr::ListParser;
 use Test::Moose 'has_attribute_ok';
+use Cwd;
 use base 'Test::Siebel::Srvrmgr';
 
 sub before : Tests(setup) {
 
     my $test = shift;
 
+    # :TODO      :08/07/2013 12:50:51:: defined methods instead using references
     # keeps the subclass of Siebel::Srvrmgr::Daemon as an attribute
     $test->{action} = $test->class()->new(
         {
@@ -63,6 +65,33 @@ sub class_methods : Tests(6) {
         'do method raises an exception with wrong type of parameter' );
 
     ok( $test->{action}->get_params(), 'get_params works returns data' );
+
+}
+
+sub clean_up : Test(shutdown) {
+
+    my $test = shift;
+
+    # removes the dump files
+    my $dir = getcwd();
+
+    opendir( DIR, $dir ) or die "Cannot read $dir: $!\n";
+    my @files = readdir(DIR);
+    close(DIR);
+
+# :TODO      :08/07/2013 12:50:22:: change for a proper interface instead hoping for data structure be the expected
+    my $filename = '^' . ( @{ $test->{action}->get_params() } )[0];
+    my $regex = qr/$filename/;
+
+    foreach my $file (@files) {
+
+        if ( $file =~ /$regex/ ) {
+
+            unlink $file or warn "Cannot remove $file: $!\n";
+
+        }
+
+    }
 
 }
 
