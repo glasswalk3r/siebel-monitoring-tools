@@ -66,7 +66,7 @@ The parameters below are obligatory:
 	-e: expects as parameter the Siebel Enterprise name as parameter
 	-u: expects as parameter the user for authentication as parameter
 	-p: expects as parameter the password for authentication as parameter
-	-b: expects as parameter the complete path to the srvrmgr program as parameter
+	-b: expects as parameter the complete path to the srvrmgr binary file as parameter
 	-r: expects as parameter the regular expression to match component alias to export as parameter (case sensitive)
 
 The parameters below are optional:
@@ -92,11 +92,11 @@ foreach my $option (qw(s g e u p b r)) {
 
 }
 
-pulse_start(
-    name   => 'Connecting to Siebel and getting initial data...',
-    rotate => 1,
-    time   => 1
-);
+#pulse_start(
+#    name   => 'Connecting to Siebel and getting initial data...',
+#    rotate => 1,
+#    time   => 1
+#);
 
 my $daemon = Siebel::Srvrmgr::Daemon->new(
     {
@@ -166,7 +166,7 @@ my $server_comps = $sieb_srv->get_comps();
 
 my $comp_regex = qr/$opts{r}/;
 
-pulse_stop();
+#pulse_stop();
 
 foreach my $comp_alias ( @{$server_comps} ) {
 
@@ -194,6 +194,10 @@ foreach my $comp_alias ( @{$server_comps} ) {
 
     my $comp = $sieb_srv->get_comp($comp_alias);
 
+ # :TODO      :10/07/2013 18:43:05:: should chech if the attribute is not already set
+ # since the behaviour below was from Siebel 7.5.3
+ # Getting components definitions for all components should be delayed unless ct_name and ct_alias are undefined
+ # in the component level
     $comp->ct_name( $comp_defs_ref->{ $comp->cc_name() }->{CT_NAME} );
 
     $comp->ct_alias( $comp_types_ref->{ $comp->ct_name() }->{CT_ALIAS} );
