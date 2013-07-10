@@ -58,8 +58,8 @@ siebfoobar  JMSReceiver                JMS Receiver                             
 siebfoobar  ListImportSvcMgr           List Import Service Manager                          BusSvcMgr        MktgSrv         Batch        Online             0                 20            1                  1                 2013-04-22 15:32:31               Enabled                                
 siebfoobar  PDbXtract                  Parallel Database Extract                            DbXtract         Remote          Batch        Online             0                 10            1                  1                 2013-04-22 15:32:31               Enabled                                
 siebfoobar  RepAgent                   Replication Agent                                    RepAgent         Remote          Background   Online             0                 1                                                  2013-04-22 15:32:31               Enabled                                
-siebfoobar  SERAssetRecCMon            SER Asset Recipro Canceled Monitor                   WorkMon          Workflow        Background   Running            1                 1                                                  2013-04-22 15:32:31               Enabled                                
-siebfoobar  SERAssetWorkMon            SER Asset Workflow Monitor Agent                     WorkMon          Workflow        Background   Running            1                 1                                                  2013-04-22 15:32:31               Enabled                                
+siebfoobar  FooAssetRecCMon            Foobar Asset Recipro Canceled Monitor                WorkMon          Workflow        Background   Running            1                 1                                                  2013-04-22 15:32:31               Enabled                                
+siebfoobar  FooAssetWorkMon            Foobar Asset Workflow Monitor Agent                  WorkMon          Workflow        Background   Running            1                 1                                                  2013-04-22 15:32:31               Enabled                                
 siebfoobar  ServerMgr                  Server Manager                                       ServerMgr        System          Interactive  Running            1                 20                                                 2013-04-22 15:32:25               Enabled                                
 siebfoobar  SRBroker                   Server Request Broker                                ReqBroker        System          Interactive  Running            38                100           1                  1                 2013-04-22 15:32:25               Enabled                                
 siebfoobar  SRProc                     Server Request Processor                             SRProc           SystemAux       Interactive  Running            2                 20            1                  1                 2013-04-22 15:32:25               Enabled                                
@@ -1057,7 +1057,7 @@ siebfoobar1  WfProcMgr                  17826151   16875   Completed
 siebfoobar1  WfProcMgr                  17826150   16875   Completed         
 siebfoobar1  WfProcMgr                  17826149   16875   Completed         
 siebfoobar1  WfProcMgr                  17826148   16875   Completed         
-siebfoobar1  SERWorkMonOrderItem        14680066   16893   Running           
+siebfoobar1  FooWorkMonOrderItem        14680066   16893   Running           
 siebfoobar1  SvrTblCleanup              8388610    16709   Running           
 siebfoobar1  SvrTaskPersist             7340034    16673   Running           
 siebfoobar1  SRProc                     5242888    16693   Running           

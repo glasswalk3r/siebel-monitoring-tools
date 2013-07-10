@@ -5,7 +5,7 @@ use feature qw(switch say);
 use Hash::Util qw(lock_keys);
 use YAML::Syck;
 
-our $VERSION = 0.02;
+our $VERSION = 0.03;
 my $raw;
 
 {
@@ -38,31 +38,44 @@ while (1) {
 
  # do nothing to get a deadlock when reading STDOUT with Siebel::Srvrmgr::Daemon
             sleep(20);
-            put_text( [ "\n", "yada yada yada\n", "\n", "1 row returned.\n", "\n" ] );
+            put_text(
+                [ "\n", "yada yada yada\n", "\n", "1 row returned.\n", "\n" ] );
 
         }
 
         when (/^list\scomp\stype/) {
 
-            put_text( $data_ref->{ls_comp_types} );
+            put_text( $data_ref->{list_comp_types} );
+
+        }
+
+        when (/^list\sparams\sfor\ssrproc/) {
+
+            put_text( $data_ref->{list_params_for_srproc} );
+
+        }
+
+        when (/^list\sparams/) {
+
+            put_text( $data_ref->{list_params} );
 
         }
 
         when (/^list\scomp\sdef/) {
 
-            put_text( $data_ref->{ls_comp_def_srproc} );
+            put_text( $data_ref->{list_comp_def_srproc} );
 
         }
 
         when (/^list\scomp/) {
 
-            put_text( $data_ref->{ls_comp} );
+            put_text( $data_ref->{list_comp} );
 
         }
 
         when (/^list\sservers?/) {
 
-            put_text( $data_ref->{ls_servers} )
+            put_text( $data_ref->{list_servers} )
 
         }
 
@@ -92,12 +105,15 @@ while (1) {
             put_text(
                 [
                     "Available commands are:\n",
+                    "load preferences\n",
                     "list servers\n",
                     "list comp\n",
-                    "exit\n",
                     "list comp def\n",
                     "list comp type\n",
                     "list blockme\n",
+                    "list params\n",
+                    "list params for srproc\n",
+                    "exit\n",
                     "\n"
                 ]
             );
@@ -160,32 +176,7 @@ BLOCK
 
 __DATA__
 --- 
-greetings: 
-  - "Siebel Enterprise Applications Siebel Server Manager, Version 8.1.1.5 [21229] LANG_INDEPENDENT \n"
-  - "Copyright (c) 1990-2008, Oracle. All rights reserved.\n"
-  - "\n"
-  - "The Programs (which include both the software and documentation) contain\n"
-  - "proprietary information; they are provided under a license agreement containing\n"
-  - "restrictions on use and disclosure and are also protected by copyright, patent,\n"
-  - "and other intellectual and industrial property laws. Reverse engineering,\n"
-  - "disassembly, or decompilation of the Programs, except to the extent required to\n"
-  - "obtain interoperability with other independently created software or as specified\n"
-  - "by law, is prohibited.\n"
-  - "\n"
-  - "Oracle, JD Edwards, PeopleSoft, and Siebel are registered trademarks of\n"
-  - "Oracle Corporation and/or its affiliates. Other names may be trademarks\n"
-  - "of their respective owners.\n"
-  - "\n"
-  - "If you have received this software in error, please notify Oracle Corporation\n"
-  - "immediately at 1.800.ORACLE1.\n"
-  - "\n"
-  - "Type \"help\" for list of commands, \"help <topic>\" for detailed help\n"
-  - "\n"
-  - "Connected to 1 server(s) out of a total of 1 server(s) in the enterprise\n"
-load_preferences: 
-  - "srvrmgr> load preferences\n"
-  - "File: C:\\Siebel\\8.1\\Client\\BIN\\.Siebel_svrmgr.pref\n"
-ls_comp: 
+list_comp: 
   - "\n"
   - "SV_NAME     CC_ALIAS                   CC_NAME                                              CT_ALIAS         CG_ALIAS        CC_RUNMODE   CP_DISP_RUN_STATE  CP_NUM_RUN_TASKS  CP_MAX_TASKS  CP_ACTV_MTS_PROCS  CP_MAX_MTS_PROCS  CP_START_TIME        CP_END_TIME  CP_STATUS  CC_INCARN_NO  CC_DESC_TEXT  \n"
   - "----------  -------------------------  ---------------------------------------------------  ---------------  --------------  -----------  -----------------  ----------------  ------------  -----------------  ----------------  -------------------  -----------  ---------  ------------  ------------  \n"
@@ -220,8 +211,8 @@ ls_comp:
   - "siebfoobar  ListImportSvcMgr           List Import Service Manager                          BusSvcMgr        MktgSrv         Batch        Online             0                 20            1                  1                 2013-04-22 15:32:31               Enabled                                \n"
   - "siebfoobar  PDbXtract                  Parallel Database Extract                            DbXtract         Remote          Batch        Online             0                 10            1                  1                 2013-04-22 15:32:31               Enabled                                \n"
   - "siebfoobar  RepAgent                   Replication Agent                                    RepAgent         Remote          Background   Online             0                 1                                                  2013-04-22 15:32:31               Enabled                                \n"
-  - "siebfoobar  SERAssetRecCMon            SER Asset Recipro Canceled Monitor                   WorkMon          Workflow        Background   Running            1                 1                                                  2013-04-22 15:32:31               Enabled                                \n"
-  - "siebfoobar  SERAssetWorkMon            SER Asset Workflow Monitor Agent                     WorkMon          Workflow        Background   Running            1                 1                                                  2013-04-22 15:32:31               Enabled                                \n"
+  - "siebfoobar  FooAssetRecCMon            Foobar Asset Recipro Canceled Monitor                WorkMon          Workflow        Background   Running            1                 1                                                  2013-04-22 15:32:31               Enabled                                \n"
+  - "siebfoobar  FooAssetWorkMon            Foobar Asset Workflow Monitor Agent                  WorkMon          Workflow        Background   Running            1                 1                                                  2013-04-22 15:32:31               Enabled                                \n"
   - "siebfoobar  ServerMgr                  Server Manager                                       ServerMgr        System          Interactive  Running            1                 20                                                 2013-04-22 15:32:25               Enabled                                \n"
   - "siebfoobar  SRBroker                   Server Request Broker                                ReqBroker        System          Interactive  Running            38                100           1                  1                 2013-04-22 15:32:25               Enabled                                \n"
   - "siebfoobar  SRProc                     Server Request Processor                             SRProc           SystemAux       Interactive  Running            2                 20            1                  1                 2013-04-22 15:32:25               Enabled                                \n"
@@ -244,7 +235,7 @@ ls_comp:
   - "\n"
   - "52 rows returned.\n"
   - "\n"
-ls_comp_def_srproc: 
+list_comp_def: 
   - "\n"
   - "CC_NAME                                                                       CT_NAME                                                                       CC_RUNMODE                       CC_ALIAS                         CC_DISP_ENABLE_ST                                              CC_DESC_TEXT                                                                                                                                                                                                                                                 CG_NAME                                                                       CG_ALIAS                         CC_INCARN_NO             \n"
   - "----------------------------------------------------------------------------  ----------------------------------------------------------------------------  -------------------------------  -------------------------------  -------------------------------------------------------------  --------------------------------------------------------------------------------------------------------------------  ----------------------------------------------------------------------------  -------------------------------  -----------------------  \n"
@@ -252,7 +243,15 @@ ls_comp_def_srproc:
   - "\n"
   - "1 row returned.\n"
   - "\n"
-ls_comp_types: 
+list_comp_def_srproc: 
+  - "\n"
+  - "CC_NAME                                                                       CT_NAME                                                                       CC_RUNMODE                       CC_ALIAS                         CC_DISP_ENABLE_ST                                              CC_DESC_TEXT                                                                                                                                                                                                                                                 CG_NAME                                                                       CG_ALIAS                         CC_INCARN_NO             \n"
+  - "----------------------------------------------------------------------------  ----------------------------------------------------------------------------  -------------------------------  -------------------------------  -------------------------------------------------------------  --------------------------------------------------------------------------------------------------------------------  ----------------------------------------------------------------------------  -------------------------------  -----------------------  \n"
+  - "Server Request Processor                                                      Server Request Processor (SRP)                                                Interactive                      SRProc                           Active                                                         Server Request scheduler and request/notification store and forward processor                                                                                                                                                                                Auxiliary System Management                                                   SystemAux                        0                        \n"
+  - "\n"
+  - "1 row returned.\n"
+  - "\n"
+list_comp_types: 
   - "\n"
   - "CT_NAME                                                                       CT_RUNMODE                       CT_ALIAS                                                       CT_DESC_TEXT                                                                                                                                                                                                                                                 \n"
   - "----------------------------------------------------------------------------  -------------------------------  -------------------------------------------------------------  --------------------------------------------------------------------------------------------------------------------  \n"
@@ -521,7 +520,7 @@ ls_comp_types:
   - "\n"
   - "262 rows returned.\n"
   - "\n"
-ls_params: 
+list_params: 
   - "\n"
   - "PA_ALIAS                               PA_VALUE                                                                                 PA_DATATYPE  PA_SCOPE   PA_SUBSYSTEM                                   PA_SETLEVEL       PA_DISP_SETLEVEL      PA  PA  PA  PA  PA_NAME                                                                                                                                                                  \n"
   - "-------------------------------------  ---------------------------------------------------------------------------------------  -----------  ---------  ---------------------------------------------  ----------------  --------------------  --  --  --  --  --------------------------------------------------------------------------------------------------------------------  \n"
@@ -926,7 +925,7 @@ ls_params:
   - "\n"
   - "398 rows returned.\n"
   - "\n"
-ls_params_srproc: 
+list_params_for_srproc: 
   - "\n"
   - "PA_ALIAS                 PA_VALUE                                                 PA_DATATYPE  PA_SCOPE   PA_SUBSYSTEM                 PA_SETLEVEL       PA_DISP_SETLEVEL                PA  PA  PA  PA  PA_NAME                                            \n"
   - "-----------------------  -------------------------------------------------------  -----------  ---------  ---------------------------  ----------------  ------------------------------  --  --  --  --  -------------------------------------------------  \n"
@@ -1024,7 +1023,7 @@ ls_params_srproc:
   - "\n"
   - "91 rows returned.\n"
   - "\n"
-ls_servers: 
+list_servers: 
   - "\n"
   - "SBLSRVR_NAME  SBLSRVR_GROUP_NAME  HOST_NAME   INSTALL_DIR           SBLMGR_PID  SV_DISP_STATE  SBLSRVR_STATE  START_TIME           END_TIME  SBLSRVR_STATUS                    \n"
   - "------------  ------------------  ----------  --------------------  ----------  -------------  -------------  -------------------  --------  --------------------------------  \n"
@@ -1032,7 +1031,7 @@ ls_servers:
   - "\n"
   - "1 row returned.\n"
   - "\n"
-ls_tasks: 
+list_tasks: 
   - "\n"
   - "SV_NAME     CC_ALIAS                   TK_TASKID  TK_PID  TK_DISP_RUNSTATE   CC_RUNMODE   TK_START_TIME        TK_END_TIME          TK_STATUS                                                                                                         CG_ALIAS        TK_PARENT_TASKNUM  CC_INCARN_NO  TK_LABEL             TK_TASKTYPE  TK_PING_TIME  \n"
   - "----------  -------------------------  ---------  ------  -----------------  -----------  -------------------  -------------------  ----------------------------------------------------------------------------------------------------------------  --------------  -----------------  ------------  -------------------  -----------  ------------  \n"
@@ -1104,9 +1103,9 @@ ls_tasks:
   - "siebfoobar  TaskLogCleanup             28311554   20932   Running            Background   2013-04-22 15:32:34  2000-00-00 00:00:00  Method CleanTaskLog for service Task Log Cleanup Service has executed 42 times -- Sleeping                        TaskUI                             0             SADMIN               Normal                     \n"
   - "siebfoobar  WfProcMgr                  16777245   20818   Completed          Batch        2013-04-22 15:33:41  2013-04-22 15:33:41                                                                                                                    Workflow                           0             SADMIN               Normal                     \n"
   - "siebfoobar  WfProcMgr                  16777244   20818   Completed          Batch        2013-04-22 15:33:41  2013-04-22 15:33:41                                                                                                                    Workflow                           0                                  Normal                     \n"
-  - "siebfoobar  SERAssetWorkMon            13631489   20806   Running            Background   2013-04-22 15:32:31  2000-00-00 00:00:00  Processed 0 requests                                                                                              Workflow                           0                                  Normal                     \n"
+  - "siebfoobar  FooAssetWorkMon            13631489   20806   Running            Background   2013-04-22 15:32:31  2000-00-00 00:00:00  Processed 0 requests                                                                                              Workflow                           0                                  Normal                     \n"
   - "siebfoobar  WorkMonSWI                 12582914   20803   Running            Background   2013-04-22 15:32:31  2000-00-00 00:00:00  Sleeping for 5 seconds...                                                                                         Workflow                           0                                  Normal                     \n"
-  - "siebfoobar  SERAssetRecCMon            11534337   20761   Running            Background   2013-04-22 15:32:31  2000-00-00 00:00:00  Processed 0 requests                                                                                              Workflow                           0                                  Normal                     \n"
+  - "siebfoobar  FooAssetRecCMon            11534337   20761   Running            Background   2013-04-22 15:32:31  2000-00-00 00:00:00  Processed 0 requests                                                                                              Workflow                           0                                  Normal                     \n"
   - "siebfoobar  SvrTblCleanup              8388610    20562   Running            Background   2013-04-22 15:32:26  2000-00-00 00:00:00  Method DelCompletedDelExpiredReq for service Message Board Maintenance Service has executed 42 times -- Sleeping  SystemAux                          0             SADMIN               Normal                     \n"
   - "siebfoobar  SvrTaskPersist             7340034    20543   Running            Background   2013-04-22 15:32:26  2000-00-00 00:00:00  Method InsertUpdateTaskHistory for service Message Board Maintenance Service has executed 420 times -- Sleeping   SystemAux                          0             SADMIN               Normal                     \n"
   - "siebfoobar  SRProc                     5242888    20503   Running            Interactive  2013-04-22 15:32:28  2000-00-00 00:00:00                                                                                                                    SystemAux                          0                                  Normal                     \n"
@@ -1158,7 +1157,7 @@ ls_tasks:
   - "\n"
   - "119 rows returned.\n"
   - "\n"
-ls_tasks_srproc: 
+list_tasks_for_server_siebfoobar_component_srproc: 
   - "\n"
   - "SV_NAME     CC_ALIAS  TK_TASKID  TK_PID  TK_DISP_RUNSTATE  CC_RUNMODE   TK_START_TIME        TK_END_TIME          TK_STATUS  CG_ALIAS   TK_PARENT_TASKNUM  CC_INCARN_NO  TK_LABEL         TK_TASKTYPE  TK_PING_TIME  \n"
   - "----------  --------  ---------  ------  ----------------  -----------  -------------------  -------------------  ---------  ---------  -----------------  ------------  ---------------  -----------  ------------  \n"
@@ -1167,3 +1166,5 @@ ls_tasks_srproc:
   - "\n"
   - "2 rows returned.\n"
   - "\n"
+load_preferences: 
+  - "File: C:\\Siebel\\8.1\\Client\\BIN\\.Siebel_svrmgr.pref\n\n"
