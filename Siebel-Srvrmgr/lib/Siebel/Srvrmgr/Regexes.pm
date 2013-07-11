@@ -66,6 +66,8 @@ Regular expression to match the first line submitted by a Siebel enterprise when
 
 	Siebel Enterprise Applications Siebel Server Manager, Version 8.0.0.7 [20426] LANG_INDEPENDENT
 
+It is a known issue that UTF-8 data with BOM character will cause this regular expression to B<not> match.
+
 =cut
 
 sub CONN_GREET {

@@ -1,3 +1,23 @@
+#
+#===============================================================================
+#
+#         FILE: store_data.pl
+#
+#  DESCRIPTION: this small program is to help adding YAML serialized data into srvrmgr.pl program in the DATA handler
+#
+#        FILES: ---
+#         BUGS: ---
+#        NOTES: ---
+#       AUTHOR: arfreitas@cpan.org, 
+# ORGANIZATION: 
+#      VERSION: 1.0
+#      CREATED: 11/07/2013 17:17:37
+#     REVISION: ---
+#===============================================================================
+
+use strict;
+use warnings;
+ 
 use warnings;
 use strict;
 use utf8;
@@ -14,7 +34,7 @@ my @keys = (
     'list_comp_types',
     'list_params',
     'list_comp_def',
-    'list_comp_def_for_component_srproc',
+    'list_comp_def_srproc',
     'list_params_for_srproc',
     'list_servers',
     'list_tasks',

@@ -3,7 +3,7 @@ use strict;
 use File::Spec;
 use Siebel::Srvrmgr::ListParser;
 use Cwd;
-use Test::More tests => 11;
+use Test::More;
 
 my $output_filename = '8.1.1.5_21229.txt';
 
@@ -37,17 +37,22 @@ my @expected = (
     'Siebel::Srvrmgr::ListParser::Output::ListParams',
     'Siebel::Srvrmgr::ListParser::Output::ListParams',
     'Siebel::Srvrmgr::ListParser::Output::ListCompDef',
+    'Siebel::Srvrmgr::ListParser::Output::ListCompDef',
     'Siebel::Srvrmgr::ListParser::Output::ListTasks',
     'Siebel::Srvrmgr::ListParser::Output::ListTasks',
     'Siebel::Srvrmgr::ListParser::Output::ListServers'
 );
+
+# +1 from the is test below
+plan tests => ( scalar(@expected) + 1 );
 
 is( scalar( @{$res} ),
     scalar(@expected), 'the expected number of parsed objects is returned' );
 
 SKIP: {
 
-    skip 'number of parsed objects must be equal to the expected', 9
+    skip 'number of parsed objects must be equal to the expected',
+      scalar(@expected)
       unless ( ( scalar( @{$res} ) ) == ( scalar(@expected) ) );
 
     for ( my $i = 0 ; $i < scalar(@expected) ; $i++ ) {
