@@ -20,7 +20,7 @@
 #    along with Siebel Monitoring Tools.  If not, see <http://www.gnu.org/licenses/>.
 
 # this script will use srvrmgr program to connect to a given Siebel Server,
-# list it's components available and print to STDOUT a set of 'create component definition'
+# list it's components available and print a set of 'create component definition'
 # commands of the respective components
 
 use warnings;
@@ -37,7 +37,11 @@ use Getopt::Std;
 use feature qw(say);
 use Term::Pulse;
 
-$Getopt::Std::STANDARD_HELP_VERSION = 1;
+$Getopt::Std::STANDARD_HELP_VERSION = 2;
+
+# for stopping Term::Pulse correctly
+$SIG{__DIE__} = sub { pulse_stop() };
+$SIG{INT}     = sub { die "Caught interrupt signal" };
 
 our $VERSION = 1;
 
@@ -71,7 +75,9 @@ The parameters below are obligatory:
 
 The parameters below are optional:
 
-	-x: if present, the program will exclude component parameters with empty values from the generated 'created component' command
+	-x: exclude mode. If present, the program will exclude component parameters with empty values from the generated 'created component' command
+	-q: quiet mode. If present, the program will not put print anything to STDOUT but the "create component" output (see also -o)
+	-o: output mode. If present, expects a filename as parameter to print the output to this file instead of STDOUT (default)
 	-h: prints this help message and exists
 
 BLOCK
@@ -82,7 +88,7 @@ BLOCK
 
 our %opts;
 
-getopts( 's:g:e:u:p:b:r:xh', \%opts );
+getopts( 's:g:e:u:p:b:r:o:xhq', \%opts );
 
 HELP_MESSAGE() if ( exists( $opts{h} ) );
 
@@ -92,11 +98,11 @@ foreach my $option (qw(s g e u p b r)) {
 
 }
 
-#pulse_start(
-#    name   => 'Connecting to Siebel and getting initial data...',
-#    rotate => 1,
-#    time   => 1
-#);
+pulse_start(
+    name   => 'Connecting to Siebel and getting initial data...',
+    rotate => 1,
+    time   => 1
+) unless ( $opts{q} );
 
 my $daemon = Siebel::Srvrmgr::Daemon->new(
     {
@@ -119,54 +125,38 @@ my $daemon = Siebel::Srvrmgr::Daemon->new(
 # LoadPreferences does not add anything into ActionStash, so it's ok use a second action here
             Siebel::Srvrmgr::Daemon::Command->new(
                 {
-                    command => 'list comp type',
-                    action  => 'Siebel::Srvrmgr::Exporter::ListCompTypes'
+                    command => 'list comp',
+                    action  => 'Siebel::Srvrmgr::Exporter::ListComp'
                 }
-            )
+              )
+
         ]
     }
 );
 
+# "globals"
+my ( $DEFS_REF, $TYPES_REF );
+
 my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
 
 $daemon->run();
-my $comp_types_ref = $stash->get_stash();
-$stash->set_stash( [] );
 
-$daemon->set_commands(
-    [
-        Siebel::Srvrmgr::Daemon::Command->new(
-            {
-                command => 'list comp def',
-                action  => 'Siebel::Srvrmgr::Exporter::ListCompDef'
-            }
-        )
-    ]
-);
-
-$daemon->run();
-my $comp_defs_ref = $stash->get_stash();
-$stash->set_stash( [] );
-
-$daemon->set_commands(
-    [
-        Siebel::Srvrmgr::Daemon::Command->new(
-            {
-                command => 'list comp',
-                action  => 'Siebel::Srvrmgr::Exporter::ListComp'
-            }
-        )
-    ]
-);
-
-$daemon->run();
 my $sieb_srv = $stash->get_stash();
 $stash->set_stash( [] );
 my $server_comps = $sieb_srv->get_comps();
 
 my $comp_regex = qr/$opts{r}/;
 
-#pulse_stop();
+pulse_stop() unless ( $opts{q} );
+
+my $out;
+
+if ( defined( $opts{o} ) ) {
+
+    open( $out, '>:utf8', $opts{o} )
+      or die "Cannot create output file $opts{o}: $!\n";
+
+}
 
 foreach my $comp_alias ( @{$server_comps} ) {
 
@@ -194,13 +184,11 @@ foreach my $comp_alias ( @{$server_comps} ) {
 
     my $comp = $sieb_srv->get_comp($comp_alias);
 
- # :TODO      :10/07/2013 18:43:05:: should chech if the attribute is not already set
- # since the behaviour below was from Siebel 7.5.3
- # Getting components definitions for all components should be delayed unless ct_name and ct_alias are undefined
- # in the component level
-    $comp->ct_name( $comp_defs_ref->{ $comp->cc_name() }->{CT_NAME} );
-
-    $comp->ct_alias( $comp_types_ref->{ $comp->ct_name() }->{CT_ALIAS} );
+# check if the attribute is not already set since the behaviour below was from Siebel 7.5.3 only
+    $comp->ct_name( $comp->cc_name(), $daemon, $stash )
+      unless ( $comp->ct_name() );
+    $comp->ct_alias( $comp->ct_name(), $daemon, $stash )
+      unless ( $comp->ct_alias() );
 
     my @params;
 
@@ -219,10 +207,87 @@ foreach my $comp_alias ( @{$server_comps} ) {
 
     }
 
-    print "\n", 'create component definition ', $comp->cc_alias(),
-      ' for component type ', $comp->ct_alias(),
-      ' component group ', $comp->cg_alias(), ' run mode ', $comp->cc_runmode(),
-      ' full name "', $comp->cc_name(), '" description "',
-      $comp->cc_desc_text(), '" with parameter ', join( ',', @params ), ";\n\n";
+    if ( defined( $opts{o} ) ) {
+
+        print $out 'create component definition ', $comp->cc_alias(),
+          ' for component type ', $comp->ct_alias(),
+          ' component group ', $comp->cg_alias(), ' run mode ',
+          $comp->cc_runmode(),
+          ' full name "', $comp->cc_name(), '" description "',
+          $comp->cc_desc_text(), '" with parameter ', join( ',', @params ),
+          ";\n";
+
+    }
+    else {
+
+        print "\n", 'create component definition ', $comp->cc_alias(),
+          ' for component type ', $comp->ct_alias(),
+          ' component group ', $comp->cg_alias(), ' run mode ',
+          $comp->cc_runmode(),
+          ' full name "', $comp->cc_name(), '" description "',
+          $comp->cc_desc_text(), '" with parameter ', join( ',', @params ),
+          ";\n\n";
+
+    }
+
+}
+
+close($out) if ( defined($out) );
+
+sub get_comp_type_alias {
+
+    my $comp_type_name = shift;
+    my $daemon         = shift;
+    my $stash          = shift;
+
+    unless ( defined($TYPES_REF) ) {
+
+        $daemon->set_commands(
+            [
+                Siebel::Srvrmgr::Daemon::Command->new(
+                    {
+                        command => 'list comp type',
+                        action  => 'Siebel::Srvrmgr::Exporter::ListCompTypes'
+                    }
+                )
+            ]
+        );
+
+        $daemon->run();
+        $TYPES_REF = $stash->get_stash();
+        $stash->set_stash( [] );
+
+    }
+
+    return $TYPES_REF->{$comp_type_name}->{CT_ALIAS};
+
+}
+
+sub get_comp_type_name {
+
+    my $comp_name = shift;
+    my $daemon    = shift;
+    my $stash     = shift;
+
+    unless ( defined($DEFS_REF) ) {
+
+        $daemon->set_commands(
+            [
+                Siebel::Srvrmgr::Daemon::Command->new(
+                    {
+                        command => 'list comp def',
+                        action  => 'Siebel::Srvrmgr::Exporter::ListCompDef'
+                    }
+                )
+            ]
+        );
+
+        $daemon->run();
+        $DEFS_REF = $stash->get_stash();
+        $stash->set_stash( [] );
+
+    }
+
+    return $DEFS_REF->{$comp_name}->{CT_NAME};
 
 }
