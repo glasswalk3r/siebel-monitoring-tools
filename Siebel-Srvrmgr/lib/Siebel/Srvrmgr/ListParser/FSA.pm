@@ -2,11 +2,73 @@ package Siebel::Srvrmgr::ListParser::FSA;
 use warnings;
 use strict;
 use FSA::Rules;
+use Log::Log4perl;
+use Siebel::Srvrmgr;
+
+=pod
+
+=head1 NAME
+
+Siebel::Srvrmgr::ListParser::FSA - functions related to FSA::Rules defined for Siebel::Srvrmgr::ListParser
+
+=head1 SYNOPSIS
+
+	use FSA::Rules;
+	my $fsa = Siebel::Srvrmgr::ListParser::FSA->get_fsa();
+    # do something with $fsa
+
+    # for getting a diagram exported in your currently directory with a onliner
+    perl -MSiebel::Srvrmgr::ListParser::FSA -e "Siebel::Srvrmgr::ListParser::FSA->export_diagram"
+
+=head1 DESCRIPTION
+
+Siebel::Srvrmgr::ListParser::FSA implements the state machine used by L<Siebel::Srvrmgr::ListParser> class.
+
+This class only have static methods and is considered to be experimental.
+
+This class also have a L<Log::Log4perl> instance builtin the L<FSA::Rules> instance returned by L<get_fsa> method.
+
+=head1 EXPORTS
+
+Nothing.
+
+=head1 STATIC METHODS
+
+=head2 export_diagram
+
+Creates a PNG file with the state machine diagram in the current directory where the method was invoked.
+
+=cut
+
+sub export_diagram {
+
+    my $fsa = get_fsa();
+
+    my $graph = $fsa->graph( layout => 'neato', overlap => 'false' );
+    $graph->as_png('pretty.png');
+
+    return 1;
+
+}
+
+=pod
+
+=head2 get_fsa
+
+Returns the state machine object defined for usage with a L<Siebel::Srvrmgr::ListParser> instance.
+
+=cut
 
 sub get_fsa {
 
-    my $class  = shift;
-    my $logger = shift;
+    my $class = shift;
+
+    my $log_cfg = Siebel::Srvrmgr->logging_cfg();
+
+    die 'Could not start logging facilities'
+      unless ( Log::Log4perl->init_once( \$log_cfg ) );
+
+    my $logger = Log::Log4perl->get_logger('Siebel::Srvrmgr::ListParser');
 
     my $ls_params_regex =
       qr/list\sparams(\sfor\sserver\s\w+\sfor\scomponent\s\w+)?/;
@@ -444,30 +506,7 @@ sub get_fsa {
 
 1;
 
-__END__
-
 =pod
-
-=head1 NAME
-
-Siebel::Srvrmgr::ListParser::FSA - creates an instance of a FSA::Rules classes with definitions for Siebel::Srvrmgr::ListParser
-
-=head1 DESCRIPTION
-
-This package was created only to remove code expecific of L<FSA::Rules> to another package to easy debugging, so it's not intended to be used outside
-the scope of C<parse> method from L<Siebel::Srvrmgr::ListParser> class.
-
-=head1 CLASS METHODS
-
-=head2 get_fsa
-
-Expects as a parameter a L<Log::Log4perl> object.
-
-Returns a L<FSA::Rules> object with definitions as required by L<Siebel::Srvrmgr::ListParser> class.
-
-=head1 EXPORTS
-
-Nothing. But see C<get_fsa> class method.
 
 =head1 SEE ALSO
 

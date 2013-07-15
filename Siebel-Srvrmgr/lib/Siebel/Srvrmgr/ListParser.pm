@@ -124,8 +124,9 @@ has 'last_command' => (
     is      => 'ro',
     isa     => 'Str',
     reader  => 'get_last_command',
-    writer  => '_set_last_command',
-    default => ''
+    writer  => 'set_last_command',
+    default => '',
+    trigger => \&_toggle_cmd_changed
 );
 
 =pod
@@ -148,9 +149,8 @@ An array reference with each one of the indexes being a C<Siebel::Srvrmgr::ListP
 
 has 'buffer' => (
     is      => 'rw',
-    isa     => 'ArrayRef',
+    isa     => 'ArrayRef[Siebel::Srvrmgr::ListParser::Buffer]',
     reader  => 'get_buffer',
-    writer  => '_set_buffer',
     default => sub { return [] }
 );
 
@@ -197,16 +197,11 @@ Set the last command found in the parser received data. It also triggers that th
 
 =cut
 
-sub set_last_command {
+sub _toggle_cmd_changed {
 
-    my $self = shift;
-    my $cmd  = shift;
+    my ( $self, $new_value, $old_value ) = @_;
 
-# trigger for set_buffer method
-# :TODO      :21/06/2013 20:58:40:: verify if Moose trigger is not enough for this case
     $self->is_cmd_changed(1);
-
-    $self->_set_last_command($cmd);
 
 }
 
@@ -223,7 +218,13 @@ sub set_buffer {
     my $self  = shift;
     my $state = shift;
 
-    # :TODO      :21/06/2013 20:39:35:: enable usage of Log::Log4perl here
+    weaken($state);
+
+    my $log_cfg = Siebel::Srvrmgr->logging_cfg();
+    die 'Could not start logging facilities'
+      unless ( Log::Log4perl->init_once( \$log_cfg ) );
+    my $logger = Log::Log4perl->get_logger('Siebel::Srvrmgr::ListParser');
+    weaken($logger);
 
     if ( defined( $state->notes('line') ) ) {
 
@@ -236,18 +237,7 @@ sub set_buffer {
 
             if ( $self->is_cmd_changed() ) {
 
-# :TODO:07/07/2011 13:05:22:: refactor this to a private method since code is repeated
-                my $buffer = Siebel::Srvrmgr::ListParser::Buffer->new(
-                    {
-                        type     => $state->name(),
-                        cmd_line => $self->get_last_command()
-                    }
-                );
-
-                $buffer->set_content( $state->notes('line') );
-
-                push( @{$buffer_ref}, $buffer );
-                $self->_set_buffer($buffer_ref);
+                $self->_set_new_buffer($state);
 
             }
             else {
@@ -259,10 +249,16 @@ sub set_buffer {
                 }
                 else {
 
-                    warn 'Command has not changed but type of output has (got '
-                      . $state->name()
-                      . ' instead of '
-                      . $last_buffer->get_type() . ")\n";
+                    if ( $logger->is_warn() ) {
+
+                        $logger->warn(
+'Command has not changed but type of output has (got '
+                              . $state->name()
+                              . ' instead of '
+                              . $last_buffer->get_type()
+                              . ')' );
+
+                    }
 
                 }
 
@@ -271,17 +267,7 @@ sub set_buffer {
         }
         else {
 
-            my $buffer = Siebel::Srvrmgr::ListParser::Buffer->new(
-                {
-                    type     => $state->name(),
-                    cmd_line => $self->get_last_command()
-                }
-            );
-
-            $buffer->set_content( $state->notes('line') );
-
-            push( @{$buffer_ref}, $buffer );
-            $self->_set_buffer($buffer_ref);
+            $self->_set_new_buffer($state);
 
         }
 
@@ -291,6 +277,27 @@ sub set_buffer {
         warn "Undefined content from state received\n";
 
     }
+
+}
+
+# adds a new buffer to the buffer attribute
+sub _set_new_buffer {
+
+    my $self  = shift;
+    my $state = shift;
+
+    weaken($state);
+
+    my $buffer = Siebel::Srvrmgr::ListParser::Buffer->new(
+        {
+            type     => $state->name(),
+            cmd_line => $self->get_last_command()
+        }
+    );
+
+    $buffer->set_content( $state->notes('line') );
+
+    push( @{ $self->get_buffer() }, $buffer );
 
 }
 
@@ -444,15 +451,6 @@ sub parse {
     weaken($fsa);
 
     $fsa->done( sub { ( $self->get_last_command() eq 'exit' ) ? 1 : 0 } );
-
-    # :TODO      :17/06/2013 14:24:41:: fix this
-    # creates a image representing all the states used and their relationship
-    #    if ( $logger->is_debug() ) {
-    #
-    #        my $graph = $fsa->graph( layout => 'neato', overlap => 'false' );
-    #        $graph->as_png('pretty.png');
-    #
-    #    }
 
     my $state;
     my $line_number = 0;
