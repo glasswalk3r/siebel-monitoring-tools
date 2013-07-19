@@ -151,6 +151,7 @@ has 'buffer' => (
     is      => 'rw',
     isa     => 'ArrayRef[Siebel::Srvrmgr::ListParser::Buffer]',
     reader  => 'get_buffer',
+    writer  => '_set_buffer',
     default => sub { return [] }
 );
 
@@ -211,12 +212,19 @@ sub _toggle_cmd_changed {
 
 Sets the buffer attribute,  inserting new C<Siebel::Srvrmgr::ListParser::Buffer> objects into the array reference as necessary.
 
+Expects an instance of a L<FSA::State> class as parameter (obligatory parameter).
+
 =cut
 
 sub set_buffer {
 
     my $self  = shift;
     my $state = shift;
+
+    my $state_class = 'FSA::State';
+
+    die "Must receive a valid $state_class instance as parameter"
+      unless ( ref($state) eq $state_class );
 
     weaken($state);
 
@@ -493,7 +501,7 @@ sub parse {
 
 # :WORKAROUND:21/06/2013 20:36:08:: if parse method is called twice, without calling clear_buffer, the buffer will be reused
 # and the returned data will be invalid due removal of the last three lines by Siebel::Srvrmgr::ListParser::Output->parse
-# This also should help with memory utilization
+# This should help with memory utilization too
     $self->clear_buffer();
 
     return 1;

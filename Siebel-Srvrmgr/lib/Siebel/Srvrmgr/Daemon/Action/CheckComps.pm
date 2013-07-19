@@ -209,7 +209,7 @@ override 'do' => sub {
 
                                 confess
                                   'Could not find any component with name [',
-                                  $exp_comp->name() . ']'; 
+                                  $exp_comp->name() . ']';
 
                             }
 
@@ -239,7 +239,7 @@ override 'do' => sub {
     if ( keys(%checked_comps) ) {
 
         my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
-        $stash->set_stash( \%checked_comps );
+        $stash->set_stash( [ \%checked_comps ] );
 
         return 1;
 

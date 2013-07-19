@@ -6,16 +6,6 @@ package Siebel::Srvrmgr::Exporter::ListParams;
 
 Siebel::Srvrmgr::Daemon::Action::ListParams - subclass of Siebel::Srvrmgr::Daemon::Action to parse list params output
 
-=head1 SYNOPSIS
-
-	use Siebel::Srvrmgr::Daemon::Action::ListParams;
-
-	my $action = Siebel::Srvrmgr::Daemon::Action::ListParams->new(  parser => Siebel::Srvrmgr::ListParser->new(),
-																	params => [$filename]);
-
-	$action->do(\@output);
-
-
 =cut
 
 use Moose;
@@ -29,7 +19,7 @@ extends 'Siebel::Srvrmgr::Daemon::Action';
 =head1 DESCRIPTION
 
 This subclass of L<Siebel::Srvrmgr::Daemon::Action> will try to find a L<Siebel::Srvrmgr::ListParser::Output::ListParams> object in the given array reference
-given as parameter to the C<do> method and stores the parsed data from this object in a serialized file.
+given as parameter to the C<do> method and stores the parsed data from this object in a L<Siebel::Srvrmgr::Daemon::ActionStash> object.
 
 =head1 METHODS
 
@@ -37,7 +27,7 @@ given as parameter to the C<do> method and stores the parsed data from this obje
 
 This method is overrided from the superclass method, that is still called to validate parameter given.
 
-It will search in the array reference given as parameter: the first object found is serialized to the filesystem
+It will search in the array reference given as parameter: the first object found is stored in instance of L<Siebel::Srvrmgr::Daemon::ActionStash>
 and the function returns 1 in this case. Otherwise it will return 0.
 
 =cut
@@ -59,7 +49,7 @@ sub do {
 
             my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
 
-            $stash->set_stash($obj);
+            $stash->set_stash( [$obj] );
 
             return 1;
 
@@ -83,7 +73,7 @@ L<Siebel::Srvrmgr::Daemon::Action>
 
 =item *
 
-L<Siebel::Srvrmgr::Daemon::Action::Serializable>
+L<Siebel::Srvrmgr::Daemon::ActionStash>
 
 =back
 
