@@ -141,8 +141,7 @@ my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
 
 $daemon->run();
 
-my $sieb_srv = $stash->get_stash();
-$stash->set_stash( [] );
+my $sieb_srv = $stash->shift_stash();
 my $server_comps = $sieb_srv->get_comps();
 
 my $comp_regex = qr/$opts{r}/;
@@ -180,7 +179,7 @@ foreach my $comp_alias ( @{$server_comps} ) {
     );
 
     $daemon->run();
-    my $params = $stash->get_stash();
+    my $params = $stash->shift_stash();
 
     my $comp = $sieb_srv->get_comp($comp_alias);
 
@@ -254,8 +253,7 @@ sub get_comp_type_alias {
         );
 
         $daemon->run();
-        $TYPES_REF = $stash->get_stash();
-        $stash->set_stash( [] );
+        $TYPES_REF = $stash->shift_stash();
 
     }
 
@@ -283,8 +281,7 @@ sub get_comp_type_name {
         );
 
         $daemon->run();
-        $DEFS_REF = $stash->get_stash();
-        $stash->set_stash( [] );
+        $DEFS_REF = $stash->shift_stash();
 
     }
 

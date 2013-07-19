@@ -76,7 +76,7 @@ override 'do' => sub {
                   )
                 {
 
-                    $stash->set_stash($server);
+                    $stash->set_stash( [$server] );
 
                     return 1;
 

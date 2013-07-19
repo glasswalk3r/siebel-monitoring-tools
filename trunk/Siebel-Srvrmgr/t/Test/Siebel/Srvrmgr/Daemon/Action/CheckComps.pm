@@ -84,7 +84,7 @@ sub class_methods : Tests(+2) {
 
     # data expected to be returned from the stash
     is_deeply(
-        $stash->get_stash(),
+        $stash->shift_stash(),
         {
             'sieb_foobar' => {
                 'SynchMgr'  => 0,

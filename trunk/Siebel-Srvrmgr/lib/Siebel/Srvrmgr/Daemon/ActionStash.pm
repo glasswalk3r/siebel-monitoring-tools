@@ -40,7 +40,6 @@ Considering this situation, the interface of this class should be considered exp
 =cut
 
 use MooseX::Singleton;
-use MooseX::FollowPBP;
 
 =pod
 
@@ -48,19 +47,19 @@ use MooseX::FollowPBP;
 
 =head2 stash
 
-This attribute is a reference to some data. This means that it will accept B<any> reference to some that structure that you think it will be useful.
+This attribute is a array reference of references. This means that it will accept B<any> reference to some data structure that you think it will be 
+useful (including objects).
 
 If undefined, this attribute will returned an empty array reference.
 
 =cut
 
 has stash => (
-    is => 'rw',
-
-# :TODO      :09/05/2013 16:42:51:: use array references to push any reference, should create set_stash to allow that to work
-#    isa      => 'ArrayRef[Ref]',
-    isa      => 'Ref',
+    is       => 'rw',
+    isa      => 'ArrayRef[Ref]',
     required => 0,
+    reader   => 'get_stash',
+    writer   => 'set_stash',
     default  => sub { return [] }
 );
 
@@ -70,11 +69,46 @@ has stash => (
 
 =head2 get_stash
 
-Returns the C<stash> attribute reference.
+Returns the C<stash> attribute array reference.
 
 =head2 set_stash
 
-Sets the C<stash> attribute. Expects a reference as parameter.
+Sets the C<stash> attribute. Expects an array reference as parameter.
+
+Beware that such call will complete remove all other data stored in the stash. To add single items, see C<push_stash> method.
+
+=head2 push_stash
+
+Pushes a new reference into the C<stash> attribute.
+
+=cut
+
+sub push_stash {
+
+    my $self = shift;
+    my $ref  = shift;
+
+    push( @{ $self->get_stash() }, $ref );
+
+    return 1;
+
+}
+
+=head2 shift_stash
+
+Shifts the C<stash> attribute, removing the first item in the attribute and returning it.
+
+If there is not other member to be shift, it will return undef.
+
+=cut
+
+sub shift_stash {
+
+    my $self = shift;
+
+    return shift( @{ $self->get_stash() } );
+
+}
 
 =head1 SEE ALSO
 

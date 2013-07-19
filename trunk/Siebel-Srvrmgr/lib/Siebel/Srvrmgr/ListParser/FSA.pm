@@ -522,6 +522,13 @@ L<FSA::Rules>
 
 =back
 
+=head1 CAVEATS
+
+This class has some problems, most due the API of L<FSA::Rules>: since the state machine is a group of references to subroutines, it holds references
+to L<Siebel::Srvrmgr::ListParser>, which basically causes circular references between the two classes.
+
+There is some workaround to the caused memory leaks due this configuration, but in future releases L<FSA::Rules> may be replaced to something else.
+
 =head1 AUTHOR
 
 Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<E<gt>

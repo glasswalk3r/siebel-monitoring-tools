@@ -4,12 +4,41 @@ use Test::Most;
 use Test::Moose 'has_attribute_ok';
 use base 'Test::Siebel::Srvrmgr';
 
-sub constructor : Tests(18) {
+sub class_attributes : Tests(7) {
+
+    my $test = shift;
+
+    my @attribs = (
+        'parsed_tree',  'has_tree',       'prompt_regex', 'hello_regex',
+        'last_command', 'is_cmd_changed', 'buffer'
+    );
+
+    foreach my $attrib (@attribs) {
+
+        has_attribute_ok( $test->{parser}, $attrib );
+
+    }
+
+}
+
+sub _constructor : Test(2) {
+
+    my $test = shift;
+
+    ok(
+        $test->{parser} = $test->class()->new(),
+        'it is possible to create an instance'
+    );
+
+    isa_ok( $test->{parser}, $test->class(),
+        'the instance is from the expected class' );
+
+}
+
+sub class_methods : Tests(8) {
 
     my $test  = shift;
     my $class = $test->class;
-
-    can_ok( $class, 'new' );
 
     #extended method tests
     can_ok(
@@ -22,48 +51,37 @@ sub constructor : Tests(18) {
             'set_buffer',       'clear_buffer',
             'count_parsed',     'clear_parsed_tree',
             'set_parsed_tree',  'append_output',
-            'parse',            'get_buffer'
+            'parse',            'get_buffer',
+            'new'
         )
     );
 
-    ok( my $parser = $class->new(), '... and the constructor should succeed' );
-
-    has_attribute_ok( $parser, 'parsed_tree' );
-    has_attribute_ok( $parser, 'has_tree' );
-    has_attribute_ok( $parser, 'prompt_regex' );
-    has_attribute_ok( $parser, 'hello_regex' );
-    has_attribute_ok( $parser, 'last_command' );
-    has_attribute_ok( $parser, 'is_cmd_changed' );
-    has_attribute_ok( $parser, 'buffer' );
-
-    isa_ok( $parser, $class, '... and the object it returns' );
-
     is(
-        ref( $parser->get_buffer() ),
+        ref( $test->{parser}->get_buffer() ),
         ref( [] ),
         'get_buffer returns an array reference'
     );
 
-    ok( $parser->parse( $test->get_my_data() ), 'parse method works' );
+    ok( $test->{parser}->parse( $test->get_my_data() ), 'parse method works' );
 
     is(
-        scalar( @{ $parser->get_buffer() } ),
+        scalar( @{ $test->{parser}->get_buffer() } ),
         scalar( @{ [] } ),
         'calling parse method automatically resets the buffer'
     );
 
-    ok( $parser->clear_buffer(), 'clear_buffer method works' );
+    ok( $test->{parser}->clear_buffer(), 'clear_buffer method works' );
 
-    ok( $parser->has_tree, 'the parser has a parsed tree' );
+    ok( $test->{parser}->has_tree, 'the parser has a parsed tree' );
 
     my $last_cmd = 'list comp def SRProc';
 
-    is( $parser->get_last_command(),
+    is( $test->{parser}->get_last_command(),
         $last_cmd, "get_last_command method returns $last_cmd" );
 
     my $total_itens = 7;
 
-    is( $parser->count_parsed(),
+    is( $test->{parser}->count_parsed(),
         $total_itens, "count_parsed method returns $total_itens" );
 
 }
