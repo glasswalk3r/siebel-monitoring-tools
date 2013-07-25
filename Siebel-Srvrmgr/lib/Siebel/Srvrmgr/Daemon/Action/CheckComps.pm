@@ -239,6 +239,7 @@ override 'do' => sub {
     if ( keys(%checked_comps) ) {
 
         my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
+ # :TODO      :24/07/2013 12:32:51:: it should set the stash with more than just the ok/not ok status from the components
         $stash->set_stash( [ \%checked_comps ] );
 
         return 1;

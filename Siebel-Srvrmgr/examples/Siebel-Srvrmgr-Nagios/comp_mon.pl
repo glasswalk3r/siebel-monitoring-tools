@@ -4,7 +4,6 @@ use Siebel::Srvrmgr::Daemon;
 use File::Spec::Functions qw(tmpdir catfile);
 use Nagios::Plugin;
 use Siebel::Srvrmgr::Daemon::ActionStash;
-use lib '.';
 use Siebel::Srvrmgr::Nagios::Config;
 
 #    COPYRIGHT AND LICENCE

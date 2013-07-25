@@ -20,7 +20,7 @@ about which components are available in a Siebel server and which is their expec
 A string representing the name of the component.
 
 =cut
-
+ # :TODO      :24/07/2013 12:54:17:: component alias is the correct term
 has name => ( isa => 'Str', is => 'ro', required => 1 );
 
 =pod

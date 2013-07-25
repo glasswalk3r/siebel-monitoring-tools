@@ -78,7 +78,7 @@ use Siebel::Srvrmgr::ListParser;
 use Siebel::Srvrmgr::Regexes qw(SRVRMGR_PROMPT LOAD_PREF_RESP);
 use Siebel::Srvrmgr::Daemon::Command;
 use POSIX ":sys_wait_h";
-use feature qw(say);
+use feature qw(say switch);
 use Log::Log4perl;
 use Siebel::Srvrmgr;
 use Data::Dumper;
@@ -92,7 +92,6 @@ die "Could not start logging facilities"
 our $logger = Log::Log4perl->get_logger('Siebel::Srvrmgr::Daemon');
 weaken($logger);
 
-# variables below exist to deal with requested termination of the program gracefully
 $SIG{INT}  = \&_term_INT;
 $SIG{PIPE} = \&_term_PIPE;
 $SIG{ALRM} = \&_term_ALARM;
@@ -506,6 +505,41 @@ sub _setup_commands {
 
 =pod
 
+=head2 shift_commands
+
+Does a C<shift> in the C<commands> attribute.
+
+Does not expects any parameter. Returns the C<shift>ed L<Siebel::Srvrmgr::Daemon::Command> instance or C<undef> if there is only B<one> 
+command left (which is not C<shift>ed).
+
+This method is useful specially if the Daemon will keep executing commands, but setup commands (like C<load preferences>) are not necessary to be executed
+again.
+
+=cut
+
+sub shift_commands {
+
+    my $self = shift;
+
+    my $cmds_ref = $self->get_commands();
+
+    if ( scalar( @{$cmds_ref} ) > 1 ) {
+
+        my $shifted = shift( @{$cmds_ref} );
+        $self->set_commands($cmds_ref);    # must trigger the attribute
+        return $shifted;
+
+    }
+    else {
+
+        return undef;
+
+    }
+
+}
+
+=pod
+
 =head2 run
 
 This method will try to connect to a Siebel Enterprise through C<srvrmgr> program (if it is the first time the method is invoke) or reuse an already open
@@ -589,7 +623,7 @@ sub run {
 
     }
 
-# :WARNING:28/06/2011 19:47:26:: reading the output is hanging without one dummy input
+# :WARNING:28/06/2011 19:47:26:: reading the output is hanging without a dummy input
     syswrite $self->get_write(), "\n";
 
     my $prompt;
@@ -610,6 +644,9 @@ sub run {
 
     my $read_timeout = 10;
     my $parser       = Siebel::Srvrmgr::ListParser->new();
+
+    # must read an additional line to get the error
+    my $SBL_ADM_60070_flag = 0;
 
     do {
 
@@ -651,35 +688,40 @@ sub run {
 
                     $logger->fatal(
 "Caught an unrecoverable failure from srvrmgr! Error message is: [$line]"
-                    );
+                    ) unless ($SBL_ADM_60070_flag);
 
                 }
 
-                if (/^SBL-ADM-02043.*/) {
+                given ($line) {
 
-                    $logger->logdie('Could not find the Siebel Server');
+                    when (/^SBL-ADM-60070.*/) {
+                        $SBL_ADM_60070_flag = 1;
+                        next READ;
+                    }
+
+                    when (/^SBL-ADM-02043.*/) {
+                        $logger->logdie('Could not find the Siebel Server')
+                    }
+
+                    when (/^SBL-ADM-02071.*/) {
+                        $logger->logdie('Could not find the Siebel Enterprise')
+                    }
+
+                    when (/^SBL-ADM-02049.*/) {
+                        $logger->logdie('Generic error')
+                    }
+
+                    when (/^SBL-ADM-02751.*/) {
+                        $logger->logdie('Unable to open file')
+                    }
+
+                    default {
+                        $logger->fatal($line);
+                        $SBL_ADM_60070_flag = 0;    # sane setting
+                        $logger->logdie('Cannot continue, aborting execution')
+                    }
 
                 }
-
-                if (/^SBL-ADM-02071.*/) {
-
-                    $logger->logdie('Could not find the Siebel Enterprise');
-
-                }
-
-                if (/^SBL-ADM-02049.*/) {
-
-                    $logger->logdie('Generic error');
-
-                }
-
-                if (/^SBL-ADM-02751.*/) {
-
-                    $logger->logdie('Unable to open file');
-
-                }
-
-                last READ;
 
             }
 
