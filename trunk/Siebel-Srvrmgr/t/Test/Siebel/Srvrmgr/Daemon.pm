@@ -63,7 +63,7 @@ sub _constructor : Tests(+2) {
         '... and the constructor should succeed'
     );
 
-	isa_ok($test->{daemon}, $test->class());
+    isa_ok( $test->{daemon}, $test->class() );
 
 }
 
@@ -86,7 +86,7 @@ sub class_methods : Tests(24) {
             'is_infinite',     'get_last_cmd',
             'get_cmd_stack',   'get_params_stack',
             '_setup_commands', 'run',
-            'DEMOLISH'
+            'DEMOLISH',        'shift_commands'
         )
     );
 
@@ -127,13 +127,18 @@ sub class_attributes : Tests(16) {
 
 }
 
-sub runs : Test() {
+sub runs : Tests(3) {
 
-    my $test  = shift;
+    my $test = shift;
 
     $SIG{INT} = \&clean_up;
 
     ok( $test->{daemon}->run(), 'run method executes successfuly' );
+
+    my $shifted_cmd;
+    ok( $shifted_cmd = $test->{daemon}->shift_commands(),
+        'shift_command works' );
+    isa_ok( $shifted_cmd, 'Siebel::Srvrmgr::Daemon::Command' );
 
 }
 
@@ -169,7 +174,7 @@ sub runs_blocked : Test() {
 
 sub clean_up : Test(shutdown) {
 
-	my $test = shift;
+    my $test = shift;
 
     # removes the dump files
     my $dir = getcwd();

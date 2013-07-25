@@ -22,6 +22,8 @@ A string representing the name of the Siebel Server.
 
 =cut
 
+ # :TODO      :24/07/2013 12:17:37:: use Perl Best Practices for getters/setters
+
 has name => (
     isa      => 'Str',
     is       => 'rw',
@@ -39,6 +41,7 @@ An array reference with instances of classes that have the L<Siebel::Srvrmgr::Da
 role_type 'CheckCompsComp',
   { role => 'Siebel::Srvrmgr::Daemon::Action::CheckComps::Component' };
 
+# :TODO      :24/07/2013 12:41:06:: this has to be changed to a HashRef to enable searching objects by name
 has components =>
   ( isa => 'ArrayRef[CheckCompsComp]', is => 'rw', required => 1 );
 
