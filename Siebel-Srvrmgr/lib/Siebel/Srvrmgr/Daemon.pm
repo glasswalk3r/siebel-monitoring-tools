@@ -84,14 +84,6 @@ use Siebel::Srvrmgr;
 use Data::Dumper;
 use Scalar::Util qw(weaken);
 
-my $cfg = Siebel::Srvrmgr->logging_cfg();
-
-die "Could not start logging facilities"
-  unless ( Log::Log4perl->init_once( \$cfg ) );
-
-our $logger = Log::Log4perl->get_logger('Siebel::Srvrmgr::Daemon');
-weaken($logger);
-
 $SIG{INT}  = \&_term_INT;
 $SIG{PIPE} = \&_term_PIPE;
 $SIG{ALRM} = \&_term_ALARM;
@@ -99,6 +91,19 @@ $SIG{ALRM} = \&_term_ALARM;
 our $SIG_INT   = 0;
 our $SIG_PIPE  = 0;
 our $SIG_ALARM = 0;
+
+sub gimme_logger {
+
+    my $self = shift;
+
+    my $cfg = Siebel::Srvrmgr->logging_cfg();
+
+    die "Could not start logging facilities"
+      unless ( Log::Log4perl->init_once( \$cfg ) );
+
+    return Log::Log4perl->get_logger('Siebel::Srvrmgr::Daemon');
+
+}
 
 =pod
 
@@ -559,6 +564,9 @@ sub run {
 
     my $self = shift;
 
+    my $logger = __PACKAGE->gimme_logger();
+	weaken($logger);
+
     unless ( $self->get_pid() ) {
 
         my ( $rdr, $wtr );
@@ -745,6 +753,12 @@ sub run {
 
                     $prompt = $line;
 
+                    if ( $logger->is_debug() ) {
+
+                        $logger->debug("defined prompt with [$line]");
+
+                    }
+
 # if prompt was undefined, that means that this is might be rest of output of previous command
 # and thus can be safely ignored
                     if (@input_buffer) {
@@ -845,7 +859,16 @@ sub run {
 
                 for ( my $i = 0 ; $i <= 2 ; $i++ ) {
 
-                    $logger->debug( $input_buffer[$i] );
+                    if ( defined( $input_buffer[$i] ) ) {
+
+                        $logger->debug( $input_buffer[$i] );
+
+                    }
+                    else {
+
+                        $logger->debug('undefined content');
+
+                    }
 
                 }
 
@@ -859,7 +882,8 @@ sub run {
 
         }
 
-        $logger->debug('Finished processing buffer') if ( $logger->is_debug() );
+        $logger->debug('Finished processing buffer')
+          if ( $logger->is_debug() );
 
 # :TODO:27/2/2012 17:43:42:: must deal with command stack when the loop is infinite (invoke reset method)
 
@@ -896,8 +920,20 @@ sub run {
 
 # srvrmgr.exe of Siebel 7.5.3.17 does not echo command printed to the input file handle
 # this is necessary to give a hint to the parser about the command submitted
-            push( @input_buffer, $prompt . $cmd );
-            $self->_set_last_cmd( $prompt . $cmd );
+
+            if ( defined($prompt) ) {
+
+                push( @input_buffer, $prompt . $cmd );
+                $self->_set_last_cmd( $prompt . $cmd );
+
+            }
+            else {
+
+                $logger->info('prompt was not defined from read output');
+                push( @input_buffer, $cmd );
+                $self->_set_last_cmd($cmd);
+
+            }
 
             $condition->set_output_used(0);
             $condition->set_cmd_sent(1);
@@ -938,6 +974,11 @@ Finally, it will wait for 5 seconds before calling C<waitpid> function to rip th
 sub DEMOLISH {
 
     my $self = shift;
+
+    my $logger = __PACKAGE__->gimme_logger();
+	weaken($logger);
+
+    $logger->info('Terminating daemon');
 
     # only the parent process has the pid defined
     if (    ( defined( $self->get_pid() ) )
@@ -1023,21 +1064,20 @@ sub DEMOLISH {
 
         }
 
-        $logger->info("Program termination was forced") if ($SIG_ALARM);
+        $logger->info("Program termination was forced")
+          if ($SIG_ALARM);
 
-    }
+    } else {
+
+		$logger->info('srvrmgr program was not yet executed, no child process to terminate');
+
+	}
+
+	$logger->info('daemon says bye-bye');
 
 }
 
 sub _term_INT {
-
-    my ($sig) = @_;
-
-    if ( $logger->is_debug() ) {
-
-        $logger->debug("A interrupt (<$sig>) signal was caught");
-
-    }
 
     $SIG_INT = 1;
 
@@ -1045,29 +1085,13 @@ sub _term_INT {
 
 sub _term_PIPE {
 
-    my ($sig) = @_;
-    if ( $logger->is_debug() ) {
-
-        $logger->debug("A interrupt PIPE (<$sig>) signal was caught");
-
-    }
-
     $SIG_PIPE = 1;
 
 }
 
 sub _term_ALARM {
 
-    my ($sig) = @_;
-
-    if ( $logger->is_debug() ) {
-
-        $logger->warn("Reading from srvrmgr timed-out: caught <$sig> signal");
-        $logger->warn('Terminating program execution');
-
-    }
-
-    die 'SIGALRM caught';
+    $SIG_ALARM = 1;
 
 }
 
