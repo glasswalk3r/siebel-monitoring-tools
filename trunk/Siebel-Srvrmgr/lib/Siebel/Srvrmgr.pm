@@ -10,7 +10,31 @@ sub logging_cfg {
 
     local $/;
 
-    $cfg = <Siebel::Srvrmgr::DATA>;
+    if ( $ENV{SIEBEL_SRVRMGR_DEBUG} ) {
+
+        if (    ( -e $ENV{SIEBEL_SRVRMGR_DEBUG} )
+            and ( -f $ENV{SIEBEL_SRVRMGR_DEBUG} ) )
+        {
+
+            open( my $in, '<', $ENV{SIEBEL_SRVRMGR_DEBUG} )
+              or die "Cannot read $ENV{SIEBEL_SRVRMGR_DEBUG}: $!";
+            $cfg = <$in>;
+            close($in);
+
+        }
+        else {
+
+            die
+'ENV SIEBEL_SRVRMGR_DEBUG is defined but the value does not exists in the filesystem or is not a file';
+
+        }
+
+    }
+    else {
+
+        $cfg = <Siebel::Srvrmgr::DATA>;
+
+    }
 
     return $cfg;
 
