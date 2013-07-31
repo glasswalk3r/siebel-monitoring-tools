@@ -564,8 +564,9 @@ sub run {
 
     my $self = shift;
 
-    my $logger = __PACKAGE->gimme_logger();
-	weaken($logger);
+# :WORKAROUND:31/07/2013 14:42:33:: must initialize the Log::Log4perl after forking the srvrmgr to avoid sharing filehandles
+    my $logger;
+    my $temp;
 
     unless ( $self->get_pid() ) {
 
@@ -577,34 +578,43 @@ sub run {
 
         }
 
+        my @params;
+
 # :TODO:25/4/2012 20:07:59:: try IPC::Open3 to try to read the STDERR for errors too
         if ( defined( $self->get_server() ) ) {
 
-            $self->_set_pid(
-                open2(
-                    $rdr,                    $wtr,
-                    $self->get_bin(),        '/e',
-                    $self->get_enterprise(), '/g',
-                    $self->get_gateway(),    '/u',
-                    $self->get_user(),       '/p',
-                    $self->get_password(),   '/s',
-                    $self->get_server()
-                )
+            @params = (
+                $self->get_bin(),      '/e', $self->get_enterprise(), '/g',
+                $self->get_gateway(),  '/u', $self->get_user(),       '/p',
+                $self->get_password(), '/s', $self->get_server()
             );
+
+            $self->_set_pid( open2( $rdr, $wtr, @params ) );
 
         }
         else {
 
-            $self->_set_pid(
-                open2(
-                    $rdr,                    $wtr,
-                    $self->get_bin(),        '/e',
-                    $self->get_enterprise(), '/g',
-                    $self->get_gateway(),    '/u',
-                    $self->get_user(),       '/p',
-                    $self->get_password()
-                )
+            @params = (
+                $self->get_bin(),        '/e',
+                $self->get_enterprise(), '/g',
+                $self->get_gateway(),    '/u',
+                $self->get_user(),       '/p',
+                $self->get_password()
+
             );
+
+            $self->_set_pid( open2( $rdr, $wtr, @params ) );
+
+        }
+
+        $logger = __PACKAGE__->gimme_logger();
+        weaken($logger);
+
+        if ( $logger->is_debug() ) {
+
+            $logger->debug( 'forked srvrmgr with the following parameters: '
+                  . join( ' ', @params ) );
+            $logger->debug( 'child PID is ' . $self->get_pid() );
 
         }
 
@@ -626,10 +636,14 @@ sub run {
     }
     else {
 
-        $logger->debug( 'Reusing PID ', $self->get_pid() )
+        $logger = __PACKAGE__->gimme_logger();
+        weaken($logger);
+        $logger->info( 'Reusing PID ', $self->get_pid() )
           if ( $logger->is_debug() );
 
     }
+
+	$logger->info('Starting run method');
 
 # :WARNING:28/06/2011 19:47:26:: reading the output is hanging without a dummy input
     syswrite $self->get_write(), "\n";
@@ -943,15 +957,30 @@ sub run {
         }
         else {
 
-            $logger->debug('Not yet read to execute a command')
-              if ( $logger->is_debug() );
+            if ( $logger->is_debug() ) {
+
+                $logger->debug('Not yet read to execute a command');
+                $logger->debug(
+                    'Condition max_cmd_idx = ' . $condition->max_cmd_idx() );
+                $logger->debug(
+                    'Condition is_cmd_sent = ' . $condition->is_cmd_sent() );
+
+            }
 
         }
 
-        $logger->debug( 'Continue executing? ' . $condition->check() )
-          if ( $logger->is_debug() );
+# :TODO      :31/07/2013 16:43:15:: Condition class should have their own logger
+# it is not possible to call check() twice because of the invocation of reduce_total_cmd() by check()
+# if the Daemon has only one command, it will enter in a loop invoking srvrmgr everytime without doing
+# nothing with it's output
+        $temp = $condition->check();
 
-    } while ( $condition->check() );
+        $logger->info( 'Continue executing? ' . $temp )
+          if ( $logger->is_info() );
+
+    } while ($temp);
+
+    $logger->info('Exiting run sub');
 
     return 1;
 
@@ -976,7 +1005,7 @@ sub DEMOLISH {
     my $self = shift;
 
     my $logger = __PACKAGE__->gimme_logger();
-	weaken($logger);
+    weaken($logger);
 
     $logger->info('Terminating daemon');
 
@@ -1009,13 +1038,13 @@ sub DEMOLISH {
 
                         if (/^Disconnecting from server\./) {
 
-                            $logger->debug($_);
+                            $logger->debug( chomp($_) );
                             last;
 
                         }
                         else {
 
-                            $logger->debug($_);
+                            $logger->debug( chomp($_) );
 
                         }
 
@@ -1067,13 +1096,16 @@ sub DEMOLISH {
         $logger->info("Program termination was forced")
           if ($SIG_ALARM);
 
-    } else {
+    }
+    else {
 
-		$logger->info('srvrmgr program was not yet executed, no child process to terminate');
+        $logger->info(
+'srvrmgr program was not yet executed, no child process to terminate'
+        );
 
-	}
+    }
 
-	$logger->info('daemon says bye-bye');
+    $logger->info('daemon says bye-bye');
 
 }
 
