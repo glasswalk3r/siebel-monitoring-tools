@@ -422,6 +422,11 @@ sub reset_cmd_counter {
 
 =pod
 
+=head1 CAVEATS
+
+This class is becoming more and more complex due the several conditions that need to be evaluated for defining if the L<Siebel::Srvrmgr::Daemon> should still
+execute the C<run> method or not. This probably should be replaced by a state machine.
+
 =head1 SEE ALSO
 
 =over 2
