@@ -718,6 +718,7 @@ sub run {
 
                     when (/^SBL-ADM-60070.*/) {
                         $SBL_ADM_60070_flag = 1;
+                        $logger->fatal($line);
                         next READ;
                     }
 
