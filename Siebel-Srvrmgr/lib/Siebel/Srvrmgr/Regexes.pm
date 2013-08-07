@@ -1,8 +1,9 @@
 package Siebel::Srvrmgr::Regexes;
 
 require Exporter;
-@ISA       = qw(Exporter);
-@EXPORT_OK = qw(SRVRMGR_PROMPT LOAD_PREF_RESP LOAD_PREF_CMD CONN_GREET);
+our @ISA = qw(Exporter);
+our @EXPORT_OK =
+  qw(SRVRMGR_PROMPT LOAD_PREF_RESP LOAD_PREF_CMD CONN_GREET SIEBEL_ERROR ROWS_RETURNED);
 
 =pod
 
@@ -73,6 +74,43 @@ It is a known issue that UTF-8 data with BOM character will cause this regular e
 sub CONN_GREET {
     return
 qr/^Siebel\sEnterprise\sApplications\sSiebel\sServer\sManager\,\sVersion.*/;
+}
+
+=pod
+
+=head2 ROWS_RETURNED
+
+This regular expression should match the last but one line returned by a command, for example:
+
+    136 rows returned.
+
+This line indicated how many rows were returned by a command.
+
+=cut
+
+sub ROWS_RETURNED {
+
+    return qr/^\d+\srows?\sreturned\./;
+
+}
+
+=pod
+
+=head2 SIEBEL_ERROR
+
+This regular expression should match errors from Siebel like, for example:
+
+	SBL-SSM-00003: Error opening SISNAPI connection.
+	SBL-NET-01218: The connection was refused by server siebappdev.  No component is listening on port 49170.
+
+The regular expression matches the default error code.
+
+=cut
+
+sub SIEBEL_ERROR {
+
+    return qr/^SBL\-\w{3}\-\d+/;
+
 }
 
 =head1 AUTHOR
