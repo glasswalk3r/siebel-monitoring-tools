@@ -70,7 +70,8 @@ Logging of this class can be enabled by using L<Siebel::Srvrmgr> logging feature
 =cut
 
 use Moose;
-use IPC::Open2;
+use IPC::Open3;
+use Symbol 'gensym';
 use namespace::autoclean;
 use Siebel::Srvrmgr::Daemon::Condition;
 use Siebel::Srvrmgr::Daemon::ActionFactory;
@@ -83,6 +84,9 @@ use Log::Log4perl;
 use Siebel::Srvrmgr;
 use Data::Dumper;
 use Scalar::Util qw(weaken);
+use IO::Select;
+use IO::Socket;
+use Config;
 
 $SIG{INT}  = \&_term_INT;
 $SIG{PIPE} = \&_term_PIPE;
@@ -261,7 +265,7 @@ has write_fh => (
 
 =pod
 
-=head2 write_fh
+=head2 read_fh
 
 A filehandle reference to the C<srvrmgr> STDOUT.
 
@@ -274,6 +278,30 @@ has read_fh => (
     is     => 'ro',
     writer => '_set_read',
     reader => 'get_read'
+);
+
+=pod
+
+=head2 error_fh
+
+A filehandle reference to the C<srvrmgr> STDERR.
+
+This is a read-only attribute.
+
+=cut
+
+has error_fh => (
+    isa    => 'FileHandle',
+    is     => 'ro',
+    writer => '_set_error',
+    reader => 'get_error'
+);
+
+has harness => (
+    isa    => 'IPC::Run',
+    is     => 'ro',
+    writer => '_set_harness',
+    reader => 'get_harness'
 );
 
 =pod
@@ -378,6 +406,22 @@ has child_timeout => (
     reader  => 'get_child_timeout',
     default => 1
 );
+
+=pod
+
+=head2 use_perl
+
+A boolean attribute used mostly for testing of this class.
+
+If true, if will prepend the complete path of the Perl interpreter to the parameters before calling the C<srvrmgr> program (of course, the srvrmgr must
+be itself a Perl script).
+
+It defaults to false.
+
+=cut
+
+has use_perl =>
+  ( isa => 'Bool', is => 'ro', reader => 'use_perl', default => 0 );
 
 =pod
 
@@ -560,78 +604,20 @@ to execute L<Siebel::Srvrmgr::Daemon::Command> instances in parallel.
 
 # :WORKAROUND:10/05/2013 15:23:52:: using a state machine with FSA::Rules is difficult here because it is necessary to loop over output from
 # srvrmgr but the program will hang if there is no output left to be read from srvrmgr.
+
 sub run {
 
     my $self = shift;
 
-# :WORKAROUND:31/07/2013 14:42:33:: must initialize the Log::Log4perl after forking the srvrmgr to avoid sharing filehandles
     my $logger;
     my $temp;
 
+    my ( $read_h, $write_h, $error_h );
+
+# :WORKAROUND:31/07/2013 14:42:33:: must initialize the Log::Log4perl after forking the srvrmgr to avoid sharing filehandles
     unless ( $self->get_pid() ) {
 
-        my ( $rdr, $wtr );
-
-        unless ( -e $self->get_bin() ) {
-
-            die 'Cannot find program ' . $self->get_bin() . " to execute\n";
-
-        }
-
-        my @params;
-
-# :TODO:25/4/2012 20:07:59:: try IPC::Open3 to try to read the STDERR for errors too
-        if ( defined( $self->get_server() ) ) {
-
-            @params = (
-                $self->get_bin(),      '/e', $self->get_enterprise(), '/g',
-                $self->get_gateway(),  '/u', $self->get_user(),       '/p',
-                $self->get_password(), '/s', $self->get_server()
-            );
-
-            $self->_set_pid( open2( $rdr, $wtr, @params ) );
-
-        }
-        else {
-
-            @params = (
-                $self->get_bin(),        '/e',
-                $self->get_enterprise(), '/g',
-                $self->get_gateway(),    '/u',
-                $self->get_user(),       '/p',
-                $self->get_password()
-
-            );
-
-            $self->_set_pid( open2( $rdr, $wtr, @params ) );
-
-        }
-
-        $logger = __PACKAGE__->gimme_logger();
-        weaken($logger);
-
-        if ( $logger->is_debug() ) {
-
-            $logger->debug( 'forked srvrmgr with the following parameters: '
-                  . join( ' ', @params ) );
-            $logger->debug( 'child PID is ' . $self->get_pid() );
-
-        }
-
-# :WORKAROUND:19/4/2012 19:38:04:: somehow the child process of srvrmgr has to be waited for one second and receive one kill 0 signal before
-# it dies when something goes wrong
-        sleep 1;
-        kill 0, $self->get_pid();
-
-        unless ( kill 0, $self->get_pid() ) {
-
-            $logger->logdie( $self->get_bin()
-                  . " process returned a fatal error: ${^CHILD_ERROR_NATIVE}" );
-
-        }
-
-        $self->_set_write($wtr);
-        $self->_set_read($rdr);
+        $logger = $self->_create_child();
 
     }
     else {
@@ -643,7 +629,7 @@ sub run {
 
     }
 
-	$logger->info('Starting run method');
+    $logger->info('Starting run method');
 
 # :WARNING:28/06/2011 19:47:26:: reading the output is hanging without a dummy input
     syswrite $self->get_write(), "\n";
@@ -651,6 +637,7 @@ sub run {
     my $prompt;
     my @input_buffer;
 
+# :TODO      :06/08/2013 19:13:47:: create condition as a hidden attribute of this class
     my $condition = Siebel::Srvrmgr::Daemon::Condition->new(
         {
             is_infinite    => $self->is_infinite(),
@@ -659,16 +646,11 @@ sub run {
         }
     );
 
-    my $prompt_regex    = SRVRMGR_PROMPT;
-    my $load_pref_regex = LOAD_PREF_RESP;
-
-    my $rdr = $self->get_read();
-
     my $read_timeout = 10;
     my $parser       = Siebel::Srvrmgr::ListParser->new();
 
-    # must read an additional line to get the error
-    my $SBL_ADM_60070_flag = 0;
+    my $select = IO::Select->new();
+    $select->add( $self->get_read(), $self->get_error() );
 
     do {
 
@@ -679,158 +661,40 @@ sub run {
           if ( $logger->is_debug() );
         alarm($read_timeout);
 
-      READ: while (<$rdr>) {
+        while ( my @ready = $select->can_read($read_timeout) ) {
 
-            exit if ($SIG_INT);
+            foreach my $fh (@ready) {
 
-            my $line = $_;
+                my $data;
+                my $bytesRead = sysread( $fh, $data, 1024 );
 
-            $line =~ s/\r\n//;
-            $line =~ s/\n//;
-
-            if ( $logger->is_debug() ) {
-
-                if ( defined($line) ) {
-
-                    $logger->debug("Read [$line] from srvrmgr");
-
+                if ( !( defined($bytesRead) ) and ( !$!{ECONNRESET} ) ) {
+                    $logger->logdie(
+                        'sysread failed reading from srvrmgr:' . $! );
+                }
+                elsif ( !defined($bytesRead) || $bytesRead == 0 ) {
+                    $select->remove($fh);
+                    next;
                 }
                 else {
 
-                    $logger->debug("Read [undefined content] from srvrmgr");
+                    if ( $fh == $self->get_read() ) {
+                        $prompt =
+                          $self->_process_stdout( \$data, \@input_buffer,
+                            $logger, $condition );
+                    }
+                    elsif ( $fh == $self->get_error() ) {
 
+                        $self->_process_stderr( \$data );
+                    }
+                    else {
+                        $logger->logdie(
+                            'Somehow got a filehandle i dont know about!');
+                    }
                 }
-
             }
 
-            # caught an specific error
-            if ( $line =~ /^SBL\-\w{3}\-\d+/ ) {
-
-                if ( $logger->is_debug() ) {
-
-                    $logger->fatal(
-"Caught an unrecoverable failure from srvrmgr! Error message is: [$line]"
-                    ) unless ($SBL_ADM_60070_flag);
-
-                }
-
-                given ($line) {
-
-                    when (/^SBL-ADM-60070.*/) {
-                        $SBL_ADM_60070_flag = 1;
-                        $logger->fatal($line);
-                        next READ;
-                    }
-
-                    when (/^SBL-ADM-02043.*/) {
-                        $logger->logdie('Could not find the Siebel Server')
-                    }
-
-                    when (/^SBL-ADM-02071.*/) {
-                        $logger->logdie('Could not find the Siebel Enterprise')
-                    }
-
-                    when (/^SBL-ADM-02049.*/) {
-                        $logger->logdie('Generic error')
-                    }
-
-                    when (/^SBL-ADM-02751.*/) {
-                        $logger->logdie('Unable to open file')
-                    }
-
-                    default {
-                        $logger->fatal($line);
-                        $SBL_ADM_60070_flag = 0;    # sane setting
-                        $logger->logdie('Cannot continue, aborting execution')
-                    }
-
-                }
-
-            }
-
-# :TRICKY:29/06/2011 21:23:11:: bufferization in srvrmgr.exe ruins the day: the prompt will never come out unless a little push is given
-            if ( $line =~ /^\d+\srows?\sreturned\./ ) {
-
-                # parsers will consider the lines below
-                push( @input_buffer, $line );
-                push( @input_buffer, '' );
-
-                syswrite $self->get_write(), "\n";
-                last READ;
-
-            }
-
-            # prompt was returned, end of output
-            # first execution should bring only informations about Siebel
-            if ( $line =~ /$prompt_regex/ ) {
-
-                unless ( defined($prompt) ) {
-
-                    $prompt = $line;
-
-                    if ( $logger->is_debug() ) {
-
-                        $logger->debug("defined prompt with [$line]");
-
-                    }
-
-# if prompt was undefined, that means that this is might be rest of output of previous command
-# and thus can be safely ignored
-                    if (@input_buffer) {
-
-                        if ( $input_buffer[0] eq '' ) {
-
-                            $logger->debug("Ignoring output [$line]");
-
-                            $condition->set_cmd_sent(0);
-                            @input_buffer = ();
-                            last READ;
-
-                        }
-
-                    }
-
-                }
-
-                # no command submitted
-                if ( scalar(@input_buffer) < 1 ) {
-
-                    $condition->set_cmd_sent(0);
-                    last READ;
-
-                }
-                else {
-
-                    unless (( scalar(@input_buffer) >= 1 )
-                        and ( $input_buffer[0] eq $self->get_last_cmd() )
-                        and $condition->is_cmd_sent() )
-                    {
-
-                        $condition->set_cmd_sent(0);
-                        last READ;
-
-                    }
-
-# this is specific for load preferences response since it may contain the prompt string (Siebel 7.5.3.17)
-                    if ( $line =~ /$load_pref_regex/ ) {
-
-                        push( @input_buffer, $line );
-                        syswrite $self->get_write(), "\n";
-                        last READ;
-
-                    }
-
-                }
-
-            }
-            else {   # no prompt detection, keep reading output from srvrmgr.exe
-
-# :WARNING   :03/06/2013 18:22:40:: might cause a deadlock if the srvrmgr does not have anything else to read
-                push( @input_buffer, $line );
-
-            }
-
-        }    # end of READ block
+        }
 
         my $time_remaining = 0;
         $time_remaining = alarm(0);
@@ -987,6 +851,301 @@ sub run {
 
 }
 
+sub _create_child {
+
+    my $self   = shift;
+    my $logger = shift;
+
+# :WORKAROUND:06/08/2013 21:05:32:: if a perlscript will be executed (like for automated testing of this distribution)
+# then the perl interpreter must be part of the command path to avoid open3 calling cmd.exe (in Microsoft Windows)
+    die 'Cannot find program ' . $self->get_bin() . " to execute\n"
+      unless ( -e $self->get_bin() );
+
+    my @params;
+
+    if ( defined( $self->get_server() ) ) {
+
+        @params = (
+            $self->get_bin(),      '/e', $self->get_enterprise(), '/g',
+            $self->get_gateway(),  '/u', $self->get_user(),       '/p',
+            $self->get_password(), '/s', $self->get_server()
+        );
+
+    }
+    else {
+
+        @params = (
+            $self->get_bin(),        '/e',
+            $self->get_enterprise(), '/g',
+            $self->get_gateway(),    '/u',
+            $self->get_user(),       '/p',
+            $self->get_password()
+
+        );
+
+    }
+
+    unshift( @params, $Config{perlpath} ) if ( $self->use_perl() );
+
+    my ( $pid, $write_h, $read_h, $error_h ) = safeOpen3( \@params );
+    $logger = __PACKAGE__->gimme_logger();
+    weaken($logger);
+
+    if ( $logger->is_debug() ) {
+
+        $logger->debug( 'forked srvrmgr with the following parameters: '
+              . join( ' ', @params ) );
+        $logger->debug( 'child PID is ' . $pid );
+
+    }
+
+    $logger->info('Started srvrmgr');
+
+# :WORKAROUND:19/4/2012 19:38:04:: somehow the child process of srvrmgr has to be waited for one second and receive one kill 0 signal before
+# it dies when something goes wrong
+    sleep 1;
+    kill 0, $pid;
+
+    unless ( kill 0, $pid ) {
+
+        $logger->logdie( $self->get_bin()
+              . " process returned a fatal error: ${^CHILD_ERROR_NATIVE}" );
+
+    }
+
+    $self->_set_pid($pid);
+    $self->_set_write($write_h);
+    $self->_set_read($read_h);
+    $self->_set_error($error_h);
+
+    return $logger;
+
+}
+
+sub _process_stderr {
+
+    exit if ($SIG_INT);
+    my $self = shift;
+    my $line = shift;
+
+    $line =~ s/\r\n//;
+    $line =~ s/\n//;
+
+    $self->_check_error($line);
+
+}
+
+sub _process_stdout {
+
+    exit if ($SIG_INT);
+
+    my $self       = shift;
+    my $data_ref   = shift;
+    my $buffer_ref = shift;
+    my $logger     = shift;
+    my $condition  = shift;
+
+    weaken($logger);
+    my $prompt_regex    = SRVRMGR_PROMPT;
+    my $load_pref_regex = LOAD_PREF_RESP;
+    my $rows_returned   = qr/^\d+\srows?\sreturned\./;
+    my $prompt;
+
+    foreach my $line ( split( "\n", $$data_ref ) ) {
+
+        # :WORKAROUND:06/08/2013 20:22:59:: should work for Windows and UNIX
+        $line =~ s/\r\n$//;
+        $line =~ s/\n$//;
+
+        if ( $logger->is_debug() ) {
+
+            if ( defined($line) ) {
+
+                $logger->debug("Read [$line] from srvrmgr");
+
+            }
+            else {
+
+                $logger->debug("Read [undefined content] from srvrmgr");
+
+            }
+
+        }
+
+        given ($line) {
+
+# :TODO      :06/08/2013 13:25:46:: use a compiled regex in Siebel::Srvrmgr::Regexes for the regex below
+            when (/^SBL\-\w{3}\-\d+/) {
+
+                $self->_check_error($line);
+
+            }
+
+# :TRICKY:29/06/2011 21:23:11:: bufferization in srvrmgr.exe ruins the day: the prompt will never come out unless a little push is given
+            when (/$rows_returned/) {
+
+                # parsers will consider the lines below
+                push( @{$buffer_ref}, $line );
+                push( @{$buffer_ref}, '' );
+
+                syswrite $self->get_write(), "\n";
+
+            }
+
+            # prompt was returned, end of output
+            # first execution should bring only informations about Siebel
+            when (/$prompt_regex/) {
+
+                unless ( defined($prompt) ) {
+
+                    $prompt = $line;
+
+                    if ( $logger->is_debug() ) {
+
+                        $logger->debug("defined prompt with [$line]");
+
+                    }
+
+# if prompt was undefined, that means that this is might be rest of output of previous command
+# and thus can be safely ignored
+                    if ( @{$buffer_ref} ) {
+
+                        if ( $buffer_ref->[0] eq '' ) {
+
+                            $logger->debug("Ignoring output [$line]");
+
+                            $condition->set_cmd_sent(0);
+                            @{$buffer_ref} = ();
+
+                        }
+
+                    }
+
+                }
+                elsif ( scalar( @{$buffer_ref} ) < 1 ) {  # no command submitted
+
+                    $condition->set_cmd_sent(0);
+
+                }
+                else {
+
+                    unless (( scalar( @{$buffer_ref} ) >= 1 )
+                        and ( $buffer_ref->[0] eq $self->get_last_cmd() )
+                        and $condition->is_cmd_sent() )
+                    {
+
+                        $condition->set_cmd_sent(0);
+
+                    }
+
+# this is specific for load preferences response since it may contain the prompt string (Siebel 7.5.3.17)
+                    if ( $line =~ /$load_pref_regex/ ) {
+
+                        push( @{$buffer_ref}, $line );
+                        syswrite $self->get_write(), "\n";
+
+                    }
+
+                }
+
+            }
+
+# no prompt detection, keep reading output from srvrmgr.exe
+# :WARNING   :03/06/2013 18:22:40:: might cause a deadlock if the srvrmgr does not have anything else to read
+            default { push( @{$buffer_ref}, $line ); }
+
+        }
+
+    }
+
+    return $prompt;
+
+}
+
+sub _check_error {
+
+    my $self   = shift;
+    my $line   = shift;
+    my $logger = shift;
+
+    weaken($logger);
+
+    # caught an error, until now all they are fatal
+
+    $logger->fatal($line);
+
+    given ($line) {
+
+        when (/^SBL-ADM-60070.*/) {
+
+            # instead of dying, try to read the next line
+            return 1;
+        }
+
+        when (/^SBL-ADM-02043.*/) {
+            $logger->logdie('Could not find the Siebel Server')
+        }
+
+        when (/^SBL-ADM-02071.*/) {
+            $logger->logdie('Could not find the Siebel Enterprise')
+        }
+
+        when (/^SBL-ADM-02049.*/) {
+            $logger->logdie('Generic error')
+        }
+
+        when (/^SBL-ADM-02751.*/) {
+            $logger->logdie('Unable to open file')
+        }
+
+        default {
+            $logger->logdie('Unknown error, aborting execution')
+        }
+
+    }
+
+}
+
+sub safeOpen3 {
+    return ( $^O =~ /MSWin32/ ) ? winOpen3( $_[0] ) : nixOpen3( $_[0] );
+}
+
+sub winOpen3 {
+
+    my $cmd_ref = shift;
+
+    my ( $inRead,  $inWrite )  = winPipe();
+    my ( $outRead, $outWrite ) = winPipe();
+    my ( $errRead, $errWrite ) = winPipe();
+
+    my $pid = open3(
+        '>&' . fileno($inRead),
+        '<&' . fileno($outWrite),
+        '<&' . fileno($errWrite),
+        @{$cmd_ref}
+    );
+
+    return ( $pid, $inWrite, $outRead, $errRead );
+}
+
+sub winPipe {
+    my ( $read, $write ) =
+      IO::Socket->socketpair( AF_UNIX, SOCK_STREAM, PF_UNSPEC );
+    $read->shutdown(SHUT_WR);     # No more writing for reader
+    $write->shutdown(SHUT_RD);    # No more reading for writer
+
+    return ( $read, $write );
+}
+
+sub nixOpen3 {
+
+    my $cmd_ref = shift;
+
+    my ( $inFh, $outFh, $errFh ) = ( gensym(), gensym(), gensym() );
+    return ( open3( $inFh, $outFh, $errFh, @{$cmd_ref} ), $inFh, $outFh,
+        $errFh );
+}
+
 =pod
 
 =head2 DEMOLISH
@@ -1059,6 +1218,7 @@ sub DEMOLISH {
 
         close( $self->get_read() )  if ( defined( $self->get_read() ) );
         close( $self->get_write() ) if ( defined( $self->get_write() ) );
+        close( $self->get_error() ) if ( defined( $self->get_error() ) );
 
         if ( kill 0, $self->get_pid() ) {
 
