@@ -11,6 +11,7 @@ Siebel::Srvrmgr::ListParser::Output::LoadPreferences - subclass to parse load pr
 use Moose;
 use Siebel::Srvrmgr::Regexes;
 use feature 'switch';
+use Carp;
 
 extends 'Siebel::Srvrmgr::ListParser::Output';
 
@@ -100,7 +101,7 @@ override 'parse' => sub {
 
             default {
 
-                die 'Invalid data in line [' . $line . ']';
+                confess 'Invalid data in line [' . $line . ']';
 
             }
 
