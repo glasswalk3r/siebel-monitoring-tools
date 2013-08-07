@@ -4,7 +4,7 @@ package Siebel::Srvrmgr::Daemon;
 
 =head1 NAME
 
-Siebel::Srvrmgr::Daemon - class for interactive sessions with Siebel srvrmgr.exe program
+Siebel::Srvrmgr::Daemon - class for interactive sessions with Siebel srvrmgr program
 
 =head1 SYNOPSIS
 
@@ -67,16 +67,17 @@ through C<srvrmgr> program and if it's not terminated automatically the PID will
 
 Logging of this class can be enabled by using L<Siebel::Srvrmgr> logging feature.
 
+This module is based on L<IPC::Open3::Callback> from Lucas Theisen (see SEE ALSO section).
+
 =cut
 
 use Moose;
-use IPC::Open3;
-use Symbol 'gensym';
 use namespace::autoclean;
 use Siebel::Srvrmgr::Daemon::Condition;
 use Siebel::Srvrmgr::Daemon::ActionFactory;
 use Siebel::Srvrmgr::ListParser;
-use Siebel::Srvrmgr::Regexes qw(SRVRMGR_PROMPT LOAD_PREF_RESP);
+use Siebel::Srvrmgr::Regexes
+  qw(SRVRMGR_PROMPT LOAD_PREF_RESP SIEBEL_ERROR ROWS_RETURNED);
 use Siebel::Srvrmgr::Daemon::Command;
 use POSIX ":sys_wait_h";
 use feature qw(say switch);
@@ -84,9 +85,9 @@ use Log::Log4perl;
 use Siebel::Srvrmgr;
 use Data::Dumper;
 use Scalar::Util qw(weaken);
-use IO::Select;
-use IO::Socket;
 use Config;
+use Siebel::Srvrmgr::IPC;
+use IO::Select;
 
 $SIG{INT}  = \&_term_INT;
 $SIG{PIPE} = \&_term_PIPE;
@@ -95,19 +96,6 @@ $SIG{ALRM} = \&_term_ALARM;
 our $SIG_INT   = 0;
 our $SIG_PIPE  = 0;
 our $SIG_ALARM = 0;
-
-sub gimme_logger {
-
-    my $self = shift;
-
-    my $cfg = Siebel::Srvrmgr->logging_cfg();
-
-    die "Could not start logging facilities"
-      unless ( Log::Log4perl->init_once( \$cfg ) );
-
-    return Log::Log4perl->get_logger('Siebel::Srvrmgr::Daemon');
-
-}
 
 =pod
 
@@ -622,7 +610,7 @@ sub run {
     }
     else {
 
-        $logger = __PACKAGE__->gimme_logger();
+        $logger = __PACKAGE__->_gimme_logger();
         weaken($logger);
         $logger->info( 'Reusing PID ', $self->get_pid() )
           if ( $logger->is_debug() );
@@ -887,8 +875,8 @@ sub _create_child {
 
     unshift( @params, $Config{perlpath} ) if ( $self->use_perl() );
 
-    my ( $pid, $write_h, $read_h, $error_h ) = safeOpen3( \@params );
-    $logger = __PACKAGE__->gimme_logger();
+    my ( $pid, $write_h, $read_h, $error_h ) = safe_open3( \@params );
+    $logger = __PACKAGE__->_gimme_logger();
     weaken($logger);
 
     if ( $logger->is_debug() ) {
@@ -948,7 +936,8 @@ sub _process_stdout {
     weaken($logger);
     my $prompt_regex    = SRVRMGR_PROMPT;
     my $load_pref_regex = LOAD_PREF_RESP;
-    my $rows_returned   = qr/^\d+\srows?\sreturned\./;
+    my $rows_returned   = ROWS_RETURNED;
+    my $error           = SIEBEL_ERROR;
     my $prompt;
 
     foreach my $line ( split( "\n", $$data_ref ) ) {
@@ -974,8 +963,7 @@ sub _process_stdout {
 
         given ($line) {
 
-# :TODO      :06/08/2013 13:25:46:: use a compiled regex in Siebel::Srvrmgr::Regexes for the regex below
-            when (/^SBL\-\w{3}\-\d+/) {
+            when (/$error/) {
 
                 $self->_check_error($line);
 
@@ -1106,46 +1094,6 @@ sub _check_error {
 
 }
 
-sub safeOpen3 {
-    return ( $^O =~ /MSWin32/ ) ? winOpen3( $_[0] ) : nixOpen3( $_[0] );
-}
-
-sub winOpen3 {
-
-    my $cmd_ref = shift;
-
-    my ( $inRead,  $inWrite )  = winPipe();
-    my ( $outRead, $outWrite ) = winPipe();
-    my ( $errRead, $errWrite ) = winPipe();
-
-    my $pid = open3(
-        '>&' . fileno($inRead),
-        '<&' . fileno($outWrite),
-        '<&' . fileno($errWrite),
-        @{$cmd_ref}
-    );
-
-    return ( $pid, $inWrite, $outRead, $errRead );
-}
-
-sub winPipe {
-    my ( $read, $write ) =
-      IO::Socket->socketpair( AF_UNIX, SOCK_STREAM, PF_UNSPEC );
-    $read->shutdown(SHUT_WR);     # No more writing for reader
-    $write->shutdown(SHUT_RD);    # No more reading for writer
-
-    return ( $read, $write );
-}
-
-sub nixOpen3 {
-
-    my $cmd_ref = shift;
-
-    my ( $inFh, $outFh, $errFh ) = ( gensym(), gensym(), gensym() );
-    return ( open3( $inFh, $outFh, $errFh, @{$cmd_ref} ), $inFh, $outFh,
-        $errFh );
-}
-
 =pod
 
 =head2 DEMOLISH
@@ -1164,7 +1112,7 @@ sub DEMOLISH {
 
     my $self = shift;
 
-    my $logger = __PACKAGE__->gimme_logger();
+    my $logger = __PACKAGE__->_gimme_logger();
     weaken($logger);
 
     $logger->info('Terminating daemon');
@@ -1236,13 +1184,13 @@ sub DEMOLISH {
 
                 if ( $? == 0 ) {
 
-                    $logger->debug('child pid finished successfully');
+                    $logger->debug('Child process finished successfully');
 
                 }
                 else {
 
                     $logger->debug(
-'Something went bad with child process: look for zombie process on the computer'
+'Something went bad with child process: look for orphan process'
                     );
 
                 }
@@ -1285,6 +1233,17 @@ sub _term_PIPE {
 sub _term_ALARM {
 
     $SIG_ALARM = 1;
+
+}
+
+sub _gimme_logger {
+
+    my $cfg = Siebel::Srvrmgr->logging_cfg();
+
+    die "Could not start logging facilities"
+      unless ( Log::Log4perl->init_once( \$cfg ) );
+
+    return Log::Log4perl->get_logger('Siebel::Srvrmgr::Daemon');
 
 }
 
@@ -1339,6 +1298,10 @@ L<POSIX>
 =item *
 
 L<Siebel::Srvrmgr::Daemon::Command>
+
+=item *
+
+L<https://github.com/lucastheisen/ipc-open3-callback>
 
 =back
 
