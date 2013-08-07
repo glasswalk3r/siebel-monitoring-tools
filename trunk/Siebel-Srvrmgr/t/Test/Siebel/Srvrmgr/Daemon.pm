@@ -37,7 +37,9 @@ sub _constructor : Tests(+2) {
                 bin         => $test->{test_data}->[5]->[2],
                 is_infinite => 0,
                 wait_time   => $test->{test_data}->[6]->[2],
-                commands    => [
+                use_perl    => 1
+                , # important to avoid calling another interpreter besides perl when invoked by IPC::Open3
+                commands => [
                     Siebel::Srvrmgr::Daemon::Command->new(
                         command => 'load preferences',
                         action  => 'LoadPreferences'
