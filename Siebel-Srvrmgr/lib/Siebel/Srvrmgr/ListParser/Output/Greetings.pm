@@ -15,6 +15,7 @@ See L<Siebel::Srvrmgr::ListParser::Output>.
 use Moose;
 use Siebel::Srvrmgr::Regexes;
 use feature 'switch';
+use Carp;
 
 extends 'Siebel::Srvrmgr::ListParser::Output';
 
@@ -231,7 +232,7 @@ override 'parse' => sub {
 
             default {
 
-                die 'Invalid data from line [' . $line . ']';
+                confess 'Invalid data from line [' . $line . ']';
 
             }
 

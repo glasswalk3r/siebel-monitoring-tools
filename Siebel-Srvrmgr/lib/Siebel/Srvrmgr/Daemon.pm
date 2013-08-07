@@ -647,6 +647,7 @@ sub run {
         $logger->debug(
             "Setting $read_timeout seconds for read srvrmgr output time out")
           if ( $logger->is_debug() );
+
         alarm($read_timeout);
 
         while ( my @ready = $select->can_read($read_timeout) ) {
@@ -655,6 +656,24 @@ sub run {
 
                 my $data;
                 my $bytesRead = sysread( $fh, $data, 1024 );
+
+                if ( $logger->is_debug() ) {
+
+                    $logger->debug("Read $bytesRead");
+
+                    if ( $data =~ /\r\n$/ ) {
+
+                        $logger->debug('Buffer has CRLF at the end of it');
+
+                    }
+                    else {
+
+                        $logger->debug(
+                            'Buffer DOES NOT have CRLF at the end of it');
+
+                    }
+
+                }
 
                 if ( !( defined($bytesRead) ) and ( !$!{ECONNRESET} ) ) {
                     $logger->logdie(
@@ -913,18 +932,21 @@ sub _create_child {
 sub _process_stderr {
 
     exit if ($SIG_INT);
-    my $self = shift;
-    my $line = shift;
+    my $self     = shift;
+    my $data_ref = shift;
 
-    $line =~ s/\r\n//;
-    $line =~ s/\n//;
+    foreach my $line ( split( "\n", $$data_ref ) ) {
 
-    $self->_check_error($line);
+        $line =~ s/\r$//;    # for output recovered from Windows
+        $self->_check_error($line);
+
+    }
 
 }
 
 sub _process_stdout {
 
+# :TODO      :07/08/2013 15:12:17:: should this be controlled in instances? or should it be global to the class?
     exit if ($SIG_INT);
 
     my $self       = shift;
@@ -940,22 +962,20 @@ sub _process_stdout {
     my $error           = SIEBEL_ERROR;
     my $prompt;
 
-    foreach my $line ( split( "\n", $$data_ref ) ) {
+    $logger->debug("Raw content is [$$data_ref]") if $logger->is_debug();
 
-        # :WORKAROUND:06/08/2013 20:22:59:: should work for Windows and UNIX
-        $line =~ s/\r\n$//;
-        $line =~ s/\n$//;
+    foreach my $line ( split( "\r\n", $$data_ref ) ) {
 
         if ( $logger->is_debug() ) {
 
             if ( defined($line) ) {
 
-                $logger->debug("Read [$line] from srvrmgr");
+                $logger->debug("Recovered line [$line]");
 
             }
             else {
 
-                $logger->debug("Read [undefined content] from srvrmgr");
+                $logger->debug("Recovered line with undefined content");
 
             }
 
