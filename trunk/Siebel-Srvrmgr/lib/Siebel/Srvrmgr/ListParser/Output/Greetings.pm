@@ -13,7 +13,7 @@ See L<Siebel::Srvrmgr::ListParser::Output>.
 =cut
 
 use Moose;
-use Siebel::Srvrmgr::Regexes;
+use Siebel::Srvrmgr::Regexes qw(CONN_GREET);
 use feature 'switch';
 use Carp;
 
@@ -162,8 +162,6 @@ override 'parse' => sub {
 
     my $data_ref = $self->get_raw_data();
 
-    my $hello_regex = Siebel::Srvrmgr::Regexes::CONN_GREET;
-
     my $is_copyright = 0;
 
     my %data_parsed;
@@ -179,7 +177,7 @@ override 'parse' => sub {
                 # do nothing
             }
 
-            when (/$hello_regex/) {
+            when ( $line =~ CONN_GREET ) {
 
 #Siebel Enterprise Applications Siebel Server Manager, Version 7.5.3 [16157] LANG_INDEPENDENT
                 my @words = split( /\s/, $line );
@@ -232,7 +230,8 @@ override 'parse' => sub {
 
             default {
 
-                confess 'Invalid data from line [' . $line . ']';
+                confess 'Do not know how to deal with line content [' . $line
+                  . ']';
 
             }
 
@@ -241,6 +240,7 @@ override 'parse' => sub {
     }
 
     $self->set_data_parsed( \%data_parsed );
+    $self->set_raw_data( [] );
 
     return 1;
 
@@ -265,7 +265,7 @@ sub _set_copyright {
 
 }
 
- # :TODO      :08/07/2013 15:51:18:: must separate Output functionality from expectation of output in tabular format
+# :TODO      :08/07/2013 15:51:18:: must separate Output functionality from expectation of output in tabular format
 
 # the methods below are overrided just because
 # the parent class demands, but they are useless for Greetings (they are never invoked internally)

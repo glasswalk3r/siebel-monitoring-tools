@@ -76,19 +76,22 @@ sub class_methods : Tests(24) {
     can_ok(
         $test->{daemon},
         (
-            'get_server',      'set_server',
-            'get_gateway',     'set_gateway',
-            'get_enterprise',  'set_enterprise',
-            'get_user',        'set_user',
-            'get_password',    'set_password',
-            'get_wait_time',   'set_wait_time',
-            'get_commands',    'set_commands',
-            'get_bin',         'set_bin',
-            'get_write',       'get_read',
-            'is_infinite',     'get_last_cmd',
-            'get_cmd_stack',   'get_params_stack',
-            '_setup_commands', 'run',
-            'DEMOLISH',        'shift_commands'
+            'get_server',        'set_server',
+            'get_gateway',       'set_gateway',
+            'get_enterprise',    'set_enterprise',
+            'get_user',          'set_user',
+            'get_password',      'set_password',
+            'get_wait_time',     'set_wait_time',
+            'get_commands',      'set_commands',
+            'get_bin',           'set_bin',
+            'get_write',         'get_read',
+            'is_infinite',       'get_last_cmd',
+            'get_cmd_stack',     'get_params_stack',
+            '_setup_commands',   'run',
+            'DEMOLISH',          'shift_commands',
+            'set_child_timeout', 'get_child_timeout',
+            'use_perl',          'get_buffer_size',
+            'set_buffer_size'
         )
     );
 
@@ -110,7 +113,7 @@ sub class_methods : Tests(24) {
 
 }
 
-sub class_attributes : Tests(16) {
+sub class_attributes : Tests(19) {
 
     my $test = shift;
 
@@ -118,7 +121,8 @@ sub class_attributes : Tests(16) {
         'server',        'gateway',   'enterprise',   'user',
         'password',      'wait_time', 'commands',     'bin',
         'write_fh',      'read_fh',   'pid',          'is_infinite',
-        'last_exec_cmd', 'cmd_stack', 'params_stack', 'action_stack'
+        'last_exec_cmd', 'cmd_stack', 'params_stack', 'action_stack',
+        'child_timeout', 'use_perl',  'ipc_buffer_size'
     );
 
     foreach my $attribute (@attribs) {
@@ -163,14 +167,23 @@ sub runs_blocked : Test() {
         ]
     );
 
-  SKIP: {
+  TODO: {
 
-        skip 'alarm does not work as expected in Microsoft Windows OS', 1
-          if ( $Config{osname} eq 'MSWin32' );
+        local $TODO = 'Usage of alarm must be reviewed';
 
         dies_ok { $test->{daemon}->run() } 'run method fail due timeout';
 
     }
+
+}
+
+sub get_stderr : Test() {
+
+	TODO: {
+	
+		local $TODO = 'Being able to read STDERR from srvrmgr must be tested';
+
+	}
 
 }
 

@@ -25,8 +25,9 @@ use MooseX::Storage;
 use namespace::autoclean;
 use Carp;
 use feature qw(switch);
+use Siebel::Srvrmgr::Regexes qw(ROWS_RETURNED);
 
-# :TODO      :25/06/2013 18:42:01:: replace usage of Storable for another backend that supports regexp references
+# :TODO      :25/06/2013 18:42:01:: must find a way to store only the non-compiled regex
 with Storage( io => 'StorableFile' );
 
 =pod
@@ -232,7 +233,7 @@ in the data to be parsed.
 
 =cut
 
- # :TODO      :08/07/2013 18:50:42:: create POD for all steps executed by the method and which methods are called for each event
+# :TODO      :08/07/2013 18:50:42:: create POD for all steps executed by the method and which methods are called for each event
 
 sub parse {
 
@@ -244,17 +245,21 @@ sub parse {
 
     my $line_header_regex = qr/^\-+\s/;
 
-# removing the three last lines (one blank line followed by a line amount of lines returned followed by a blank line)
-    for ( 1 .. 3 ) {
+    # cleaning up, state machine should not handle them
+    while (( $data_ref->[ $#{$data_ref} ] eq '' )
+        or ( $data_ref->[ $#{$data_ref} ] =~ ROWS_RETURNED ) )
+    {
 
         pop( @{$data_ref} );
 
     }
 
-    die 'raw data became invalid after initial cleanup' unless ( @{$data_ref} );
+    confess 'Raw data became invalid after initial cleanup'
+      unless ( @{$data_ref} );
 
     foreach my $line ( @{$data_ref} ) {
 
+        # :TODO      :08/08/2013 18:33:28:: remove this chomp?
         chomp($line);
 
         given ($line) {
@@ -507,3 +512,4 @@ along with Siebel Monitoring Tools.  If not, see <http://www.gnu.org/licenses/>.
 no Moose;
 __PACKAGE__->meta->make_immutable;
 
+1;
