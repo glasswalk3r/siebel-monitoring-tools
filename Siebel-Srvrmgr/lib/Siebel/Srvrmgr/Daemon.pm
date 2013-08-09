@@ -88,6 +88,7 @@ use Scalar::Util qw(weaken);
 use Config;
 use Siebel::Srvrmgr::IPC;
 use IO::Select;
+use Encode;
 
 $SIG{INT}  = \&_term_INT;
 $SIG{PIPE} = \&_term_PIPE;
@@ -285,11 +286,22 @@ has error_fh => (
     reader => 'get_error'
 );
 
-has harness => (
-    isa    => 'IPC::Run',
-    is     => 'ro',
-    writer => '_set_harness',
-    reader => 'get_harness'
+=pod
+
+=head2 read_timeout
+
+The read_timeout to read from child process handlers.
+
+Expects a integer as parameters, and returns a integer in seconds. It defaults to 15.
+
+=cut
+
+has read_timeout => (
+    isa     => 'Int',
+    is      => 'rw',
+    writer  => 'set_read_timeout',
+    reader  => 'get_read_timeout',
+    default => 10
 );
 
 =pod
@@ -401,7 +413,7 @@ has child_timeout => (
 
 A boolean attribute used mostly for testing of this class.
 
-If true, if will prepend the complete path of the Perl interpreter to the parameters before calling the C<srvrmgr> program (of course, the srvrmgr must
+If true, if will prepend the complete path of the Perl interpreter to the parameters before calling the C<srvrmgr> program (of course, srvrmgr must
 be itself a Perl script).
 
 It defaults to false.
@@ -410,6 +422,22 @@ It defaults to false.
 
 has use_perl =>
   ( isa => 'Bool', is => 'ro', reader => 'use_perl', default => 0 );
+
+=head2 ipc_buffer_size
+
+A integer describing the size of the buffer used to read output from srvrmgr program by using IPC.
+
+It defaults to 5120 bytes, but it can be adjusted to improve performance (by lowering CPU usage with memory utilization).
+
+=cut
+
+has ipc_buffer_size => (
+    isa     => 'Int',
+    is      => 'rw',
+    reader  => 'get_buffer_size',
+    writer  => 'set_buffer_size',
+    default => 5120
+);
 
 =pod
 
@@ -634,8 +662,7 @@ sub run {
         }
     );
 
-    my $read_timeout = 10;
-    my $parser       = Siebel::Srvrmgr::ListParser->new();
+    my $parser = Siebel::Srvrmgr::ListParser->new();
 
     my $select = IO::Select->new();
     $select->add( $self->get_read(), $self->get_error() );
@@ -644,71 +671,137 @@ sub run {
 
         exit if ($SIG_INT);
 
-        $logger->debug(
-            "Setting $read_timeout seconds for read srvrmgr output time out")
+        $logger->debug( 'Setting '
+              . $self->get_read_timeout()
+              . ' seconds for read srvrmgr output time out' )
           if ( $logger->is_debug() );
 
-        alarm($read_timeout);
+        # to keep data from both handles while looping over them
+        my %data;
 
-        while ( my @ready = $select->can_read($read_timeout) ) {
+      READ:
+        while ( my @ready = $select->can_read( $self->get_read_timeout() ) ) {
 
             foreach my $fh (@ready) {
 
-                my $data;
-                my $bytesRead = sysread( $fh, $data, 1024 );
+                my $fh_name  = fileno($fh);
+                my $fh_bytes = $fh_name . '_bytes';
 
-                if ( $logger->is_debug() ) {
+                $logger->debug( 'Reading filehandle ' . fileno($fh) );
 
-                    $logger->debug("Read $bytesRead");
+                unless ( exists( $data{$fh_name} ) ) {
 
-                    if ( $data =~ /\r\n$/ ) {
-
-                        $logger->debug('Buffer has CRLF at the end of it');
-
-                    }
-                    else {
-
-                        $logger->debug(
-                            'Buffer DOES NOT have CRLF at the end of it');
-
-                    }
+                    $data{$fh_name}  = undef;
+                    $data{$fh_bytes} = 0;
 
                 }
 
-                if ( !( defined($bytesRead) ) and ( !$!{ECONNRESET} ) ) {
-                    $logger->logdie(
-                        'sysread failed reading from srvrmgr:' . $! );
-                }
-                elsif ( !defined($bytesRead) || $bytesRead == 0 ) {
-                    $select->remove($fh);
-                    next;
+                unless ( $data{$fh_bytes} > 0 ) {
+
+                    $data{$fh_bytes} =
+                      sysread( $fh, $data{$fh_name}, $self->get_buffer_size() );
+
                 }
                 else {
 
+                    $logger->info(
+                        'Caught part of a record, repeating sysread with offset'
+                    );
+                    my $offset =
+                      length( Encode::encode_utf8( $data{$fh_name} ) );
+
+                    $logger->debug("Offset is $offset")
+                      if ( $logger->is_debug() );
+
+                    $data{$fh_bytes} =
+                      sysread( $fh, $data{$fh_name}, $self->get_buffer_size(),
+                        $offset );
+
+                }
+
+                if ( $logger->is_debug() ) {
+
+                    my $assert = 'Input record separator is ';
+
+                    given ($/) {
+
+                        when ( $/ eq "\015" ) {
+                            $logger->debug( $assert . 'CR' )
+                        }
+                        when ( $/ eq "\015\012" ) {
+                            $logger->debug( $assert . 'CRLF' )
+                        }
+                        when ( $/ eq "\012" ) {
+                            $logger->debug( $assert . 'LF' )
+                        }
+                        default {
+                            $logger->debug(
+                                "Unknown input record separator: [$/]")
+                        }
+
+                    }
+
+                }
+
+                if (    ( $data{$fh_bytes} == $self->get_buffer_size() )
+                    and ( $data{$fh_name} !~ /\015\012$/ ) )
+                {
+
+                    $logger->debug(
+                        'Buffer DOES NOT have CRLF at the end of it');
+
+                    next READ;
+
+                }
+
+                unless ( defined( $data{$fh_bytes} ) ) {
+
+                    $logger->warn( 'sysreading from '
+                          . $fh_name
+                          . ' returned an error: '
+                          . $! );
+
+                    $logger->logdie(
+                        'sysread failed reading from srvrmgr:' . $! )
+                      unless ( $!{ECONNRESET} );
+
+                    if ( $data{$fh_bytes} == 0 ) {
+                        $select->remove($fh);
+                        next;
+
+                    }
+                }
+                else {
+
+                    $logger->debug("Read $data{$fh_bytes} bytes from $fh_name")
+                      if ( $logger->is_debug() );
+
                     if ( $fh == $self->get_read() ) {
                         $prompt =
-                          $self->_process_stdout( \$data, \@input_buffer,
-                            $logger, $condition );
+                          $self->_process_stdout( \$data{$fh_name},
+                            \@input_buffer, $logger, $condition );
+
+                        $data{$fh_name}  = undef;
+                        $data{$fh_bytes} = 0;
+
                     }
                     elsif ( $fh == $self->get_error() ) {
 
-                        $self->_process_stderr( \$data );
+                        $self->_process_stderr( \$data{$fh_name} );
+
+                        $data{$fh_name}  = undef;
+                        $data{$fh_bytes} = 0;
+
                     }
                     else {
                         $logger->logdie(
                             'Somehow got a filehandle i dont know about!');
                     }
                 }
-            }
 
-        }
+            }    # end of foreach block
 
-        my $time_remaining = 0;
-        $time_remaining = alarm(0);
-
-        $logger->debug(
-"Reseting the time out for reading srvrmgr output (time remaing $time_remaining seconds)"
-        ) if ( $logger->is_debug() );
+        }    # end of while block
 
         # below is the place for a Action object
         if ( scalar(@input_buffer) >= 1 ) {
@@ -741,22 +834,15 @@ sub run {
 
             if ( $logger->is_debug() ) {
 
-                $logger->debug('First three lines of buffer sent for parsing');
+                $logger->debug('Lines from buffer sent for parsing');
 
-                for ( my $i = 0 ; $i <= 2 ; $i++ ) {
+                foreach my $line (@input_buffer) {
 
-                    if ( defined( $input_buffer[$i] ) ) {
-
-                        $logger->debug( $input_buffer[$i] );
-
-                    }
-                    else {
-
-                        $logger->debug('undefined content');
-
-                    }
+                    $logger->debug($line);
 
                 }
+
+                $logger->debug('End of lines from buffer sent for parsing');
 
             }
 
@@ -900,9 +986,10 @@ sub _create_child {
 
     if ( $logger->is_debug() ) {
 
-        $logger->debug( 'forked srvrmgr with the following parameters: '
+        $logger->debug( 'Forked srvrmgr with the following parameters: '
               . join( ' ', @params ) );
         $logger->debug( 'child PID is ' . $pid );
+        $logger->debug( 'IPC buffer size is ' . $self->get_buffer_size() );
 
     }
 
@@ -937,7 +1024,11 @@ sub _process_stderr {
 
     foreach my $line ( split( "\n", $$data_ref ) ) {
 
-        $line =~ s/\r$//;    # for output recovered from Windows
+        exit if ($SIG_INT);
+
+ # :WORKAROUND:09/08/2013 19:12:55:: in MS Windows OS, srvrmgr returns CR characters "alone"
+ # like "CRCRLFCRCRLF" for two empty lines. And yes, that sucks big time
+        $line =~ s/\r$//;
         $self->_check_error($line);
 
     }
@@ -956,6 +1047,7 @@ sub _process_stdout {
     my $condition  = shift;
 
     weaken($logger);
+ # :TODO      :09/08/2013 19:35:30:: review and remove assigning the compiled regexes to scalar (probably unecessary)
     my $prompt_regex    = SRVRMGR_PROMPT;
     my $load_pref_regex = LOAD_PREF_RESP;
     my $rows_returned   = ROWS_RETURNED;
@@ -964,7 +1056,13 @@ sub _process_stdout {
 
     $logger->debug("Raw content is [$$data_ref]") if $logger->is_debug();
 
-    foreach my $line ( split( "\r\n", $$data_ref ) ) {
+    foreach my $line ( split( "\n", $$data_ref ) ) {
+
+        exit if ($SIG_INT);
+
+ # :WORKAROUND:09/08/2013 19:12:55:: in MS Windows OS, srvrmgr returns CR characters "alone"
+ # like "CRCRLFCRCRLF" for two empty lines. And yes, that sucks big time
+        $line =~ s/\r$//;
 
         if ( $logger->is_debug() ) {
 
@@ -994,8 +1092,8 @@ sub _process_stdout {
 
                 # parsers will consider the lines below
                 push( @{$buffer_ref}, $line );
-                push( @{$buffer_ref}, '' );
 
+# :TODO      :08/08/2013 15:25:46:: check if sending a new line without anything else is still necessary after select() implementation
                 syswrite $self->get_write(), "\n";
 
             }
@@ -1008,11 +1106,8 @@ sub _process_stdout {
 
                     $prompt = $line;
 
-                    if ( $logger->is_debug() ) {
-
-                        $logger->debug("defined prompt with [$line]");
-
-                    }
+                    $logger->info("defined prompt with [$line]")
+                      if ( $logger->is_info() );
 
 # if prompt was undefined, that means that this is might be rest of output of previous command
 # and thus can be safely ignored
@@ -1086,7 +1181,9 @@ sub _check_error {
 
         when (/^SBL-ADM-60070.*/) {
 
-            # instead of dying, try to read the next line
+            $logger->debug(
+                'Trying to get additional information from next line')
+              if ( $logger->is_debug() );
             return 1;
         }
 

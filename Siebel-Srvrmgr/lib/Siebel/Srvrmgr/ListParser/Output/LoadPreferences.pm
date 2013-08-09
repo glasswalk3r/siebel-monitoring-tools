@@ -9,7 +9,7 @@ Siebel::Srvrmgr::ListParser::Output::LoadPreferences - subclass to parse load pr
 =cut
 
 use Moose;
-use Siebel::Srvrmgr::Regexes;
+use Siebel::Srvrmgr::Regexes qw(LOAD_PREF_RESP LOAD_PREF_CMD);
 use feature 'switch';
 use Carp;
 
@@ -69,25 +69,22 @@ override 'parse' => sub {
 
     my %parsed_lines;
 
-    my $response = Siebel::Srvrmgr::Regexes::LOAD_PREF_RESP;
-    my $command  = Siebel::Srvrmgr::Regexes::LOAD_PREF_CMD;
-
     foreach my $line ( @{$data_ref} ) {
-
-        chomp($line);
 
         given ($line) {
 
-            when (/$response/) {
+            when ($line =~ LOAD_PREF_RESP) {
 
                 my @data = split( /\:\s/, $line );
 
-                $self->set_location( $data[-1] );
+				confess 'Caught invalid LOAD_PREF_RESP line' unless(@data);
+
+                $self->set_location( $data[$#data] );
                 $parsed_lines{answer} = $line;
 
             }
 
-            when ( $line =~ /$command/ ) {
+            when ($line =~ LOAD_PREF_CMD) {
 
                 $parsed_lines{command} = $line;
 
