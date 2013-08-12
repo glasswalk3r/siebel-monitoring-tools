@@ -9,13 +9,14 @@ sub class_methods : Test(+1) {
 
 # :WORKAROUND:03-06-2013:arfreitas: redirecting STDOUT to avoid having problems with TAP
     close(STDOUT);
+
+	# redirecting parent class execution
     my $test_data;
     open( STDOUT, '>', \$test_data )
       or die "Failed to redirect STDOUT to in-memory file: $!";
     $test->SUPER::class_methods();
     close(STDOUT);
 
-    close(STDOUT);
     $test_data = undef;
     open( STDOUT, '>', \$test_data )
       or die "Failed to redirect STDOUT to in-memory file: $!";
@@ -24,7 +25,7 @@ sub class_methods : Test(+1) {
 
     like(
         $test_data,
-        qr/^\$VAR1\s\=\s\[\n\s+\'\n\'\,\n\s+\'SV_NAME\s+CC_ALIAS/,
+        qr/SV_NAME\s+CC_ALIAS\s+TK_TASKID\s+TK_PID\s+TK_DISP_RUNSTATE\s+CC_RUNMODE\s+TK_START_TIME/,
         'Dumper output matches expected regular expression'
     );
 
@@ -33,7 +34,6 @@ sub class_methods : Test(+1) {
 1;
 
 __DATA__
-
 SV_NAME  CC_ALIAS        TK_TASKID  TK_PID  TK_DISP_RUNSTATE  CC_RUNMODE   TK_START_TIME        TK_END_TIME          TK_STATUS                                                                                CG_ALIAS   TK_PARENT_T  CC_INCARN_NO  TK_LABEL                  TK_TASKTYPE  TK_PING_TIM  
 -------  --------------  ---------  ------  ----------------  -----------  -------------------  -------------------  ---------------------------------------------------------------------------------------  ---------  -----------  ------------  ------------------------  -----------  -----------  
 SUsrvr   ServerMgr       32505858   916     Running           Interactive  2012-02-13 08:14:36  2000-00-00 00:00:00  Processing "List Tasks" command                                                          System                  0                                       Normal                    

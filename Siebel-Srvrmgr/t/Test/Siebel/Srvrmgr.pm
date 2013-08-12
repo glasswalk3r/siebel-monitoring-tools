@@ -32,8 +32,15 @@ sub get_my_data {
     else {
 
         my $handle = ref($test) . '::DATA';
+        my @data;
 
-        my @data = <$handle>;
+        while (<$handle>) {
+ # :WORKAROUND:12/08/2013 12:27:24:: new implementation of Daemon removes new lines characters from srvrmgr output
+            chomp();
+            push( @data, $_ );
+
+        }
+
         close($handle);
 
         if (@data) {

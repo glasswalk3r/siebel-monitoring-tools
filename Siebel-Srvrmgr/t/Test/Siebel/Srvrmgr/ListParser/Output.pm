@@ -5,9 +5,6 @@ use Test::Moose 'has_attribute_ok';
 use Hash::Util qw(lock_keys);
 use base 'Test::Siebel::Srvrmgr';
 
-# forcing to be the first method to be tested
-# this predates the usage of setup and startup, but the first is expensive and the second cannot be used due parent class
-
 sub get_super {
 
     return 'Siebel::Srvrmgr::ListParser::Output';
@@ -59,6 +56,8 @@ sub set_output {
 
 }
 
+# forcing to be the first method to be tested
+# this predates the usage of setup and startup, but the first is expensive and the second cannot be used due parent class
 sub _constructor : Tests(3) {
 
     my $test = shift;
@@ -186,11 +185,10 @@ sub class_methods : Tests(12) {
             'set_raw_data accepts an array reference as parameter'
         );
 
-		# parse must be invoked before trying to get parsed data
-        ok( $test->get_output()->parse(), 'parse() works' );
-
         is( ref( $test->get_output()->get_data_parsed() ),
             'HASH', 'get_data_parsed returns an hash reference' );
+
+        my $old_ref = $test->get_output()->get_data_parsed();
 
         ok(
             $test->get_output()
@@ -198,7 +196,11 @@ sub class_methods : Tests(12) {
             'set_data_parsed accepts an hash reference as parameter'
         );
 
-        is( $test->get_output()->get_cmd_line(), $test->get_cmd_line() );
+        # restore the original value
+        $test->get_output()->set_data_parsed($old_ref);
+
+        is( $test->get_output()->get_cmd_line(),
+            $test->get_cmd_line(), 'get_cmd_line returns the correct string' );
 
         # simple tests
         foreach my $method (
@@ -206,41 +208,15 @@ sub class_methods : Tests(12) {
           )
         {
 
-            ok( $test->get_output()->$method(), "$method() works" );
+            ok( $test->get_output()->$method(), "$method() returns true" );
 
         }
 
- # :TODO      :01/07/2013 14:06:16:: test returned values from methods above
- # :TODO      :01/07/2013 14:06:16:: test "hidden" methods _set_header and _split_fields 
+# :TODO      :01/07/2013 14:06:16:: test returned values from methods above
+# :TODO      :01/07/2013 14:06:16:: test "hidden" methods _set_header and _split_fields
 
     }
 
 }
 
 1;
-
-__DATA__
-Siebel Enterprise Applications Siebel Server Manager, Version 7.5.3 [16157] LANG_INDEPENDENT 
-Copyright (c) 2001 Siebel Systems, Inc.  All rights reserved.
-
-This software is the property of Siebel Systems, Inc., 2207 Bridgepointe Parkway,
-San Mateo, CA 94404.
-
-User agrees that any use of this software is governed by: (1) the applicable
-user limitations and other terms and conditions of the license agreement which
-has been entered into with Siebel Systems or its authorized distributors; and
-(2) the proprietary and restricted rights notices included in this software.
-
-WARNING: THIS COMPUTER PROGRAM IS PROTECTED BY U.S. AND INTERNATIONAL LAW.
-UNAUTHORIZED REPRODUCTION, DISTRIBUTION OR USE OF THIS PROGRAM, OR ANY PORTION
-OF IT, MAY RESULT IN SEVERE CIVIL AND CRIMINAL PENALTIES, AND WILL BE
-PROSECUTED TO THE MAXIMUM EXTENT POSSIBLE UNDER THE LAW.
-
-If you have received this software in error, please notify Siebel Systems
-immediately at (650) 295-5000.
-
-Type "help" for list of commands, "help <topic>" for detailed help
-
-Connected to 1 server(s) out of a total of 1 server(s) in the enterprise
-
-srvrmgr:>
