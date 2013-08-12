@@ -18,9 +18,11 @@ sub class_attributes : Tests(+3) {
 
 }
 
-sub class_methods : Tests(+6) {
+sub class_methods : Tests(+7) {
 
     my $test = shift;
+
+    $test->SUPER::class_methods();
 
     can_ok( $test->get_output(),
         qw(get_fields_pattern get_comp_attribs get_last_server get_servers get_server)
@@ -48,14 +50,18 @@ sub class_methods : Tests(+6) {
 
     my $server_class = 'Siebel::Srvrmgr::ListParser::Output::ListComp::Server';
 
-    isa_ok(
-        $test->get_output()
-          ->get_server( $test->get_output()->get_last_server() ),
-        $server_class,
-        "get_last_server returns a $server_class object"
-    );
+    my $server;
 
-    $test->SUPER::class_methods();
+    ok( $server = $test->get_output()
+          ->get_server( $test->get_output()->get_last_server() ), 'get_server returns an object' );
+
+  SKIP: {
+
+        skip 'get_server() method failed', 1 unless ( defined($server) );
+
+        isa_ok( $server, $server_class );
+
+    }
 
 }
 
@@ -88,9 +94,9 @@ foobar      TxnRoute           Transaction Router                               
 foobar      UpgKitBldr         Upgrade Kit Builder                                SiebAnywhere  Batch        Executing          0                 1             1                  1                 2009-09-04 18:37:53                                                      
 foobar      WorkActn           Workflow Action Agent                              Workflow      Background   Activated          0                 5                                                  2009-09-08 11:02:34                                                      
 foobar      WorkMon            Workflow Monitor Agent                             Workflow      Background   Executing          1                 1                                                  2009-09-04 18:31:20                                                      
-foobar      WorkMonBISAO       Workflow Monitor Agent BISAO                       Workflow      Background   Executing          1                 1                                                  2009-09-04 18:31:20                                                      
-foobar      WorkMonBudget      Workflow Monitor Agent BISAO Budget Upd            Workflow      Background   Executing          1                 1                                                  2009-09-08 10:58:41                                                      
-foobar      WorkMonMISRMail    Workflow Monitor Agent MI SR Mail                  Workflow      Background   Executing          1                 1                                                  2009-09-04 18:31:20                                                      
+foobar      WorkMonFoobar      Workflow Monitor Agent Foobar                      Workflow      Background   Executing          1                 1                                                  2009-09-04 18:31:20                                                      
+foobar      WorkMonFoobiu      Workflow Monitor Agent Foobiu                      Workflow      Background   Executing          1                 1                                                  2009-09-08 10:58:41                                                      
+foobar      WorkMonMyEmails    Workflow Monitor Agent My Emails                   Workflow      Background   Executing          1                 1                                                  2009-09-04 18:31:20                                                      
 foobar      WorkMonPLUS        Workflow Monitor Agent PLUS                        Workflow      Background   Executing          1                 1                                                  2009-09-04 18:31:20                                                      
 foobar      WfProcBatchMgr     Workflow Process Batch Manager                     Workflow      Batch        Activated          0                 20            1                  1                 2009-09-08 11:04:41                                                      
 foobar      WfProcMgr          Workflow Process Manager                           Workflow      Batch        Activated          0                 20            1                  1                 2009-09-08 11:03:23                                                      
