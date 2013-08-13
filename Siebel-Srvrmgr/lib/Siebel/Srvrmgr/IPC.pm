@@ -67,18 +67,18 @@ The error handle for the child process.
 sub safe_open3 {
 
     return ( $^O =~ /MSWin32/ )
-      ? Siebel::Srvrmgr::IPC::mswin_open3( $_[0] )
-      : Siebel::Srvrmgr::IPC::default_open3( $_[0] );
+      ? Siebel::Srvrmgr::IPC::_mswin_open3( $_[0] )
+      : Siebel::Srvrmgr::IPC::_default_open3( $_[0] );
 
 }
 
-sub mswin_open3 {
+sub _mswin_open3 {
 
     my $cmd_ref = shift;
 
-    my ( $inRead,  $inWrite )  = Siebel::Srvrmgr::IPC::mswin_pipe();
-    my ( $outRead, $outWrite ) = Siebel::Srvrmgr::IPC::mswin_pipe();
-    my ( $errRead, $errWrite ) = Siebel::Srvrmgr::IPC::mswin_pipe();
+    my ( $inRead,  $inWrite )  = Siebel::Srvrmgr::IPC::_mswin_pipe();
+    my ( $outRead, $outWrite ) = Siebel::Srvrmgr::IPC::_mswin_pipe();
+    my ( $errRead, $errWrite ) = Siebel::Srvrmgr::IPC::_mswin_pipe();
 
     my $pid = open3(
         '>&' . fileno($inRead),
@@ -90,7 +90,7 @@ sub mswin_open3 {
     return ( $pid, $inWrite, $outRead, $errRead );
 }
 
-sub mswin_pipe {
+sub _mswin_pipe {
 
     my ( $read, $write ) =
       IO::Socket->socketpair( AF_UNIX, SOCK_STREAM, PF_UNSPEC );
@@ -101,7 +101,7 @@ sub mswin_pipe {
 
 }
 
-sub default_open3 {
+sub _default_open3 {
 
     my $cmd_ref = shift;
 
