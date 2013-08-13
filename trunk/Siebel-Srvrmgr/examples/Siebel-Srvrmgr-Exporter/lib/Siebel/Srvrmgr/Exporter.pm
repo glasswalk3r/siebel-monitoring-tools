@@ -1,6 +1,6 @@
 package Siebel::Srvrmgr::Exporter;
 
-use 5.016003;
+use 5.014;
 use strict;
 use warnings;
 
