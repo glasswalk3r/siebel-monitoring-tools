@@ -89,6 +89,7 @@ use Config;
 use Siebel::Srvrmgr::IPC;
 use IO::Select;
 use Encode;
+use Carp qw(longmess);
 
 $SIG{INT}  = \&_term_INT;
 $SIG{PIPE} = \&_term_PIPE;
@@ -290,9 +291,7 @@ has error_fh => (
 
 =head2 read_timeout
 
-The read_timeout to read from child process handlers.
-
-Expects a integer as parameters, and returns a integer in seconds. It defaults to 15.
+The read_timeout to read from child process handlers. It defaults to 15.
 
 =cut
 
@@ -787,7 +786,7 @@ sub run {
                     }
                     elsif ( $fh == $self->get_error() ) {
 
-                        $self->_process_stderr( \$data{$fh_name} );
+                        $self->_process_stderr( \$data{$fh_name}, $logger );
 
                         $data{$fh_name}  = undef;
                         $data{$fh_bytes} = 0;
@@ -1021,15 +1020,17 @@ sub _process_stderr {
     exit if ($SIG_INT);
     my $self     = shift;
     my $data_ref = shift;
+    my $logger   = shift;
+    weaken($logger);
 
     foreach my $line ( split( "\n", $$data_ref ) ) {
 
         exit if ($SIG_INT);
 
- # :WORKAROUND:09/08/2013 19:12:55:: in MS Windows OS, srvrmgr returns CR characters "alone"
- # like "CRCRLFCRCRLF" for two empty lines. And yes, that sucks big time
+# :WORKAROUND:09/08/2013 19:12:55:: in MS Windows OS, srvrmgr returns CR characters "alone"
+# like "CRCRLFCRCRLF" for two empty lines. And yes, that sucks big time
         $line =~ s/\r$//;
-        $self->_check_error($line);
+        $self->_check_error( $line, $logger );
 
     }
 
@@ -1047,7 +1048,8 @@ sub _process_stdout {
     my $condition  = shift;
 
     weaken($logger);
- # :TODO      :09/08/2013 19:35:30:: review and remove assigning the compiled regexes to scalar (probably unecessary)
+
+# :TODO      :09/08/2013 19:35:30:: review and remove assigning the compiled regexes to scalar (probably unecessary)
     my $prompt_regex    = SRVRMGR_PROMPT;
     my $load_pref_regex = LOAD_PREF_RESP;
     my $rows_returned   = ROWS_RETURNED;
@@ -1060,8 +1062,8 @@ sub _process_stdout {
 
         exit if ($SIG_INT);
 
- # :WORKAROUND:09/08/2013 19:12:55:: in MS Windows OS, srvrmgr returns CR characters "alone"
- # like "CRCRLFCRCRLF" for two empty lines. And yes, that sucks big time
+# :WORKAROUND:09/08/2013 19:12:55:: in MS Windows OS, srvrmgr returns CR characters "alone"
+# like "CRCRLFCRCRLF" for two empty lines. And yes, that sucks big time
         $line =~ s/\r$//;
 
         if ( $logger->is_debug() ) {
@@ -1083,7 +1085,7 @@ sub _process_stdout {
 
             when (/$error/) {
 
-                $self->_check_error($line);
+                $self->_check_error( $line, $logger );
 
             }
 
@@ -1174,38 +1176,47 @@ sub _check_error {
     weaken($logger);
 
     # caught an error, until now all they are fatal
+    $logger->warn( "Caught [$line]:" . longmess() );
 
-    $logger->fatal($line);
+    if ( $line =~ SIEBEL_ERROR ) {
 
-    given ($line) {
+        given ($line) {
 
-        when (/^SBL-ADM-60070.*/) {
+            when (/^SBL-ADM-60070.*/) {
 
-            $logger->debug(
-                'Trying to get additional information from next line')
-              if ( $logger->is_debug() );
-            return 1;
+                $logger->debug(
+                    'Trying to get additional information from next line')
+                  if ( $logger->is_debug() );
+                return 1;
+            }
+
+            when (/^SBL-ADM-02043.*/) {
+                $logger->logdie('Could not find the Siebel Server')
+            }
+
+            when (/^SBL-ADM-02071.*/) {
+                $logger->logdie('Could not find the Siebel Enterprise')
+            }
+
+            when (/^SBL-ADM-02049.*/) {
+                $logger->logdie('Generic error')
+            }
+
+            when (/^SBL-ADM-02751.*/) {
+                $logger->logdie('Unable to open file')
+            }
+
+            default {
+                $logger->logdie('Unknown error, aborting execution')
+            }
+
         }
 
-        when (/^SBL-ADM-02043.*/) {
-            $logger->logdie('Could not find the Siebel Server')
-        }
+    }
+    else {
 
-        when (/^SBL-ADM-02071.*/) {
-            $logger->logdie('Could not find the Siebel Enterprise')
-        }
-
-        when (/^SBL-ADM-02049.*/) {
-            $logger->logdie('Generic error')
-        }
-
-        when (/^SBL-ADM-02751.*/) {
-            $logger->logdie('Unable to open file')
-        }
-
-        default {
-            $logger->logdie('Unknown error, aborting execution')
-        }
+        $logger->warn(
+            'Since this is not a Siebel error, I will try to keep running');
 
     }
 

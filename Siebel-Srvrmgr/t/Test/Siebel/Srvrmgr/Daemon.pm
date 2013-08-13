@@ -150,40 +150,49 @@ sub runs : Tests(3) {
 
 sub runs_blocked : Test() {
 
-    my $test  = shift;
-    my $class = $test->class;
-
-    $test->{daemon}->set_commands(
-        [
-            Siebel::Srvrmgr::Daemon::Command->new(
-                command => 'list blockme',
-                action => 'Dummy'    # this one is to get the initial message
-            ),
-            Siebel::Srvrmgr::Daemon::Command->new(
-                command => 'list blockme',
-                action =>
-                  'Dummy'    # this one is to get the "list blockme" message
-            ),
-        ]
-    );
+    my $test = shift;
 
   TODO: {
 
         local $TODO = 'Usage of alarm must be reviewed';
 
+        $test->{daemon}->set_commands(
+            [
+                Siebel::Srvrmgr::Daemon::Command->new(
+                    command => 'list blockme',
+                    action => 'Dummy'   # this one is to get the initial message
+                ),
+                Siebel::Srvrmgr::Daemon::Command->new(
+                    command => 'list blockme',
+                    action =>
+                      'Dummy'    # this one is to get the "list blockme" message
+                ),
+            ]
+        );
         dies_ok { $test->{daemon}->run() } 'run method fail due timeout';
 
     }
 
 }
 
-sub get_stderr : Test() {
+sub runs_with_stderr : Test() {
 
-	TODO: {
-	
-		local $TODO = 'Being able to read STDERR from srvrmgr must be tested';
+    my $test = shift;
 
-	}
+    $test->{daemon}->set_commands(
+        [
+            Siebel::Srvrmgr::Daemon::Command->new(
+                command => 'list server',
+                action  => 'Dummy'
+            ),
+            Siebel::Srvrmgr::Daemon::Command->new(
+                command => 'list complexquery',
+                action  => 'Dummy'
+            ),
+        ]
+    );
+
+    ok( $test->{daemon}->run(), 'can get STDERR from run method' );
 
 }
 
