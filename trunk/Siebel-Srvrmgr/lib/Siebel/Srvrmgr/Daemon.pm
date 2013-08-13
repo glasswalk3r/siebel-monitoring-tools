@@ -84,7 +84,7 @@ use feature qw(say switch);
 use Log::Log4perl;
 use Siebel::Srvrmgr;
 use Data::Dumper;
-use Scalar::Util qw(weaken);
+use Scalar::Util qw(weaken openhandle);
 use Config;
 use Siebel::Srvrmgr::IPC;
 use IO::Select;
@@ -313,8 +313,14 @@ This is a read-only attribute.
 
 =cut
 
-has pid =>
-  ( isa => 'Int', is => 'ro', writer => '_set_pid', reader => 'get_pid' );
+has pid => (
+    isa       => 'Int',
+    is        => 'ro',
+    writer    => '_set_pid',
+    reader    => 'get_pid',
+    clearer   => 'clear_pid',
+    predicate => 'has_pid'
+);
 
 =pod
 
@@ -426,7 +432,7 @@ has use_perl =>
 
 A integer describing the size of the buffer used to read output from srvrmgr program by using IPC.
 
-It defaults to 5120 bytes, but it can be adjusted to improve performance (by lowering CPU usage with memory utilization).
+It defaults to 5120 bytes, but it can be adjusted to improve performance (lowering CPU usage by increasing memory utilization).
 
 =cut
 
@@ -438,9 +444,71 @@ has ipc_buffer_size => (
     default => 5120
 );
 
+=head2 lang_id
+
+A string representing the LANG_ID parameter to connect to srvrmgr. If defaults to "ENU";
+
+=cut
+
+has lang_id => (
+    isa     => 'Str',
+    is      => 'rw',
+    reader  => 'get_lang_id',
+    writer  => 'set_lang_id',
+    default => 'ENU'
+);
+
+=head2 child_runs
+
+An integer representing the number of times the child object was used in C<run> invocations. This is reset to zero if a new child process is created.
+
+=cut
+
+has child_runs => (
+    isa     => 'Int',
+    is      => 'ro',
+    reader  => 'get_child_runs',
+    writer  => '_set_child_runs',
+    default => 0
+);
+
+=cut
+
 =pod
 
 =head1 METHODS
+
+=head2 get_child_runs
+
+Returns the value of the attribute C<child_runs>.
+
+=head2 get_child_timeout
+
+Returns the value of the attribute C<child_timeout>.
+
+=head2 set_child_timeout
+
+Sets the value of the attribute C<child_timeout>. Expects an integer as parameter, in seconds.
+
+=head2 use_perl
+
+Returns the content of the attribute C<use_perl>.
+
+=head2 get_buffer_size
+
+Returns the value of the attribute C<ipc_buffer_size>.
+
+=head2 set_buffer_size
+
+Sets the attribute C<ipc_buffer_size>. Expects an integer as parameter, multiple of 1024.
+
+=head2 get_lang_id
+
+Returns the value of the attribute C<lang_id>.
+
+=head set_lang_id
+
+Sets the attribute C<lang_id>. Expects a string as parameter.
 
 =head2 get_server
 
@@ -626,13 +694,26 @@ sub run {
 
     my $logger;
     my $temp;
+    my $skip_reading = 0;
 
     my ( $read_h, $write_h, $error_h );
 
 # :WORKAROUND:31/07/2013 14:42:33:: must initialize the Log::Log4perl after forking the srvrmgr to avoid sharing filehandles
-    unless ( $self->get_pid() ) {
+    unless ( $self->has_pid() ) {
 
         $logger = $self->_create_child();
+
+        unless ( ( defined($logger) ) and ( ref($logger) ) ) {
+
+            die( $self->get_bin()
+                  . ' returned un unrecoverable error, aborting execution' )
+
+        }
+        else {
+
+            weaken($logger);
+
+        }
 
     }
     else {
@@ -641,6 +722,7 @@ sub run {
         weaken($logger);
         $logger->info( 'Reusing PID ', $self->get_pid() )
           if ( $logger->is_debug() );
+        $skip_reading = 1;
 
     }
 
@@ -666,141 +748,162 @@ sub run {
     my $select = IO::Select->new();
     $select->add( $self->get_read(), $self->get_error() );
 
+    # to keep data from both handles while looping over them
+    my %data;
+
+    foreach my $fh ( $self->get_read(), $self->get_error() ) {
+
+        my $fh_name  = fileno($fh);
+        my $fh_bytes = $fh_name . '_bytes';
+
+        $data{$fh_name}  = undef;
+        $data{$fh_bytes} = 0;
+
+    }
+
+    if ( $logger->is_debug() ) {
+
+        $logger->debug(
+            'fileno of child read handle = ' . fileno( $self->get_read() ) );
+        $logger->debug(
+            'fileno of child error handle = ' . fileno( $self->get_error() ) );
+        $logger->debug( 'Setting '
+              . $self->get_read_timeout()
+              . ' seconds for read srvrmgr output time out' );
+        $logger->debug( 'Skip reading? ' . $skip_reading );
+
+    }
+
     do {
 
         exit if ($SIG_INT);
 
-        $logger->debug( 'Setting '
-              . $self->get_read_timeout()
-              . ' seconds for read srvrmgr output time out' )
-          if ( $logger->is_debug() );
+        unless ($skip_reading) {
 
-        # to keep data from both handles while looping over them
-        my %data;
+          READ:
+            while ( my @ready = $select->can_read( $self->get_read_timeout() ) )
+            {
 
-      READ:
-        while ( my @ready = $select->can_read( $self->get_read_timeout() ) ) {
+                foreach my $fh (@ready) {
 
-            foreach my $fh (@ready) {
+                    my $fh_name  = fileno($fh);
+                    my $fh_bytes = $fh_name . '_bytes';
 
-                my $fh_name  = fileno($fh);
-                my $fh_bytes = $fh_name . '_bytes';
+                    if ( $logger->is_debug() ) {
 
-                $logger->debug( 'Reading filehandle ' . fileno($fh) );
+                        $logger->debug( 'Reading filehandle ' . fileno($fh) );
+                        my $assert = 'Input record separator is ';
 
-                unless ( exists( $data{$fh_name} ) ) {
+                        given ($/) {
 
-                    $data{$fh_name}  = undef;
-                    $data{$fh_bytes} = 0;
+                            when ( $/ eq "\015" ) {
+                                $logger->debug( $assert . 'CR' )
+                            }
+                            when ( $/ eq "\015\012" ) {
+                                $logger->debug( $assert . 'CRLF' )
+                            }
+                            when ( $/ eq "\012" ) {
+                                $logger->debug( $assert . 'LF' )
+                            }
+                            default {
+                                $logger->debug(
+                                    "Unknown input record separator: [$/]")
+                            }
 
-                }
-
-                unless ( $data{$fh_bytes} > 0 ) {
-
-                    $data{$fh_bytes} =
-                      sysread( $fh, $data{$fh_name}, $self->get_buffer_size() );
-
-                }
-                else {
-
-                    $logger->info(
-                        'Caught part of a record, repeating sysread with offset'
-                    );
-                    my $offset =
-                      length( Encode::encode_utf8( $data{$fh_name} ) );
-
-                    $logger->debug("Offset is $offset")
-                      if ( $logger->is_debug() );
-
-                    $data{$fh_bytes} =
-                      sysread( $fh, $data{$fh_name}, $self->get_buffer_size(),
-                        $offset );
-
-                }
-
-                if ( $logger->is_debug() ) {
-
-                    my $assert = 'Input record separator is ';
-
-                    given ($/) {
-
-                        when ( $/ eq "\015" ) {
-                            $logger->debug( $assert . 'CR' )
-                        }
-                        when ( $/ eq "\015\012" ) {
-                            $logger->debug( $assert . 'CRLF' )
-                        }
-                        when ( $/ eq "\012" ) {
-                            $logger->debug( $assert . 'LF' )
-                        }
-                        default {
-                            $logger->debug(
-                                "Unknown input record separator: [$/]")
                         }
 
                     }
 
-                }
+                    unless (( defined( $data{$fh_bytes} ) )
+                        and ( $data{$fh_bytes} > 0 ) )
+                    {
 
-                if (    ( $data{$fh_bytes} == $self->get_buffer_size() )
-                    and ( $data{$fh_name} !~ /\015\012$/ ) )
-                {
-
-                    $logger->debug(
-                        'Buffer DOES NOT have CRLF at the end of it');
-
-                    next READ;
-
-                }
-
-                unless ( defined( $data{$fh_bytes} ) ) {
-
-                    $logger->warn( 'sysreading from '
-                          . $fh_name
-                          . ' returned an error: '
-                          . $! );
-
-                    $logger->logdie(
-                        'sysread failed reading from srvrmgr:' . $! )
-                      unless ( $!{ECONNRESET} );
-
-                    if ( $data{$fh_bytes} == 0 ) {
-                        $select->remove($fh);
-                        next;
-
-                    }
-                }
-                else {
-
-                    $logger->debug("Read $data{$fh_bytes} bytes from $fh_name")
-                      if ( $logger->is_debug() );
-
-                    if ( $fh == $self->get_read() ) {
-                        $prompt =
-                          $self->_process_stdout( \$data{$fh_name},
-                            \@input_buffer, $logger, $condition );
-
-                        $data{$fh_name}  = undef;
-                        $data{$fh_bytes} = 0;
-
-                    }
-                    elsif ( $fh == $self->get_error() ) {
-
-                        $self->_process_stderr( \$data{$fh_name}, $logger );
-
-                        $data{$fh_name}  = undef;
-                        $data{$fh_bytes} = 0;
+                        $data{$fh_bytes} =
+                          sysread( $fh, $data{$fh_name},
+                            $self->get_buffer_size() );
 
                     }
                     else {
-                        $logger->logdie(
-                            'Somehow got a filehandle i dont know about!');
+
+                        $logger->info(
+'Caught part of a record, repeating sysread with offset'
+                        ) if ( $logger->is_info() );
+
+                        my $offset =
+                          length( Encode::encode_utf8( $data{$fh_name} ) );
+
+                        $logger->debug("Offset is $offset")
+                          if ( $logger->is_debug() );
+
+                        $data{$fh_bytes} =
+                          sysread( $fh, $data{$fh_name},
+                            $self->get_buffer_size(), $offset );
+
                     }
-                }
+                    unless ( defined( $data{$fh_bytes} ) ) {
 
-            }    # end of foreach block
+                        $logger->fatal( 'sysread returned an error: ' . $! );
 
-        }    # end of while block
+                        $self->_check_child($logger);
+
+                        $logger->logdie( 'sysreading from '
+                              . $fh_name
+                              . ' returned an unrecoverable error' )
+                          ;    # unless ( $!{ECONNRESET} );
+
+                    }
+                    else {
+
+                        if ( $data{$fh_bytes} == 0 ) {
+
+                            $select->remove($fh);
+                            next;
+
+                        }
+
+                        if (    ( $data{$fh_bytes} == $self->get_buffer_size() )
+                            and ( $data{$fh_name} !~ /\015\012$/ ) )
+                        {
+
+                            $logger->debug(
+                                'Buffer DOES NOT have CRLF at the end of it');
+
+                            next READ;
+
+                        }
+
+                        $logger->debug(
+                            "Read $data{$fh_bytes} bytes from $fh_name")
+                          if ( $logger->is_debug() );
+
+                        if ( $fh == $self->get_read() ) {
+                            $prompt =
+                              $self->_process_stdout( \$data{$fh_name},
+                                \@input_buffer, $logger, $condition );
+
+                            $data{$fh_name}  = undef;
+                            $data{$fh_bytes} = 0;
+
+                        }
+                        elsif ( $fh == $self->get_error() ) {
+
+                            $self->_process_stderr( \$data{$fh_name}, $logger );
+
+                            $data{$fh_name}  = undef;
+                            $data{$fh_bytes} = 0;
+
+                        }
+                        else {
+                            $logger->logdie(
+                                'Somehow got a filehandle I dont know about!');
+                        }
+                    }
+
+                }    # end of foreach block
+
+            }    # end of while block
+
+        }    # end of checking of skip_reading
 
         # below is the place for a Action object
         if ( scalar(@input_buffer) >= 1 ) {
@@ -852,6 +955,11 @@ sub run {
             @input_buffer = ();
 
         }
+        else {
+
+            $logger->debug('buffer is empty');
+
+        }
 
         $logger->debug('Finished processing buffer')
           if ( $logger->is_debug() );
@@ -887,7 +995,11 @@ sub run {
                 "Insecure command from command stack [$cmd]. Execution aborted")
               unless ( ( $cmd =~ /^load/ ) or ( $cmd =~ /^list/ ) );
 
-            syswrite $self->get_write(), "$cmd\n";
+            my $bytes = syswrite $self->get_write(), "$cmd\n";
+            $logger->logdie(
+                'A failure occurred when trying to submit ' . $cmd . ': ' . $! )
+              unless ( defined($bytes) );
+            $skip_reading = 0;
 
 # srvrmgr.exe of Siebel 7.5.3.17 does not echo command printed to the input file handle
 # this is necessary to give a hint to the parser about the command submitted
@@ -937,6 +1049,9 @@ sub run {
 
     } while ($temp);
 
+    $self->_set_child_runs( $self->get_child_runs() + 1 );
+    $logger->debug( 'child_runs = ' . $self->get_child_runs() )
+      if ( $logger->is_debug() );
     $logger->info('Exiting run sub');
 
     return 1;
@@ -945,8 +1060,7 @@ sub run {
 
 sub _create_child {
 
-    my $self   = shift;
-    my $logger = shift;
+    my $self = shift;
 
 # :WORKAROUND:06/08/2013 21:05:32:: if a perlscript will be executed (like for automated testing of this distribution)
 # then the perl interpreter must be part of the command path to avoid open3 calling cmd.exe (in Microsoft Windows)
@@ -960,7 +1074,8 @@ sub _create_child {
         @params = (
             $self->get_bin(),      '/e', $self->get_enterprise(), '/g',
             $self->get_gateway(),  '/u', $self->get_user(),       '/p',
-            $self->get_password(), '/s', $self->get_server()
+            $self->get_password(), '/s', $self->get_server(),     '/l',
+            $self->get_lang_id()
         );
 
     }
@@ -971,7 +1086,8 @@ sub _create_child {
             $self->get_enterprise(), '/g',
             $self->get_gateway(),    '/u',
             $self->get_user(),       '/p',
-            $self->get_password()
+            $self->get_password(),   '/l',
+            $self->get_lang_id()
 
         );
 
@@ -980,7 +1096,12 @@ sub _create_child {
     unshift( @params, $Config{perlpath} ) if ( $self->use_perl() );
 
     my ( $pid, $write_h, $read_h, $error_h ) = safe_open3( \@params );
-    $logger = __PACKAGE__->_gimme_logger();
+    $self->_set_pid($pid);
+    $self->_set_write($write_h);
+    $self->_set_read($read_h);
+    $self->_set_error($error_h);
+
+    my $logger = __PACKAGE__->_gimme_logger();
     weaken($logger);
 
     if ( $logger->is_debug() ) {
@@ -994,24 +1115,17 @@ sub _create_child {
 
     $logger->info('Started srvrmgr');
 
-# :WORKAROUND:19/4/2012 19:38:04:: somehow the child process of srvrmgr has to be waited for one second and receive one kill 0 signal before
-# it dies when something goes wrong
-    sleep 1;
-    kill 0, $pid;
+    unless ( $self->_check_child($logger) ) {
 
-    unless ( kill 0, $pid ) {
-
-        $logger->logdie( $self->get_bin()
-              . " process returned a fatal error: ${^CHILD_ERROR_NATIVE}" );
+        return 0;
 
     }
+    else {
 
-    $self->_set_pid($pid);
-    $self->_set_write($write_h);
-    $self->_set_read($read_h);
-    $self->_set_error($error_h);
+        $self->_set_child_runs(0);
+        return $logger;
 
-    return $logger;
+    }
 
 }
 
@@ -1023,14 +1137,23 @@ sub _process_stderr {
     my $logger   = shift;
     weaken($logger);
 
-    foreach my $line ( split( "\n", $$data_ref ) ) {
+    if ( defined($$data_ref) ) {
 
-        exit if ($SIG_INT);
+        foreach my $line ( split( "\n", $$data_ref ) ) {
+
+            exit if ($SIG_INT);
 
 # :WORKAROUND:09/08/2013 19:12:55:: in MS Windows OS, srvrmgr returns CR characters "alone"
 # like "CRCRLFCRCRLF" for two empty lines. And yes, that sucks big time
-        $line =~ s/\r$//;
-        $self->_check_error( $line, $logger );
+            $line =~ s/\r$//;
+            $self->_check_error( $line, $logger );
+
+        }
+
+    }
+    else {
+
+        $logger->warn('Received empty buffer to read');
 
     }
 
@@ -1039,7 +1162,7 @@ sub _process_stderr {
 sub _process_stdout {
 
 # :TODO      :07/08/2013 15:12:17:: should this be controlled in instances? or should it be global to the class?
-    exit if ($SIG_INT);
+    exit if ( $SIG_INT or $SIG_PIPE );
 
     my $self       = shift;
     my $data_ref   = shift;
@@ -1054,13 +1177,15 @@ sub _process_stdout {
     my $load_pref_regex = LOAD_PREF_RESP;
     my $rows_returned   = ROWS_RETURNED;
     my $error           = SIEBEL_ERROR;
+
+# :TODO      :13/08/2013 18:28:02:: this must be an attribute to keep state of previous reading
     my $prompt;
 
     $logger->debug("Raw content is [$$data_ref]") if $logger->is_debug();
 
     foreach my $line ( split( "\n", $$data_ref ) ) {
 
-        exit if ($SIG_INT);
+        exit if ( $SIG_INT or $SIG_PIPE );
 
 # :WORKAROUND:09/08/2013 19:12:55:: in MS Windows OS, srvrmgr returns CR characters "alone"
 # like "CRCRLFCRCRLF" for two empty lines. And yes, that sucks big time
@@ -1222,6 +1347,93 @@ sub _check_error {
 
 }
 
+sub _check_child {
+
+    my $self   = shift;
+    my $logger = shift;
+
+    # try to read immediatly from stderr if possible
+    if ( openhandle( $self->get_error() ) ) {
+
+        my $error;
+
+        my $select = IO::Select->new();
+        $select->add( $self->get_error() );
+
+        while ( my $fh = $select->can_read( $self->get_read_timeout() ) ) {
+
+            my $buffer;
+            my $read = sysread( $fh, $buffer, $self->get_buffer_size() );
+
+            if ( defined($read) ) {
+
+                if ( $read > 0 ) {
+
+                    $error .= $buffer;
+                    next;
+
+                }
+                else {
+
+                    $logger->debug(
+                        'Reached EOF while trying to get error messages')
+                      if ( $logger->is_debug() );
+
+                }
+
+            }
+            else {
+
+                $logger->warn(
+                    'Could not sysread the STDERR from srvrmgr process: '
+                      . $! );
+                last;
+
+            }
+
+        }    # end of while block
+
+        $self->_process_stderr( \$error, $logger ) if ( defined($error) );
+
+    }
+    else {
+
+        $logger->fatal('Error pipe from child is closed');
+
+    }
+
+    weaken($logger);
+
+    $logger->fatal('Read pipe from child is closed')
+      unless ( openhandle( $self->get_read() ) );
+    $logger->fatal('Write pipe from child is closed')
+      unless ( openhandle( $self->get_write() ) );
+
+# :WORKAROUND:19/4/2012 19:38:04:: somehow the child process of srvrmgr has to be waited for one second and receive one kill 0 signal before
+# it dies when something goes wrong
+    sleep 1;
+    kill 0, $self->get_pid();
+
+    unless ( kill 0, $self->get_pid() ) {
+
+        $logger->fatal( $self->get_bin()
+              . " process returned a fatal error: ${^CHILD_ERROR_NATIVE}" );
+
+        $logger->fatal( $? . ' child exit status = ' . ( $? >> 8 ) );
+
+        $self->_close_child($logger);
+
+        return 0;
+
+    }
+    else {
+
+        return 1;
+
+    }
+
+}
+
 =pod
 
 =head2 DEMOLISH
@@ -1246,103 +1458,24 @@ sub DEMOLISH {
     $logger->info('Terminating daemon');
 
     # only the parent process has the pid defined
-    if (    ( defined( $self->get_pid() ) )
-        and ( $self->get_pid() =~ /\d+/ ) )
-    {
+    if ( $self->has_pid() and ( $self->get_pid() =~ /\d+/ ) ) {
 
-        if (    ( defined( $self->get_write() ) )
-            and ( defined( $self->get_read() ) )
-            and ( not($SIG_PIPE) )
-            and ( not($SIG_ALARM) ) )
-        {
-
-            syswrite $self->get_write(), "exit\n";
-            syswrite $self->get_write(), "\n";
-
-            # after the exit command the srvrmgr program already exited
-            unless ($SIG_PIPE) {
-
-                if ( $logger->is_debug() ) {
-
-                    $logger->debug(
-                        'DEMOLISH invoked, getting last output from srvrmgr');
-
-                    my $rdr = $self->get_read()
-                      ;  # diamond operator does not like method calls inside it
-
-                    while (<$rdr>) {
-
-                        if (/^Disconnecting from server\./) {
-
-                            $logger->debug( chomp($_) );
-                            last;
-
-                        }
-                        else {
-
-                            $logger->debug( chomp($_) );
-
-                        }
-
-                    }
-
-                }
-
-            }
-
-        }
-
-        close( $self->get_read() )  if ( defined( $self->get_read() ) );
-        close( $self->get_write() ) if ( defined( $self->get_write() ) );
-        close( $self->get_error() ) if ( defined( $self->get_error() ) );
-
-        if ( kill 0, $self->get_pid() ) {
-
-            sleep( $self->get_child_timeout() );
-
-            if ( $logger->is_debug() ) {
-
-                $logger->debug('srvrmgr is still running, trying to kill it');
-
-            }
-
-            my $ret = waitpid( $self->get_pid(), WNOHANG );
-
-            if ( $logger->is_debug() ) {
-
-                if ( $? == 0 ) {
-
-                    $logger->debug('Child process finished successfully');
-
-                }
-                else {
-
-                    $logger->debug(
-'Something went bad with child process: look for orphan process'
-                    );
-
-                }
-
-                $logger->debug(
-"Ripped PID = $ret, status = $?, child error native = ${^CHILD_ERROR_NATIVE}"
-                );
-            }
-
-        }
-
-        $logger->info("Program termination was forced")
-          if ($SIG_ALARM);
+        $self->_close_child($logger);
 
     }
     else {
 
-        $logger->info(
+        if ( $logger->is_info() ) {
+
+            $logger->info("Program termination was forced") if ($SIG_ALARM);
+            $logger->info(
 'srvrmgr program was not yet executed, no child process to terminate'
-        );
+            );
+            $logger->info('daemon says bye-bye');
+
+        }
 
     }
-
-    $logger->info('daemon says bye-bye');
 
 }
 
@@ -1375,6 +1508,71 @@ sub _gimme_logger {
 
 }
 
+sub _close_child {
+
+    my $self   = shift;
+    my $logger = shift;
+
+    weaken($logger);
+
+    close( $self->get_error() ) if ( defined( $self->get_error() ) );
+    close( $self->get_read() )  if ( defined( $self->get_read() ) );
+
+    if (    ( defined( $self->get_write() ) )
+        and ( not($SIG_PIPE) )
+        and ( not($SIG_ALARM) ) )
+    {
+
+        syswrite $self->get_write(), "exit\n";
+        syswrite $self->get_write(), "\n";
+
+        close( $self->get_write() ) if ( defined( $self->get_write() ) );
+
+    }
+
+    sleep( $self->get_child_timeout() );
+
+    if ( kill 0, $self->get_pid() ) {
+
+        if ( $logger->is_debug() ) {
+
+            $logger->debug('srvrmgr is still running, trying to kill it');
+
+        }
+
+        my $ret = waitpid( $self->get_pid(), WNOHANG );
+
+        if ( $logger->is_debug() ) {
+
+            if ( $? == 0 ) {
+
+                $logger->debug('Child process finished successfully');
+
+            }
+            else {
+
+                $logger->debug(
+'Something went bad with child process: look for orphan process'
+                );
+
+            }
+
+            $logger->debug(
+"Ripped PID = $ret, status = $?, child error native = ${^CHILD_ERROR_NATIVE}"
+            );
+        }
+
+    }
+    else {
+
+        $logger->debug('child process is gone') if ( $logger->is_debug() );
+
+    }
+
+    $self->clear_pid();
+
+}
+
 =pod
 
 =head1 CAVEATS
@@ -1382,10 +1580,6 @@ sub _gimme_logger {
 This class is still considered experimental and should be used with care.
 
 The C<srvrmgr> program uses buffering, which makes difficult to read the generated output as expected.
-
-The C<open2> function in Win32 system is still returnin a PID even when an error occurs when executing the C<srvrmgr> program.
-
-L<IPC::Cmd> looks like to a portable solution for those problems but that was not tested till now.
 
 =head1 SEE ALSO
 
@@ -1461,3 +1655,4 @@ along with Siebel Monitoring Tools.  If not, see <http://www.gnu.org/licenses/>.
 __PACKAGE__->meta->make_immutable;
 
 1;
+

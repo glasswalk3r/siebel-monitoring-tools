@@ -8,7 +8,7 @@ use Config::Tiny;
 our $dbh;
 my $np;
 
-$SIG{'INT'} = 'CLEANUP';
+$SIG{'INT'} = \&CLEANUP;
 
 $SIG{'ALRM'} =
   sub { $np->nagios_die('Timeout trying to reach database'), CRITICAL };
