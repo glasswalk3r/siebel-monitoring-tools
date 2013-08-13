@@ -34,7 +34,7 @@ while (1) {
 
     given ($command) {
 
-        when (/^list\sblockme/) {
+        when (/^list\sblockme$/) {
 
  # do nothing to get a deadlock when reading STDOUT with Siebel::Srvrmgr::Daemon
             sleep(20);
@@ -43,37 +43,37 @@ while (1) {
 
         }
 
-        when (/^list\scomp\stype/) {
+        when (/^list\scomp\stype$/) {
 
             put_text( $data_ref->{list_comp_types} );
 
         }
 
-        when (/^list\sparams\sfor\ssrproc/) {
+        when (/^list\sparams\sfor\ssrproc$/) {
 
             put_text( $data_ref->{list_params_for_srproc} );
 
         }
 
-        when (/^list\sparams/) {
+        when (/^list\sparams$/) {
 
             put_text( $data_ref->{list_params} );
 
         }
 
-        when (/^list\scomp\sdef/) {
+        when (/^list\scomp\sdef$/) {
 
             put_text( $data_ref->{list_comp_def_srproc} );
 
         }
 
-        when (/^list\scomp/) {
+        when (/^list\scomp$/) {
 
             put_text( $data_ref->{list_comp} );
 
         }
 
-        when (/^list\sservers?/) {
+        when (/^list\sservers?$/) {
 
             put_text( $data_ref->{list_servers} )
 
@@ -100,6 +100,13 @@ while (1) {
 
         }
 
+        when (/^list\scomplexquery$/) {
+
+            syswrite( STDERR,
+                "oh god, not today... let me stay in bed mommy!\n" );
+
+        }
+
         when ('help') {
 
             put_text(
@@ -113,6 +120,7 @@ while (1) {
                     "list blockme\n",
                     "list params\n",
                     "list params for srproc\n",
+                    "list complexquery\n",
                     "exit\n",
                     "\n"
                 ]
