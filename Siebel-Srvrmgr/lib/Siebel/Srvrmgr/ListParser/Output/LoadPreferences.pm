@@ -73,18 +73,18 @@ override 'parse' => sub {
 
         given ($line) {
 
-            when ($line =~ LOAD_PREF_RESP) {
+            when ( $line =~ LOAD_PREF_RESP ) {
 
                 my @data = split( /\:\s/, $line );
 
-				confess 'Caught invalid LOAD_PREF_RESP line' unless(@data);
+                confess 'Caught invalid LOAD_PREF_RESP line' unless (@data);
 
-                $self->set_location( $data[$#data] );
+                $self->set_location( pop(@data) );
                 $parsed_lines{answer} = $line;
 
             }
 
-            when ($line =~ LOAD_PREF_CMD) {
+            when ( $line =~ LOAD_PREF_CMD ) {
 
                 $parsed_lines{command} = $line;
 
@@ -106,7 +106,7 @@ override 'parse' => sub {
 
     }
 
-    warn "Did not found any line with response\n"
+    confess "Did not found any line with response\n"
       unless ( defined( $self->get_location() ) );
 
     $self->set_data_parsed( \%parsed_lines );

@@ -16,7 +16,7 @@ sub _set_log {
     my $log_cfg  = File::Spec->catfile( getcwd(), 'log4perl.cfg' );
 
     my $config = <<BLOCK;
-log4perl.logger.Siebel.Srvrmgr.Daemon = WARN, LOG1
+log4perl.logger.Siebel.Srvrmgr.Daemon = DEBUG, LOG1
 log4perl.appender.LOG1 = Log::Log4perl::Appender::File
 log4perl.appender.LOG1.filename  = $log_file
 log4perl.appender.LOG1.mode = clobber
@@ -120,7 +120,14 @@ sub class_methods : Tests(24) {
             'use_perl',          'get_buffer_size',
             'set_buffer_size',   'get_lang_id',
             'set_lang_id',       'get_child_runs',
-            '_set_child_runs'
+            '_set_child_runs',   'get_prompt',
+            '_set_prompt',       'shift_commands',
+            '_create_child',     '_process_stderr',
+            '_process_stdout',   '_check_error',
+            '_check_child',      '_term_INT',
+            '_term_PIPE',        '_term_ALARM',
+            '_gimme_logger',     '_submit_cmd',
+            '_close_child'
         )
     );
 
@@ -142,7 +149,7 @@ sub class_methods : Tests(24) {
 
 }
 
-sub class_attributes : Tests(21) {
+sub class_attributes : Tests(22) {
 
     my $test = shift;
 
@@ -152,7 +159,7 @@ sub class_attributes : Tests(21) {
         'write_fh',      'read_fh',   'pid',             'is_infinite',
         'last_exec_cmd', 'cmd_stack', 'params_stack',    'action_stack',
         'child_timeout', 'use_perl',  'ipc_buffer_size', 'lang_id',
-        'child_runs'
+        'child_runs', 'srvrmgr_prompt'
     );
 
     foreach my $attribute (@attribs) {
@@ -191,20 +198,20 @@ sub runs_blocked : Test() {
 
         local $TODO = 'Usage of alarm must be reviewed';
 
-        $test->{daemon}->set_commands(
-            [
-                Siebel::Srvrmgr::Daemon::Command->new(
-                    command => 'list blockme',
-                    action => 'Dummy'   # this one is to get the initial message
-                ),
-                Siebel::Srvrmgr::Daemon::Command->new(
-                    command => 'list blockme',
-                    action =>
-                      'Dummy'    # this one is to get the "list blockme" message
-                ),
-            ]
-        );
-        dies_ok { $test->{daemon}->run() } 'run method fail due timeout';
+#        $test->{daemon}->set_commands(
+#            [
+#                Siebel::Srvrmgr::Daemon::Command->new(
+#                    command => 'list blockme',
+#                    action => 'Dummy'   # this one is to get the initial message
+#                ),
+#                Siebel::Srvrmgr::Daemon::Command->new(
+#                    command => 'list blockme',
+#                    action =>
+#                      'Dummy'    # this one is to get the "list blockme" message
+#                ),
+#            ]
+#        );
+#        dies_ok { $test->{daemon}->run() } 'run method fail due timeout';
 
     }
 
