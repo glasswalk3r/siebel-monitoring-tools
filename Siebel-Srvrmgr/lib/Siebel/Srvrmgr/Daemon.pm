@@ -472,8 +472,6 @@ has child_runs => (
     default => 0
 );
 
-=cut
-
 =pod
 
 =head1 METHODS
@@ -506,7 +504,7 @@ Sets the attribute C<ipc_buffer_size>. Expects an integer as parameter, multiple
 
 Returns the value of the attribute C<lang_id>.
 
-=head set_lang_id
+=head2 set_lang_id
 
 Sets the attribute C<lang_id>. Expects a string as parameter.
 
@@ -1515,6 +1513,7 @@ sub _close_child {
 
     weaken($logger);
 
+    # :TODO:14-08-2013:arfreitas: must test the filehandles better
     close( $self->get_error() ) if ( defined( $self->get_error() ) );
     close( $self->get_read() )  if ( defined( $self->get_read() ) );
 
@@ -1542,30 +1541,36 @@ sub _close_child {
 
         my $ret = waitpid( $self->get_pid(), WNOHANG );
 
-        if ( $logger->is_debug() ) {
+        given ($ret) {
 
-            if ( $? == 0 ) {
+            when ( $self->get_pid() ) {
 
                 $logger->debug('Child process finished successfully');
 
             }
-            else {
 
-                $logger->debug(
-'Something went bad with child process: look for orphan process'
-                );
+            when (-1) {
+                $logger->debug( 'No such PID ' . $self->get_pid() . ' to kill' )
+            }
+
+            default {
+
+                if ( $logger->is_warn() ) {
+
+                    $logger->warn('Could not kill the child process');
+                    $logger->warn( 'Child status = ' . $? );
+                    $logger->warn( 'Child error = ' . ${^CHILD_ERROR_NATIVE} );
+
+                }
 
             }
 
-            $logger->debug(
-"Ripped PID = $ret, status = $?, child error native = ${^CHILD_ERROR_NATIVE}"
-            );
         }
 
     }
     else {
 
-        $logger->debug('child process is gone') if ( $logger->is_debug() );
+        $logger->warn('child process is already gone');
 
     }
 

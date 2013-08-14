@@ -8,11 +8,38 @@ use Siebel::Srvrmgr::Daemon;
 use Config;
 use base 'Test::Siebel::Srvrmgr';
 
+sub _set_log {
+
+    my $test = shift;
+
+    my $log_file = File::Spec->catfile( getcwd(), 'daemon.log' );
+    my $log_cfg  = File::Spec->catfile( getcwd(), 'log4perl.cfg' );
+
+    my $config = <<BLOCK;
+log4perl.logger.Siebel.Srvrmgr.Daemon = WARN, LOG1
+log4perl.appender.LOG1 = Log::Log4perl::Appender::File
+log4perl.appender.LOG1.filename  = $log_file
+log4perl.appender.LOG1.mode = clobber
+log4perl.appender.LOG1.layout = Log::Log4perl::Layout::PatternLayout
+log4perl.appender.LOG1.layout.ConversionPattern = %d %p> %F{1}:%L %M - %m%n
+BLOCK
+
+    open( my $out, '>', $log_cfg ) or die "Cannot create $log_cfg: $!\n";
+    print $out $config;
+    close($out) or die "Could not close $log_cfg: $!\n";
+
+    $ENV{SIEBEL_SRVRMGR_DEBUG} = $log_cfg;
+
+    $test->{log_file} = $log_file;
+
+}
+
 sub _constructor : Tests(+2) {
 
     my $test = shift;
 
     my $cmd = File::Spec->catfile( getcwd(), 'srvrmgr-mock.pl' );
+    $test->_set_log();
 
 # this data structure will make more sense when saw in use by the following foreach loop
     $test->{test_data} = [
@@ -91,7 +118,9 @@ sub class_methods : Tests(24) {
             'DEMOLISH',          'shift_commands',
             'set_child_timeout', 'get_child_timeout',
             'use_perl',          'get_buffer_size',
-            'set_buffer_size'
+            'set_buffer_size',   'get_lang_id',
+            'set_lang_id',       'get_child_runs',
+            '_set_child_runs'
         )
     );
 
@@ -113,16 +142,17 @@ sub class_methods : Tests(24) {
 
 }
 
-sub class_attributes : Tests(19) {
+sub class_attributes : Tests(21) {
 
     my $test = shift;
 
     my @attribs = (
-        'server',        'gateway',   'enterprise',   'user',
-        'password',      'wait_time', 'commands',     'bin',
-        'write_fh',      'read_fh',   'pid',          'is_infinite',
-        'last_exec_cmd', 'cmd_stack', 'params_stack', 'action_stack',
-        'child_timeout', 'use_perl',  'ipc_buffer_size'
+        'server',        'gateway',   'enterprise',      'user',
+        'password',      'wait_time', 'commands',        'bin',
+        'write_fh',      'read_fh',   'pid',             'is_infinite',
+        'last_exec_cmd', 'cmd_stack', 'params_stack',    'action_stack',
+        'child_timeout', 'use_perl',  'ipc_buffer_size', 'lang_id',
+        'child_runs'
     );
 
     foreach my $attribute (@attribs) {
@@ -133,7 +163,7 @@ sub class_attributes : Tests(19) {
 
 }
 
-sub runs : Tests(3) {
+sub runs : Tests(7) {
 
     my $test = shift;
 
@@ -145,6 +175,11 @@ sub runs : Tests(3) {
     ok( $shifted_cmd = $test->{daemon}->shift_commands(),
         'shift_command works' );
     isa_ok( $shifted_cmd, 'Siebel::Srvrmgr::Daemon::Command' );
+    ok( $test->{daemon}->shift_commands(), 'shift_command works' );
+    ok( $test->{daemon}->shift_commands(), 'shift_command works' );
+
+    ok( $test->{daemon}->run(), 'run method executes successfuly (2)' );
+    ok( $test->{daemon}->run(), 'run method executes successfuly (3)' );
 
 }
 
@@ -175,16 +210,12 @@ sub runs_blocked : Test() {
 
 }
 
-sub runs_with_stderr : Test() {
+sub runs_with_stderr : Test(4) {
 
     my $test = shift;
 
     $test->{daemon}->set_commands(
         [
-            Siebel::Srvrmgr::Daemon::Command->new(
-                command => 'list server',
-                action  => 'Dummy'
-            ),
             Siebel::Srvrmgr::Daemon::Command->new(
                 command => 'list complexquery',
                 action  => 'Dummy'
@@ -192,7 +223,52 @@ sub runs_with_stderr : Test() {
         ]
     );
 
-    ok( $test->{daemon}->run(), 'can get STDERR from run method' );
+    ok( $test->{daemon}->run(), 'run executes OK' );
+    ok( $test->_search_log_msg(qr/WARN.*oh\sgod\,\snot\stoday/),
+        'can find warn message in the log file' );
+
+    $test->{daemon}->set_commands(
+        [
+            Siebel::Srvrmgr::Daemon::Command->new(
+                command => 'list frag',
+                action  => 'Dummy'
+            ),
+        ]
+    );
+
+    dies_ok { $test->{daemon}->run() } 'run dies due fatal error';
+    ok(
+        $test->_search_log_msg(
+            qr/FATAL.*Could\snot\sfind\sthe\sSiebel\sServer/),
+        'can find fatal message in the log file'
+    );
+
+}
+
+sub _search_log_msg {
+
+    my $test      = shift;
+    my $msg_regex = shift;
+    my $found     = 0;
+
+    open( my $in, '<', $test->{log_file} )
+      or die 'Cannot read ' . $test->{log_file} . ': ' . $! . "\n";
+
+    while (<$in>) {
+
+        chomp();
+        if (/$msg_regex/) {
+
+            $found = 1;
+            last;
+
+        }
+
+    }
+
+    close($in) or die 'Cannot close ' . $test->{log_file} . ': ' . $! . "\n";
+
+    return $found;
 
 }
 
