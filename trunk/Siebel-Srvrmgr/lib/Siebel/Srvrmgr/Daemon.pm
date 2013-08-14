@@ -472,9 +472,22 @@ has child_runs => (
     default => 0
 );
 
+=head2 srvrmgr_prompt
+
+An string representing the prompt recovered from srvrmgr program. The value of this attribute is set automatically during srvrmgr execution.
+
+=cut
+
+has srvrmgr_prompt =>
+  ( isa => 'Str', is => 'ro', reader => 'get_prompt', writer => '_set_prompt' );
+
 =pod
 
 =head1 METHODS
+
+=head2 get_prompt
+
+Returns the content of the attribute C<srvrmgr_prompt>.
 
 =head2 get_child_runs
 
@@ -692,7 +705,7 @@ sub run {
 
     my $logger;
     my $temp;
-    my $skip_reading = 0;
+    my $ignore_output = 0;
 
     my ( $read_h, $write_h, $error_h );
 
@@ -720,7 +733,7 @@ sub run {
         weaken($logger);
         $logger->info( 'Reusing PID ', $self->get_pid() )
           if ( $logger->is_debug() );
-        $skip_reading = 1;
+        $ignore_output = 1;
 
     }
 
@@ -729,7 +742,6 @@ sub run {
 # :WARNING:28/06/2011 19:47:26:: reading the output is hanging without a dummy input
     syswrite $self->get_write(), "\n";
 
-    my $prompt;
     my @input_buffer;
 
 # :TODO      :06/08/2013 19:13:47:: create condition as a hidden attribute of this class
@@ -768,7 +780,6 @@ sub run {
         $logger->debug( 'Setting '
               . $self->get_read_timeout()
               . ' seconds for read srvrmgr output time out' );
-        $logger->debug( 'Skip reading? ' . $skip_reading );
 
     }
 
@@ -776,132 +787,130 @@ sub run {
 
         exit if ($SIG_INT);
 
-        unless ($skip_reading) {
+      READ:
+        while ( my @ready = $select->can_read( $self->get_read_timeout() ) ) {
 
-          READ:
-            while ( my @ready = $select->can_read( $self->get_read_timeout() ) )
-            {
+            foreach my $fh (@ready) {
 
-                foreach my $fh (@ready) {
+                my $fh_name  = fileno($fh);
+                my $fh_bytes = $fh_name . '_bytes';
 
-                    my $fh_name  = fileno($fh);
-                    my $fh_bytes = $fh_name . '_bytes';
+                if ( $logger->is_debug() ) {
 
-                    if ( $logger->is_debug() ) {
+                    $logger->debug( 'Reading filehandle ' . fileno($fh) );
+                    my $assert = 'Input record separator is ';
 
-                        $logger->debug( 'Reading filehandle ' . fileno($fh) );
-                        my $assert = 'Input record separator is ';
+                    given ($/) {
 
-                        given ($/) {
-
-                            when ( $/ eq "\015" ) {
-                                $logger->debug( $assert . 'CR' )
-                            }
-                            when ( $/ eq "\015\012" ) {
-                                $logger->debug( $assert . 'CRLF' )
-                            }
-                            when ( $/ eq "\012" ) {
-                                $logger->debug( $assert . 'LF' )
-                            }
-                            default {
-                                $logger->debug(
-                                    "Unknown input record separator: [$/]")
-                            }
-
+                        when ( $/ eq "\015" ) {
+                            $logger->debug( $assert . 'CR' )
+                        }
+                        when ( $/ eq "\015\012" ) {
+                            $logger->debug( $assert . 'CRLF' )
+                        }
+                        when ( $/ eq "\012" ) {
+                            $logger->debug( $assert . 'LF' )
+                        }
+                        default {
+                            $logger->debug(
+                                "Unknown input record separator: [$/]")
                         }
 
                     }
 
-                    unless (( defined( $data{$fh_bytes} ) )
-                        and ( $data{$fh_bytes} > 0 ) )
+                }
+
+                unless (( defined( $data{$fh_bytes} ) )
+                    and ( $data{$fh_bytes} > 0 ) )
+                {
+
+                    $data{$fh_bytes} =
+                      sysread( $fh, $data{$fh_name}, $self->get_buffer_size() );
+
+                }
+                else {
+
+                    $logger->info(
+                        'Caught part of a record, repeating sysread with offset'
+                    ) if ( $logger->is_info() );
+
+                    my $offset =
+                      length( Encode::encode_utf8( $data{$fh_name} ) );
+
+                    $logger->debug("Offset is $offset")
+                      if ( $logger->is_debug() );
+
+                    $data{$fh_bytes} =
+                      sysread( $fh, $data{$fh_name},
+                        $self->get_buffer_size(), $offset );
+
+                }
+
+                unless ( defined( $data{$fh_bytes} ) ) {
+
+                    $logger->fatal( 'sysread returned an error: ' . $! );
+
+                    $self->_check_child($logger);
+
+                    $logger->logdie( 'sysreading from '
+                          . $fh_name
+                          . ' returned an unrecoverable error' )
+                      ;    # unless ( $!{ECONNRESET} );
+
+                }
+                else {
+
+                    if ( $data{$fh_bytes} == 0 ) {
+
+                        $select->remove($fh);
+                        next;
+
+                    }
+
+                    if (    ( $data{$fh_bytes} == $self->get_buffer_size() )
+                        and ( $data{$fh_name} !~ /\015\012$/ ) )
                     {
 
-                        $data{$fh_bytes} =
-                          sysread( $fh, $data{$fh_name},
-                            $self->get_buffer_size() );
-
-                    }
-                    else {
-
-                        $logger->info(
-'Caught part of a record, repeating sysread with offset'
-                        ) if ( $logger->is_info() );
-
-                        my $offset =
-                          length( Encode::encode_utf8( $data{$fh_name} ) );
-
-                        $logger->debug("Offset is $offset")
-                          if ( $logger->is_debug() );
-
-                        $data{$fh_bytes} =
-                          sysread( $fh, $data{$fh_name},
-                            $self->get_buffer_size(), $offset );
-
-                    }
-                    unless ( defined( $data{$fh_bytes} ) ) {
-
-                        $logger->fatal( 'sysread returned an error: ' . $! );
-
-                        $self->_check_child($logger);
-
-                        $logger->logdie( 'sysreading from '
-                              . $fh_name
-                              . ' returned an unrecoverable error' )
-                          ;    # unless ( $!{ECONNRESET} );
-
-                    }
-                    else {
-
-                        if ( $data{$fh_bytes} == 0 ) {
-
-                            $select->remove($fh);
-                            next;
-
-                        }
-
-                        if (    ( $data{$fh_bytes} == $self->get_buffer_size() )
-                            and ( $data{$fh_name} !~ /\015\012$/ ) )
-                        {
-
-                            $logger->debug(
-                                'Buffer DOES NOT have CRLF at the end of it');
-
-                            next READ;
-
-                        }
-
                         $logger->debug(
-                            "Read $data{$fh_bytes} bytes from $fh_name")
-                          if ( $logger->is_debug() );
+                            'Buffer DOES NOT have CRLF at the end of it');
 
-                        if ( $fh == $self->get_read() ) {
-                            $prompt =
-                              $self->_process_stdout( \$data{$fh_name},
-                                \@input_buffer, $logger, $condition );
+                        next READ;
 
-                            $data{$fh_name}  = undef;
-                            $data{$fh_bytes} = 0;
-
-                        }
-                        elsif ( $fh == $self->get_error() ) {
-
-                            $self->_process_stderr( \$data{$fh_name}, $logger );
-
-                            $data{$fh_name}  = undef;
-                            $data{$fh_bytes} = 0;
-
-                        }
-                        else {
-                            $logger->logdie(
-                                'Somehow got a filehandle I dont know about!');
-                        }
                     }
 
-                }    # end of foreach block
+                    $logger->debug("Read $data{$fh_bytes} bytes from $fh_name")
+                      if ( $logger->is_debug() );
 
-            }    # end of while block
+                    if ( $fh == $self->get_read() ) {
 
-        }    # end of checking of skip_reading
+# :WORKAROUND:14/08/2013 18:40:46:: necessary to empty the stdout for possible (useless) information hanging in the buffer, but
+# this information must be discarded since is from the previous processed command submitted
+# :TODO      :14/08/2013 18:41:43:: check why such information is not being recovered in the previous execution
+                        $self->_process_stdout( \$data{$fh_name},
+                            \@input_buffer, $logger, $condition )
+                          unless ($ignore_output);
+
+                        $data{$fh_name}  = undef;
+                        $data{$fh_bytes} = 0;
+
+                    }
+                    elsif ( $fh == $self->get_error() ) {
+
+                        $self->_process_stderr( \$data{$fh_name}, $logger );
+
+                        $data{$fh_name}  = undef;
+                        $data{$fh_bytes} = 0;
+
+                    }
+                    else {
+                        $logger->logdie(
+                            'Somehow got a filehandle I dont know about!');
+                    }
+                }
+
+            }    # end of foreach block
+
+        }    # end of while block
 
         # below is the place for a Action object
         if ( scalar(@input_buffer) >= 1 ) {
@@ -997,22 +1006,22 @@ sub run {
             $logger->logdie(
                 'A failure occurred when trying to submit ' . $cmd . ': ' . $! )
               unless ( defined($bytes) );
-            $skip_reading = 0;
+
+            $ignore_output = 0;
 
 # srvrmgr.exe of Siebel 7.5.3.17 does not echo command printed to the input file handle
 # this is necessary to give a hint to the parser about the command submitted
 
-            if ( defined($prompt) ) {
+            if ( defined( $self->get_prompt() ) ) {
 
-                push( @input_buffer, $prompt . $cmd );
-                $self->_set_last_cmd( $prompt . $cmd );
+                push( @input_buffer, $self->get_prompt() . $cmd );
+                $self->_set_last_cmd( $self->get_prompt() . $cmd );
 
             }
             else {
 
-                $logger->info('prompt was not defined from read output');
-                push( @input_buffer, $cmd );
-                $self->_set_last_cmd($cmd);
+                $logger->logdie(
+                    'prompt was not defined from read output, cannot continue');
 
             }
 
@@ -1176,9 +1185,6 @@ sub _process_stdout {
     my $rows_returned   = ROWS_RETURNED;
     my $error           = SIEBEL_ERROR;
 
-# :TODO      :13/08/2013 18:28:02:: this must be an attribute to keep state of previous reading
-    my $prompt;
-
     $logger->debug("Raw content is [$$data_ref]") if $logger->is_debug();
 
     foreach my $line ( split( "\n", $$data_ref ) ) {
@@ -1227,9 +1233,9 @@ sub _process_stdout {
             # first execution should bring only informations about Siebel
             when (/$prompt_regex/) {
 
-                unless ( defined($prompt) ) {
+                unless ( defined( $self->get_prompt() ) ) {
 
-                    $prompt = $line;
+                    $self->_set_prompt($line);
 
                     $logger->info("defined prompt with [$line]")
                       if ( $logger->is_info() );
@@ -1285,8 +1291,6 @@ sub _process_stdout {
         }
 
     }
-
-    return $prompt;
 
 }
 
@@ -1486,6 +1490,7 @@ sub _term_INT {
 sub _term_PIPE {
 
     $SIG_PIPE = 1;
+    warn "got SIGPIPE\n";
 
 }
 
@@ -1506,6 +1511,23 @@ sub _gimme_logger {
 
 }
 
+sub _submit_cmd {
+
+    my $self   = shift;
+    my $cmd    = shift;
+    my $logger = shift;
+
+    weaken($logger);
+
+    my $bytes = syswrite $self->get_write(), "$cmd\n";
+    $logger->logdie(
+        'A failure occurred when trying to submit ' . $cmd . ': ' . $! )
+      unless ( defined($bytes) );
+
+    return 1;
+
+}
+
 sub _close_child {
 
     my $self   = shift;
@@ -1513,19 +1535,65 @@ sub _close_child {
 
     weaken($logger);
 
-    # :TODO:14-08-2013:arfreitas: must test the filehandles better
-    close( $self->get_error() ) if ( defined( $self->get_error() ) );
-    close( $self->get_read() )  if ( defined( $self->get_read() ) );
+    if ( $logger->is_debug() ) {
 
-    if (    ( defined( $self->get_write() ) )
+        $logger->debug('Got SIGPIPE') if ($SIG_PIPE);
+        $logger->debug('Got SIGINT')  if ($SIG_INT);
+        $logger->debug('Got SIGALRM') if ($SIG_ALARM);
+        $logger->debug( 'Trying to close child PID ' . $self->get_pid() );
+
+    }
+
+    if ( openhandle( $self->get_error() ) ) {
+
+        $logger->debug('Trying to close child error handle ')
+          if ( $logger->is_debug() );
+
+        close( $self->get_error() )
+          or $logger->logdie("Could not close error handle: $!");
+
+    }
+    else {
+
+        $logger->warn('error_fh is already closed');
+
+    }
+
+    if ( openhandle( $self->get_read() ) ) {
+
+        $logger->debug('Trying to close child read handle ')
+          if ( $logger->is_debug() );
+
+        close( $self->get_read() )
+          or $logger->logdie("Could not close error handle: $!");
+
+    }
+    else {
+
+        $logger->warn('read_fh is already closed');
+
+    }
+
+    if (    ( openhandle( $self->get_write() ) )
         and ( not($SIG_PIPE) )
         and ( not($SIG_ALARM) ) )
     {
 
-        syswrite $self->get_write(), "exit\n";
-        syswrite $self->get_write(), "\n";
+        $logger->debug('Submitting exit command to srvrmgr')
+          if ( $logger->is_debug() );
 
-        close( $self->get_write() ) if ( defined( $self->get_write() ) );
+        $self->_submit_cmd( 'exit', $logger );
+
+        $logger->debug('Trying to close child write handle ')
+          if ( $logger->is_debug() );
+
+        close( $self->get_write() )
+          or $logger->logdie("Could not close write handle: $!");
+
+    }
+    else {
+
+        $logger->warn('write_fh is already closed');
 
     }
 
@@ -1545,12 +1613,31 @@ sub _close_child {
 
             when ( $self->get_pid() ) {
 
+# :WORKAROUND:14/08/2013 17:44:00:: for Windows, not using shutdown when creating the socketpair causes the application to not
+# exit with waitpid. using waitpid without non-blocking mode just blocks the application to finish
+                if ( $Config{osname} eq 'MSWin32' ) {
+
+                    if ( kill 0, $self->get_pid() ) {
+
+                        $logger->warn(
+'child is still running even after waitpid: last attempt with "kill 9"'
+                        );
+
+                        kill 9, $self->get_pid();
+
+                    }
+
+                }
+
                 $logger->debug('Child process finished successfully');
 
             }
 
             when (-1) {
-                $logger->debug( 'No such PID ' . $self->get_pid() . ' to kill' )
+
+                $logger->debug(
+                    'No such PID ' . $self->get_pid() . ' to kill' );
+
             }
 
             default {

@@ -28,6 +28,7 @@ our @EXPORT = qw(safe_open3);
 use IPC::Open3;
 use Symbol 'gensym';
 use IO::Socket;
+use Config;
 
 =pod
 
@@ -94,10 +95,37 @@ sub _mswin_pipe {
 
     my ( $read, $write ) =
       IO::Socket->socketpair( AF_UNIX, SOCK_STREAM, PF_UNSPEC );
-    $read->shutdown(SHUT_WR);     # No more writing for reader
-    $write->shutdown(SHUT_RD);    # No more reading for writer
+
+# :WORKAROUND:14/08/2013 14:15:04:: shutdown the socket seems to disable the filehandle in Windows
+    unless ( $Config{osname} eq 'MSWin32' ) {
+
+        Siebel::Srvrmgr::IPC::_check_shutdown( 'read',
+            $read->shutdown(SHUT_WR) );    # No more writing for reader
+        Siebel::Srvrmgr::IPC::_check_shutdown( 'write',
+            $write->shutdown(SHUT_RD) );    # No more reading for writer
+
+    }
 
     return ( $read, $write );
+
+}
+
+sub _check_shutdown {
+
+    my $which = shift;    # which handle name will be partly shutdown
+    my $ret   = shift;
+
+    unless ( defined($ret) ) {
+
+        die "first argument of shutdown($which) is not a valid filehandle";
+
+    }
+    else {
+
+        die "An error ocurred when trying shutdown($which): $!"
+          if ( $ret == 0 );
+
+    }
 
 }
 
