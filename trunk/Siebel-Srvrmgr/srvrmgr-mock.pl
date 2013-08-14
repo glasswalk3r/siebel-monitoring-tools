@@ -107,6 +107,12 @@ while (1) {
 
         }
 
+        when (/^list\sfrag$/) {
+
+            syswrite( STDERR, "SBL-ADM-02043: where is this frag server?\n" );
+
+        }
+
         when ('help') {
 
             put_text(
@@ -121,6 +127,7 @@ while (1) {
                     "list params\n",
                     "list params for srproc\n",
                     "list complexquery\n",
+                    "list frag\n",
                     "exit\n",
                     "\n"
                 ]
