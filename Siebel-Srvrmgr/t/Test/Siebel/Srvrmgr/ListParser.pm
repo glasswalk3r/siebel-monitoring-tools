@@ -2,6 +2,7 @@ package Test::Siebel::Srvrmgr::ListParser;
 
 use Test::Most;
 use Test::Moose 'has_attribute_ok';
+use Test::Memory::Cycle;
 use base 'Test::Siebel::Srvrmgr';
 
 sub class_attributes : Tests(7) {
@@ -83,6 +84,14 @@ sub class_methods : Tests(8) {
 
     is( $test->{parser}->count_parsed(),
         $total_itens, "count_parsed method returns $total_itens" );
+
+}
+
+sub circular_references: Test {
+
+	my $test = shift;
+
+	memory_cycle_ok($test->{parser}, 'Siebel::Srvrmgr::ListParser does not have circular references');
 
 }
 
