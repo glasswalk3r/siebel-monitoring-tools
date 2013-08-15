@@ -6,6 +6,7 @@ use File::Spec;
 use Test::Moose 'has_attribute_ok';
 use Siebel::Srvrmgr::Daemon;
 use Config;
+use Test::Memory::Cycle;
 use base 'Test::Siebel::Srvrmgr';
 
 sub _set_log {
@@ -13,10 +14,10 @@ sub _set_log {
     my $test = shift;
 
     my $log_file = File::Spec->catfile( getcwd(), 'daemon.log' );
-    my $log_cfg  = File::Spec->catfile( getcwd(), 'log4perl.cfg' );
+    $test->{log_cfg} = File::Spec->catfile( getcwd(), 'log4perl.cfg' );
 
     my $config = <<BLOCK;
-log4perl.logger.Siebel.Srvrmgr.Daemon = DEBUG, LOG1
+log4perl.logger.Siebel.Srvrmgr.Daemon = WARN, LOG1
 log4perl.appender.LOG1 = Log::Log4perl::Appender::File
 log4perl.appender.LOG1.filename  = $log_file
 log4perl.appender.LOG1.mode = clobber
@@ -24,13 +25,13 @@ log4perl.appender.LOG1.layout = Log::Log4perl::Layout::PatternLayout
 log4perl.appender.LOG1.layout.ConversionPattern = %d %p> %F{1}:%L %M - %m%n
 BLOCK
 
-    open( my $out, '>', $log_cfg ) or die "Cannot create $log_cfg: $!\n";
+    open( my $out, '>', $test->{log_cfg} )
+      or die 'Cannot create ' . $test->{log_cfg} . ": $!\n";
     print $out $config;
-    close($out) or die "Could not close $log_cfg: $!\n";
-
-    $ENV{SIEBEL_SRVRMGR_DEBUG} = $log_cfg;
+    close($out) or die 'Could not close ' . $test->{log_cfg} . ": $!\n";
 
     $test->{log_file} = $log_file;
+    $ENV{SIEBEL_SRVRMGR_DEBUG} = $test->{log_cfg};
 
 }
 
@@ -127,7 +128,8 @@ sub class_methods : Tests(24) {
             '_check_child',      '_term_INT',
             '_term_PIPE',        '_term_ALARM',
             '_gimme_logger',     '_submit_cmd',
-            '_close_child'
+            'close_child',       'has_pid',
+            'clear_pid'
         )
     );
 
@@ -154,12 +156,17 @@ sub class_attributes : Tests(22) {
     my $test = shift;
 
     my @attribs = (
-        'server',        'gateway',   'enterprise',      'user',
-        'password',      'wait_time', 'commands',        'bin',
-        'write_fh',      'read_fh',   'pid',             'is_infinite',
-        'last_exec_cmd', 'cmd_stack', 'params_stack',    'action_stack',
-        'child_timeout', 'use_perl',  'ipc_buffer_size', 'lang_id',
-        'child_runs', 'srvrmgr_prompt'
+        'server',          'gateway',
+        'enterprise',      'user',
+        'password',        'wait_time',
+        'commands',        'bin',
+        'write_fh',        'read_fh',
+        'child_pid',       'is_infinite',
+        'last_exec_cmd',   'cmd_stack',
+        'params_stack',    'action_stack',
+        'child_timeout',   'use_perl',
+        'ipc_buffer_size', 'lang_id',
+        'child_runs',      'srvrmgr_prompt'
     );
 
     foreach my $attribute (@attribs) {
@@ -252,6 +259,48 @@ sub runs_with_stderr : Test(4) {
 
 }
 
+sub _poke_child {
+
+    my $test = shift;
+
+    if (    ( defined( $test->{daemon}->get_pid() ) )
+        and ( $test->{daemon}->get_pid() =~ /\d+/ ) )
+    {
+
+        unless ( kill 0, $test->{daemon}->get_pid() ) {
+
+            return 0;
+
+        }
+        else {
+
+            return 1;
+
+        }
+
+    }
+    else {
+
+        return 0;
+
+    }
+
+}
+
+sub terminator : Tests(4) {
+
+    my $test = shift;
+
+    ok( $test->{daemon}->close_child(), 'close_child returns works' );
+    is( $test->{daemon}->close_child(),
+        0, 'close_child returns false since there is no PID anymore' );
+    is( $test->{daemon}->has_pid(), '', 'has_pid returns false' );
+    is( $test->_poke_child(),       0,  'child PID is no more' );
+
+    $test->{daemon} = undef;
+
+}
+
 sub _search_log_msg {
 
     my $test      = shift;
@@ -285,20 +334,27 @@ sub clean_up : Test(shutdown) {
 
     # removes the dump files
     my $dir = getcwd();
+    my @files;
 
     opendir( DIR, $dir ) or die "Cannot read $dir: $!\n";
-    my @files = readdir(DIR);
+
+    while ( readdir(DIR) ) {
+
+        push( @files, $_ ) if (/^dump\w/);
+
+    }
+
     close(DIR);
+
+    push( @files, $test->{log_cfg} );
 
     foreach my $file (@files) {
 
-        if ( $file =~ /^dump\w/ ) {
-
-            unlink $file or warn "Cannot remove $file: $!\n";
-
-        }
+        unlink $file or warn "Cannot remove $file: $!\n";
 
     }
+
+    $ENV{SIEBEL_SRVRMGR_LOG_DEL} = $test->{log_file};
 
 }
 

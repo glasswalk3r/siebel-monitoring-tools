@@ -305,7 +305,7 @@ has read_timeout => (
 
 =pod
 
-=head2 pid
+=head2 child_pid
 
 An integer presenting the process id (PID) of the process created by the OS when the C<srvrmgr> program is executed.
 
@@ -313,7 +313,7 @@ This is a read-only attribute.
 
 =cut
 
-has pid => (
+has child_pid => (
     isa       => 'Int',
     is        => 'ro',
     writer    => '_set_pid',
@@ -484,6 +484,18 @@ has srvrmgr_prompt =>
 =pod
 
 =head1 METHODS
+
+=head2 clear_pid
+
+Clears the defined PID associated with the child process that executes srvrmgr. This is usually associated with calling C<close_child>.
+
+Beware that this is different then removing the child process or even C<undef> the attribute. This just controls a flag that the attribute C<child_pid>
+is defined or not. See L<Moose> attributes for details.
+
+=head2 has_pid
+
+Returns true or false if the C<child_pid> is defined. Beware that this is different then checking if there is an integer associated with C<child_pid>
+attribute: this method might return false even though the old PID associated with C<child_pid> is still available. See L<Moose> attributes for details.
 
 =head2 get_prompt
 
@@ -740,7 +752,7 @@ sub run {
     $logger->info('Starting run method');
 
 # :WARNING:28/06/2011 19:47:26:: reading the output is hanging without a dummy input
-    syswrite $self->get_write(), "\n";
+#syswrite $self->get_write(), "\n";
 
     my @input_buffer;
 
@@ -997,15 +1009,7 @@ sub run {
 
             }
 
-            # for better security
-            $logger->logdie(
-                "Insecure command from command stack [$cmd]. Execution aborted")
-              unless ( ( $cmd =~ /^load/ ) or ( $cmd =~ /^list/ ) );
-
-            my $bytes = syswrite $self->get_write(), "$cmd\n";
-            $logger->logdie(
-                'A failure occurred when trying to submit ' . $cmd . ': ' . $! )
-              unless ( defined($bytes) );
+            $self->_submit_cmd( $cmd, $logger );
 
             $ignore_output = 0;
 
@@ -1225,7 +1229,7 @@ sub _process_stdout {
                 push( @{$buffer_ref}, $line );
 
 # :TODO      :08/08/2013 15:25:46:: check if sending a new line without anything else is still necessary after select() implementation
-                syswrite $self->get_write(), "\n";
+#syswrite $self->get_write(), "\n";
 
             }
 
@@ -1276,7 +1280,8 @@ sub _process_stdout {
                     if ( $line =~ /$load_pref_regex/ ) {
 
                         push( @{$buffer_ref}, $line );
-                        syswrite $self->get_write(), "\n";
+
+                        #syswrite $self->get_write(), "\n";
 
                     }
 
@@ -1311,9 +1316,9 @@ sub _check_error {
 
             when (/^SBL-ADM-60070.*/) {
 
-                $logger->debug(
+                $logger->warn(
                     'Trying to get additional information from next line')
-                  if ( $logger->is_debug() );
+                  if ( $logger->is_warn() );
                 return 1;
             }
 
@@ -1353,84 +1358,92 @@ sub _check_child {
 
     my $self   = shift;
     my $logger = shift;
+    weaken($logger);
 
-    # try to read immediatly from stderr if possible
-    if ( openhandle( $self->get_error() ) ) {
+    if ( $self->has_pid() ) {
 
-        my $error;
+        # try to read immediatly from stderr if possible
+        if ( openhandle( $self->get_error() ) ) {
 
-        my $select = IO::Select->new();
-        $select->add( $self->get_error() );
+            my $error;
 
-        while ( my $fh = $select->can_read( $self->get_read_timeout() ) ) {
+            my $select = IO::Select->new();
+            $select->add( $self->get_error() );
 
-            my $buffer;
-            my $read = sysread( $fh, $buffer, $self->get_buffer_size() );
+            while ( my $fh = $select->can_read( $self->get_read_timeout() ) ) {
 
-            if ( defined($read) ) {
+                my $buffer;
+                my $read = sysread( $fh, $buffer, $self->get_buffer_size() );
 
-                if ( $read > 0 ) {
+                if ( defined($read) ) {
 
-                    $error .= $buffer;
-                    next;
+                    if ( $read > 0 ) {
+
+                        $error .= $buffer;
+                        next;
+
+                    }
+                    else {
+
+                        $logger->debug(
+                            'Reached EOF while trying to get error messages')
+                          if ( $logger->is_debug() );
+
+                    }
 
                 }
                 else {
 
-                    $logger->debug(
-                        'Reached EOF while trying to get error messages')
-                      if ( $logger->is_debug() );
+                    $logger->warn(
+                        'Could not sysread the STDERR from srvrmgr process: '
+                          . $! );
+                    last;
 
                 }
 
-            }
-            else {
+            }    # end of while block
 
-                $logger->warn(
-                    'Could not sysread the STDERR from srvrmgr process: '
-                      . $! );
-                last;
+            $self->_process_stderr( \$error, $logger ) if ( defined($error) );
 
-            }
+        }
+        else {
 
-        }    # end of while block
+            $logger->fatal('Error pipe from child is closed');
 
-        $self->_process_stderr( \$error, $logger ) if ( defined($error) );
+        }
 
-    }
-    else {
-
-        $logger->fatal('Error pipe from child is closed');
-
-    }
-
-    weaken($logger);
-
-    $logger->fatal('Read pipe from child is closed')
-      unless ( openhandle( $self->get_read() ) );
-    $logger->fatal('Write pipe from child is closed')
-      unless ( openhandle( $self->get_write() ) );
+        $logger->fatal('Read pipe from child is closed')
+          unless ( openhandle( $self->get_read() ) );
+        $logger->fatal('Write pipe from child is closed')
+          unless ( openhandle( $self->get_write() ) );
 
 # :WORKAROUND:19/4/2012 19:38:04:: somehow the child process of srvrmgr has to be waited for one second and receive one kill 0 signal before
 # it dies when something goes wrong
-    sleep 1;
-    kill 0, $self->get_pid();
+        sleep 1;
+        kill 0, $self->get_pid();
 
-    unless ( kill 0, $self->get_pid() ) {
+        unless ( kill 0, $self->get_pid() ) {
 
-        $logger->fatal( $self->get_bin()
-              . " process returned a fatal error: ${^CHILD_ERROR_NATIVE}" );
+            $logger->fatal( $self->get_bin()
+                  . " process returned a fatal error: ${^CHILD_ERROR_NATIVE}" );
 
-        $logger->fatal( $? . ' child exit status = ' . ( $? >> 8 ) );
+            $logger->fatal( $? . ' child exit status = ' . ( $? >> 8 ) );
 
-        $self->_close_child($logger);
+            $self->close_child($logger);
 
-        return 0;
+            return 0;
 
-    }
+        }
+        else {
+
+            return 1;
+
+        }
+
+    }    # end of if has_pid
     else {
 
-        return 1;
+        return 0;
 
     }
 
@@ -1459,10 +1472,9 @@ sub DEMOLISH {
 
     $logger->info('Terminating daemon');
 
-    # only the parent process has the pid defined
     if ( $self->has_pid() and ( $self->get_pid() =~ /\d+/ ) ) {
 
-        $self->_close_child($logger);
+        $self->close_child($logger);
 
     }
     else {
@@ -1513,155 +1525,265 @@ sub _gimme_logger {
 
 sub _submit_cmd {
 
-    my $self   = shift;
-    my $cmd    = shift;
-    my $logger = shift;
+    my $self       = shift;
+    my $cmd        = shift;
+    my $logger     = shift;
+    my $has_logger = 0;
 
-    weaken($logger);
+    if ( ( defined($logger) ) and ( ref($logger) ) ) {
+
+        weaken($logger);
+        $has_logger = 1;
+
+    }
+
+    # for better security
+    unless ( ( $cmd =~ /^load/ )
+        or ( $cmd =~ /^list/ )
+        or ( $cmd =~ /^exit/ ) )
+    {
+
+        if ($has_logger) {
+
+            $logger->logdie(
+                "Insecure command from command stack [$cmd]. Execution aborted"
+            );
+
+        }
+        else {
+
+            die( "Insecure command from command stack [$cmd]. Execution aborted"
+            );
+
+        }
+
+    }
 
     my $bytes = syswrite $self->get_write(), "$cmd\n";
-    $logger->logdie(
-        'A failure occurred when trying to submit ' . $cmd . ': ' . $! )
-      unless ( defined($bytes) );
+
+    if ( defined($bytes) ) {
+
+        if ( $has_logger && $logger->is_debug() ) {
+
+            $logger->debug("Submitted $cmd, wrote $bytes bytes");
+
+        }
+
+    }
+    else {
+
+        if ($has_logger) {
+
+            $logger->logdie( 'A failure occurred when trying to submit '
+                  . $cmd . ': '
+                  . $! );
+
+        }
+        else {
+
+            die(    'A failure occurred when trying to submit '
+                  . $cmd . ': '
+                  . $! );
+
+        }
+
+    }
 
     return 1;
 
 }
 
-sub _close_child {
+=pod
+
+=head2 close_child
+
+Finishes the child process associated with the execution of srvrmgr program, if the child's PID is available. Besides, this automatically calls C<clear_pid>.
+
+First this methods tries to submit the C<exit> command to srvrmgr, hoping to terminate the connection with the Siebel Enterprise. After that, the
+handles associated with the child will be closed. If after that the PID is still running, the method will call C<waitpid> in non-blocking mode.
+
+For MS Windows OS, this might not be sufficient: the PID will be checked again after C<waitpid>, and if it is still running, this method will try to use
+C<kill 9> to eliminate the process.
+
+If the child process is terminated succesfully, this method returns true. If there is no PID associated with the Daemon instance, this method will return false.
+
+Accepts as an optional parameter, an instance of a L<Log::Log4perl> for logging messages.
+
+=cut
+
+sub close_child {
 
     my $self   = shift;
     my $logger = shift;
 
-    weaken($logger);
+    my $has_logger = 0;
 
-    if ( $logger->is_debug() ) {
+    if ( ( defined($logger) ) and ( ref($logger) ) ) {
 
-        $logger->debug('Got SIGPIPE') if ($SIG_PIPE);
-        $logger->debug('Got SIGINT')  if ($SIG_INT);
-        $logger->debug('Got SIGALRM') if ($SIG_ALARM);
-        $logger->debug( 'Trying to close child PID ' . $self->get_pid() );
+        weaken($logger);
+        $has_logger = 1;
 
     }
 
-    if ( openhandle( $self->get_error() ) ) {
+    if ( $self->has_pid() ) {
 
-        $logger->debug('Trying to close child error handle ')
-          if ( $logger->is_debug() );
+        if ( $has_logger && $logger->is_debug() ) {
 
-        close( $self->get_error() )
-          or $logger->logdie("Could not close error handle: $!");
-
-    }
-    else {
-
-        $logger->warn('error_fh is already closed');
-
-    }
-
-    if ( openhandle( $self->get_read() ) ) {
-
-        $logger->debug('Trying to close child read handle ')
-          if ( $logger->is_debug() );
-
-        close( $self->get_read() )
-          or $logger->logdie("Could not close error handle: $!");
-
-    }
-    else {
-
-        $logger->warn('read_fh is already closed');
-
-    }
-
-    if (    ( openhandle( $self->get_write() ) )
-        and ( not($SIG_PIPE) )
-        and ( not($SIG_ALARM) ) )
-    {
-
-        $logger->debug('Submitting exit command to srvrmgr')
-          if ( $logger->is_debug() );
-
-        $self->_submit_cmd( 'exit', $logger );
-
-        $logger->debug('Trying to close child write handle ')
-          if ( $logger->is_debug() );
-
-        close( $self->get_write() )
-          or $logger->logdie("Could not close write handle: $!");
-
-    }
-    else {
-
-        $logger->warn('write_fh is already closed');
-
-    }
-
-    sleep( $self->get_child_timeout() );
-
-    if ( kill 0, $self->get_pid() ) {
-
-        if ( $logger->is_debug() ) {
-
-            $logger->debug('srvrmgr is still running, trying to kill it');
+            $logger->debug('Got SIGPIPE') if ($SIG_PIPE);
+            $logger->debug('Got SIGINT')  if ($SIG_INT);
+            $logger->debug('Got SIGALRM') if ($SIG_ALARM);
+            $logger->debug( 'Trying to close child PID ' . $self->get_pid() );
 
         }
 
-        my $ret = waitpid( $self->get_pid(), WNOHANG );
+        my @handles = ( $self->get_error(), $self->get_read() );
+        my @handles_names = (qw(error_fh read_fh));
 
-        given ($ret) {
+        for ( my $i = 0 ; $i <= 1 ; $i++ ) {
 
-            when ( $self->get_pid() ) {
+            if ( openhandle( $handles[$i] ) ) {
+
+                if ($has_logger) {
+
+                    $logger->debug(
+                        "Trying to close child $handles_names[$i] handle")
+                      if ( $logger->is_debug() );
+                    close( $self->get_error() )
+                      or $logger->logdie(
+                        "Could not close $handles_names[$i] handle: $!");
+
+                }
+                else {
+
+                    close( $handles[$i] )
+                      or die("Could not close $handles_names[$i] handle: $!");
+
+                }
+
+            }
+            else {
+
+                if ($has_logger) {
+
+                    $logger->warn("$handles_names[$i] is already closed");
+
+                }
+
+            }
+
+        }
+
+		@handles = undef;
+
+        if (    ( openhandle( $self->get_write() ) )
+            and ( not($SIG_PIPE) )
+            and ( not($SIG_ALARM) ) )
+        {
+
+            $self->_submit_cmd( 'exit', $logger );
+
+            if ( $has_logger && $logger->is_debug() ) {
+
+                $logger->debug(
+'Submitted exit command to srvrmgr. Trying to close child write handle'
+                );
+                close( $self->get_write() )
+                  or $logger->logdie("Could not close write handle: $!");
+
+            }
+            else {
+
+                close( $self->get_write() )
+                  or die("Could not close write handle: $!");
+
+            }
+
+        }
+        else {
+
+            $logger->warn('write_fh is already closed') if ($has_logger);
+
+        }
+
+        sleep( $self->get_child_timeout() );
+
+        if ( kill 0, $self->get_pid() ) {
+
+            if ( $has_logger && $logger->is_debug() ) {
+
+                $logger->debug('srvrmgr is still running, trying to kill it');
+
+            }
+
+            my $ret = waitpid( $self->get_pid(), WNOHANG );
+
+            given ($ret) {
+
+                when ( $self->get_pid() ) {
 
 # :WORKAROUND:14/08/2013 17:44:00:: for Windows, not using shutdown when creating the socketpair causes the application to not
 # exit with waitpid. using waitpid without non-blocking mode just blocks the application to finish
-                if ( $Config{osname} eq 'MSWin32' ) {
+                    if ( $Config{osname} eq 'MSWin32' ) {
 
-                    if ( kill 0, $self->get_pid() ) {
+                        if ( kill 0, $self->get_pid() ) {
 
-                        $logger->warn(
+                            $logger->warn(
 'child is still running even after waitpid: last attempt with "kill 9"'
-                        );
+                            ) if ($has_logger);
 
-                        kill 9, $self->get_pid();
+                            kill 9, $self->get_pid();
+
+                        }
+
+                    }
+
+                    $logger->debug('Child process finished successfully')
+                      if ( $has_logger && $logger->is_debug() );
+
+                }
+
+                when (-1) {
+
+                    $logger->debug(
+                        'No such PID ' . $self->get_pid() . ' to kill' )
+                      if ($has_logger);
+
+                }
+
+                default {
+
+                    if ( $has_logger && $logger->is_warn() ) {
+
+                        $logger->warn('Could not kill the child process');
+                        $logger->warn( 'Child status = ' . $? );
+                        $logger->warn(
+                            'Child error = ' . ${^CHILD_ERROR_NATIVE} );
 
                     }
 
                 }
 
-                $logger->debug('Child process finished successfully');
-
-            }
-
-            when (-1) {
-
-                $logger->debug(
-                    'No such PID ' . $self->get_pid() . ' to kill' );
-
-            }
-
-            default {
-
-                if ( $logger->is_warn() ) {
-
-                    $logger->warn('Could not kill the child process');
-                    $logger->warn( 'Child status = ' . $? );
-                    $logger->warn( 'Child error = ' . ${^CHILD_ERROR_NATIVE} );
-
-                }
-
             }
 
         }
+        else {
+
+            $logger->warn('child process is already gone')
+              if ( $has_logger && $logger->is_warn() );
+
+        }
+
+        $self->clear_pid();
+        return 1;
 
     }
     else {
 
-        $logger->warn('child process is already gone');
+        $logger->info('Has no child PID available to close')
+          if ( $has_logger && $logger->is_info() );
+        return 0;
 
     }
-
-    $self->clear_pid();
 
 }
 
