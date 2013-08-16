@@ -99,6 +99,8 @@ our $SIG_INT   = 0;
 our $SIG_PIPE  = 0;
 our $SIG_ALARM = 0;
 
+ # :TODO      :16/08/2013 19:02:24:: add statistics for daemon, like number of runs and average of used buffer for each command
+
 =pod
 
 =head1 ATTRIBUTES
@@ -319,7 +321,8 @@ has child_pid => (
     writer    => '_set_pid',
     reader    => 'get_pid',
     clearer   => 'clear_pid',
-    predicate => 'has_pid'
+    predicate => 'has_pid',
+    trigger   => \&_add_retry
 );
 
 =pod
@@ -480,6 +483,60 @@ An string representing the prompt recovered from srvrmgr program. The value of t
 
 has srvrmgr_prompt =>
   ( isa => 'Str', is => 'ro', reader => 'get_prompt', writer => '_set_prompt' );
+
+has maximum_retries => (
+    isa     => 'Int',
+    is      => 'ro',
+    reader  => 'get_max_retries',
+    writer  => '_set_max_retries',
+    default => 5
+);
+
+has retries => (
+    isa     => 'Int',
+    is      => 'ro',
+    reader  => 'get_retries',
+    writer  => '_set_retries',
+    default => 0
+);
+
+sub reset_retries {
+
+    my $self = shift;
+
+    $self->_set_retries(0);
+
+    return 1;
+
+}
+
+sub _add_retry {
+
+    my ( $self, $new, $old ) = @_;
+
+    # if $old is undefined, this is the first call to run method
+    unless ( defined($old) ) {
+
+        return 0;
+
+    }
+    else {
+
+        if ( $new != $old ) {
+
+            $self->_set_retries( $self->get_retries() + 1 );
+            return 1;
+
+        }
+        else {
+
+            return 0;
+
+        }
+
+    }
+
+}
 
 =pod
 
@@ -785,10 +842,29 @@ sub run {
 
     if ( $logger->is_debug() ) {
 
-        $logger->debug(
-            'fileno of child read handle = ' . fileno( $self->get_read() ) );
-        $logger->debug(
-            'fileno of child error handle = ' . fileno( $self->get_error() ) );
+        if ( openhandle( $self->get_read() ) ) {
+
+            $logger->debug( 'fileno of child read handle = '
+                  . fileno( $self->get_read() ) );
+
+        }
+        else {
+
+            $logger->debug('read_fh is not available');
+
+        }
+
+        if ( openhandle( $self->get_error() ) ) {
+
+            $logger->debug( 'fileno of child error handle = '
+                  . fileno( $self->get_error() ) )
+
+        }
+        else {
+
+            $logger->debug('error_fh is not available');
+
+        }
         $logger->debug( 'Setting '
               . $self->get_read_timeout()
               . ' seconds for read srvrmgr output time out' );
@@ -953,6 +1029,7 @@ sub run {
                 }
             );
 
+ # :TODO      :16/08/2013 19:03:30:: remove this log statement to Siebel::Srvrmgr::Daemon::Action
             if ( $logger->is_debug() ) {
 
                 $logger->debug('Lines from buffer sent for parsing');
@@ -967,7 +1044,15 @@ sub run {
 
             }
 
-            $condition->set_output_used( $action->do( \@input_buffer ) );
+# :WORKAROUND:16/08/2013 18:54:51:: exceptions from validating output are not being seem
+# :TODO      :16/08/2013 18:55:18:: start using TryCatch to use exceptions for known problems
+            eval {
+
+                $condition->set_output_used( $action->do( \@input_buffer ) );
+
+            };
+
+            $logger->fatal($@) if ($@);
 
             $logger->debug( 'Is output used? ' . $condition->is_output_used() )
               if ( $logger->is_debug() );
@@ -1073,8 +1158,19 @@ sub _create_child {
 
     my $self = shift;
 
-# :WORKAROUND:06/08/2013 21:05:32:: if a perlscript will be executed (like for automated testing of this distribution)
-# then the perl interpreter must be part of the command path to avoid open3 calling cmd.exe (in Microsoft Windows)
+    if ( $self->get_retries() >= $self->get_max_retries() ) {
+
+        my $logger = __PACKAGE__->_gimme_logger();
+        weaken($logger);
+        $logger->fatal( 'Maximum retries to spawn srvrmgr reached: '
+              . $self->get_max_retries() );
+        $logger->warn(
+'Application will exit with an error return code. Please review log for errors'
+        );
+        exit(1);
+
+    }
+
     die 'Cannot find program ' . $self->get_bin() . " to execute\n"
       unless ( -e $self->get_bin() );
 
@@ -1104,6 +1200,8 @@ sub _create_child {
 
     }
 
+# :WORKAROUND:06/08/2013 21:05:32:: if a perlscript will be executed (like for automated testing of this distribution)
+# then the perl interpreter must be part of the command path to avoid open3 calling cmd.exe (in Microsoft Windows)
     unshift( @params, $Config{perlpath} ) if ( $self->use_perl() );
 
     my ( $pid, $write_h, $read_h, $error_h ) = safe_open3( \@params );
@@ -1618,6 +1716,10 @@ sub close_child {
 
     my $has_logger = 0;
 
+# :WORKAROUND:16/08/2013 12:23:40:: even if the child process is not killed, a new process need to be created
+# :TODO      :16/08/2013 12:24:06:: make this behaviour optional (like, try a new child or simply die if not possible)
+    $self->clear_pid();
+
     if ( ( defined($logger) ) and ( ref($logger) ) ) {
 
         weaken($logger);
@@ -1627,12 +1729,12 @@ sub close_child {
 
     if ( $self->has_pid() ) {
 
-        if ( $has_logger && $logger->is_debug() ) {
+        if ( $has_logger && $logger->is_warn() ) {
 
-            $logger->debug('Got SIGPIPE') if ($SIG_PIPE);
-            $logger->debug('Got SIGINT')  if ($SIG_INT);
-            $logger->debug('Got SIGALRM') if ($SIG_ALARM);
-            $logger->debug( 'Trying to close child PID ' . $self->get_pid() );
+            $logger->warn('Got SIGPIPE') if ($SIG_PIPE);
+            $logger->warn('Got SIGINT')  if ($SIG_INT);
+            $logger->warn('Got SIGALRM') if ($SIG_ALARM);
+            $logger->warn( 'Trying to close child PID ' . $self->get_pid() );
 
         }
 
@@ -1648,15 +1750,16 @@ sub close_child {
                     $logger->debug(
                         "Trying to close child $handles_names[$i] handle")
                       if ( $logger->is_debug() );
+
                     close( $self->get_error() )
-                      or $logger->logdie(
+                      or $logger->fatal(
                         "Could not close $handles_names[$i] handle: $!");
 
                 }
                 else {
 
                     close( $handles[$i] )
-                      or die("Could not close $handles_names[$i] handle: $!");
+                      or warn("Could not close $handles_names[$i] handle: $!");
 
                 }
 
@@ -1673,7 +1776,7 @@ sub close_child {
 
         }
 
-		@handles = undef;
+        @handles = undef;
 
         if (    ( openhandle( $self->get_write() ) )
             and ( not($SIG_PIPE) )
@@ -1737,16 +1840,16 @@ sub close_child {
 
                     }
 
-                    $logger->debug('Child process finished successfully')
-                      if ( $has_logger && $logger->is_debug() );
+                    $logger->info('Child process finished successfully')
+                      if ( $has_logger && $logger->is_info() );
 
                 }
 
                 when (-1) {
 
-                    $logger->debug(
+                    $logger->info(
                         'No such PID ' . $self->get_pid() . ' to kill' )
-                      if ($has_logger);
+                      if ( $has_logger && $logger->is_info() );
 
                 }
 
@@ -1773,7 +1876,6 @@ sub close_child {
 
         }
 
-        $self->clear_pid();
         return 1;
 
     }
