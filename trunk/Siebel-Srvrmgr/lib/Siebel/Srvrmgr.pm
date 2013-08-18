@@ -70,7 +70,10 @@ only commenting the line:
 
 with the default "#" Perl comment character.
 
-Logging is quite flexible (see L<Log::Log4Perl> for details) but the default configuration uses only FATAL level printing messages to STDOUT.
+Logging is quite flexible (see L<Log::Log4perl> for details) but the default configuration uses only FATAL level printing messages to STDOUT.
+
+It is also possible to set a different L<Log::Log4perl> configuration file by setting the environment variable SIEBEL_SRVRMGR_DEBUG with the complet location to the
+configuration file. This module will look first for this variable configuration and if found, will try to use the configuration from there.
 
 =head1 SEE ALSO
 
@@ -118,7 +121,7 @@ along with Siebel Monitoring Tools.  If not, see <http://www.gnu.org/licenses/>.
 =cut
 
 __DATA__
-#log4perl.threshold = OFF
+log4perl.threshold = OFF
 log4perl.logger.Siebel.Srvrmgr.Daemon=WARN, A1
 log4perl.appender.A1=Log::Dispatch::Screen
 log4perl.appender.A1.stderr=0

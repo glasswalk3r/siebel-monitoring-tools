@@ -484,6 +484,13 @@ An string representing the prompt recovered from srvrmgr program. The value of t
 has srvrmgr_prompt =>
   ( isa => 'Str', is => 'ro', reader => 'get_prompt', writer => '_set_prompt' );
 
+=head2 maximum_retries
+
+The maximum times this class wil retry to launch a new process of srvrmgr if the previous one failed for any reason. This is intented to implement
+robustness to the process.
+
+=cut
+
 has maximum_retries => (
     isa     => 'Int',
     is      => 'ro',
@@ -491,6 +498,13 @@ has maximum_retries => (
     writer  => '_set_max_retries',
     default => 5
 );
+
+=head2 retries
+
+The number of retries of launching a new srvrmgr process. If this value reaches the value defined for C<maximum_retries>, the instance of Siebel::Srvrmgr::Daemon
+will quit execution returning an error code.
+
+=cut
 
 has retries => (
     isa     => 'Int',
@@ -500,43 +514,6 @@ has retries => (
     default => 0
 );
 
-sub reset_retries {
-
-    my $self = shift;
-
-    $self->_set_retries(0);
-
-    return 1;
-
-}
-
-sub _add_retry {
-
-    my ( $self, $new, $old ) = @_;
-
-    # if $old is undefined, this is the first call to run method
-    unless ( defined($old) ) {
-
-        return 0;
-
-    }
-    else {
-
-        if ( $new != $old ) {
-
-            $self->_set_retries( $self->get_retries() + 1 );
-            return 1;
-
-        }
-        else {
-
-            return 0;
-
-        }
-
-    }
-
-}
 
 =pod
 
@@ -682,12 +659,6 @@ Returns the content of the attribute C<cmd_stack>.
 
 Returns the content of the attribute C<params_stack>.
 
-=head2 _setup_commands
-
-"Private" method: populates the attributes C<cmd_stack>, C<action_stack> and C<params_stack> depending on the values available on the C<commands> attribute.
-
-This method is internally invoked everytime the C<commands> attribute is changed.
-
 =cut
 
 sub _setup_commands {
@@ -712,6 +683,52 @@ sub _setup_commands {
     $self->_set_params_stack( \@params );
 
     return 1;
+
+}
+
+=pod
+
+=head2 reset_retries
+
+Reset the retries of creating a new process of srvrmgr program, setting the attribute C<retries> to zero.
+
+=cut
+
+sub reset_retries {
+
+    my $self = shift;
+
+    $self->_set_retries(0);
+
+    return 1;
+
+}
+
+sub _add_retry {
+
+    my ( $self, $new, $old ) = @_;
+
+    # if $old is undefined, this is the first call to run method
+    unless ( defined($old) ) {
+
+        return 0;
+
+    }
+    else {
+
+        if ( $new != $old ) {
+
+            $self->_set_retries( $self->get_retries() + 1 );
+            return 1;
+
+        }
+        else {
+
+            return 0;
+
+        }
+
+    }
 
 }
 
@@ -798,7 +815,7 @@ sub run {
     }
     else {
 
-        $logger = __PACKAGE__->_gimme_logger();
+        $logger = __PACKAGE__->gimme_logger();
         weaken($logger);
         $logger->info( 'Reusing PID ', $self->get_pid() )
           if ( $logger->is_debug() );
@@ -1160,7 +1177,7 @@ sub _create_child {
 
     if ( $self->get_retries() >= $self->get_max_retries() ) {
 
-        my $logger = __PACKAGE__->_gimme_logger();
+        my $logger = __PACKAGE__->gimme_logger();
         weaken($logger);
         $logger->fatal( 'Maximum retries to spawn srvrmgr reached: '
               . $self->get_max_retries() );
@@ -1210,7 +1227,7 @@ sub _create_child {
     $self->_set_read($read_h);
     $self->_set_error($error_h);
 
-    my $logger = __PACKAGE__->_gimme_logger();
+    my $logger = __PACKAGE__->gimme_logger();
     weaken($logger);
 
     if ( $logger->is_debug() ) {
@@ -1565,7 +1582,7 @@ sub DEMOLISH {
 
     my $self = shift;
 
-    my $logger = __PACKAGE__->_gimme_logger();
+    my $logger = __PACKAGE__->gimme_logger();
     weaken($logger);
 
     $logger->info('Terminating daemon');
@@ -1610,7 +1627,17 @@ sub _term_ALARM {
 
 }
 
-sub _gimme_logger {
+=pod
+
+=head2 gimme_logger
+
+This method returns a L<Log::Log4perl::Logger> object as defined for L<Siebel::Srvrmgr> module.
+
+It can be invoke both from a instance of Siebel::Srvrmgr::Daemon and the package itself.
+
+=cut
+
+sub gimme_logger {
 
     my $cfg = Siebel::Srvrmgr->logging_cfg();
 
@@ -1715,10 +1742,6 @@ sub close_child {
     my $logger = shift;
 
     my $has_logger = 0;
-
-# :WORKAROUND:16/08/2013 12:23:40:: even if the child process is not killed, a new process need to be created
-# :TODO      :16/08/2013 12:24:06:: make this behaviour optional (like, try a new child or simply die if not possible)
-    $self->clear_pid();
 
     if ( ( defined($logger) ) and ( ref($logger) ) ) {
 
@@ -1876,6 +1899,7 @@ sub close_child {
 
         }
 
+		$self->clear_pid();
         return 1;
 
     }
