@@ -30,8 +30,8 @@ BLOCK
     print $out $config;
     close($out) or die 'Could not close ' . $test->{log_cfg} . ": $!\n";
 
-    $test->{log_file} = $log_file;
     $ENV{SIEBEL_SRVRMGR_DEBUG} = $test->{log_cfg};
+    $test->{log_file} = $log_file;
 
 }
 
@@ -97,7 +97,7 @@ sub _constructor : Tests(+2) {
 
 }
 
-sub class_methods : Tests(24) {
+sub class_methods : Tests(25) {
 
     my $test = shift;
 
@@ -127,7 +127,7 @@ sub class_methods : Tests(24) {
             '_process_stdout',   '_check_error',
             '_check_child',      '_term_INT',
             '_term_PIPE',        '_term_ALARM',
-            '_gimme_logger',     '_submit_cmd',
+            'gimme_logger',      '_submit_cmd',
             'close_child',       'has_pid',
             'clear_pid'
         )
@@ -148,6 +148,8 @@ sub class_methods : Tests(24) {
             $attrib->[2], "$get returns the correct string after change" );
 
     }
+
+    isa_ok( $test->{daemon}->gimme_logger(), 'Log::Log4perl::Logger' );
 
 }
 
@@ -177,13 +179,14 @@ sub class_attributes : Tests(22) {
 
 }
 
-sub runs : Tests(7) {
+sub runs : Tests(10) {
 
     my $test = shift;
 
     $SIG{INT} = \&clean_up;
 
     ok( $test->{daemon}->run(), 'run method executes successfuly' );
+	is($test->{daemon}->get_child_runs(), 1, 'get_child_runs returns the expected number');
 
     my $shifted_cmd;
     ok( $shifted_cmd = $test->{daemon}->shift_commands(),
@@ -193,7 +196,9 @@ sub runs : Tests(7) {
     ok( $test->{daemon}->shift_commands(), 'shift_command works' );
 
     ok( $test->{daemon}->run(), 'run method executes successfuly (2)' );
+	is($test->{daemon}->get_child_runs(), 2, 'get_child_runs returns the expected number');
     ok( $test->{daemon}->run(), 'run method executes successfuly (3)' );
+	is($test->{daemon}->get_child_runs(), 3, 'get_child_runs returns the expected number');
 
 }
 
@@ -289,10 +294,12 @@ sub _poke_child {
 
 sub terminator : Tests(4) {
 
-    my $test = shift;
+    my $test   = shift;
+    my $logger = $test->{daemon}->gimme_logger();
 
-    ok( $test->{daemon}->close_child(), 'close_child returns works' );
-    is( $test->{daemon}->close_child(),
+    ok( $test->{daemon}->close_child($logger),
+        'close_child returns true (termined child process)' );
+    is( $test->{daemon}->close_child($logger),
         0, 'close_child returns false since there is no PID anymore' );
     is( $test->{daemon}->has_pid(), '', 'has_pid returns false' );
     is( $test->_poke_child(),       0,  'child PID is no more' );
@@ -353,8 +360,6 @@ sub clean_up : Test(shutdown) {
         unlink $file or warn "Cannot remove $file: $!\n";
 
     }
-
-    $ENV{SIEBEL_SRVRMGR_LOG_DEL} = $test->{log_file};
 
 }
 
