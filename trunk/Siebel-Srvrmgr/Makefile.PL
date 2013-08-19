@@ -21,7 +21,6 @@ my %config = (
         'MooseX::Singleton'            => 0.27,
         'MooseX::FollowPBP'            => 0.05,
         'Log::Log4perl'                => 1.41,
-        'Log::Dispatch'                => 2.39,
         'YAML::Syck'                   => 1.25
     },
     BUILD_REQUIRES => {
