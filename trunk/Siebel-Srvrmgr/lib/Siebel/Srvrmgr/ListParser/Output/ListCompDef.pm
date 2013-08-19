@@ -69,6 +69,34 @@ sub _set_header_regex {
 
 }
 
+=pod
+
+=head2 _define_pattern
+
+This method overrides the method from the parent class. The pattern is strict following the expected configuration from the "list comp def" command
+from srvrmgr, as described in the DESCRIPTION.
+
+=cut
+
+override '_define_pattern' => sub {
+
+    my $self = shift;
+	# to make it easier for maintainence
+    my @sizes = ( 76, 76, 31, 31, 61, 251, 76, 31, 23 );
+    my $pattern;
+
+# :WARNING   :09/05/2013 12:19:37:: + 2 because of the spaces after the "---" that will be trimmed, but this will cause problems
+# with the split_fields method if col_seps is different from two space
+    foreach (@sizes) {
+
+        $pattern .= 'A' . ( $_ + 2 );
+
+    }
+
+    $self->_set_fields_pattern($pattern);
+
+};
+
 sub _parse_data {
 
     my $self       = shift;

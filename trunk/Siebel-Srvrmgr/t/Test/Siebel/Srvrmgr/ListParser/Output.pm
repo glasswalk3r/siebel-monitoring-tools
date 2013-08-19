@@ -161,7 +161,8 @@ sub class_methods : Tests(12) {
         'get_header_cols',    'set_header_cols',
         'parse',              '_split_fields',
         '_set_header',        '_parse_data',
-        '_set_header_regex',  'BUILD'
+        '_set_header_regex',  'BUILD', 
+		'_define_pattern'
     );
 
     can_ok( $test->get_test_item(), @methods );

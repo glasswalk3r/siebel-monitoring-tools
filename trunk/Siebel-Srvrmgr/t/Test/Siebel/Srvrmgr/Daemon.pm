@@ -186,7 +186,8 @@ sub runs : Tests(10) {
     $SIG{INT} = \&clean_up;
 
     ok( $test->{daemon}->run(), 'run method executes successfuly' );
-	is($test->{daemon}->get_child_runs(), 1, 'get_child_runs returns the expected number');
+    is( $test->{daemon}->get_child_runs(),
+        1, 'get_child_runs returns the expected number' );
 
     my $shifted_cmd;
     ok( $shifted_cmd = $test->{daemon}->shift_commands(),
@@ -196,9 +197,54 @@ sub runs : Tests(10) {
     ok( $test->{daemon}->shift_commands(), 'shift_command works' );
 
     ok( $test->{daemon}->run(), 'run method executes successfuly (2)' );
-	is($test->{daemon}->get_child_runs(), 2, 'get_child_runs returns the expected number');
+    is( $test->{daemon}->get_child_runs(),
+        2, 'get_child_runs returns the expected number' );
     ok( $test->{daemon}->run(), 'run method executes successfuly (3)' );
-	is($test->{daemon}->get_child_runs(), 3, 'get_child_runs returns the expected number');
+    is( $test->{daemon}->get_child_runs(),
+        3, 'get_child_runs returns the expected number' );
+
+}
+
+sub runs_much_more : Tests(60) {
+
+    my $test = shift;
+
+  SKIP: {
+
+        skip 'Not a developer machine', 60
+          unless ( $ENV{SIEBEL_SRVRMGR_DEVEL} );
+
+        $test->{daemon}->set_commands(
+            [
+                Siebel::Srvrmgr::Daemon::Command->new(
+                    command => 'load preferences',
+                    action  => 'LoadPreferences'
+                ),
+                Siebel::Srvrmgr::Daemon::Command->new(
+                    command => 'list comp type',
+                    action  => 'ListCompTypes',
+                    params  => ['dump1']
+                ),
+                Siebel::Srvrmgr::Daemon::Command->new(
+                    command => 'list comp',
+                    action  => 'ListComps',
+                    params  => ['dump2']
+                ),
+                Siebel::Srvrmgr::Daemon::Command->new(
+                    command => 'list comp def',
+                    action  => 'ListCompDef',
+                    params  => ['dump3']
+                )
+            ]
+        );
+
+        for ( 1 .. 60 ) {
+
+            ok( $test->{daemon}->run(), 'run method executes successfuly' );
+
+        }
+
+    }
 
 }
 

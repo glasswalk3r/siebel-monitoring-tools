@@ -271,20 +271,7 @@ sub parse {
 
             when ($line_header_regex) { # this is the '-------' below the header
 
-# :TODO      :17/06/2013 14:02:51:: should use default field separator attribute here
-                my @columns = split( /\s{2}/, $line );
-
-                my $pattern;
-
-                foreach my $column (@columns) {
-
-# :WARNING   :09/05/2013 12:19:37:: + 2 because of the spaces after the "---" that will be trimmed, but this will cause problems
-# with the split_fields method if col_seps is different from two spaces
-                    $pattern .= 'A' . ( length($column) + 2 );
-
-                }
-
-                $self->_set_fields_pattern($pattern);
+                $self->_define_pattern($line);
 
             }
 
@@ -327,6 +314,41 @@ sub parse {
 
     $self->set_data_parsed( \%parsed_lines );
     $self->set_raw_data( [] );
+
+    return 1;
+
+}
+
+=pod
+
+=head2 _define_pattern
+
+Defines and sets the attribute C<fields_pattern>. This method is invoked automatically from the C<parse> method.
+
+You probably don't want to mess around with this method (that is "private") but will want to override it in subclasses if their
+schema of fields is different from defining them from the lenght of "------" header lines present in all output from commands of srvrmgr program.
+
+=cut
+
+sub _define_pattern {
+
+    my $self = shift;
+    my $line = shift;
+
+# :TODO      :17/06/2013 14:02:51:: should use default field separator attribute here
+    my @columns = split( /\s{2}/, $line );
+
+    my $pattern;
+
+    foreach my $column (@columns) {
+
+# :WARNING   :09/05/2013 12:19:37:: + 2 because of the spaces after the "---" that will be trimmed, but this will cause problems
+# with the split_fields method if col_seps is different from two spaces
+        $pattern .= 'A' . ( length($column) + 2 );
+
+    }
+
+    $self->_set_fields_pattern($pattern);
 
     return 1;
 
