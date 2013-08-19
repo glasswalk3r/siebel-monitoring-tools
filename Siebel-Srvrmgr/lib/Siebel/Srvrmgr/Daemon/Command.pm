@@ -55,7 +55,7 @@ The action parameter expects a string with the name of a subclass of L<Siebel::S
 used (for example, 'Foobar' will produce an instance of a 'Siebel::Srvrmgr::Daemon::Action' subclass, if it exists). If another class is used, then the complete name
 of the class must be used.
 
-Beware that the class passed as parameter must be able to deal with the srvrmgr and do something about it.
+Beware that the class passed as parameter must be able to deal with the srvrmgr outpur and do something with it.
 
 This attribute is obligatory.
 
