@@ -78,10 +78,8 @@ use Siebel::Srvrmgr::ListParser;
 use Siebel::Srvrmgr::Regexes
   qw(SRVRMGR_PROMPT LOAD_PREF_RESP SIEBEL_ERROR ROWS_RETURNED);
 use Siebel::Srvrmgr::Daemon::Command;
-use POSIX ":sys_wait_h";
+use POSIX;
 use feature qw(say switch);
-use Log::Log4perl;
-use Siebel::Srvrmgr;
 use Scalar::Util qw(weaken openhandle);
 use Config;
 use Carp qw(longmess);
@@ -100,6 +98,13 @@ has output_file => (
     isa    => 'ro',
     reader => 'get_output_file',
     writer => '_set_output_file'
+);
+
+has input_file => (
+    is     => 'Str',
+    isa    => 'ro',
+    reader => 'get_input_file',
+    writer => '_set_input_file'
 );
 
 =pod
@@ -133,9 +138,9 @@ sub run {
 
     my $parser = Siebel::Srvrmgr::ListParser->new();
 
-    exit 1 if ($SIG_INT);
+    my $ret_code = system( $self->_define_params() );
 
-    my $pid = system( $self->_define_params() );
+    $self->_check_system( $logger, ${^CHILD_ERROR_NATIVE}, $ret_code, $? );
 
     open( my $in, '<', $self->get_output_file() )
       or die( 'Cannot read ' . $self->get_output_file() . ': ' . $! );
@@ -186,9 +191,6 @@ sub run {
 
     }
 
-    $logger->debug('Preparing to execute command')
-      if ( $logger->is_debug() );
-
     $self->_set_child_runs( $self->get_child_runs() + 1 );
     $logger->debug( 'child_runs = ' . $self->get_child_runs() )
       if ( $logger->is_debug() );
@@ -198,11 +200,64 @@ sub run {
 
 }
 
-override _define_params => sub {
+override _my_cleanup => sub {
 
     my $self = shift;
 
-    my $params_ref = super();
+    return $self->_del_input_file() && $self->_del_output_file();
+
+};
+
+sub _del_file {
+
+    my $self     = shift;
+    my $filename = shift;
+
+    if ( -e $filename ) {
+
+        my $ret = unlink $filename;
+
+        if ($ret) {
+
+            return 1;
+
+        }
+        else {
+
+            warn "Could not remove $filename: $!";
+            return 0;
+
+        }
+
+    }
+    else {
+
+        warn "File $filename does not exists";
+        return 0;
+
+    }
+
+}
+
+sub _del_input_file {
+
+    my $self = shift;
+
+    return $self->_del_file( $self->get_input_file() );
+
+}
+
+sub _del_output_file {
+
+    my $self = shift;
+
+    return $self->_del_file( $self->get_output_file() );
+
+}
+
+override _setup_commands => sub {
+
+    my $self = shift;
 
     my ( $fh, $input_file ) = tmpnam();
 
@@ -215,191 +270,84 @@ override _define_params => sub {
 
     close($fh);
 
+    $self->_set_input_file($input_file);
+
+};
+
+override _define_params => sub {
+
+    my $self = shift;
+
+    my $params_ref = super();
+
+# :TODO      :20/08/2013 12:31:36:: must define if the output files must be kept or removed
     $self->_set_output_file( scalar( tmpnam() ) );
 
-    push( @{$params_ref},
-        '/b', '/i', $input_file, '/o', $self->get_output_file() );
+    push(
+        @{$params_ref},
+        '/b', '/i', $self->get_input_file(),
+        '/o', $self->get_output_file()
+    );
 
     return $params_ref;
 
 };
 
-sub _check_child {
+sub _check_system {
 
     my $self   = shift;
     my $logger = shift;
     weaken($logger);
+    my $child_error = shift;
+    my $ret_code    = shift;
+    my $error_code  = shift;
 
-    if ( $self->has_pid() ) {
+    given ($child_error) {
 
-        # try to read immediatly from stderr if possible
-        if ( openhandle( $self->get_error() ) ) {
+        when ( WIFEXITED($child_error) ) {
 
-            my $error;
-
-            my $select = IO::Select->new();
-            $select->add( $self->get_error() );
-
-            while ( my $fh = $select->can_read( $self->get_read_timeout() ) ) {
-
-                my $buffer;
-                my $read = sysread( $fh, $buffer, $self->get_buffer_size() );
-
-                if ( defined($read) ) {
-
-                    if ( $read > 0 ) {
-
-                        $error .= $buffer;
-                        next;
-
-                    }
-                    else {
-
-                        $logger->debug(
-                            'Reached EOF while trying to get error messages')
-                          if ( $logger->is_debug() );
-
-                    }
-
-                }
-                else {
-
-                    $logger->warn(
-                        'Could not sysread the STDERR from srvrmgr process: '
-                          . $! );
-                    last;
-
-                }
-
-            }    # end of while block
-
-            $self->_process_stderr( \$error, $logger ) if ( defined($error) );
-
-        }
-        else {
-
-            $logger->fatal('Error pipe from child is closed');
-
-        }
-
-        $logger->fatal('Read pipe from child is closed')
-          unless ( openhandle( $self->get_read() ) );
-        $logger->fatal('Write pipe from child is closed')
-          unless ( openhandle( $self->get_write() ) );
-
-# :WORKAROUND:19/4/2012 19:38:04:: somehow the child process of srvrmgr has to be waited for one second and receive one kill 0 signal before
-# it dies when something goes wrong
-#        sleep 1;
-        kill 0, $self->get_pid();
-
-        unless ( kill 0, $self->get_pid() ) {
-
-            $logger->fatal( $self->get_bin()
-                  . " process returned a fatal error: ${^CHILD_ERROR_NATIVE}" );
-
-            $logger->fatal( $? . ' child exit status = ' . ( $? >> 8 ) );
-
-            $self->close_child($logger);
-
-            return 0;
-
-        }
-        else {
-
-            return 1;
-
-        }
-
-    }    # end of if has_pid
-    else {
-
-        return 0;
-
-    }
-
-}
-
-=pod
-
-=head2 DEMOLISH
-
-This method is invoked before the object instance is destroyed. It will try to close the connection with the Siebel Enterprise (if opened)
-by submitting the command C<exit>.
-
-It will then try to read the string "Disconnecting from server" from the generated output after the command submission and closing the opened
-filehandles right after. Then it will send a C<kill 0> signal to the process to check if it is still running.
-
-Finally, it will wait for 5 seconds before calling C<waitpid> function to rip the child process.
-
-=cut
-
-sub DEMOLISH {
-
-    my $self = shift;
-
-    my $logger = __PACKAGE__->gimme_logger();
-    weaken($logger);
-
-    $logger->info('Terminating daemon');
-
-    if ( $self->has_pid() and ( $self->get_pid() =~ /\d+/ ) ) {
-
-        $self->close_child($logger);
-
-    }
-    else {
-
-        if ( $logger->is_info() ) {
-
-            $logger->info("Program termination was forced") if ($SIG_ALARM);
             $logger->info(
-'srvrmgr program was not yet executed, no child process to terminate'
-            );
-            $logger->info('daemon says bye-bye');
+                'Child process terminate successfully with return code = '
+                  . WEXITSTATUS($child_error) );
+
+        }
+
+        when ( WIFSIGNALED($child_error) ) {
+
+            $logger->logdie( 'Child process terminated due signal: '
+                  . WTERMSIG($child_error) );
+
+        }
+
+        when ( WIFSTOPPED($child_error) ) {
+
+            $logger->logdie(
+                'Child process was stopped with ' . WSTOPSIG($child_error) );
+
+        }
+
+        default {
+
+            # shouldn't be necessary due WIFEXITED
+            if ( $ret_code == 0 ) {
+
+                $logger->info(
+                    'Child process terminate successfully with return code = '
+                      . WEXITSTATUS($child_error) );
+
+            }
+            else {
+
+                $logger->logdie(
+                    'system failed to execute srvrmgr: ' . $error_code );
+
+            }
 
         }
 
     }
 
-}
-
-sub _term_INT {
-
-    $SIG_INT = 1;
-
-}
-
-sub _term_PIPE {
-
-    $SIG_PIPE = 1;
-    warn "got SIGPIPE\n";
-
-}
-
-sub _term_ALARM {
-
-    $SIG_ALARM = 1;
-
-}
-
-=pod
-
-=head2 gimme_logger
-
-This method returns a L<Log::Log4perl::Logger> object as defined for L<Siebel::Srvrmgr> module.
-
-It can be invoke both from a instance of Siebel::Srvrmgr::Daemon and the package itself.
-
-=cut
-
-sub gimme_logger {
-
-    my $cfg = Siebel::Srvrmgr->logging_cfg();
-
-    die "Could not start logging facilities"
-      unless ( Log::Log4perl->init_once( \$cfg ) );
-
-    return Log::Log4perl->get_logger('Siebel::Srvrmgr::Daemon');
+    return 1;
 
 }
 
