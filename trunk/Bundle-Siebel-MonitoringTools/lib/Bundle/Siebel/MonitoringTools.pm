@@ -34,7 +34,6 @@ None by default.
     MooseX::Singleton [0.27]
     MooseX::FollowPBP [0.05]
     Log::Log4perl [1.41]
-    Log::Dispatch [2.39]
     YAML::Syck [1.27]
     Config::Tiny [2.14]
     DBD::ODBC [1.43]
