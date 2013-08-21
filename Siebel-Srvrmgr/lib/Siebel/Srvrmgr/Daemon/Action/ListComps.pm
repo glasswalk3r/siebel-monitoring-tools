@@ -33,12 +33,10 @@ given as parameter to the C<do> method and stores the parsed data from this obje
 
 =head1 METHODS
 
-=head2 do
+=head2 do_parsed
 
-This methods expects an array reference as parameter containing a given command output.
-
-It will try to identify the first ocurrence of a L<Siebel::Srvrmgr::ListParser::Output::ListComp>: once one is found,
-it will call the C<get_servers> method from this class and then iterate over the servers (objects from the class L<Siebel::Srvrmgr::ListParser::Output::ListComp::Server>) 
+It will check if the object given as parameter is a L<Siebel::Srvrmgr::ListParser::Output::ListComp>. If true, it will call the C<get_servers> method 
+from this class and then iterate over the servers (objects from the class L<Siebel::Srvrmgr::ListParser::Output::ListComp::Server>) 
 calling their respective C<store> method to serialize themselves into the OS filesystem.
 
 The name of the filename used for data serialization will be the value of C<dump_file> append with the character '_' and the server name.
@@ -47,56 +45,49 @@ This method will return 1 if this operation was executed sucessfuly, 0 otherwise
 
 =cut
 
-override 'do' => sub {
+override 'do_parsed' => sub {
 
-    my $self   = shift;
-    my $buffer = shift;    # array reference
+    my $self = shift;
+    my $obj  = shift;
 
-    super();
+    if ( $obj->isa('Siebel::Srvrmgr::ListParser::Output::ListComp') ) {
 
-    $self->get_parser()->parse($buffer);
+        my $servers_ref = $obj->get_servers();
 
-    my $tree = $self->get_parser()->get_parsed_tree();
+        warn "Could not fetch servers\n"
+          unless ( scalar( @{$servers_ref} ) > 0 );
 
-    foreach my $obj ( @{$tree} ) {
+        foreach my $servername ( @{$servers_ref} ) {
 
-        if ( $obj->isa('Siebel::Srvrmgr::ListParser::Output::ListComp') ) {
+            my $server = $obj->get_server($servername);
 
-            my $servers_ref = $obj->get_servers();
+            if (
+                $server->isa(
+                    'Siebel::Srvrmgr::ListParser::Output::ListComp::Server')
+              )
+            {
 
-            warn "Could not fetch servers\n"
-              unless ( scalar( @{$servers_ref} ) > 0 );
+                my $filename =
+                  $self->get_dump_file() . '_' . $server->get_name();
 
-            foreach my $servername ( @{$servers_ref} ) {
+                $server->store($filename);
+                return 1;
 
-                my $server = $obj->get_server($servername);
+            }
+            else {
 
-                if (
-                    $server->isa(
-                        'Siebel::Srvrmgr::ListParser::Output::ListComp::Server')
-                  )
-                {
-
-                    my $filename =
-                      $self->get_dump_file() . '_' . $server->get_name();
-
-                    $server->store($filename);
-                    return 1;
-
-                }
-                else {
-
-                    warn "could not fetch $servername data\n";
-
-                }
+                warn "could not fetch $servername data\n";
 
             }
 
         }
 
-    }    # end of foreach block
+    }
+    else {
 
-    return 0;
+        return 0;
+
+    }
 
 };
 

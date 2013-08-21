@@ -36,12 +36,7 @@ This functions always returns true.
 
 =cut
 
-override 'do' => sub {
-
-    my $self   = shift;
-    my $buffer = shift;
-
-    super();
+override 'do_parsed' => sub {
 
     return 1;
 

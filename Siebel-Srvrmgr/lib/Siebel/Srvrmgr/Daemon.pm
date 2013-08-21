@@ -4,7 +4,7 @@ package Siebel::Srvrmgr::Daemon;
 
 =head1 NAME
 
-Siebel::Srvrmgr::Daemon - class for interactive sessions with Siebel srvrmgr program
+Siebel::Srvrmgr::Daemon - super class for sessions with Siebel srvrmgr program
 
 =head1 SYNOPSIS
 
@@ -14,35 +14,18 @@ Siebel::Srvrmgr::Daemon - class for interactive sessions with Siebel srvrmgr pro
 
 =head1 DESCRIPTION
 
-This class is used to execute the C<srvrmgr> program and execute commands through it.
+This is a super class, and alone it does not provide any functionaly to use srvrmgr to send commands and process returned data.
 
-The sessions are not "interactive" from the user point of view but the usage of this class enable the adoption of some logic to change how the commands will be executed or
-even generate commands on the fly.
-
-The logic behind this class is easy: you can submit a pair of command/action to the class. It will then connect to the server by executing C<srvrmgr>, submit the command to the server
-and recover the output generated. The action will be executed having this output as parameter. Anything could be considered as an action, from simple storing the output to even generating
-new commands to be executed in the server.
-
-A command is any command supported from C<srvrmgr> program. An action can be any class but is obligatory to create a subclass of L<Siebel::Srvrmgr::Daemon::Action> base class. See the <commands>
-attribute for details.
-
-The object will create an loop to interact with the C<srvrmgr> program to execute the commands and actions as requested. This loop might be infinite, where the C<commands> attribute will be restarted when the
-stack is finished.
-
-The C<srvrmgr> program will be executed by using IPC: this means that this method should be portable. Once the connection is made (see the C<run> method) it will not be dropped after commands execution but it will
-be done automatically when the instance of this class goes out of scope. The instance is also able to deal with C<INT> signal and close connection as appropriate: the class will first try to submit a C<exit> command
-through C<srvrmgr> program and if it's not terminated automatically the PID will be ripped.
+The "private" method C<_setup_commands> must be overrided by subclasses of it or commands will not be sent to srvrmgr (the currently implementation C<warn>s 
+about that). 
 
 Logging of this class can be enabled by using L<Siebel::Srvrmgr> logging feature.
-
-This module is based on L<IPC::Open3::Callback> from Lucas Theisen (see SEE ALSO section).
 
 =cut
 
 use Moose;
 use namespace::autoclean;
 use Siebel::Srvrmgr::Regexes qw(SIEBEL_ERROR);
-use Siebel::Srvrmgr::Daemon::Command;
 use POSIX;
 use feature qw(switch);
 use Siebel::Srvrmgr;
@@ -159,7 +142,7 @@ has commands => (
     required => 1,
     reader   => 'get_commands',
     writer   => 'set_commands',
-    trigger  => \&_setup_commands
+    trigger  => \&_call_setup_commands
 );
 
 =pod
@@ -254,15 +237,6 @@ has child_runs => (
     default => 0
 );
 
-=head2 srvrmgr_prompt
-
-An string representing the prompt recovered from srvrmgr program. The value of this attribute is set automatically during srvrmgr execution.
-
-=cut
-
-has srvrmgr_prompt =>
-  ( isa => 'Str', is => 'ro', reader => 'get_prompt', writer => '_set_prompt' );
-
 =head2 maximum_retries
 
 The maximum times this class wil retry to launch a new process of srvrmgr if the previous one failed for any reason. This is intented to implement
@@ -316,10 +290,6 @@ is defined or not. See L<Moose> attributes for details.
 
 Returns true or false if the C<child_pid> is defined. Beware that this is different then checking if there is an integer associated with C<child_pid>
 attribute: this method might return false even though the old PID associated with C<child_pid> is still available. See L<Moose> attributes for details.
-
-=head2 get_prompt
-
-Returns the content of the attribute C<srvrmgr_prompt>.
 
 =head2 get_child_runs
 
@@ -417,14 +387,6 @@ Returns the content of the C<bin> attribute.
 
 Sets the content of the C<bin> attribute. Expects a string as parameter.
 
-=head2 get_write
-
-Returns the file handle of STDIN from the process executing the C<srvrmgr> program based on the value of the attribute C<write_fh>.
-
-=head2 get_read
-
-Returns the file handle of STDOUT from the process executing the C<srvrmgr> program based on the value of the attribute C<read_fh>.
-
 =head2 get_pid
 
 Returns the content of C<pid> attribute as an integer.
@@ -432,18 +394,6 @@ Returns the content of C<pid> attribute as an integer.
 =head2 is_infinite
 
 Returns the content of the attribute C<is_infinite>, returning true or false depending on this value.
-
-=head2 get_last_cmd
-
-Returns the content of the attribute C<last_cmd> as a string.
-
-=head2 get_cmd_stack
-
-Returns the content of the attribute C<cmd_stack>.
-
-=head2 get_params_stack
-
-Returns the content of the attribute C<params_stack>.
 
 =head2 reset_retries
 
@@ -486,6 +436,25 @@ sub _add_retry {
         }
 
     }
+
+}
+
+# for better security
+sub _check_cmd {
+
+    my $self = shift;
+    my $cmd  = shift;
+
+    die( 'Invalid command received for execution: '
+          . Dumper( $self->get_cmd_stack() ) )
+      unless ( defined($cmd) );
+
+    die("Insecure command from command stack [$cmd]. Execution aborted")
+      unless ( ( $cmd =~ /^load/ )
+        or ( $cmd =~ /^list/ )
+        or ( $cmd =~ /^exit/ ) );
+
+    return 1;
 
 }
 
@@ -686,10 +655,20 @@ sub _my_cleanup {
 
 }
 
+sub _call_setup_commands {
+
+    my $self = shift;
+
+    $self->_setup_commands();
+
+}
+
 sub _setup_commands {
 
-    confess
-      'This method must be overrided by subclasses of Siebel::Srvrmgr::Daemon';
+    warn
+'_setup_commands must be overrided by subclasses of Siebel::Srvrmgr::Daemon';
+
+    return 1;
 
 }
 

@@ -30,38 +30,30 @@ Executing C<load preferences> is particullary useful for setting the correct col
 
 =head1 METHODS
 
-=head2 do
+=head2 do_parsed
 
-C<do> method will not do much: it expects an array reference with the output of the command C<load preferences>. This content will be parsed
-by L<Siebel::Srvrmgr::ListParser> object and as soon an L<Siebel::Srvrmgr::ListParser::Output::LoadPreferences> is found the method will return true (1).
-
-If the LoadPreferences object is not found, the method will return false.
+It checks if the given object as parameter is a L<Siebel::Srvrmgr::ListParser::Output::LoadPreferences> object. If true it returns true, otherwise
+returns false.
 
 =cut
 
-sub do {
+override 'do_parsed' => sub {
 
-    my $self   = shift;
-    my $buffer = shift;
+    my $self = shift;
+    my $item = shift;
 
-    $self->get_parser()->parse($buffer);
+    if ( $item->isa('Siebel::Srvrmgr::ListParser::Output::LoadPreferences') ) {
 
-    my $tree = $self->get_parser()->get_parsed_tree();
+        return 1;
 
-    foreach my $obj ( @{$tree} ) {
+    }
+    else {
 
-        if ( $obj->isa('Siebel::Srvrmgr::ListParser::Output::LoadPreferences') )
-        {
+        return 0;
 
-            return 1;
+    }
 
-        }
-
-    }    # end of foreach block
-
-    return 0;
-
-}
+};
 
 =pod
 
