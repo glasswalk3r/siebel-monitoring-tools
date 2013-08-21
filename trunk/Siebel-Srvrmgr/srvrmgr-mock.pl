@@ -4,84 +4,138 @@ use strict;
 use feature qw(switch say);
 use Hash::Util qw(lock_keys);
 use YAML::Syck;
+use Getopt::Std;
 
 our $VERSION = 0.03;
-my $raw;
 
-{
+for ( my $i = 0 ; $i <= scalar(@ARGV) ; $i++ ) {
 
-    local $/ = undef;
-    $raw = <DATA>;
-    close(DATA);
+    $ARGV[$i] =~ s#^/#-# if ( defined( $ARGV[$i] ) );
 
 }
 
-my $data_ref = Load($raw);
+my %opts;
 
-lock_keys( %{$data_ref} );
+getopts( 'bg:e:u:p:s:l:i:o:', \%opts );
 
 $SIG{INT} = sub { die "\nDisconnecting...\n" };
 
-put_text( hello() );
+# detects batch mode
+if ( ( ( exists( $opts{b} ) ) and $opts{b} ) ) {
 
-while (1) {
+    unless (( ( exists( $opts{i} ) ) and ( defined( $opts{i} ) ) )
+        and ( ( exists( $opts{o} ) ) and ( defined( $opts{o} ) ) ) )
+    {
 
-    put_text('srvrmgr> ');
+        die 'Batch modes requires definition of /i and /o parameters';
 
-    my $command = <STDIN>;
+    }
 
-    chomp($command);
+    batch( init() );
 
-    given ($command) {
+}
+else {
+
+    interactive( init() );
+
+}
+
+sub batch {
+
+    my $data_ref = shift;
+
+    open( my $in, '<', $opts{i} ) or die 'Cannot read ' . $opts{i} . ': ' . $!;
+    open( my $out, '>', $opts{o} )
+      or die 'Cannot creat ' . $opts{o} . ': ' . $!;
+
+  put_text($out, hello());
+
+    while (<$in>) {
+
+        chomp();
+
+        put_text( $out, "srvrmgr> $_\n" );
+        process_cmd( $out, $data_ref, $_ );
+
+    }
+    close($out);
+    close($in);
+
+}
+
+sub init {
+
+    my $raw;
+
+    {
+
+        local $/ = undef;
+        $raw = <DATA>;
+        close(DATA);
+
+    }
+    my $data_ref = Load($raw);
+    lock_keys( %{$data_ref} );
+    return $data_ref;
+
+}
+
+sub process_cmd {
+
+    my $handle   = shift;
+    my $data_ref = shift;
+    my $cmd      = shift;
+
+    given ($cmd) {
 
         when (/^list\sblockme$/) {
 
  # do nothing to get a deadlock when reading STDOUT with Siebel::Srvrmgr::Daemon
             sleep(20);
-            put_text(
+            put_text( $handle,
                 [ "\n", "yada yada yada\n", "\n", "1 row returned.\n", "\n" ] );
 
         }
 
         when (/^list\scomp\stype$/) {
 
-            put_text( $data_ref->{list_comp_types} );
+            put_text( $handle, $data_ref->{list_comp_types} );
 
         }
 
         when (/^list\sparams\sfor\ssrproc$/) {
 
-            put_text( $data_ref->{list_params_for_srproc} );
+            put_text( $handle, $data_ref->{list_params_for_srproc} );
 
         }
 
         when (/^list\sparams$/) {
 
-            put_text( $data_ref->{list_params} );
+            put_text( $handle, $data_ref->{list_params} );
 
         }
 
         when (/^list\scomp\sdef$/) {
 
-            put_text( $data_ref->{list_comp_def_srproc} );
+            put_text( $handle, $data_ref->{list_comp_def_srproc} );
 
         }
 
         when (/^list\scomp$/) {
 
-            put_text( $data_ref->{list_comp} );
+            put_text( $handle, $data_ref->{list_comp} );
 
         }
 
         when (/^list\sservers?$/) {
 
-            put_text( $data_ref->{list_servers} )
+            put_text( $handle, $data_ref->{list_servers} )
 
         }
 
         when ('load preferences') {
 
-            put_text(
+            put_text( $handle,
 "File: C:\\Siebel\\8.0\\web client\\BIN\\.Siebel_svrmgr.pref\n\n"
             );
 
@@ -89,33 +143,34 @@ while (1) {
 
         when ('exit') {
 
-            put_text("\nDisconnecting...\n");
+            put_text( $handle, "\nDisconnecting...\n" );
             exit(0);
 
         }
 
         when ('') {
 
-            put_text("\n");
+            put_text( $handle, "\n" );
 
         }
 
         when (/^list\scomplexquery$/) {
 
-            syswrite( STDERR,
+            put_text( \*STDERR,
                 "oh god, not today... let me stay in bed mommy!\n" );
 
         }
 
         when (/^list\sfrag$/) {
 
-            syswrite( STDERR, "SBL-ADM-02043: where is this frag server?\n" );
+            put_text( \*STDERR, "SBL-ADM-02043: where is this frag server?\n" );
 
         }
 
         when ('help') {
 
             put_text(
+                $handle,
                 [
                     "Available commands are:\n",
                     "load preferences\n",
@@ -135,9 +190,30 @@ while (1) {
 
         }
 
-        default { put_text("Invalid command\n") }
+        default { put_text( $handle, "Invalid command\n" ) }
 
     }
+
+}
+
+sub interactive {
+
+    my $data_ref = shift;
+
+    put_text( \*STDOUT, hello() );
+
+    while (1) {
+
+        put_text( \*STDOUT, 'srvrmgr> ' );
+
+        my $cmd = <STDIN>;
+
+        chomp($cmd);
+
+        process_cmd( \*STDOUT, $data_ref, $cmd );
+
+    }
+
 }
 
 # to avoid buffering
@@ -146,7 +222,8 @@ while (1) {
 # data to be printed by syswrite (buffer was not being large enough)
 sub put_text {
 
-    my $data = shift;
+    my $handle = shift;
+    my $data   = shift;
 
     warn "invalid output to print" unless ( defined($data) );
 
@@ -154,7 +231,7 @@ sub put_text {
 
         foreach my $line ( @{$data} ) {
 
-            my $ret = syswrite( STDOUT, $line );
+            my $ret = syswrite( $handle, $line );
             die "Fatal error trying to print command output: $!"
               unless ( defined($ret) );
 
@@ -163,7 +240,7 @@ sub put_text {
     }
     else {
 
-        my $ret = syswrite( STDOUT, $data );
+        my $ret = syswrite( $handle, $data );
         die "Fatal error trying to print command output: $!"
           unless ( defined($ret) );
 

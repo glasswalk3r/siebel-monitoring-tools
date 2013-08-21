@@ -43,41 +43,32 @@ Inherits all attributes from superclass.
 
 =head1 METHODS
 
-=head2 do
+=head2 do_parsed
 
-This method is overrided from the superclass method, that is still called to validate parameter given.
-
-It will search in the array reference given as parameter: the first object found is serialized to the filesystem
-and the function returns 1 in this case. Otherwise it will return 0.
+It will test if the object passed as parameter is a L<Siebel::Srvrmgr::ListParser::Output::ListCompDef>. If true, the object found is serialized to the 
+filesystem with C<nstore> and the function returns 1 in this case. If none is found it will return 0.
 
 =cut
 
-override 'do' => sub {
+override 'do_parsed' => sub {
 
-    my $self   = shift;
-    my $buffer = shift;    # array reference
+    my $self = shift;
+    my $obj  = shift;
 
-    super();
+    if ( $obj->isa('Siebel::Srvrmgr::ListParser::Output::ListCompDef') ) {
 
-    $self->get_parser()->parse($buffer);
+        my $data = $obj->get_data_parsed();
 
-    my $tree = $self->get_parser()->get_parsed_tree();
+        nstore $data, $self->get_dump_file();
 
-    foreach my $obj ( @{$tree} ) {
+        return 1;
 
-        if ( $obj->isa('Siebel::Srvrmgr::ListParser::Output::ListCompDef') ) {
+    }
+    else {
 
-            my $data = $obj->get_data_parsed();
+        return 0;
 
-            nstore $data, $self->get_dump_file();
-
-            return 1;
-
-        }
-
-    }    # end of foreach block
-
-    return 0;
+    }
 
 };
 

@@ -8,9 +8,9 @@ Siebel::Srvrmgr::Daemon - class for interactive sessions with Siebel srvrmgr pro
 
 =head1 SYNOPSIS
 
-    use Siebel::Srvrmgr::Daemon;
+    use Siebel::Srvrmgr::Daemon::Light;
 
-    my $daemon = Siebel::Srvrmgr::Daemon->new(
+    my $daemon = Siebel::Srvrmgr::Daemon::Light->new(
         {
             server      => 'servername',
             gateway     => 'gateway',
@@ -75,15 +75,14 @@ use Moose;
 use namespace::autoclean;
 use Siebel::Srvrmgr::Daemon::ActionFactory;
 use Siebel::Srvrmgr::ListParser;
-use Siebel::Srvrmgr::Regexes
-  qw(SRVRMGR_PROMPT LOAD_PREF_RESP SIEBEL_ERROR ROWS_RETURNED);
 use Siebel::Srvrmgr::Daemon::Command;
 use POSIX;
-use feature qw(say switch);
-use Scalar::Util qw(weaken openhandle);
+use feature qw(switch);
+use Scalar::Util qw(weaken);
 use Config;
 use Carp qw(longmess);
 use File::Temp qw(:POSIX);
+use Data::Dumper;
 
 extends 'Siebel::Srvrmgr::Daemon';
 
@@ -94,15 +93,15 @@ extends 'Siebel::Srvrmgr::Daemon';
 =cut
 
 has output_file => (
-    is     => 'Str',
-    isa    => 'ro',
+    isa    => 'Str',
+    is     => 'ro',
     reader => 'get_output_file',
     writer => '_set_output_file'
 );
 
 has input_file => (
-    is     => 'Str',
-    isa    => 'ro',
+    isa    => 'Str',
+    is     => 'ro',
     reader => 'get_input_file',
     writer => '_set_input_file'
 );
@@ -138,33 +137,53 @@ sub run {
 
     my $parser = Siebel::Srvrmgr::ListParser->new();
 
-    my $ret_code = system( $self->_define_params() );
+    if ( $logger->is_debug() ) {
+
+        $logger->debug( 'Calling system with the following parameters: '
+              . Dumper( $self->_define_params() ) );
+        $logger->debug(
+            'Commands to be execute are: ' . Dumper( $self->get_commands() ) );
+
+    }
+
+    my $ret_code = system( @{ $self->_define_params() } );
 
     $self->_check_system( $logger, ${^CHILD_ERROR_NATIVE}, $ret_code, $? );
 
     open( my $in, '<', $self->get_output_file() )
-      or die( 'Cannot read ' . $self->get_output_file() . ': ' . $! );
+      or
+      $logger->logdie( 'Cannot read ' . $self->get_output_file() . ': ' . $! );
     my @input_buffer = <$in>;
     close($in);
 
-    # below is the place for a Action object
     if ( scalar(@input_buffer) >= 1 ) {
 
+# since we should have all output, we parse everthing first to call each action after
         $parser->parse( \@input_buffer );
 
         if ( $parser->has_tree() ) {
 
+            my $total = $self->cmds_vs_tree( $parser->count_parsed() );
+
             if ( $logger->is_debug() ) {
 
-                $logger->debug( 'Parsed '
-                      . $parser->count_parsed()
-                      . ' commands and their respective output' );
+                $logger->debug( 'Total number of parsed items = '
+                      . $parser->count_parsed() );
+                $logger->debug( 'Total number of submitted commands = '
+                      . scalar( @{ $self->get_commands() } ) );
 
             }
 
-            foreach my $command ( keys( $parser->get_parsed_tree() ) ) {
+            $logger->logdie(
+'Number of parsed nodes is different from the number of submitted commands'
+            ) unless ( defined($total) );
 
-                my $cmd = $self->shift_command();
+            my $parsed_ref = $parser->get_parsed_tree();
+            $parser->clear_parsed_tree();
+
+            for ( my $i = 0 ; $i < $total ; $i++ ) {
+
+                my $cmd = ( @{ $self->get_commands() } )[$i];
 
                 my $action = Siebel::Srvrmgr::Daemon::ActionFactory->create(
                     $cmd->get_action(),
@@ -175,12 +194,14 @@ sub run {
                     }
                 );
 
+                $action->do_parsed( $parsed_ref->[$i] );
+
             }
 
         }
         else {
 
-            $logger->fatal('Parser did have a parsed tree after parsing');
+            $logger->fatal('Parser did not have a parsed tree after parsing');
 
         }
 
@@ -197,6 +218,26 @@ sub run {
     $logger->info('Exiting run sub');
 
     return 1;
+
+}
+
+sub cmds_vs_tree {
+
+    my $self      = shift;
+    my $nodes_num = shift;
+
+    my $cmds_num = scalar( @{ $self->get_commands() } );
+
+    if ( $cmds_num == $nodes_num ) {
+
+        return $nodes_num;
+
+    }
+    else {
+
+        return undef;
+
+    }
 
 }
 
@@ -293,6 +334,28 @@ override _define_params => sub {
 
 };
 
+sub _manual_check {
+
+    my $self   = shift;
+    my $logger = shift;
+    weaken($logger);
+    my $ret_code   = shift;
+    my $error_code = shift;
+
+    if ( $ret_code == 0 ) {
+
+        $logger->info(
+            'Child process terminate successfully with return code = 0');
+
+    }
+    else {
+
+        $logger->logdie( 'system failed to execute srvrmgr: ' . $error_code );
+
+    }
+
+}
+
 sub _check_system {
 
     my $self   = shift;
@@ -302,44 +365,43 @@ sub _check_system {
     my $ret_code    = shift;
     my $error_code  = shift;
 
-    given ($child_error) {
+    if ( $Config{osname} eq 'MSWin32' ) {
 
-        when ( WIFEXITED($child_error) ) {
+        $self->_manual_check( $logger, $ret_code, $error_code );
 
-            $logger->info(
-                'Child process terminate successfully with return code = '
-                  . WEXITSTATUS($child_error) );
+    }
+    else {
 
-        }
+        given ($child_error) {
 
-        when ( WIFSIGNALED($child_error) ) {
-
-            $logger->logdie( 'Child process terminated due signal: '
-                  . WTERMSIG($child_error) );
-
-        }
-
-        when ( WIFSTOPPED($child_error) ) {
-
-            $logger->logdie(
-                'Child process was stopped with ' . WSTOPSIG($child_error) );
-
-        }
-
-        default {
-
-            # shouldn't be necessary due WIFEXITED
-            if ( $ret_code == 0 ) {
+            when ( ( $Config{osname} ne 'MSWin32' ) && WIFEXITED($child_error) )
+            {
 
                 $logger->info(
                     'Child process terminate successfully with return code = '
                       . WEXITSTATUS($child_error) );
 
             }
-            else {
 
-                $logger->logdie(
-                    'system failed to execute srvrmgr: ' . $error_code );
+            when ( ( $Config{osname} ne 'MSWin32' )
+                  && WIFSIGNALED($child_error) )
+            {
+
+                $logger->logdie( 'Child process terminated due signal: '
+                      . WTERMSIG($child_error) );
+
+            }
+
+            when ( WIFSTOPPED($child_error) ) {
+
+                $logger->logdie( 'Child process was stopped with '
+                      . WSTOPSIG($child_error) );
+
+            }
+
+            default {
+
+                $self->_manual_check( $logger, $ret_code, $error_code );
 
             }
 
@@ -366,10 +428,6 @@ The C<srvrmgr> program uses buffering, which makes difficult to read the generat
 =item *
 
 L<Moose>
-
-=item *
-
-L<Siebel::Srvrmgr::Daemon::Condition>
 
 =item *
 

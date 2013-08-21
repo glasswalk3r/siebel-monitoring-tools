@@ -27,24 +27,20 @@ extends 'Siebel::Srvrmgr::Daemon::Action';
 
 =head1 METHODS
 
-=head2 do
+=head2 do_parsed
 
-Expects an array reference as buffer parameter.
-
-It will print the content of the array reference to C<STDOUT> by using L<Data::Dumper> C<Dump> function.
+It will print the content of the parsed tree to C<STDOUT> by using L<Data::Dumper> C<Dump> function.
 
 This functions always returns true.
 
 =cut
 
-override 'do' => sub {
+override 'do_parsed' => sub {
 
-    my $self   = shift;
-    my $buffer = shift;
+    my $self = shift;
+    my $item = shift;
 
-    super();
-
-    print Dumper($buffer);
+    print Dumper($item);
 
     return 1;
 

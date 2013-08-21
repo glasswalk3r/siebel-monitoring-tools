@@ -70,8 +70,13 @@ A boolean value that identifies if the ListParser object has a parsed tree or no
 
 =cut
 
-has 'has_tree' =>
-  ( is => 'ro', isa => 'Bool', default => 0, writer => '_set_has_tree' );
+has 'has_tree' => (
+    is      => 'ro',
+    isa     => 'Bool',
+    default => 0,
+    writer  => '_set_has_tree',
+    reader  => 'has_tree'
+);
 
 =pod
 
@@ -153,6 +158,23 @@ has 'buffer' => (
     reader  => 'get_buffer',
     writer  => '_set_buffer',
     default => sub { return [] }
+);
+
+=pod
+
+=head2 enterprise
+
+A reference to a L<Siebel::Srvrmgr::ListParser::Output::Greetings>. It is defined during initial parsing (can be available or not).
+
+This object has some details about the enterprise connected. Check the related Pod for more information.
+
+=cut
+
+has 'enterprise' => (
+    is       => 'ro',
+    isa      => 'Siebel::Srvrmgr::ListParser::Output::Greetings',
+    reader   => 'get_enterprise',
+    'writer' => '_set_enterprise'
 );
 
 =pod
@@ -395,10 +417,15 @@ sub set_parsed_tree {
 
 =head2 append_output
 
-Appends an object to an existing parsed tree. Expects as a parameter an C<Siebel::Srvrmgr::ListParser::Buffer> object as a parameter.
+Appends an object to an existing parsed tree.
 
-It uses C<Siebel::Srvrmgr::ListParser::OutputFactory> to create the proper 
-C<Siebel::Srvrmgr::ListParser::Output> object based on the C<Siebel::Srvrmgr::ListParser::Buffer> type.
+Can use an optional parameter as L<Siebel::Srvrmgr::ListParser::Buffer> instance, othewise it will use the returned value from C<get_buffer> method.
+
+It uses L<Siebel::Srvrmgr::ListParser::OutputFactory> to create the proper 
+L<Siebel::Srvrmgr::ListParser::Output> object based on the L<Siebel::Srvrmgr::ListParser::Buffer> type.
+
+If the item received as parameter is a L<Siebel::Srvrmgr::ListParser::Output::Greetings> instance, it will be assigned to the C<enterprise>
+attribute instead of being added to the C<parsed_tree> attribute.
 
 =cut
 
@@ -407,16 +434,63 @@ sub append_output {
     my $self   = shift;
     my $buffer = shift;
 
-    my $output = Siebel::Srvrmgr::ListParser::OutputFactory->create(
-        $buffer->get_type(),
-        {
-            data_type => $buffer->get_type(),
-            raw_data  => $buffer->get_content(),
-            cmd_line  => $buffer->get_cmd_line()
-        }
-    );
+    if ( defined($buffer) ) {
 
-    $self->set_parsed_tree($output);
+        my $output = Siebel::Srvrmgr::ListParser::OutputFactory->create(
+            $buffer->get_type(),
+            {
+                data_type => $buffer->get_type(),
+                raw_data  => $buffer->get_content(),
+                cmd_line  => $buffer->get_cmd_line()
+            }
+        );
+
+        if ( $output->isa('Siebel::Srvrmgr::ListParser::Output::Greetings') ) {
+
+            $self->_set_enterprise($output);
+
+        }
+        else {
+
+            $self->set_parsed_tree($output);
+
+        }
+
+    }
+    else {
+# :WORKAROUND:21/08/2013 16:29:35:: not very elegant, but should speed up thing for avoid calling method resolution multiple times
+
+        my $buffer_ref = $self->get_buffer();
+
+        foreach my $buffer ( @{$buffer_ref} ) {
+
+            my $output = Siebel::Srvrmgr::ListParser::OutputFactory->create(
+                $buffer->get_type(),
+                {
+                    data_type => $buffer->get_type(),
+                    raw_data  => $buffer->get_content(),
+                    cmd_line  => $buffer->get_cmd_line()
+                }
+            );
+
+            if (
+                $output->isa('Siebel::Srvrmgr::ListParser::Output::Greetings') )
+            {
+
+                $self->_set_enterprise($output);
+
+            }
+            else {
+
+                $self->set_parsed_tree($output);
+
+            }
+
+        }
+
+    }
+
+    return 1;
 
 }
 
@@ -481,14 +555,7 @@ sub parse {
 
     }
 
-    # creates the parsed tree
-    my $buffer_ref = $self->get_buffer();
-
-    foreach my $buffer ( @{$buffer_ref} ) {
-
-        $self->append_output($buffer);
-
-    }
+    $self->append_output();
 
 # :WORKAROUND:17/06/2013 21:31:10:: forcing to destroy references dues memory leak
     $state->notes( parser => undef );
@@ -533,7 +600,7 @@ are details regarding how the settings of srvrmgr are expect for output of list 
 
 =head1 SEE ALSO
 
-=over 6 
+=over
 
 =item *
 
@@ -550,6 +617,10 @@ L<Siebel::Srvrmgr::ListParser::Output>
 =item *
 
 L<Siebel::Srvrmgr::ListParser::OutputFactory>
+
+=item *
+
+L<Siebel::Srvrmgr::ListParser::Output::Greetings>
 
 =item *
 

@@ -81,7 +81,7 @@ sub BUILD {
 
 }
 
-=head2 do
+=head2 do_parsed
 
 Expects a array reference as the buffer output from C<srvrmgr> program as a parameter.
 
@@ -112,16 +112,13 @@ are part of the Siebel Enterprise.
 
 =cut
 
-override 'do' => sub {
+override 'do_parsed' => sub {
 
-    my $self   = shift;
-    my $buffer = shift;    # array reference
+    my $self = shift;
+    my $obj  = shift;
 
-    my $servers = $self->get_params();    # array reference
-
-    super();
-
-    my %servers;    # to locate the expected servers easier
+    my $servers = $self->get_params();   # array reference
+    my %servers;                         # to locate the expected servers easier
 
     foreach my $server ( @{$servers} ) {
 
@@ -129,112 +126,109 @@ override 'do' => sub {
 
     }
 
-    $self->get_parser()->parse($buffer);
-
-    my $tree = $self->get_parser()->get_parsed_tree();
-
     my %checked_comps;
 
-    foreach my $obj ( @{$tree} ) {
+    if ( $obj->isa('Siebel::Srvrmgr::ListParser::Output::ListComp') ) {
 
-        if ( $obj->isa('Siebel::Srvrmgr::ListParser::Output::ListComp') ) {
+        my $servers_ref = $obj->get_servers();
 
-            my $servers_ref = $obj->get_servers();
-
-            confess
+        confess
 "Could not fetch servers from the Siebel::Srvrmgr::ListParser::Output::ListComp object returned by the parser"
-              unless ( scalar( @{$servers_ref} ) > 0 );
+          unless ( scalar( @{$servers_ref} ) > 0 );
 
-            foreach my $name ( @{$servers_ref} ) {
+        foreach my $name ( @{$servers_ref} ) {
 
-                my $server = $obj->get_server($name);
+            my $server = $obj->get_server($name);
 
-                if (
-                    $server->isa(
-                        'Siebel::Srvrmgr::ListParser::Output::ListComp::Server')
-                  )
-                {
+            if (
+                $server->isa(
+                    'Siebel::Srvrmgr::ListParser::Output::ListComp::Server')
+              )
+            {
 
-                    my $name = $server->get_name();
+                my $name = $server->get_name();
 
-                    if ( exists( $servers{$name} ) ) {
+                if ( exists( $servers{$name} ) ) {
 
-                        my $exp_srv =
-                          $servers{$name};    # the expected server reference
+                    my $exp_srv =
+                      $servers{$name};    # the expected server reference
 
-                        foreach my $exp_comp ( @{ $exp_srv->components() } ) {
+                    foreach my $exp_comp ( @{ $exp_srv->components() } ) {
 
-                            my $comp = $server->get_comp( $exp_comp->name() );
+                        my $comp = $server->get_comp( $exp_comp->name() );
 
-                            if ( defined($comp) ) {
+                        if ( defined($comp) ) {
 
-                                my @valid_status =
-                                  split( /\|/, $exp_comp->OKStatus() );
+                            my @valid_status =
+                              split( /\|/, $exp_comp->OKStatus() );
 
-                                my $is_ok = 0;
+                            my $is_ok = 0;
 
-                                foreach my $valid_status (@valid_status) {
+                            foreach my $valid_status (@valid_status) {
 
-                                    if ( $valid_status eq
-                                        $comp->cp_disp_run_state() )
-                                    {
+                                if ( $valid_status eq
+                                    $comp->cp_disp_run_state() )
+                                {
 
-                                        $is_ok = 1;
-                                        last;
-
-                                    }
+                                    $is_ok = 1;
+                                    last;
 
                                 }
 
-                                if ($is_ok) {
+                            }
 
-                                    $checked_comps{ $exp_srv->name() }
-                                      ->{ $exp_comp->name() } = 1;
+                            if ($is_ok) {
 
-                                }
-                                else {
+                                $checked_comps{ $exp_srv->name() }
+                                  ->{ $exp_comp->name() } = 1;
 
-                                    $checked_comps{ $exp_srv->name() }
-                                      ->{ $exp_comp->name() } = 0;
+                            }
+                            else {
+
+                                $checked_comps{ $exp_srv->name() }
+                                  ->{ $exp_comp->name() } = 0;
 
 # :TODO      :04/06/2013 19:16:51:: must use a environment variable to indicate Log::Log4perl configuration and then enable logging here
 #                                    warn 'invalid status got for ',
 #                                      $exp_comp->name(), ' ',
 #                                      $comp->cp_disp_run_state();
 
-                                }
-
-                            }
-                            else {
-
-                                confess
-                                  'Could not find any component with name [',
-                                  $exp_comp->name() . ']';
-
                             }
 
                         }
+                        else {
 
-                    }    # end of foreach comp
-                    else {
+                            confess
+                              'Could not find any component with name [',
+                              $exp_comp->name() . ']';
 
-                        confess(
-"Unexpected servername [$name] retrieved from buffer.\n Expected are "
-                              . join( ', ', map { "[$_]" } @{$servers_ref} ) );
+                        }
+
                     }
 
-                }
+                }    # end of foreach comp
                 else {
 
-                    confess "could not fetch $name data";
-
+                    confess(
+"Unexpected servername [$name] retrieved from buffer.\n Expected are "
+                          . join( ', ', map { "[$_]" } @{$servers_ref} ) );
                 }
 
-            }    # end of foreach server
+            }
+            else {
 
-        }
+                confess "could not fetch $name data";
 
-    }    # end of foreach Siebel::Srvrmgr::ListParser::Output::ListComp object
+            }
+
+        }    # end of foreach server
+
+    }
+    else {
+
+        return 0;
+
+    }
 
     # found some servers
     if ( keys(%checked_comps) ) {

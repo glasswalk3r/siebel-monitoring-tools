@@ -74,7 +74,8 @@ Since this parameter is optional, if some value is passed by a subclass that doe
 
 =cut
 
-has params => ( isa => 'ArrayRef', is => 'ro', required => 0 );
+has params =>
+  ( isa => 'ArrayRef', is => 'ro', required => 0, default => sub { [] } );
 
 =pod
 
