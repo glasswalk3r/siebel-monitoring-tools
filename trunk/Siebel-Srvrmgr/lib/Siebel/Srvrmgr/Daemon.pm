@@ -21,6 +21,19 @@ about that).
 
 Logging of this class can be enabled by using L<Siebel::Srvrmgr> logging feature.
 
+The logic behind this class is easy: you can submit a pair of command/action to the class. It will then connect to the server by executing C<srvrmgr>, submit the command 
+to the server and recover the output generated. The action will be executed having this output as parameter. Anything could be considered as an action, from simple 
+storing the output to even generating new commands to be executed in the server.
+
+A command is an instance of L<Siebel::Srvrmgr::Daemon::Command> class. Any "list" command is supported, and also C<load preferences> and C<exit>. Anything else
+is considered dangerous and will generated an exception. Beware that you will need to have an L<Siebel::Srvrmgr::ListParser::Output> class available to be 
+able to parse the command output.
+
+An action can be any class but is obligatory to create a subclass of L<Siebel::Srvrmgr::Daemon::Action> base class. See the <commands>
+attribute for details.
+
+Implementation details are reserved to subclasses of Siebel::Srvrmgr::Daemon: be sure to check them for real usage cenarios.
+
 =cut
 
 use Moose;
@@ -32,6 +45,7 @@ use Siebel::Srvrmgr;
 use Scalar::Util qw(weaken);
 use Config;
 use Carp qw(longmess);
+use Log::Log4perl;
 
 our $SIG_INT   = 0;
 our $SIG_PIPE  = 0;
@@ -279,29 +293,9 @@ Returns the content of the C<alarm_timeout> attribute.
 
 Sets the attribute C<alarm_timeout>. Expects an integer as parameter, in seconds.
 
-=head2 clear_pid
-
-Clears the defined PID associated with the child process that executes srvrmgr. This is usually associated with calling C<close_child>.
-
-Beware that this is different then removing the child process or even C<undef> the attribute. This just controls a flag that the attribute C<child_pid>
-is defined or not. See L<Moose> attributes for details.
-
-=head2 has_pid
-
-Returns true or false if the C<child_pid> is defined. Beware that this is different then checking if there is an integer associated with C<child_pid>
-attribute: this method might return false even though the old PID associated with C<child_pid> is still available. See L<Moose> attributes for details.
-
 =head2 get_child_runs
 
 Returns the value of the attribute C<child_runs>.
-
-=head2 get_child_timeout
-
-Returns the value of the attribute C<child_timeout>.
-
-=head2 set_child_timeout
-
-Sets the value of the attribute C<child_timeout>. Expects an integer as parameter, in seconds.
 
 =head2 use_perl
 
@@ -362,14 +356,6 @@ Returns the content of C<password> attribute as a string.
 =head2 set_password
 
 Sets the C<password> attribute. Expects a string as parameter.
-
-=head2 get_wait_time
-
-Returns the content of the C<wait_time> attribute as a integer.
-
-=head2 set_wait_time
-
-Sets the attribute C<wait_time>. Expects a integer as parameter.
 
 =head2 get_commands
 
@@ -596,7 +582,8 @@ sub _check_error {
 This method is invoked before the object instance is destroyed. It does really few things like writting messages to the define configuration of
 L<Log::Log4perl> logger. It will also log if ALRM, INT or PIPE signals were received.
 
-Subclasses may want to C<override> the method "private" C<_my_cleanup> to do their properly laundry since the definition for this class is just C<return> true.
+Subclasses may want to C<override> the method "private" C<_my_cleanup> to do their properly laundry since the definition of C<_my_cleanup> for this class 
+is just to C<return> true. C<_my_cleanup> is called with a reference of a L<Log::Log4perl::Logger> instance for usage.
 
 =cut
 
@@ -609,7 +596,7 @@ sub DEMOLISH {
 
     $logger->info('Terminating daemon: preparing cleanup');
 
-    $self->_my_cleanup();
+    $self->_my_cleanup($logger);
 
     $logger->info('Cleanup is finished');
 
@@ -673,12 +660,6 @@ sub _setup_commands {
 }
 
 =pod
-
-=head1 CAVEATS
-
-This class is still considered experimental and should be used with care.
-
-The C<srvrmgr> program uses buffering, which makes difficult to read the generated output as expected.
 
 =head1 SEE ALSO
 
