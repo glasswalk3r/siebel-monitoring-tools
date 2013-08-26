@@ -51,18 +51,36 @@ sub class_methods : Tests(6) {
     isa_ok( $test->{action}->get_parser(),
         $parser_class, "get_parser returns a $parser_class instance" );
 
-    can_ok( $test->{action}, qw(new get_params get_parser get_params do) );
+    can_ok( $test->{action},
+        qw(new get_params get_parser get_params do do_parsed) );
 
-    ok(
-        $test->{action}->do( $test->get_my_data() ),
-        'do method works with get_my_data() method return'
-    );
+  SKIP: {
 
-    is( $test->{action}->do( $test->get_my_data() ),
-        1, 'do method returns 1 if output is used' );
+        skip 'superclass does not returns data with get_my_data', 1
+          if ( ref( $test->{action} ) eq 'Siebel::Srvrmgr::Daemon::Action' );
 
-    dies_ok( sub { $test->{action}->do('simple string') },
-        'do method raises an exception with wrong type of parameter' );
+		  warn ref($test->{action});
+
+        ok(
+            $test->{action}->do( $test->get_my_data() ),
+            'do method works with get_my_data()'
+        );
+
+    }
+
+  SKIP: {
+
+        skip 'tests just for superclass', 2
+          if (
+            ref( $test->{action} ) ne 'Siebel::Srvrmgr::Daemon::Action' );
+
+        dies_ok( sub { $test->{action}->do('simple string') },
+            'do method raises an exception with wrong type of parameter' );
+
+        dies_ok( sub { $test->{action}->do_parsed() },
+            'does_parsed of superclass causes an exception' );
+
+    }
 
     ok( $test->{action}->get_params(), 'get_params works returns data' );
 

@@ -45,7 +45,8 @@ sub get_my_data {
 
         if (@data) {
 
-            return $test->{data} = \@data;
+			$test->{data} = \@data;
+		    return $test->{data};
 
         }
 

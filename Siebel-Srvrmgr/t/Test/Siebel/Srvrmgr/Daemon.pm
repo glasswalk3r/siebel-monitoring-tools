@@ -9,6 +9,8 @@ use Siebel::Srvrmgr::Daemon::Command;
 use Log::Log4perl;
 use base 'Test::Siebel::Srvrmgr';
 
+$SIG{INT} = \&clean_up;
+
 sub _set_log {
 
     my $test = shift;
@@ -17,7 +19,7 @@ sub _set_log {
     $test->{log_cfg} = File::Spec->catfile( getcwd(), 'log4perl.cfg' );
 
     my $config = <<BLOCK;
-log4perl.logger.Siebel.Srvrmgr.Daemon = DEBUG, LOG1
+log4perl.logger.Siebel.Srvrmgr.Daemon = INFO, LOG1
 log4perl.appender.LOG1 = Log::Log4perl::Appender::File
 log4perl.appender.LOG1.filename  = $log_file
 log4perl.appender.LOG1.mode = clobber
@@ -160,12 +162,10 @@ sub runs : Test() {
 
     my $test = shift;
 
-    $SIG{INT} = \&clean_up;
-
   SKIP: {
 
         skip 'run method dies only with superclass', 1
-          if ( ref( $test->{daemon} eq 'Siebel::Srvrmgr::Daemon' ) );
+          if ( ref( $test->{daemon} ) ne 'Siebel::Srvrmgr::Daemon' );
 
         dies_ok { $test->{daemon}->run() } 'run is expected to die';
 

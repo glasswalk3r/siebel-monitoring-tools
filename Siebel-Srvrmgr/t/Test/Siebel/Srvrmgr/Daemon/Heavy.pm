@@ -64,8 +64,6 @@ sub runs : Tests(+10) {
 
 	$test->SUPER::runs();
 
-    $SIG{INT} = \&clean_up;
-
     ok( $test->{daemon}->run(), 'run method executes successfuly' );
     is( $test->{daemon}->get_child_runs(),
         1, 'get_child_runs returns the expected number' );
@@ -129,14 +127,14 @@ sub runs_much_more : Tests(60) {
 
 }
 
-sub runs_blocked : Test() {
-
-    my $test = shift;
-
-  TODO: {
-
-        local $TODO = 'Usage of alarm must be reviewed';
-
+#sub runs_blocked : Test() {
+#
+#    my $test = shift;
+#
+#  TODO: {
+#
+#        local $TODO = 'Usage of alarm must be reviewed';
+#
 #        $test->{daemon}->set_commands(
 #            [
 #                Siebel::Srvrmgr::Daemon::Command->new(
@@ -151,10 +149,10 @@ sub runs_blocked : Test() {
 #            ]
 #        );
 #        dies_ok { $test->{daemon}->run() } 'run method fail due timeout';
-
-    }
-
-}
+#
+#    }
+#
+#}
 
 sub runs_with_stderr : Test(4) {
 

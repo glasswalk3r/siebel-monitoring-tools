@@ -397,34 +397,6 @@ sub reset_retries {
 
 }
 
-sub _add_retry {
-
-    my ( $self, $new, $old ) = @_;
-
-    # if $old is undefined, this is the first call to run method
-    unless ( defined($old) ) {
-
-        return 0;
-
-    }
-    else {
-
-        if ( $new != $old ) {
-
-            $self->_set_retries( $self->get_retries() + 1 );
-            return 1;
-
-        }
-        else {
-
-            return 0;
-
-        }
-
-    }
-
-}
-
 # for better security
 sub _check_cmd {
 
