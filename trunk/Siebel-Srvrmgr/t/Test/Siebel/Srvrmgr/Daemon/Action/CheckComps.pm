@@ -78,7 +78,7 @@ sub class_methods : Tests(+2) {
 
     my $test = shift;
 
-	$test->SUPER::class_methods;
+	$test->SUPER::class_methods();
 
     my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
 

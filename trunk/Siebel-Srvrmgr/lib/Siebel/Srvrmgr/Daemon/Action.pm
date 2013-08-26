@@ -50,7 +50,6 @@ infinite loop.
 =cut
 
 use Moose;
-use MooseX::Params::Validate;
 use namespace::autoclean;
 use Carp;
 
@@ -128,8 +127,7 @@ This method does:
 sub do {
 
     my $self = shift;
-
-    my ($buffer) = pos_validated_list( \@_, { isa => 'ArrayRef' } );
+    my $buffer = shift;
 
     $self->get_parser()->parse($buffer);
 

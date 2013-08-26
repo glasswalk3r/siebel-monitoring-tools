@@ -83,10 +83,6 @@ use Carp qw(longmess);
 
 extends 'Siebel::Srvrmgr::Daemon';
 
-$SIG{INT}  = \&_term_INT;
-$SIG{PIPE} = \&_term_PIPE;
-$SIG{ALRM} = \&_term_ALARM;
-
 our $SIG_INT   = 0;
 our $SIG_PIPE  = 0;
 our $SIG_ALARM = 0;
@@ -178,6 +174,49 @@ has child_pid => (
     trigger   => \&_add_retry
 );
 
+sub _add_retry {
+
+    my ( $self, $new, $old ) = @_;
+
+    # if $old is undefined, this is the first call to run method
+    unless ( defined($old) ) {
+
+        return 0;
+
+    }
+    else {
+
+        unless ( $new == $old ) {
+
+            $self->_set_retries( $self->get_retries() + 1 );
+            return 1;
+
+        }
+        else {
+
+            return 0;
+
+        }
+
+    }
+
+}
+
+=pod
+
+=head2 BUILD
+
+This methods calls C<clear_pid> just to have a sane setting on C<child_pid> attribute.
+
+=cut
+
+sub BUILD {
+
+    my $self = shift;
+    $self->clear_pid();
+
+}
+
 =pod
 
 =head2 last_exec_cmd
@@ -265,6 +304,8 @@ has alarm_timeout => (
 A integer describing the size of the buffer used to read output from srvrmgr program by using IPC.
 
 It defaults to 5120 bytes, but it can be adjusted to improve performance (lowering CPU usage by increasing memory utilization).
+
+Increase of this attribute should be considered experimental.
 
 =cut
 
@@ -428,6 +469,8 @@ sub run {
 
     }
 
+    $self->_check_child($logger);
+
     $logger->info('Starting run method');
 
 # :WARNING:28/06/2011 19:47:26:: reading the output is hanging without a dummy input
@@ -447,7 +490,6 @@ sub run {
     my $parser = Siebel::Srvrmgr::ListParser->new();
 
     my $select = IO::Select->new();
-    $select->add( $self->get_read(), $self->get_error() );
 
     # to keep data from both handles while looping over them
     my %data;
@@ -459,6 +501,7 @@ sub run {
 
         $data{$fh_name}  = undef;
         $data{$fh_bytes} = 0;
+        $select->add($fh);
 
     }
 
@@ -510,6 +553,7 @@ sub run {
                     $logger->debug( 'Reading filehandle ' . fileno($fh) );
                     my $assert = 'Input record separator is ';
 
+ # :TODO      :26/08/2013 18:14:37:: must use constants from Socket/IO::Socket for CRLF values
                     given ($/) {
 
                         when ( $/ eq "\015" ) {
@@ -564,14 +608,14 @@ sub run {
 
                     $logger->logdie( 'sysreading from '
                           . $fh_name
-                          . ' returned an unrecoverable error' )
-                      ;    # unless ( $!{ECONNRESET} );
+                          . ' returned an unrecoverable error' );
 
                 }
                 else {
 
                     if ( $data{$fh_bytes} == 0 ) {
 
+                        $logger->warn( 'got EOF from ' . fileno($fh) . '?' );
                         $select->remove($fh);
                         next;
 
@@ -651,7 +695,7 @@ sub run {
                 }
             );
 
-# :TODO      :16/08/2013 19:03:30:: remove this log statement to Siebel::Srvrmgr::Daemon::Action
+# :TODO      :16/08/2013 19:03:30:: move this log statement to Siebel::Srvrmgr::Daemon::Action
             if ( $logger->is_debug() ) {
 
                 $logger->debug('Lines from buffer sent for parsing');
@@ -904,9 +948,6 @@ sub _process_stdout {
 
                 # parsers will consider the lines below
                 push( @{$buffer_ref}, $line );
-
-# :TODO      :08/08/2013 15:25:46:: check if sending a new line without anything else is still necessary after select() implementation
-#syswrite $self->get_write(), "\n";
 
             }
 

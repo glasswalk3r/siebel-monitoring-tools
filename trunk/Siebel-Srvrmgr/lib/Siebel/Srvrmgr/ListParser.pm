@@ -511,23 +511,15 @@ This method will raise an exception if a given output cannot be identified by th
 
 sub parse {
 
-    my $self = shift;
-
-    # array ref
+    my $self     = shift;
     my $data_ref = shift;
 
     my $log_cfg = Siebel::Srvrmgr->logging_cfg();
 
-    die 'Could not start logging facilities'
-      unless ( Log::Log4perl->init_once( \$log_cfg ) );
-
     my $logger = Log::Log4perl->get_logger('Siebel::Srvrmgr::ListParser');
     weaken($logger);
 
-    die "data parameter must be an array reference\n"
-      unless ( ref($data_ref) eq 'ARRAY' );
-
-    warn "received an empty buffer" unless ( @{$data_ref} );
+    $logger->warn('received an empty buffer') unless ( @{$data_ref} );
 
     my $fsa = Siebel::Srvrmgr::ListParser::FSA->get_fsa($logger);
     weaken($fsa);
