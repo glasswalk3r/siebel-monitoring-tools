@@ -8,6 +8,7 @@ use Siebel::Srvrmgr::Daemon;
 use Siebel::Srvrmgr::Daemon::Command;
 use Log::Log4perl;
 use base 'Test::Siebel::Srvrmgr';
+use Siebel::Srvrmgr;
 
 $SIG{INT} = \&clean_up;
 
@@ -40,59 +41,71 @@ BLOCK
 sub _constructor : Tests(+2) {
 
     my $test = shift;
-
-    my $cmd = File::Spec->catfile( getcwd(), 'srvrmgr-mock.pl' );
     $test->_set_log();
 
+  SKIP: {
+
+        skip 'superclass does not have a implementation of _setup_commands', 2
+          if ( $test->class() eq 'Siebel::Srvrmgr::Daemon' );
+
 # this data structure will make more sense when saw in use by the following foreach loop
-    $test->{test_data} = [
-        [qw(get_server set_server foo)],
-        [qw(get_gateway set_gateway bar)],
-        [qw(get_enterprise set_enterprise foobar)],
-        [qw(get_user set_user sadmin)],
-        [qw(get_password set_password my_pass)],
-        [ 'get_bin', 'set_bin', $cmd ]
-    ];
+        $test->{test_data} = [
+            [qw(get_server set_server foo)],
+            [qw(get_gateway set_gateway bar)],
+            [qw(get_enterprise set_enterprise foobar)],
+            [qw(get_user set_user sadmin)],
+            [qw(get_password set_password my_pass)],
+            [
+                'get_bin', 'set_bin',
+                File::Spec->catfile( getcwd(), 'srvrmgr-mock.pl' )
+            ]
+        ];
 
-    ok(
-        $test->{daemon} = $test->class()->new(
-            {
-                server      => $test->{test_data}->[0]->[2],
-                gateway     => $test->{test_data}->[1]->[2],
-                enterprise  => $test->{test_data}->[2]->[2],
-                user        => $test->{test_data}->[3]->[2],
-                password    => $test->{test_data}->[4]->[2],
-                bin         => $test->{test_data}->[5]->[2],
-                is_infinite => 0,
-                use_perl    => 1
-                , # important to avoid calling another interpreter besides perl when invoked by IPC::Open3
-                commands => [
-                    Siebel::Srvrmgr::Daemon::Command->new(
-                        command => 'load preferences',
-                        action  => 'LoadPreferences'
-                    ),
-                    Siebel::Srvrmgr::Daemon::Command->new(
-                        command => 'list comp type',
-                        action  => 'ListCompTypes',
-                        params  => ['dump1']
-                    ),
-                    Siebel::Srvrmgr::Daemon::Command->new(
-                        command => 'list comp',
-                        action  => 'ListComps',
-                        params  => ['dump2']
-                    ),
-                    Siebel::Srvrmgr::Daemon::Command->new(
-                        command => 'list comp def',
-                        action  => 'ListCompDef',
-                        params  => ['dump3']
-                    )
-                ]
-            }
-        ),
-        '... and the constructor should succeed'
-    );
+        ok(
+            $test->{daemon} = $test->class()->new(
+                {
+                    server      => $test->{test_data}->[0]->[2],
+                    gateway     => $test->{test_data}->[1]->[2],
+                    enterprise  => $test->{test_data}->[2]->[2],
+                    user        => $test->{test_data}->[3]->[2],
+                    password    => $test->{test_data}->[4]->[2],
+                    bin         => $test->{test_data}->[5]->[2],
+                    is_infinite => 0,
+                    use_perl    => 1
+                    , # important to avoid calling another interpreter besides perl when invoked by IPC::Open3
+                    commands => [
+                        Siebel::Srvrmgr::Daemon::Command->new(
+                            command => 'load preferences',
+                            action  => 'LoadPreferences'
+                        ),
+                        Siebel::Srvrmgr::Daemon::Command->new(
+                            command => 'list comp type',
+                            action  => 'ListCompTypes',
+                            params  => ['dump1']
+                        ),
+                        Siebel::Srvrmgr::Daemon::Command->new(
+                            command => 'list comp',
+                            action  => 'ListComps',
+                            params  => ['dump2']
+                        ),
+                        Siebel::Srvrmgr::Daemon::Command->new(
+                            command => 'list comp def',
+                            action  => 'ListCompDef',
+                            params  => ['dump3']
+                        )
+                    ]
+                }
+            ),
+            '... and the constructor should succeed'
+        );
 
-    isa_ok( $test->{daemon}, $test->class() );
+        isa_ok( $test->{daemon}, $test->class() );
+
+    }    # end of SKIP
+
+    $test->{daemon} = $test->class()
+      unless ( ( defined( $test->{daemon} ) )
+        and ( $test->{daemon}->isa( $test->class() ) ) );
 
 }
 
@@ -116,27 +129,36 @@ sub class_methods : Tests(22) {
             'get_lang_id',    'set_lang_id',
             'get_child_runs', '_set_child_runs',
             'shift_commands', '_check_error',
-            'gimme_logger',   '_check_cmd'
+            '_check_cmd'
         )
     );
 
-    ok( $test->{daemon}->_setup_commands(), '_setup_commands works' );
-    is( $test->{daemon}->is_infinite(), 0, 'is_infinite must return false' );
+  SKIP: {
 
-    foreach my $attrib ( @{ $test->{test_data} } ) {
+        skip 'superclass cannot run this command', 21
+          if ( $test->class() eq 'Siebel::Srvrmgr::Daemon' );
 
-        my $get = $attrib->[0];
-        my $set = $attrib->[1];
+        ok( $test->{daemon}->_setup_commands(), '_setup_commands works' );
 
-        is( $test->{daemon}->$get(),
-            $attrib->[2], "$get returns the correct string" );
-        ok( $test->{daemon}->$set( $attrib->[2] ), "$set works" );
-        is( $test->{daemon}->$get(),
-            $attrib->[2], "$get returns the correct string after change" );
+        is( $test->{daemon}->is_infinite(), 0,
+            'is_infinite must return false' );
+
+        foreach my $attrib ( @{ $test->{test_data} } ) {
+
+            my $get = $attrib->[0];
+            my $set = $attrib->[1];
+
+            is( $test->{daemon}->$get(),
+                $attrib->[2], "$get returns the correct string" );
+            ok( $test->{daemon}->$set( $attrib->[2] ), "$set works" );
+            is( $test->{daemon}->$get(),
+                $attrib->[2], "$get returns the correct string after change" );
+
+        }
+
+        isa_ok( Siebel::Srvrmgr->gimme_logger(), 'Log::Log4perl::Logger' );
 
     }
-
-    isa_ok( $test->{daemon}->gimme_logger(), 'Log::Log4perl::Logger' );
 
 }
 

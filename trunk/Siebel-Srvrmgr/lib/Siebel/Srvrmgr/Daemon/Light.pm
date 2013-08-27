@@ -4,7 +4,7 @@ package Siebel::Srvrmgr::Daemon::Light;
 
 =head1 NAME
 
-Siebel::Srvrmgr::Daemon - class for interactive sessions with Siebel srvrmgr program
+Siebel::Srvrmgr::Daemon::Light - class for running commmands with Siebel srvrmgr program
 
 =head1 SYNOPSIS
 
@@ -46,28 +46,15 @@ Siebel::Srvrmgr::Daemon - class for interactive sessions with Siebel srvrmgr pro
 
 =head1 DESCRIPTION
 
-This class is used to execute the C<srvrmgr> program and execute commands through it.
+This is a subclass of L<Siebel::Srvrmgr::Daemon> used to execute the C<srvrmgr> program in batch mode. For a better understanding of what batch mode means, 
+check out srvrmgr documentation.
 
-The sessions are not "interactive" from the user point of view but the usage of this class enable the adoption of some logic to change how the commands will be executed or
-even generate commands on the fly.
+This class is recomended for cases where it is not necessary to run several commmands through srvrmgr in a short period of time because in batch mode it will
+connect to the Siebel Gateway, execute the commands configured and exit, avoiding keeping a connection opened for a long time. For UNIX-like OS, this class
+would be a good choice for using with Inetd and Xinetd daemons.
 
-The logic behind this class is easy: you can submit a pair of command/action to the class. It will then connect to the server by executing C<srvrmgr>, submit the command to the server
-and recover the output generated. The action will be executed having this output as parameter. Anything could be considered as an action, from simple storing the output to even generating
-new commands to be executed in the server.
-
-A command is any command supported from C<srvrmgr> program. An action can be any class but is obligatory to create a subclass of L<Siebel::Srvrmgr::Daemon::Action> base class. See the <commands>
-attribute for details.
-
-The object will create an loop to interact with the C<srvrmgr> program to execute the commands and actions as requested. This loop might be infinite, where the C<commands> attribute will be restarted when the
-stack is finished.
-
-The C<srvrmgr> program will be executed by using IPC: this means that this method should be portable. Once the connection is made (see the C<run> method) it will not be dropped after commands execution but it will
-be done automatically when the instance of this class goes out of scope. The instance is also able to deal with C<INT> signal and close connection as appropriate: the class will first try to submit a C<exit> command
-through C<srvrmgr> program and if it's not terminated automatically the PID will be ripped.
-
-Logging of this class can be enabled by using L<Siebel::Srvrmgr> logging feature.
-
-This module is based on L<IPC::Open3::Callback> from Lucas Theisen (see SEE ALSO section).
+This class is also highly recommended for OS plataforms like Microsoft Windows where IPC is not reliable enough, since this class uses C<system> instead of
+L<IPC::Open3>.
 
 =cut
 
@@ -83,12 +70,17 @@ use Config;
 use Carp qw(longmess);
 use File::Temp qw(:POSIX);
 use Data::Dumper;
+use Siebel::Srvrmgr;
 
 extends 'Siebel::Srvrmgr::Daemon';
 
 =pod
 
 =head1 ATTRIBUTES
+
+=head2 output_file
+
+A string that represents the "/o" command line parameter of srvrmgr. It is defined internally, so it is read-only.
 
 =cut
 
@@ -98,6 +90,14 @@ has output_file => (
     reader => 'get_output_file',
     writer => '_set_output_file'
 );
+
+=pod
+
+=head2 input_file
+
+A string that represents the "/i" command line parameter of srvrmgr. It is defined internally, so it is read-only.
+
+=cut
 
 has input_file => (
     isa    => 'Str',
@@ -113,6 +113,10 @@ has input_file => (
 =head2 get_output_file
 
 Returns the content of the C<output_file> attribute.
+
+=head2 get_input_file
+
+Returns the content of the C<input_file> attribute.
 
 =head2 run
 
@@ -131,7 +135,7 @@ sub run {
 
     my $self = shift;
 
-    my $logger = __PACKAGE__->gimme_logger();
+    my $logger = Siebel::Srvrmgr->gimme_logger();
     weaken($logger);
     $logger->info('Starting run method');
 
@@ -220,6 +224,19 @@ sub run {
     return 1;
 
 }
+
+=pod
+
+=head2 cmds_vs_tree
+
+Expects the number of parsed nodes as parameter.
+
+This method compares the number of C<commands> defined in a instance of this class with the number of nodes passed as parameter.
+
+If their are equal, the number is returned. If their are different (and there is a problem with the parsed output of srvrmgr) this method
+returns C<undef>.
+
+=cut
 
 sub cmds_vs_tree {
 
@@ -423,7 +440,7 @@ The C<srvrmgr> program uses buffering, which makes difficult to read the generat
 
 =head1 SEE ALSO
 
-=over 7 
+=over
 
 =item *
 
@@ -453,19 +470,15 @@ L<POSIX>
 
 L<Siebel::Srvrmgr::Daemon::Command>
 
-=item *
-
-L<https://github.com/lucastheisen/ipc-open3-callback>
-
 =back
 
 =head1 AUTHOR
 
-Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<E<gt>
+Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>.
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2012 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<E<gt>
+This software is copyright (c) 2012 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>.
 
 This file is part of Siebel Monitoring Tools.
 
@@ -480,7 +493,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with Siebel Monitoring Tools.  If not, see <http://www.gnu.org/licenses/>.
+along with Siebel Monitoring Tools.  If not, see L<http://www.gnu.org/licenses/>.
 
 =cut
 

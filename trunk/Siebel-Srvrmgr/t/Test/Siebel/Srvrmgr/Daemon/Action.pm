@@ -59,8 +59,6 @@ sub class_methods : Tests(6) {
         skip 'superclass does not returns data with get_my_data', 1
           if ( ref( $test->{action} ) eq 'Siebel::Srvrmgr::Daemon::Action' );
 
-		  warn ref($test->{action});
-
         ok(
             $test->{action}->do( $test->get_my_data() ),
             'do method works with get_my_data()'

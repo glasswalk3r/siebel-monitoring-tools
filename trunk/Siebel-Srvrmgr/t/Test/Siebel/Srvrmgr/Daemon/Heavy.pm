@@ -8,6 +8,7 @@ use Siebel::Srvrmgr::Daemon::Heavy;
 use Config;
 use Test::Memory::Cycle;
 use base 'Test::Siebel::Srvrmgr::Daemon';
+use Siebel::Srvrmgr;
 
 sub class_methods : Test(+1) {
 
@@ -220,7 +221,7 @@ sub _poke_child {
 sub terminator : Tests(4) {
 
     my $test   = shift;
-    my $logger = $test->{daemon}->gimme_logger();
+    my $logger = Siebel::Srvrmgr->gimme_logger();
 
     ok( $test->{daemon}->close_child($logger),
         'close_child returns true (termined child process)' );

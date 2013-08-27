@@ -514,12 +514,11 @@ sub parse {
     my $self     = shift;
     my $data_ref = shift;
 
-    my $log_cfg = Siebel::Srvrmgr->logging_cfg();
-
-    my $logger = Log::Log4perl->get_logger('Siebel::Srvrmgr::ListParser');
+    my $logger = Siebel::Srvrmgr->gimme_logger();
     weaken($logger);
 
-    $logger->warn('received an empty buffer') unless ( @{$data_ref} );
+    $logger->logdie( 'Received an invalid buffer: ' . ref($data_ref) )
+      unless ( ( defined($data_ref) ) and ( ref($data_ref) eq 'ARRAY' ) );
 
     my $fsa = Siebel::Srvrmgr::ListParser::FSA->get_fsa($logger);
     weaken($fsa);
@@ -556,7 +555,6 @@ sub parse {
     undef $fsa;
 
     undef $data_ref;
-    undef $log_cfg;
 
 # :WORKAROUND:21/06/2013 20:36:08:: if parse method is called twice, without calling clear_buffer, the buffer will be reused
 # and the returned data will be invalid due removal of the last three lines by Siebel::Srvrmgr::ListParser::Output->parse
@@ -630,7 +628,7 @@ Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<E<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2012 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<E<gt>
+This software is copyright (c) 2012 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
 
 This file is part of Siebel Monitoring Tools.
 

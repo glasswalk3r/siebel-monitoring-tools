@@ -80,6 +80,8 @@ use Siebel::Srvrmgr::IPC;
 use IO::Select;
 use Encode;
 use Carp qw(longmess);
+use Socket qw(:crlf);
+use Siebel::Srvrmgr;
 
 extends 'Siebel::Srvrmgr::Daemon';
 
@@ -388,7 +390,7 @@ Returns the content of the attribute C<params_stack>.
 
 =cut
 
-sub _setup_commands {
+override '_setup_commands' => sub {
 
     my $self     = shift;
     my $cmds_ref = $self->get_commands();
@@ -411,7 +413,7 @@ sub _setup_commands {
 
     return 1;
 
-}
+};
 
 =pod
 
@@ -461,7 +463,7 @@ sub run {
     }
     else {
 
-        $logger = __PACKAGE__->gimme_logger();
+        $logger = Siebel::Srvrmgr->gimme_logger();
         weaken($logger);
         $logger->info( 'Reusing PID ', $self->get_pid() )
           if ( $logger->is_debug() );
@@ -553,16 +555,15 @@ sub run {
                     $logger->debug( 'Reading filehandle ' . fileno($fh) );
                     my $assert = 'Input record separator is ';
 
- # :TODO      :26/08/2013 18:14:37:: must use constants from Socket/IO::Socket for CRLF values
                     given ($/) {
 
-                        when ( $/ eq "\015" ) {
+                        when ( $/ eq CR ) {
                             $logger->debug( $assert . 'CR' )
                         }
-                        when ( $/ eq "\015\012" ) {
+                        when ( $/ eq CRLF ) {
                             $logger->debug( $assert . 'CRLF' )
                         }
-                        when ( $/ eq "\012" ) {
+                        when ( $/ eq LF ) {
                             $logger->debug( $assert . 'LF' )
                         }
                         default {
@@ -588,6 +589,11 @@ sub run {
                         'Caught part of a record, repeating sysread with offset'
                     ) if ( $logger->is_info() );
 
+              # Like all Perl character operations, length() normally deals in
+              # logical characters, not physical bytes. For how many bytes a
+              # string encoded as UTF-8 would take up, use
+              # "length(Encode::encode_utf8(EXPR))" (you'll have to "use Encode"
+              # first). See Encode and perlunicode.
                     my $offset =
                       length( Encode::encode_utf8( $data{$fh_name} ) );
 
@@ -622,7 +628,7 @@ sub run {
                     }
 
                     if (    ( $data{$fh_bytes} == $self->get_buffer_size() )
-                        and ( $data{$fh_name} !~ /\015\012$/ ) )
+                        and ( $data{$fh_name} !~ /CRLF$/ ) )
                     {
 
                         $logger->debug(
@@ -710,7 +716,7 @@ sub run {
 
             }
 
-# :WORKAROUND:16/08/2013 18:54:51:: exceptions from validating output are not being seem
+# :WORKAROUND:16/08/2013 18:54:51:: exceptions from validating output are not being seen
 # :TODO      :16/08/2013 18:55:18:: start using TryCatch to use exceptions for known problems
             eval {
 
@@ -718,7 +724,7 @@ sub run {
 
             };
 
-            $logger->fatal($@) if ($@);
+            $logger->logdie($@) if ($@);
 
             $logger->debug( 'Is output used? ' . $condition->is_output_used() )
               if ( $logger->is_debug() );
@@ -811,7 +817,7 @@ sub _create_child {
 
     if ( $self->get_retries() >= $self->get_max_retries() ) {
 
-        my $logger = __PACKAGE__->gimme_logger();
+        my $logger = Siebel::Srvrmgr->gimme_logger();
         weaken($logger);
         $logger->fatal( 'Maximum retries to spawn srvrmgr reached: '
               . $self->get_max_retries() );
@@ -833,7 +839,7 @@ sub _create_child {
     $self->_set_read($read_h);
     $self->_set_error($error_h);
 
-    my $logger = __PACKAGE__->gimme_logger();
+    my $logger = Siebel::Srvrmgr->gimme_logger();
     weaken($logger);
 
     if ( $logger->is_debug() ) {
@@ -1437,11 +1443,11 @@ L<https://github.com/lucastheisen/ipc-open3-callback>
 
 =head1 AUTHOR
 
-Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<E<gt>
+Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>.
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2012 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<E<gt>
+This software is copyright (c) 2012 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
 
 This file is part of Siebel Monitoring Tools.
 
@@ -1456,7 +1462,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with Siebel Monitoring Tools.  If not, see <http://www.gnu.org/licenses/>.
+along with Siebel Monitoring Tools.  If not, see L<http://www.gnu.org/licenses/>.
 
 =cut
 

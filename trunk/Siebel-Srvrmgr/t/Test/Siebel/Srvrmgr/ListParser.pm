@@ -5,13 +5,13 @@ use Test::Moose 'has_attribute_ok';
 use Test::Memory::Cycle;
 use base 'Test::Siebel::Srvrmgr';
 
-sub class_attributes : Tests(7) {
+sub class_attributes : Tests(8) {
 
     my $test = shift;
 
     my @attribs = (
         'parsed_tree',  'has_tree',       'prompt_regex', 'hello_regex',
-        'last_command', 'is_cmd_changed', 'buffer'
+        'last_command', 'is_cmd_changed', 'buffer',       'enterprise'
     );
 
     foreach my $attrib (@attribs) {
@@ -36,7 +36,7 @@ sub _constructor : Test(2) {
 
 }
 
-sub class_methods : Tests(8) {
+sub class_methods : Tests(9) {
 
     my $test  = shift;
     my $class = $test->class;
@@ -53,7 +53,8 @@ sub class_methods : Tests(8) {
             'count_parsed',     'clear_parsed_tree',
             'set_parsed_tree',  'append_output',
             'parse',            'get_buffer',
-            'new'
+            'new',              'get_enterprise',
+            '_set_enterprise'
         )
     );
 
@@ -64,6 +65,9 @@ sub class_methods : Tests(8) {
     );
 
     ok( $test->{parser}->parse( $test->get_my_data() ), 'parse method works' );
+
+    isa_ok( $test->{parser}->get_enterprise(),
+        'Siebel::Srvrmgr::ListParser::Output::Greetings' );
 
     is(
         scalar( @{ $test->{parser}->get_buffer() } ),
@@ -80,18 +84,19 @@ sub class_methods : Tests(8) {
     is( $test->{parser}->get_last_command(),
         $last_cmd, "get_last_command method returns $last_cmd" );
 
-    my $total_itens = 7;
+    my $total_itens = 6;
 
     is( $test->{parser}->count_parsed(),
         $total_itens, "count_parsed method returns $total_itens" );
 
 }
 
-sub circular_references: Test {
+sub circular_references : Test {
 
-	my $test = shift;
+    my $test = shift;
 
-	memory_cycle_ok($test->{parser}, 'Siebel::Srvrmgr::ListParser does not have circular references');
+    memory_cycle_ok( $test->{parser},
+        'Siebel::Srvrmgr::ListParser does not have circular references' );
 
 }
 

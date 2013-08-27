@@ -4,6 +4,7 @@ use File::Spec;
 use Siebel::Srvrmgr::ListParser;
 use Cwd;
 use Test::More;
+use Socket qw(:crlf);
 
 my $output_filename = '8.1.1.5_21229.txt';
 
@@ -15,8 +16,8 @@ my @data;
 
 while (<$in>) {
 
-    s/\r\n$//;
-    s/\n$//;
+    s/CRLF$//;
+    s/LF$//;
     push( @data, $_ );
 
 }
@@ -30,7 +31,6 @@ $parser->parse( \@data );
 my $res = $parser->get_parsed_tree();
 
 my @expected = (
-    'Siebel::Srvrmgr::ListParser::Output::Greetings',
     'Siebel::Srvrmgr::ListParser::Output::LoadPreferences',
     'Siebel::Srvrmgr::ListParser::Output::ListComp',
     'Siebel::Srvrmgr::ListParser::Output::ListCompTypes',
@@ -43,11 +43,27 @@ my @expected = (
     'Siebel::Srvrmgr::ListParser::Output::ListServers'
 );
 
-# +1 from the is test below
-plan tests => ( scalar(@expected) + 1 );
+# + the tests below
+plan tests => ( scalar(@expected) + 7 );
 
 is( scalar( @{$res} ),
     scalar(@expected), 'the expected number of parsed objects is returned' );
+
+isa_ok( $parser->get_enterprise(),
+    'Siebel::Srvrmgr::ListParser::Output::Greetings' );
+is( $parser->get_enterprise()->get_version(),
+    '8.1.1.5', 'enterprise attribute has the correct version' );
+is( $parser->get_enterprise()->get_patch(),
+    '21229', 'enterprise attribute has the correct patch number' );
+is( $parser->get_enterprise()->get_patch(),
+    '21229', 'enterprise attribute has the correct patch number' );
+is( $parser->get_enterprise()->get_total_servers(),
+    4, 'enterprise attribute returns the correct number of servers' );
+is(
+    $parser->get_enterprise()->get_total_servers(),
+    $parser->get_enterprise()->get_total_conn(),
+'enterprise attribute has the correct number of servers and connected servers'
+);
 
 SKIP: {
 
