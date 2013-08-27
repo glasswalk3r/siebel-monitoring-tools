@@ -45,7 +45,6 @@ use Siebel::Srvrmgr;
 use Scalar::Util qw(weaken);
 use Config;
 use Carp qw(longmess);
-use Log::Log4perl;
 
 our $SIG_INT   = 0;
 our $SIG_PIPE  = 0;
@@ -156,7 +155,7 @@ has commands => (
     required => 1,
     reader   => 'get_commands',
     writer   => 'set_commands',
-    trigger  => \&_call_setup_commands
+    trigger  => sub { my $self = shift; $self->_setup_commands() }
 );
 
 =pod
@@ -563,7 +562,7 @@ sub DEMOLISH {
 
     my $self = shift;
 
-    my $logger = __PACKAGE__->gimme_logger();
+    my $logger = Siebel::Srvrmgr->gimme_logger();
     weaken($logger);
 
     $logger->info('Terminating daemon: preparing cleanup');
@@ -587,47 +586,19 @@ sub DEMOLISH {
 
 }
 
-=pod
-
-=head2 gimme_logger
-
-This method returns a L<Log::Log4perl::Logger> object as defined for L<Siebel::Srvrmgr> module.
-
-It can be invoke both from a instance of Siebel::Srvrmgr::Daemon and the package itself.
-
-=cut
-
-sub gimme_logger {
-
-    my $cfg = Siebel::Srvrmgr->logging_cfg();
-
-    die "Could not start logging facilities"
-      unless ( Log::Log4perl->init_once( \$cfg ) );
-
-    return Log::Log4perl->get_logger('Siebel::Srvrmgr::Daemon');
-
-}
-
 sub _my_cleanup {
 
     return 1;
 
 }
 
-sub _call_setup_commands {
+sub _setup_commands {
 
     my $self = shift;
 
-    $self->_setup_commands();
-
-}
-
-sub _setup_commands {
-
-    warn
-'_setup_commands must be overrided by subclasses of Siebel::Srvrmgr::Daemon';
-
-    return 1;
+    confess(
+'_setup_commands from Siebel::Srvrmgr::Daemon must be overrided by subclass '
+          . ref($self) );
 
 }
 
@@ -669,7 +640,7 @@ Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<E<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2012 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<E<gt>
+This software is copyright (c) 2012 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
 
 This file is part of Siebel Monitoring Tools.
 

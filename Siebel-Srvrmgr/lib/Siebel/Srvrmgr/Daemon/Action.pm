@@ -189,10 +189,6 @@ L<Moose::Manual::MethodModifiers>
 
 =item *
 
-L<MooseX::Params::Validate>
-
-=item *
-
 L<Siebel::Srvrmgr::ListParser>
 
 =item *

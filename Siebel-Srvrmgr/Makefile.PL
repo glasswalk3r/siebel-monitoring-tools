@@ -16,7 +16,6 @@ my %config = (
         'FSA::Rules'                   => 0.29,
         'MooseX::Storage'              => 0.33,
         'Moose::Util::TypeConstraints' => 2.0402,
-        'MooseX::Params::Validate'     => 0.15,
         'MooseX::AbstractFactory'      => 0.004000,
         'MooseX::Singleton'            => 0.27,
         'MooseX::FollowPBP'            => 0.05,

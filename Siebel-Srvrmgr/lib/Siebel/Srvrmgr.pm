@@ -1,8 +1,44 @@
 package Siebel::Srvrmgr;
 use warnings;
 use strict;
+use Log::Log4perl;
 
 our $VERSION = '0.10';
+
+=pod
+
+=head1 NAME
+
+Siebel::Srvrmgr - utilities to be used with the Siebel srvrmgr program
+
+=head1 DESCRIPTION
+
+The distribution Siebel-Srvrmgr was created to define a set of tools to interact with the C<srvrmgr> program from Siebel.
+
+It was started initially to create a parser for the project Siebel Monitoring Tools (L<http://code.google.com/p/siebel-monitoring-tools/>) and later was grown to a 
+set of more generic functionality, thus making sense to be published at CPAN.
+
+This package used to be only Pod, but since release 0.09 it has a logging feature. See logging_cfg for details.
+
+=head1 CLASS METHODS
+
+=head2 logging_cfg
+
+Returns a string with the configuration to be used by a L<Log::Log4perl> instance.
+
+The configuration of L<Log::Log4perl> is available after the C<__DATA__> code block of this package. Logging is disabled by default, but it can be enabled by
+only commenting the line:
+
+    log4perl.threshold = OFF
+
+with the default "#" Perl comment character.
+
+Logging is quite flexible (see L<Log::Log4perl> for details) but the default configuration uses only FATAL level printing messages to STDOUT.
+
+It is also possible to set a different L<Log::Log4perl> configuration file by setting the environment variable SIEBEL_SRVRMGR_DEBUG with the complet location to the
+configuration file. This module will look first for this variable configuration and if found, will try to use the configuration from there.
+
+=cut
 
 sub logging_cfg {
 
@@ -40,46 +76,32 @@ sub logging_cfg {
 
 }
 
-1;
+=pod
+
+=head2 gimme_logger
+
+This method returns a L<Log::Log4perl::Logger> object as defined by the C<logging_cfg> method.
+
+=cut
+
+sub gimme_logger {
+
+    my $cfg = Siebel::Srvrmgr->logging_cfg();
+
+    die "Could not start logging facilities"
+      unless ( Log::Log4perl->init_once( \$cfg ) );
+
+    return Log::Log4perl->get_logger('Siebel::Srvrmgr::Daemon');
+
+}
 
 =pod
 
-=head1 NAME
-
-Siebel::Srvrmgr - utilities to be used with the Siebel srvrmgr program
-
-=head1 DESCRIPTION
-
-The distribution Siebel-Srvrmgr was created to define a set of tools to interact with the C<srvrmgr> program from Siebel.
-
-It was started initially to create a parser for the project Siebel Monitoring Tools (L<http://code.google.com/p/siebel-monitoring-tools/>) and later was grown to a 
-set of more generic functionality, thus making sense to be published at CPAN.
-
-This package used to be only Pod, but since release 0.09 it has a logging feature. See logging_cfg for details.
-
-=head1 CLASS METHODS
-
-=head2 logging_cfg
-
-Returns a string with the configuration to be used by a L<Log::Log4perl> instance.
-
-The configuration of L<Log::Log4perl> is available after the C<__DATA__> code block of this package. Logging is disabled by default, but it can be enabled by
-only commenting the line:
-
-    log4perl.threshold = OFF
-
-with the default "#" Perl comment character.
-
-Logging is quite flexible (see L<Log::Log4perl> for details) but the default configuration uses only FATAL level printing messages to STDOUT.
-
-It is also possible to set a different L<Log::Log4perl> configuration file by setting the environment variable SIEBEL_SRVRMGR_DEBUG with the complet location to the
-configuration file. This module will look first for this variable configuration and if found, will try to use the configuration from there.
-
 =head1 SEE ALSO
 
-The classes below might give you a introduction of the available classes and features.
+The classes below might give you a introduction of the available classes and features:
 
-=over 3
+=over
 
 =item *
 
@@ -97,11 +119,11 @@ The project web page at L<http://code.google.com/p/siebel-monitoring-tools/> con
 
 =head1 AUTHOR
 
-Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<E<gt>
+Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2012 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<E<gt>
+This software is copyright (c) 2012 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
 
 This file is part of Siebel Monitoring Tools.
 
@@ -119,6 +141,8 @@ You should have received a copy of the GNU General Public License
 along with Siebel Monitoring Tools.  If not, see <http://www.gnu.org/licenses/>.
 
 =cut
+
+1;
 
 __DATA__
 log4perl.threshold = OFF
