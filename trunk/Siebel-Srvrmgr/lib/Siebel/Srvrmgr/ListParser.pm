@@ -514,7 +514,7 @@ sub parse {
     my $self     = shift;
     my $data_ref = shift;
 
-    my $logger = Siebel::Srvrmgr->gimme_logger();
+    my $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );
     weaken($logger);
 
     $logger->logdie( 'Received an invalid buffer: ' . ref($data_ref) )

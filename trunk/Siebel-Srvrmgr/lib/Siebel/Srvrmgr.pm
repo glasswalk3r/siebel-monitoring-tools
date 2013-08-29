@@ -2,6 +2,7 @@ package Siebel::Srvrmgr;
 use warnings;
 use strict;
 use Log::Log4perl;
+use Carp;
 
 our $VERSION = '0.10';
 
@@ -35,7 +36,7 @@ with the default "#" Perl comment character.
 
 Logging is quite flexible (see L<Log::Log4perl> for details) but the default configuration uses only FATAL level printing messages to STDOUT.
 
-It is also possible to set a different L<Log::Log4perl> configuration file by setting the environment variable SIEBEL_SRVRMGR_DEBUG with the complet location to the
+It is also possible to set a different L<Log::Log4perl> configuration file by setting the environment variable SIEBEL_SRVRMGR_DEBUG with the complete location to the
 configuration file. This module will look first for this variable configuration and if found, will try to use the configuration from there.
 
 =cut
@@ -53,14 +54,14 @@ sub logging_cfg {
         {
 
             open( my $in, '<', $ENV{SIEBEL_SRVRMGR_DEBUG} )
-              or die "Cannot read $ENV{SIEBEL_SRVRMGR_DEBUG}: $!";
+              or confess "Cannot read $ENV{SIEBEL_SRVRMGR_DEBUG}: $!";
             $cfg = <$in>;
             close($in);
 
         }
         else {
 
-            die
+            confess
 'ENV SIEBEL_SRVRMGR_DEBUG is defined but the value does not exists in the filesystem or is not a file';
 
         }
@@ -86,12 +87,16 @@ This method returns a L<Log::Log4perl::Logger> object as defined by the C<loggin
 
 sub gimme_logger {
 
-    my $cfg = Siebel::Srvrmgr->logging_cfg();
+    my $class   = shift;
+    my $package = shift;
 
-    die "Could not start logging facilities"
+    confess 'package parameter must be defined' unless ( defined($package) );
+    my $cfg     = Siebel::Srvrmgr->logging_cfg();
+
+    confess "Could not start logging facilities"
       unless ( Log::Log4perl->init_once( \$cfg ) );
 
-    return Log::Log4perl->get_logger('Siebel::Srvrmgr::Daemon');
+    return Log::Log4perl->get_logger($package);
 
 }
 
