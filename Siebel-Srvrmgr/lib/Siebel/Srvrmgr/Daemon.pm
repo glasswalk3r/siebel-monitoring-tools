@@ -562,7 +562,7 @@ sub DEMOLISH {
 
     my $self = shift;
 
-    my $logger = Siebel::Srvrmgr->gimme_logger();
+    my $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );
     weaken($logger);
 
     $logger->info('Terminating daemon: preparing cleanup');

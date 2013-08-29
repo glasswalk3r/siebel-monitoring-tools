@@ -463,15 +463,13 @@ sub run {
     }
     else {
 
-        $logger = Siebel::Srvrmgr->gimme_logger();
+        $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );
         weaken($logger);
         $logger->info( 'Reusing PID ', $self->get_pid() )
           if ( $logger->is_debug() );
         $ignore_output = 1;
 
     }
-
-    $self->_check_child($logger);
 
     $logger->info('Starting run method');
 
@@ -489,54 +487,9 @@ sub run {
         }
     );
 
-    my $parser = Siebel::Srvrmgr::ListParser->new();
-
-    my $select = IO::Select->new();
-
-    # to keep data from both handles while looping over them
-    my %data;
-
-    foreach my $fh ( $self->get_read(), $self->get_error() ) {
-
-        my $fh_name  = fileno($fh);
-        my $fh_bytes = $fh_name . '_bytes';
-
-        $data{$fh_name}  = undef;
-        $data{$fh_bytes} = 0;
-        $select->add($fh);
-
-    }
-
-    if ( $logger->is_debug() ) {
-
-        if ( openhandle( $self->get_read() ) ) {
-
-            $logger->debug( 'fileno of child read handle = '
-                  . fileno( $self->get_read() ) );
-
-        }
-        else {
-
-            $logger->debug('read_fh is not available');
-
-        }
-
-        if ( openhandle( $self->get_error() ) ) {
-
-            $logger->debug( 'fileno of child error handle = '
-                  . fileno( $self->get_error() ) )
-
-        }
-        else {
-
-            $logger->debug('error_fh is not available');
-
-        }
-        $logger->debug( 'Setting '
-              . $self->get_read_timeout()
-              . ' seconds for read srvrmgr output time out' );
-
-    }
+    my $parser   = Siebel::Srvrmgr::ListParser->new();
+    my $select   = IO::Select->new();
+    my $data_ref = $self->_create_handle_data( $select, $logger );
 
     do {
 
@@ -550,37 +503,16 @@ sub run {
                 my $fh_name  = fileno($fh);
                 my $fh_bytes = $fh_name . '_bytes';
 
-                if ( $logger->is_debug() ) {
+                $logger->debug( 'Reading filehandle ' . fileno($fh) )
+                  if ( $logger->is_debug() );
 
-                    $logger->debug( 'Reading filehandle ' . fileno($fh) );
-                    my $assert = 'Input record separator is ';
-
-                    given ($/) {
-
-                        when ( $/ eq CR ) {
-                            $logger->debug( $assert . 'CR' )
-                        }
-                        when ( $/ eq CRLF ) {
-                            $logger->debug( $assert . 'CRLF' )
-                        }
-                        when ( $/ eq LF ) {
-                            $logger->debug( $assert . 'LF' )
-                        }
-                        default {
-                            $logger->debug(
-                                "Unknown input record separator: [$/]")
-                        }
-
-                    }
-
-                }
-
-                unless (( defined( $data{$fh_bytes} ) )
-                    and ( $data{$fh_bytes} > 0 ) )
+                unless (( defined( $data_ref->{$fh_bytes} ) )
+                    and ( $data_ref->{$fh_bytes} > 0 ) )
                 {
 
-                    $data{$fh_bytes} =
-                      sysread( $fh, $data{$fh_name}, $self->get_buffer_size() );
+                    $data_ref->{$fh_bytes} =
+                      sysread( $fh, $data_ref->{$fh_name},
+                        $self->get_buffer_size() );
 
                 }
                 else {
@@ -595,18 +527,18 @@ sub run {
               # "length(Encode::encode_utf8(EXPR))" (you'll have to "use Encode"
               # first). See Encode and perlunicode.
                     my $offset =
-                      length( Encode::encode_utf8( $data{$fh_name} ) );
+                      length( Encode::encode_utf8( $data_ref->{$fh_name} ) );
 
                     $logger->debug("Offset is $offset")
                       if ( $logger->is_debug() );
 
-                    $data{$fh_bytes} =
-                      sysread( $fh, $data{$fh_name},
+                    $data_ref->{$fh_bytes} =
+                      sysread( $fh, $data_ref->{$fh_name},
                         $self->get_buffer_size(), $offset );
 
                 }
 
-                unless ( defined( $data{$fh_bytes} ) ) {
+                unless ( defined( $data_ref->{$fh_bytes} ) ) {
 
                     $logger->fatal( 'sysread returned an error: ' . $! );
 
@@ -619,7 +551,7 @@ sub run {
                 }
                 else {
 
-                    if ( $data{$fh_bytes} == 0 ) {
+                    if ( $data_ref->{$fh_bytes} == 0 ) {
 
                         $logger->warn( 'got EOF from ' . fileno($fh) . '?' );
                         $select->remove($fh);
@@ -627,8 +559,8 @@ sub run {
 
                     }
 
-                    if (    ( $data{$fh_bytes} == $self->get_buffer_size() )
-                        and ( $data{$fh_name} !~ /CRLF$/ ) )
+                    if ( ( $data_ref->{$fh_bytes} == $self->get_buffer_size() )
+                        and ( $data_ref->{$fh_name} !~ /CRLF$/ ) )
                     {
 
                         $logger->debug(
@@ -638,7 +570,10 @@ sub run {
 
                     }
 
-                    $logger->debug("Read $data{$fh_bytes} bytes from $fh_name")
+                    $logger->debug( 'Read '
+                          . $data_ref->{$fh_bytes}
+                          . ' bytes from '
+                          . $fh_name )
                       if ( $logger->is_debug() );
 
                     if ( $fh == $self->get_read() ) {
@@ -646,20 +581,21 @@ sub run {
 # :WORKAROUND:14/08/2013 18:40:46:: necessary to empty the stdout for possible (useless) information hanging in the buffer, but
 # this information must be discarded since is from the previous processed command submitted
 # :TODO      :14/08/2013 18:41:43:: check why such information is not being recovered in the previous execution
-                        $self->_process_stdout( \$data{$fh_name},
+                        $self->_process_stdout( \$data_ref->{$fh_name},
                             \@input_buffer, $logger, $condition )
                           unless ($ignore_output);
 
-                        $data{$fh_name}  = undef;
-                        $data{$fh_bytes} = 0;
+                        $data_ref->{$fh_name}  = undef;
+                        $data_ref->{$fh_bytes} = 0;
 
                     }
                     elsif ( $fh == $self->get_error() ) {
 
-                        $self->_process_stderr( \$data{$fh_name}, $logger );
+                        $self->_process_stderr( \$data_ref->{$fh_name},
+                            $logger );
 
-                        $data{$fh_name}  = undef;
-                        $data{$fh_bytes} = 0;
+                        $data_ref->{$fh_name}  = undef;
+                        $data_ref->{$fh_bytes} = 0;
 
                     }
                     else {
@@ -811,13 +747,87 @@ sub run {
 
 }
 
+sub _create_handle_data {
+
+    my $self   = shift;
+    my $select = shift;    # IO::Select object
+    my $logger = shift;    # Log::Log4perl object
+
+    # to keep data from both handles while looping over them
+    my %data;
+
+    foreach my $fh ( $self->get_read(), $self->get_error() ) {
+
+        my $fh_name  = fileno($fh);
+        my $fh_bytes = $fh_name . '_bytes';
+
+        $data{$fh_name}  = undef;
+        $data{$fh_bytes} = 0;
+        $select->add($fh);
+
+    }
+
+    if ( $logger->is_debug() ) {
+
+        if ( openhandle( $self->get_read() ) ) {
+
+            $logger->debug( 'fileno of child read handle = '
+                  . fileno( $self->get_read() ) );
+
+        }
+        else {
+
+            $logger->debug('read_fh is not available');
+
+        }
+
+        if ( openhandle( $self->get_error() ) ) {
+
+            $logger->debug( 'fileno of child error handle = '
+                  . fileno( $self->get_error() ) )
+
+        }
+        else {
+
+            $logger->debug('error_fh is not available');
+
+        }
+        $logger->debug( 'Setting '
+              . $self->get_read_timeout()
+              . ' seconds for read srvrmgr output time out' );
+
+        my $assert = 'Input record separator is ';
+
+        given ($/) {
+
+            when ( $/ eq CR ) {
+                $logger->debug( $assert . 'CR' )
+            }
+            when ( $/ eq CRLF ) {
+                $logger->debug( $assert . 'CRLF' )
+            }
+            when ( $/ eq LF ) {
+                $logger->debug( $assert . 'LF' )
+            }
+            default {
+                $logger->debug("Unknown input record separator: [$/]")
+            }
+
+        }
+
+    }
+
+    return \%data;
+
+}
+
 sub _create_child {
 
     my $self = shift;
 
     if ( $self->get_retries() >= $self->get_max_retries() ) {
 
-        my $logger = Siebel::Srvrmgr->gimme_logger();
+        my $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );
         weaken($logger);
         $logger->fatal( 'Maximum retries to spawn srvrmgr reached: '
               . $self->get_max_retries() );
@@ -839,7 +849,7 @@ sub _create_child {
     $self->_set_read($read_h);
     $self->_set_error($error_h);
 
-    my $logger = Siebel::Srvrmgr->gimme_logger();
+    my $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );
     weaken($logger);
 
     if ( $logger->is_debug() ) {

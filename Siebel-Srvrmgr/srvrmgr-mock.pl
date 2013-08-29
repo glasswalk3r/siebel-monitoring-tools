@@ -10,7 +10,7 @@ our $VERSION = 0.03;
 
 for ( my $i = 0 ; $i <= scalar(@ARGV) ; $i++ ) {
 
-    $ARGV[$i] =~ s#^/#-# if ( defined( $ARGV[$i] ) );
+    $ARGV[$i] =~ s#^/([bgeupslio])$#-$1# if ( defined( $ARGV[$i] ) );
 
 }
 
@@ -44,11 +44,11 @@ sub batch {
 
     my $data_ref = shift;
 
-    open( my $in, '<', $opts{i} ) or die 'Cannot read ' . $opts{i} . ': ' . $!;
+    open( my $in, '<', $opts{i} ) or die('Cannot read ' . $opts{i} . ': ' . $!);
     open( my $out, '>', $opts{o} )
-      or die 'Cannot creat ' . $opts{o} . ': ' . $!;
+      or die('Cannot create ' . $opts{o} . ': ' . $!);
 
-  put_text($out, hello());
+    put_text( $out, hello() );
 
     while (<$in>) {
 

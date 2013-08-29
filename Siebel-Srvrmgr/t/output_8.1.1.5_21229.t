@@ -16,8 +16,7 @@ my @data;
 
 while (<$in>) {
 
-    s/CRLF$//;
-    s/LF$//;
+    s/$CRLF$//;
     push( @data, $_ );
 
 }

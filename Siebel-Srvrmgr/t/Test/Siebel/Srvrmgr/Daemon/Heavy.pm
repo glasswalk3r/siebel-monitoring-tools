@@ -40,7 +40,7 @@ sub class_attributes : Tests(+12) {
 
     my $test = shift;
 
-	$test->SUPER::class_attributes();
+    $test->SUPER::class_attributes();
 
     my @attribs = (
         'write_fh',        'read_fh',
@@ -63,7 +63,7 @@ sub runs : Tests(+10) {
 
     my $test = shift;
 
-	$test->SUPER::runs();
+    $test->SUPER::runs();
 
     ok( $test->{daemon}->run(), 'run method executes successfuly' );
     is( $test->{daemon}->get_child_runs(),
@@ -221,7 +221,7 @@ sub _poke_child {
 sub terminator : Tests(4) {
 
     my $test   = shift;
-    my $logger = Siebel::Srvrmgr->gimme_logger();
+    my $logger = Siebel::Srvrmgr->gimme_logger( $test->class() );
 
     ok( $test->{daemon}->close_child($logger),
         'close_child returns true (termined child process)' );

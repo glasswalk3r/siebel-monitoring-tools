@@ -135,7 +135,7 @@ sub run {
 
     my $self = shift;
 
-    my $logger = Siebel::Srvrmgr->gimme_logger();
+    my $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );
     weaken($logger);
     $logger->info('Starting run method');
 
@@ -391,18 +391,15 @@ sub _check_system {
 
         given ($child_error) {
 
-            when ( ( $Config{osname} ne 'MSWin32' ) && WIFEXITED($child_error) )
-            {
+            when ( WIFEXITED($child_error) ) {
 
                 $logger->info(
-                    'Child process terminate successfully with return code = '
+'Child process terminate with call to exit() with return code = '
                       . WEXITSTATUS($child_error) );
 
             }
 
-            when ( ( $Config{osname} ne 'MSWin32' )
-                  && WIFSIGNALED($child_error) )
-            {
+            when ( WIFSIGNALED($child_error) ) {
 
                 $logger->logdie( 'Child process terminated due signal: '
                       . WTERMSIG($child_error) );
@@ -423,6 +420,8 @@ sub _check_system {
             }
 
         }
+
+        $self->_manual_check( $logger, $ret_code, $error_code );
 
     }
 
