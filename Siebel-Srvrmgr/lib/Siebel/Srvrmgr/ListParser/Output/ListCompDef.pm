@@ -9,6 +9,7 @@ Siebel::Srvrmgr::ListParser::Output::ListCompDef - subclass to parse component d
 =cut
 
 use Moose;
+use namespace::autoclean;
 
 extends 'Siebel::Srvrmgr::ListParser::Output';
 

@@ -24,7 +24,7 @@ None by default.
 
 =head1 CONTENTS
 
-	namespace::autoclean [0.13]
+    namespace::autoclean [0.13]
     Moose [2.0401]
     FSA::Rules [0.29]
     MooseX::Storage [0.33]
@@ -39,11 +39,18 @@ None by default.
     DBD::ODBC [1.43]
     DBI [1.623]
     Nagios::Plugin [0.36]
-	Config::Tiny [2.14]
-	DBD::ODBC [1.43]
-	DBI [1.623]
-	Term::Pulse [0.04]
-	XML::Rabbit [0.3]
+    Config::Tiny [2.14]
+    DBD::ODBC [1.43]
+    DBI [1.623]
+    Term::Pulse [0.04]
+    XML::Rabbit [0.3]
+    Devel::CheckOS [1.71]
+    Class::Data::Inheritable [0.08]
+    Test::Class [0.36]
+    Test::Memory::Cycle [1.04]
+    Test::Most [0.25]
+    Test::Pod [1.22]
+    Test::Pod::Coverage [1.08]
 
 =head1 SEE ALSO
 

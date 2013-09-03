@@ -14,7 +14,6 @@ See L<Siebel::Srvrmgr::ListParser::Output>.
 
 use Moose;
 use Siebel::Srvrmgr::Regexes qw(CONN_GREET);
-use feature 'switch';
 use Carp;
 
 extends 'Siebel::Srvrmgr::ListParser::Output';
@@ -170,14 +169,15 @@ override 'parse' => sub {
 
         chomp($line);
 
-        given ($line) {
+      SWITCH: {
 
-            when ('') {
+            if ( $line eq '' ) {
 
                 # do nothing
+                last SWITCH;
             }
 
-            when ( $line =~ CONN_GREET ) {
+            if ( $line =~ CONN_GREET ) {
 
 #Siebel Enterprise Applications Siebel Server Manager, Version 7.5.3 [16157] LANG_INDEPENDENT
                 my @words = split( /\s/, $line );
@@ -188,27 +188,30 @@ override 'parse' => sub {
                 $words[8] =~ tr/[]//d;
                 $self->_set_patch( $words[8] );
                 $data_parsed{patch} = $words[8];
+                last SWITCH;
 
             }
 
-            when (/^Copyright/) {
+            if ( $line =~ /^Copyright/ ) {
 
                 #Copyright (c) 2001 Siebel Systems, Inc.  All rights reserved.
                 $self->_set_copyright($line);
                 $data_parsed{copyright} = $line;
                 $is_copyright = 1;
+                last SWITCH;
 
             }
 
-            when (/^Type\s\"help\"/) {
+            if ( $line =~ /^Type\s\"help\"/ ) {
 
                 $self->_set_help($line);
                 $data_parsed{help} = $line;
                 $is_copyright = 0;
+                last SWITCH;
 
             }
 
-            when (/^Connected/) {
+            if ( $line =~ /^Connected/ ) {
 
        #Connected to 1 server(s) out of a total of 1 server(s) in the enterprise
        #Connected to 2 server(s) out of a total of 2 server(s) in the enterprise
@@ -218,17 +221,18 @@ override 'parse' => sub {
                 $self->_set_total_conn( $words[2] );
                 $data_parsed{total_servers} = $words[9];
                 $data_parsed{total_conn}    = $words[2];
+                last SWITCH;
 
             }
 
-            when (/^[\w\(]+/) {
+            if ( $line =~ /^[\w\(]+/ ) {
 
                 $self->_set_copyright($line) if ($is_copyright);
                 $data_parsed{copyright} = $line;
+                last SWITCH;
 
             }
-
-            default {
+            else {
 
                 confess 'Do not know how to deal with line content [' . $line
                   . ']';

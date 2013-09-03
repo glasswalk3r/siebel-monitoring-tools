@@ -40,7 +40,6 @@ use Moose;
 use namespace::autoclean;
 use Siebel::Srvrmgr::Regexes qw(SIEBEL_ERROR);
 use POSIX;
-use feature qw(switch);
 use Siebel::Srvrmgr;
 use Scalar::Util qw(weaken);
 use Config;
@@ -504,9 +503,9 @@ sub _check_error {
 
     if ( $line =~ SIEBEL_ERROR ) {
 
-        given ($line) {
+      SWITCH: {
 
-            when (/^SBL-ADM-60070.*/) {
+            if ( $line =~ /^SBL-ADM-60070.*/ ) {
 
                 $logger->warn(
                     'Trying to get additional information from next line')
@@ -514,24 +513,23 @@ sub _check_error {
                 return 1;
             }
 
-            when (/^SBL-ADM-02043.*/) {
-                $logger->logdie('Could not find the Siebel Server')
+            if ( $line =~ /^SBL-ADM-02043.*/ ) {
+                $logger->logdie('Could not find the Siebel Server');
             }
 
-            when (/^SBL-ADM-02071.*/) {
-                $logger->logdie('Could not find the Siebel Enterprise')
+            if ( $line =~ /^SBL-ADM-02071.*/ ) {
+                $logger->logdie('Could not find the Siebel Enterprise');
             }
 
-            when (/^SBL-ADM-02049.*/) {
-                $logger->logdie('Generic error')
+            if ( $line =~ /^SBL-ADM-02049.*/ ) {
+                $logger->logdie('Generic error');
             }
 
-            when (/^SBL-ADM-02751.*/) {
-                $logger->logdie('Unable to open file')
+            if ( $line =~ /^SBL-ADM-02751.*/ ) {
+                $logger->logdie('Unable to open file');
             }
-
-            default {
-                $logger->logdie('Unknown error, aborting execution')
+            else {
+                $logger->logdie('Unknown error, aborting execution');
             }
 
         }

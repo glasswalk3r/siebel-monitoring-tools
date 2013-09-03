@@ -1,5 +1,6 @@
 package Siebel::Srvrmgr::ListParser::Output::ListCompTypes;
 use Moose;
+use namespace::autoclean;
 
 =pod
 
