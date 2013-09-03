@@ -20,7 +20,7 @@ sub _set_log {
     $test->{log_cfg} = File::Spec->catfile( getcwd(), 'log4perl.cfg' );
 
     my $config = <<BLOCK;
-log4perl.logger.Siebel.Srvrmgr.Daemon = DEBUG, LOG1
+log4perl.logger.Siebel.Srvrmgr.Daemon = INFO, LOG1
 log4perl.appender.LOG1 = Log::Log4perl::Appender::File
 log4perl.appender.LOG1.filename  = $log_file
 log4perl.appender.LOG1.mode = clobber

@@ -1,7 +1,7 @@
 package Siebel::Srvrmgr::ListParser::Output::ListParams;
 use Moose;
 use namespace::autoclean;
-use feature qw(switch);
+use Carp;
 
 =pod
 
@@ -112,32 +112,39 @@ sub _set_details {
 
     if ( defined( $self->get_cmd_line() ) ) {
 
-        given ( $self->get_cmd_line() ) {
+      SWITCH: {
 
-            when ('list params') {
+            if ( $self->get_cmd_line() eq 'list params' ) {
                 $self->_set_server('connected server');
                 $self->_set_comp_alias('N/A');
+                last SWITCH;
             }
-            when (/^list\sparams\sfor\scomponent\s\w+$/) {
+            if (
+                $self->get_cmd_line() =~ /^list\sparams\sfor\scomponent\s\w+$/ )
+            {
                 $self->_set_server('connected server');
                 $self->_set_comp_alias(
                     ( split( /\s/, $self->get_cmd_line() ) )[-1] );
+                last SWITCH;
             }
-            when (/^list\sparams\sfor\sserver\s\w+$/) {
+            if ( $self->get_cmd_line() =~ /^list\sparams\sfor\sserver\s\w+$/ ) {
                 $self->_set_server(
                     ( split( /\s/, $self->get_cmd_line() ) )[-1] );
                 $self->_set_comp_alias('N/A');
+                last SWITCH;
             }
-            when (/^list\sparams\sfor\sserver\s\w+\scomponent\s\w+$/) {
+            if ( $self->get_cmd_line() =~
+                /^list\sparams\sfor\sserver\s\w+\scomponent\s\w+$/ )
+            {
 
                 my @values = split( /\s/, $self->get_cmd_line() );
 
                 $self->_set_server( $values[4] );
                 $self->_set_comp_alias( $values[6] );
+                last SWITCH;
 
             }
-
-            default { die "got strange list params command: cannot parse"; }
+            else { confess "got strange list params command: cannot parse"; }
 
         }
 

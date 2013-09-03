@@ -12,7 +12,6 @@ use Moose;
 use namespace::autoclean;
 use Siebel::Srvrmgr::ListParser::Output::ListComp::Server;
 use Siebel::Srvrmgr::ListParser::Output::ListComp::Comp;
-use feature qw(switch say);
 
 =head1 SYNOPSIS
 

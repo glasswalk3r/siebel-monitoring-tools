@@ -24,7 +24,6 @@ use Moose;
 use MooseX::Storage;
 use namespace::autoclean;
 use Carp;
-use feature qw(switch);
 use Siebel::Srvrmgr::Regexes qw(ROWS_RETURNED);
 
 # :TODO      :25/06/2013 18:42:01:: must find a way to store only the non-compiled regex
@@ -262,27 +261,30 @@ sub parse {
         # :TODO      :08/08/2013 18:33:28:: remove this chomp?
         chomp($line);
 
-        given ($line) {
+      SWITCH: {
 
-            when ('') {
+            if ( $line eq '' ) {
 
                 # do nothing
+                last SWITCH;
             }
 
-            when ($line_header_regex) { # this is the '-------' below the header
+            if ( $line =~ $line_header_regex )
+            {    # this is the '-------' below the header
 
                 $self->_define_pattern($line);
+                last SWITCH;
 
             }
 
             # this is the header
-            when ( $line =~ $self->get_header_regex() ) {
+            if ( $line =~ $self->get_header_regex() ) {
 
                 $self->_set_header($line);
+                last SWITCH;
 
             }
-
-            default {
+            else {
 
                 my @fields_values;
 

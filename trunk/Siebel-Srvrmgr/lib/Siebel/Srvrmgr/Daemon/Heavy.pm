@@ -798,19 +798,22 @@ sub _create_handle_data {
 
         my $assert = 'Input record separator is ';
 
-        given ($/) {
+      SWITCH: {
 
-            when ( $/ eq CR ) {
-                $logger->debug( $assert . 'CR' )
+            if ( $/ eq CR ) {
+                $logger->debug( $assert . 'CR' );
+                last SWITCH;
             }
-            when ( $/ eq CRLF ) {
-                $logger->debug( $assert . 'CRLF' )
+            if ( $/ eq CRLF ) {
+                $logger->debug( $assert . 'CRLF' );
+                last SWITCH;
             }
-            when ( $/ eq LF ) {
-                $logger->debug( $assert . 'LF' )
+            if ( $/ eq LF ) {
+                $logger->debug( $assert . 'LF' );
+                last SWITCH;
             }
-            default {
-                $logger->debug("Unknown input record separator: [$/]")
+            else {
+                $logger->debug("Unknown input record separator: [$/]");
             }
 
         }
@@ -923,8 +926,6 @@ sub _process_stdout {
 # :TODO      :09/08/2013 19:35:30:: review and remove assigning the compiled regexes to scalar (probably unecessary)
     my $prompt_regex    = SRVRMGR_PROMPT;
     my $load_pref_regex = LOAD_PREF_RESP;
-    my $rows_returned   = ROWS_RETURNED;
-    my $error           = SIEBEL_ERROR;
 
     $logger->debug("Raw content is [$$data_ref]") if $logger->is_debug();
 
@@ -951,25 +952,28 @@ sub _process_stdout {
 
         }
 
-        given ($line) {
+      SWITCH: {
 
-            when (/$error/) {
+            if ( $line =~ SIEBEL_ERROR ) {
 
                 $self->_check_error( $line, $logger );
+                last SWITCH;
 
             }
 
 # :TRICKY:29/06/2011 21:23:11:: bufferization in srvrmgr.exe ruins the day: the prompt will never come out unless a little push is given
-            when (/$rows_returned/) {
+# :TODO      :03/09/2013 12:11:27:: check if a print with an empty line is not required here
+            if ( $line =~ ROWS_RETURNED ) {
 
                 # parsers will consider the lines below
                 push( @{$buffer_ref}, $line );
+                last SWITCH;
 
             }
 
             # prompt was returned, end of output
             # first execution should bring only informations about Siebel
-            when (/$prompt_regex/) {
+            if ( $line =~ /$prompt_regex/ ) {
 
                 unless ( defined( $self->get_prompt() ) ) {
 
@@ -1015,17 +1019,20 @@ sub _process_stdout {
 
                         push( @{$buffer_ref}, $line );
 
-                        #syswrite $self->get_write(), "\n";
+# :TODO      :03/09/2013 12:11:27:: check if a print with an empty line is not required here
+#syswrite $self->get_write(), "\n";
 
                     }
 
                 }
 
+                last SWITCH;
+
             }
 
 # no prompt detection, keep reading output from srvrmgr.exe
 # :WARNING   :03/06/2013 18:22:40:: might cause a deadlock if the srvrmgr does not have anything else to read
-            default { push( @{$buffer_ref}, $line ); }
+            else { push( @{$buffer_ref}, $line ); }
 
         }
 
@@ -1323,9 +1330,9 @@ sub close_child {
 
             my $ret = waitpid( $self->get_pid(), WNOHANG );
 
-            given ($ret) {
+          SWITCH: {
 
-                when ( $self->get_pid() ) {
+                if ( $ret == $self->get_pid() ) {
 
 # :WORKAROUND:14/08/2013 17:44:00:: for Windows, not using shutdown when creating the socketpair causes the application to not
 # exit with waitpid. using waitpid without non-blocking mode just blocks the application to finish
@@ -1346,17 +1353,19 @@ sub close_child {
                     $logger->info('Child process finished successfully')
                       if ( $has_logger && $logger->is_info() );
 
+                    last SWITCH;
+
                 }
 
-                when (-1) {
+                if ( $ret == -1 ) {
 
                     $logger->info(
                         'No such PID ' . $self->get_pid() . ' to kill' )
                       if ( $has_logger && $logger->is_info() );
+                    last SWITCH;
 
                 }
-
-                default {
+                else {
 
                     if ( $has_logger && $logger->is_warn() ) {
 
