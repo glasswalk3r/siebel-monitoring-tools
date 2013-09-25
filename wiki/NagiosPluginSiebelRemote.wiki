@@ -3,7 +3,7 @@
 
 = Introduction =
 
-The plug-in monitors if the Siebel Remote transactions pending to be routed to Siebel Clients number is lower or higher than the thresholds defined by command line options: depending on the values recovered, the output generated to Nagios will take care of the next configured steps.
+This plug-in monitors if the Siebel Remote transactions pending to be routed to Siebel Clients number is lower or higher than the thresholds defined by command line options: depending on the values recovered, the output generated to Nagios will take care of the next configured steps.
 
 Why is this plug-in useful?
 
