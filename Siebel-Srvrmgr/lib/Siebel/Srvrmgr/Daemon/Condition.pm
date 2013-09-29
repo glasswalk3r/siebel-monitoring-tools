@@ -19,7 +19,6 @@ Siebel::Srvrmgr::Daemon::Condition - object that checks which conditions should 
 
 use Moose;
 use namespace::autoclean;
-use feature qw(say switch);
 
 =pod
 

@@ -152,8 +152,8 @@ along with Siebel Monitoring Tools.  If not, see <http://www.gnu.org/licenses/>.
 __DATA__
 log4perl.threshold = OFF
 log4perl.logger.Siebel.Srvrmgr.Daemon=WARN, A1
-log4perl.appender.A1=Log::Dispatch::Screen
+log4perl.appender.A1=Log::Log4perl::Appender::Screen
 log4perl.appender.A1.stderr=0
 log4perl.appender.A1.layout=Log::Log4perl::Layout::PatternLayout
 log4perl.appender.A1.layout.ConversionPattern=%d %p> %F{1}:%L %M - %m%n
-log4perl.logger.Siebel.Srvrmgr.ListParser=WARN, A1
+log4perl.logger.Siebel.Srvrmgr.ListParser=DEBUG, A1

@@ -2,6 +2,7 @@ package Test::Siebel::Srvrmgr::ListParser::Output::ListComp;
 
 use Test::Most;
 use Test::Moose 'has_attribute_ok';
+use Hash::Util qw(lock_keys unlock_keys);
 use base 'Test::Siebel::Srvrmgr::ListParser::Output';
 
 sub class_attributes : Tests(+3) {
@@ -15,6 +16,31 @@ sub class_attributes : Tests(+3) {
         has_attribute_ok( $test->get_output(), $attrib );
 
     }
+
+}
+
+sub _constructor {
+
+    my $test = shift;
+    $test->SUPER::_constructor();
+    unlock_keys( %{$test} );
+    $test->{last_server} = 'foobar';
+    lock_keys( %{$test} );
+
+}
+
+sub get_last_server {
+
+    my $test = shift;
+
+    return $test->{last_server};
+
+}
+
+sub get_servers {
+
+    my $test = shift;
+    return [ $test->get_last_server() ];
 
 }
 
@@ -42,18 +68,26 @@ sub class_methods : Tests(+7) {
         $comp_attribs,
         'get_fields_pattern returns a correct set of attributes' );
 
-    is( $test->get_output()->get_last_server(),
-        'foobar', 'get_last_server returns the correct server name' );
+    is(
+        $test->get_output()->get_last_server(),
+        $test->get_last_server(),
+        'get_last_server returns the correct server name'
+    );
 
     is_deeply( $test->get_output()->get_servers(),
-        ['foobar'], 'get_servers returns the correct array reference' );
+        $test->get_servers(),
+        'get_servers returns the correct array reference' );
 
     my $server_class = 'Siebel::Srvrmgr::ListParser::Output::ListComp::Server';
 
     my $server;
 
-    ok( $server = $test->get_output()
-          ->get_server( $test->get_output()->get_last_server() ), 'get_server returns an object' );
+    ok(
+        $server =
+          $test->get_output()
+          ->get_server( $test->get_output()->get_last_server() ),
+        'get_server returns an object'
+    );
 
   SKIP: {
 

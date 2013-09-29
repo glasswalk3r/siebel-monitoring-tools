@@ -1,7 +1,7 @@
 use lib 'inc';
 use Devel::AssertOS qw(Linux AIX Solaris HPUX MSWin32);
 
-use 5.010;
+use 5.08;
 use warnings;
 use strict;
 use ExtUtils::MakeMaker;
