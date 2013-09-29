@@ -1,7 +1,6 @@
 #!/usr/bin/perl
 use warnings;
 use strict;
-use feature qw(switch say);
 use Hash::Util qw(lock_keys);
 use YAML::Syck;
 use Getopt::Std;
@@ -44,9 +43,10 @@ sub batch {
 
     my $data_ref = shift;
 
-    open( my $in, '<', $opts{i} ) or die('Cannot read ' . $opts{i} . ': ' . $!);
+    open( my $in, '<', $opts{i} )
+      or die( 'Cannot read ' . $opts{i} . ': ' . $! );
     open( my $out, '>', $opts{o} )
-      or die('Cannot create ' . $opts{o} . ': ' . $!);
+      or die( 'Cannot create ' . $opts{o} . ': ' . $! );
 
     put_text( $out, hello() );
 
@@ -86,88 +86,99 @@ sub process_cmd {
     my $data_ref = shift;
     my $cmd      = shift;
 
-    given ($cmd) {
+  SWITCH: {
 
-        when (/^list\sblockme$/) {
+        if ( $cmd =~ /^list\sblockme$/ ) {
 
  # do nothing to get a deadlock when reading STDOUT with Siebel::Srvrmgr::Daemon
             sleep(20);
             put_text( $handle,
                 [ "\n", "yada yada yada\n", "\n", "1 row returned.\n", "\n" ] );
+            last SWITCH;
 
         }
 
-        when (/^list\scomp\stype$/) {
+        if ( $cmd =~ /^list\scomp\stype$/ ) {
 
             put_text( $handle, $data_ref->{list_comp_types} );
+            last SWITCH;
 
         }
 
-        when (/^list\sparams\sfor\ssrproc$/) {
+        if ( $cmd =~ /^list\sparams\sfor\ssrproc$/ ) {
 
             put_text( $handle, $data_ref->{list_params_for_srproc} );
+            last SWITCH;
 
         }
 
-        when (/^list\sparams$/) {
+        if ( $cmd =~ /^list\sparams$/ ) {
 
             put_text( $handle, $data_ref->{list_params} );
+            last SWITCH;
 
         }
 
-        when (/^list\scomp\sdef$/) {
+        if ( $cmd =~ /^list\scomp\sdef$/ ) {
 
             put_text( $handle, $data_ref->{list_comp_def_srproc} );
+            last SWITCH;
 
         }
 
-        when (/^list\scomp$/) {
+        if ( $cmd =~ /^list\scomp$/ ) {
 
             put_text( $handle, $data_ref->{list_comp} );
+            last SWITCH;
 
         }
 
-        when (/^list\sservers?$/) {
+        if ( $cmd =~ /^list\sservers?$/ ) {
 
-            put_text( $handle, $data_ref->{list_servers} )
+            put_text( $handle, $data_ref->{list_servers} );
+            last SWITCH;
 
         }
 
-        when ('load preferences') {
+        if ( $cmd eq 'load preferences' ) {
 
             put_text( $handle,
 "File: C:\\Siebel\\8.0\\web client\\BIN\\.Siebel_svrmgr.pref\n\n"
             );
+            last SWITCH;
 
         }
 
-        when ('exit') {
+        if ( $cmd eq 'exit' ) {
 
             put_text( $handle, "\nDisconnecting...\n" );
             exit(0);
 
         }
 
-        when ('') {
+        if ('') {
 
             put_text( $handle, "\n" );
+            last SWITCH;
 
         }
 
-        when (/^list\scomplexquery$/) {
+        if ( $cmd =~ /^list\scomplexquery$/ ) {
 
             put_text( \*STDERR,
                 "oh god, not today... let me stay in bed mommy!\n" );
+            last SWITCH;
 
         }
 
-        when (/^list\sfrag$/) {
+        if ( $cmd =~ /^list\sfrag$/ ) {
 
             put_text( \*STDERR, "SBL-ADM-02043: where is this frag server?\n" );
+            last SWITCH;
 
         }
 
-        when ('help') {
+        if ( $cmd eq 'help' ) {
 
             put_text(
                 $handle,
@@ -187,10 +198,14 @@ sub process_cmd {
                     "\n"
                 ]
             );
+            last SWITCH;
 
         }
+        else {
 
-        default { put_text( $handle, "Invalid command\n" ) }
+            put_text( $handle, "Invalid command\n" );
+            last SWITCH;
+        }
 
     }
 

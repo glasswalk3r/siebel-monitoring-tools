@@ -72,7 +72,6 @@ use Siebel::Srvrmgr::Regexes
   qw(SRVRMGR_PROMPT LOAD_PREF_RESP SIEBEL_ERROR ROWS_RETURNED);
 use Siebel::Srvrmgr::Daemon::Command;
 use POSIX;
-use feature qw(say switch);
 use Data::Dumper;
 use Scalar::Util qw(weaken openhandle);
 use Config;
@@ -144,7 +143,9 @@ has error_fh => (
 
 =head2 read_timeout
 
-The read_timeout to read from child process handlers. It defaults to 15.
+The timeout for trying to read from child process handlers in seconds. It defaults to 3 seconds.
+
+Changing this value may help improving performance, but should be used with care.
 
 =cut
 
@@ -153,7 +154,7 @@ has read_timeout => (
     is      => 'rw',
     writer  => 'set_read_timeout',
     reader  => 'get_read_timeout',
-    default => 10
+    default => 3 
 );
 
 =pod
@@ -495,7 +496,6 @@ sub run {
 
         exit if ($SIG_INT);
 
-      READ:
         while ( my @ready = $select->can_read( $self->get_read_timeout() ) ) {
 
             foreach my $fh (@ready) {
@@ -566,7 +566,7 @@ sub run {
                         $logger->debug(
                             'Buffer DOES NOT have CRLF at the end of it');
 
-                        next READ;
+                        next;
 
                     }
 

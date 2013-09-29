@@ -95,8 +95,6 @@ sub set_content {
 
         push( @{$buffer_ref}, $value );
 
-        $self->_set_content($buffer_ref);
-
     }
 
 }

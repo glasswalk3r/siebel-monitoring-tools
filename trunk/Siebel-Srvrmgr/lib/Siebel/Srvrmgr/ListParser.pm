@@ -17,7 +17,6 @@ Siebel::Srvrmgr::ListParser - state model parser to idenfity which output type w
 use Moose;
 use Siebel::Srvrmgr::ListParser::OutputFactory;
 use Siebel::Srvrmgr::ListParser::Buffer;
-use Siebel::Srvrmgr::Regexes qw(SRVRMGR_PROMPT CONN_GREET);
 use Siebel::Srvrmgr;
 use Log::Log4perl;
 use Siebel::Srvrmgr::ListParser::FSA;
@@ -80,43 +79,6 @@ has 'has_tree' => (
 
 =pod
 
-=head2 prompt_regex
-
-A regular expression reference of how the C<srvrmgr> prompt looks like.
-
-By default this regular expression value is defined by L<Siebel::Srvrmgr::Regexes>::SRVRMGR_PROMPT.
-
-=cut
-
-has 'prompt_regex' => (
-    is      => 'rw',
-    isa     => 'RegexpRef',
-    reader  => 'get_prompt_regex',
-    writer  => 'set_prompt_regex',
-    default => sub { SRVRMGR_PROMPT }
-);
-
-=pod
-
-=head2 hello_regex
-
-A regular expression reference of how the first line of text received right after the login in one
-server (or enterprise).
-
-By default this regular expression value is defined by L<Siebel::Srvrmgr::Regexes>::CON_GREET.
-
-=cut
-
-has 'hello_regex' => (
-    is      => 'rw',
-    isa     => 'RegexpRef',
-    reader  => 'get_hello_regex',
-    writer  => 'set_hello_regex',
-    default => sub { CONN_GREET }
-);
-
-=pod
-
 =head2 last_command
 
 A string with the last command identified by the parser. It is used for several things, including changes in the state model machine.
@@ -171,10 +133,10 @@ This object has some details about the enterprise connected. Check the related P
 =cut
 
 has 'enterprise' => (
-    is       => 'ro',
-    isa      => 'Siebel::Srvrmgr::ListParser::Output::Greetings',
-    reader   => 'get_enterprise',
-    'writer' => '_set_enterprise'
+    is     => 'ro',
+    isa    => 'Siebel::Srvrmgr::ListParser::Output::Greetings',
+    reader => 'get_enterprise',
+    writer => '_set_enterprise'
 );
 
 =pod
@@ -240,15 +202,9 @@ Expects an instance of a L<FSA::State> class as parameter (obligatory parameter)
 
 sub set_buffer {
 
-    my $self  = shift;
-    my $state = shift;
-
-    my $state_class = 'FSA::State';
-
-    die "Must receive a valid $state_class instance as parameter"
-      unless ( ref($state) eq $state_class );
-
-    weaken($state);
+    my $self = shift;
+    my $type = shift;
+    my $line = shift;
 
     my $log_cfg = Siebel::Srvrmgr->logging_cfg();
     die 'Could not start logging facilities'
@@ -256,7 +212,7 @@ sub set_buffer {
     my $logger = Log::Log4perl->get_logger('Siebel::Srvrmgr::ListParser');
     weaken($logger);
 
-    if ( defined( $state->notes('line') ) ) {
+    if ( defined($line) ) {
 
         my $buffer_ref = $self->get_buffer();
 
@@ -267,14 +223,14 @@ sub set_buffer {
 
             if ( $self->is_cmd_changed() ) {
 
-                $self->_set_new_buffer($state);
+                $self->_set_new_buffer( $type, $line );
 
             }
             else {
 
-                if ( $last_buffer->get_type() eq $state->name() ) {
+                if ( $last_buffer->get_type() eq $type ) {
 
-                    $last_buffer->set_content( $state->notes('line') );
+                    $last_buffer->set_content($line);
 
                 }
                 else {
@@ -283,7 +239,7 @@ sub set_buffer {
 
                         $logger->warn(
 'Command has not changed but type of output has (got '
-                              . $state->name()
+                              . $type
                               . ' instead of '
                               . $last_buffer->get_type()
                               . ')' );
@@ -297,14 +253,14 @@ sub set_buffer {
         }
         else {
 
-            $self->_set_new_buffer($state);
+            $self->_set_new_buffer( $type, $line );
 
         }
 
     }
     else {
 
-        warn "Undefined content from state received\n";
+        $logger->warn('Undefined content from state received');
 
     }
 
@@ -313,19 +269,18 @@ sub set_buffer {
 # adds a new buffer to the buffer attribute
 sub _set_new_buffer {
 
-    my $self  = shift;
-    my $state = shift;
-
-    weaken($state);
+    my $self = shift;
+    my $type = shift;
+    my $line = shift;
 
     my $buffer = Siebel::Srvrmgr::ListParser::Buffer->new(
         {
-            type     => $state->name(),
+            type     => $type,
             cmd_line => $self->get_last_command()
         }
     );
 
-    $buffer->set_content( $state->notes('line') );
+    $buffer->set_content($line);
 
     push( @{ $self->get_buffer() }, $buffer );
 
@@ -525,32 +480,45 @@ sub parse {
 
     $fsa->done( sub { ( $self->get_last_command() eq 'exit' ) ? 1 : 0 } );
 
+    my $line_number = 1;
     my $state;
-    my $line_number = 0;
 
     foreach my $line ( @{$data_ref} ) {
 
-        unless ( defined($state) ) {
+        $state = $fsa->start() unless defined($state);
 
-            $state = $fsa->start();
-
-            $state->notes( parser => $self );
-
-        }
-
+# :TODO      :10/09/2013 22:03:15:: removing the new line here should not be necessary and is probably being done wrongly
         $line =~ s/\n$//;
+
         $state->notes( line_num => $line_number );
         $state->notes( line     => $line );
         $line_number++;
-        $fsa->switch() unless ( $fsa->done() );
+
+        $state = $fsa->switch() unless ( $fsa->done() );
+
+        if ( $logger->is_debug() ) {
+
+            $logger->debug( 'calling set_buffer with '
+                  . $state->name() . ', '
+                  . $state->message() )
+              if ( defined( $state->message() ) );
+
+            $logger->debug( 'calling set_last_command with '
+                  . $state->notes('last_command') )
+              if ( $state->notes('is_cmd_changed') );
+
+        }
+
+        $self->set_buffer( $state->name(), $state->message() )
+          if ( defined( $state->message() ) );
+        $self->set_last_command( $state->notes('last_command') )
+          if ( $state->notes('is_cmd_changed') );
 
     }
 
     $self->append_output();
 
 # :WORKAROUND:17/06/2013 21:31:10:: forcing to destroy references dues memory leak
-    $state->notes( parser => undef );
-    $state->DESTROY();
     $fsa->DESTROY();
     undef $fsa;
 
