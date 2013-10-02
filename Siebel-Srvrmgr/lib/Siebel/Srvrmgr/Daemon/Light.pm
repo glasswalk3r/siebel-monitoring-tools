@@ -64,7 +64,6 @@ use Siebel::Srvrmgr::Daemon::ActionFactory;
 use Siebel::Srvrmgr::ListParser;
 use Siebel::Srvrmgr::Daemon::Command;
 use POSIX;
-use feature qw(switch);
 use Scalar::Util qw(weaken);
 use Config;
 use Carp qw(longmess);
@@ -389,31 +388,33 @@ sub _check_system {
     }
     else {
 
-        given ($child_error) {
+      SWITCH: {
 
-            when ( WIFEXITED($child_error) ) {
+            if ( WIFEXITED($child_error) ) {
 
                 $logger->info(
 'Child process terminate with call to exit() with return code = '
                       . WEXITSTATUS($child_error) );
+                last SWITCH;
 
             }
 
-            when ( WIFSIGNALED($child_error) ) {
+            if ( WIFSIGNALED($child_error) ) {
 
                 $logger->logdie( 'Child process terminated due signal: '
                       . WTERMSIG($child_error) );
+                last SWITCH;
 
             }
 
-            when ( WIFSTOPPED($child_error) ) {
+            if ( WIFSTOPPED($child_error) ) {
 
                 $logger->logdie( 'Child process was stopped with '
                       . WSTOPSIG($child_error) );
+                last SWITCH;
 
             }
-
-            default {
+            else {
 
                 $self->_manual_check( $logger, $ret_code, $error_code );
 
