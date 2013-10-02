@@ -78,7 +78,7 @@ sub get_fsa {
     my $ls_servers_regex   = qr/list\sserver(s)?.*/;
     my $ls_comp_defs_regex = qr/list\scomp\sdefs?(\s\w+)?/;
 
-    return FSA::Rules->new(
+    my $fsa = FSA::Rules->new(
         no_data => {
             do => sub {
 
@@ -92,16 +92,34 @@ sub get_fsa {
             rules => [
                 greetings => sub {
 
-                    my $state = shift;
+                    my $self = shift;
 
-                    return ( $state->notes('line') =~ CONN_GREET );
+                    if ( defined( $self->notes('line') ) ) {
+
+                        return ( $self->notes('line') =~ CONN_GREET );
+
+                    }
+                    else {
+
+                        return 0;
+
+                    }
 
                 },
                 command_submission => sub {
 
-                    my $state = shift;
+                    my $self = shift;
 
-                    return ( $state->notes('line') =~ SRVRMGR_PROMPT );
+                    if ( defined( $self->notes('line') ) ) {
+
+                        return ( $self->notes('line') =~ SRVRMGR_PROMPT );
+
+                    }
+                    else {
+
+                        return 0;
+
+                    }
 
                 },
                 no_data => sub { return 1 }
@@ -110,21 +128,22 @@ sub get_fsa {
 
         },
         greetings => {
-            do => sub {
+            label => 'greetings message from srvrmgr',
+            do    => sub {
 
-                my $state = shift;
-                $state->message( $state->notes('line') );
+                my $self = shift;
+                $self->message( $self->notes('line') );
 
             },
-            on_exit => sub {
-                my $state = shift;
-                $state->notes( is_cmd_changed => 0 );
+            on_enter => sub {
+                my $self = shift;
+                $self->notes( is_cmd_changed => 0 );
             },
             rules => [
                 command_submission => sub {
 
-                    my $state = shift;
-                    return ( $state->notes('line') =~ SRVRMGR_PROMPT );
+                    my $self = shift;
+                    return ( $self->notes('line') =~ SRVRMGR_PROMPT );
 
                 },
                 greetings => sub { return 1 }
@@ -141,22 +160,23 @@ sub get_fsa {
             message => 'EOF'
         },
         list_comp => {
-            do => sub {
+            label => 'parses output from a list comp command',
+            do    => sub {
 
-                my $state = shift;
-                $state->message( $state->notes('line') );
+                my $self = shift;
+                $self->message( $self->notes('line') );
 
             },
-            on_exit => sub {
-                my $state = shift;
-                $state->notes( is_cmd_changed => 0 );
+            on_enter => sub {
+                my $self = shift;
+                $self->notes( is_cmd_changed => 0 );
             },
             rules => [
                 command_submission => sub {
 
-                    my $state = shift;
+                    my $self = shift;
 
-                    return ( $state->notes('line') =~ SRVRMGR_PROMPT );
+                    return ( $self->notes('line') =~ SRVRMGR_PROMPT );
 
                 },
                 list_comp => sub { return 1; }
@@ -164,21 +184,22 @@ sub get_fsa {
             message => 'prompt found'
         },
         list_comp_types => {
-            do => sub {
-                my $state = shift;
+            label => 'parses output from a list comp types command',
+            do    => sub {
+                my $self = shift;
 
-                $state->message( $state->notes('line') );
+                $self->message( $self->notes('line') );
 
             },
-            on_exit => sub {
-                my $state = shift;
-                $state->notes( is_cmd_changed => 0 );
+            on_enter => sub {
+                my $self = shift;
+                $self->notes( is_cmd_changed => 0 );
             },
             rules => [
                 command_submission => sub {
 
-                    my $state = shift;
-                    return ( $state->notes('line') =~ SRVRMGR_PROMPT );
+                    my $self = shift;
+                    return ( $self->notes('line') =~ SRVRMGR_PROMPT );
 
                 },
                 list_comp_types => sub { return 1; }
@@ -186,21 +207,22 @@ sub get_fsa {
             message => 'prompt found'
         },
         list_params => {
-            do => sub {
-                my $state = shift;
+            label => 'parses output from a list params command',
+            do    => sub {
+                my $self = shift;
 
-                $state->message( $state->notes('line') );
+                $self->message( $self->notes('line') );
 
             },
-            on_exit => sub {
-                my $state = shift;
-                $state->notes( is_cmd_changed => 0 );
+            on_enter => sub {
+                my $self = shift;
+                $self->notes( is_cmd_changed => 0 );
             },
             rules => [
                 command_submission => sub {
 
-                    my $state = shift;
-                    return ( $state->notes('line') =~ SRVRMGR_PROMPT );
+                    my $self = shift;
+                    return ( $self->notes('line') =~ SRVRMGR_PROMPT );
 
                 },
                 list_params => sub { return 1; }
@@ -208,21 +230,22 @@ sub get_fsa {
             message => 'prompt found'
         },
         list_comp_def => {
-            do => sub {
+            label => 'parses output from a list comp def command',
+            do    => sub {
 
-                my $state = shift;
-                $state->message( $state->notes('line') );
+                my $self = shift;
+                $self->message( $self->notes('line') );
 
             },
-            on_exit => sub {
-                my $state = shift;
-                $state->notes( is_cmd_changed => 0 );
+            on_enter => sub {
+                my $self = shift;
+                $self->notes( is_cmd_changed => 0 );
             },
             rules => [
                 command_submission => sub {
 
-                    my $state = shift;
-                    return ( $state->notes('line') =~ SRVRMGR_PROMPT );
+                    my $self = shift;
+                    return ( $self->notes('line') =~ SRVRMGR_PROMPT );
 
                 },
                 list_comp_def => sub { return 1; }
@@ -230,21 +253,22 @@ sub get_fsa {
             message => 'prompt found'
         },
         list_tasks => {
-            do => sub {
+            label => 'parses output from a list tasks command',
+            do    => sub {
 
-                my $state = shift;
-                $state->message( $state->notes('line') );
+                my $self = shift;
+                $self->message( $self->notes('line') );
 
             },
-            on_exit => sub {
-                my $state = shift;
-                $state->notes( is_cmd_changed => 0 );
+            on_enter => sub {
+                my $self = shift;
+                $self->notes( is_cmd_changed => 0 );
             },
             rules => [
                 command_submission => sub {
 
-                    my $state = shift;
-                    return ( $state->notes('line') =~ SRVRMGR_PROMPT );
+                    my $self = shift;
+                    return ( $self->notes('line') =~ SRVRMGR_PROMPT );
 
                 },
                 list_tasks => sub { return 1; }
@@ -252,21 +276,22 @@ sub get_fsa {
             message => 'prompt found'
         },
         list_servers => {
-            do => sub {
+            label => 'parses output from a list servers command',
+            do    => sub {
 
-                my $state = shift;
-                $state->message( $state->notes('line') );
+                my $self = shift;
+                $self->message( $self->notes('line') );
 
             },
-            on_exit => sub {
-                my $state = shift;
-                $state->notes( is_cmd_changed => 0 );
+            on_enter => sub {
+                my $self = shift;
+                $self->notes( is_cmd_changed => 0 );
             },
             rules => [
                 command_submission => sub {
 
-                    my $state = shift;
-                    return ( $state->notes('line') =~ SRVRMGR_PROMPT );
+                    my $self = shift;
+                    return ( $self->notes('line') =~ SRVRMGR_PROMPT );
 
                 },
                 list_servers => sub { return 1; }
@@ -274,21 +299,22 @@ sub get_fsa {
             message => 'prompt found'
         },
         load_preferences => {
-            do => sub {
+            label => 'parses output from a load preferences command',
+            do    => sub {
 
-                my $state = shift;
-                $state->message( $state->notes('line') );
+                my $self = shift;
+                $self->message( $self->notes('line') );
 
             },
-            on_exit => sub {
-                my $state = shift;
-                $state->notes( is_cmd_changed => 0 );
+            on_enter => sub {
+                my $self = shift;
+                $self->notes( is_cmd_changed => 0 );
             },
             rules => [
                 command_submission => sub {
 
-                    my $state = shift;
-                    return ( $state->notes('line') =~ SRVRMGR_PROMPT );
+                    my $self = shift;
+                    return ( $self->notes('line') =~ SRVRMGR_PROMPT );
 
                 },
                 load_preferences => sub { return 1; }
@@ -298,17 +324,17 @@ sub get_fsa {
         command_submission => {
             do => sub {
 
-                my $state = shift;
+                my $self = shift;
 
                 if ( $logger->is_debug() ) {
 
                     $logger->debug( 'command_submission got ['
-                          . $state->notes('line')
+                          . $self->notes('line')
                           . ']' );
 
                 }
 
-                my $cmd = ( $state->notes('line') =~ SRVRMGR_PROMPT )[1];
+                my $cmd = ( $self->notes('line') =~ SRVRMGR_PROMPT )[1];
 
                 if ( ( defined($cmd) ) and ( $cmd ne '' ) ) {
 
@@ -316,8 +342,8 @@ sub get_fsa {
                     $cmd =~ s/^\s+//;
                     $cmd =~ s/\s+$//;
 
-                    $state->notes( last_command   => $cmd );
-                    $state->notes( is_cmd_changed => 1 );
+                    $self->notes( last_command   => $cmd );
+                    $self->notes( is_cmd_changed => 1 );
 
                 }
                 else {
@@ -326,12 +352,12 @@ sub get_fsa {
 
                         $logger->debug(
                             'got prompt, but no command submitted in line '
-                              . $state->notes('line_num') );
+                              . $self->notes('line_num') );
 
                     }
 
-                    $state->notes( last_command   => '' );
-                    $state->notes( is_cmd_changed => 1 );
+                    $self->notes( last_command   => '' );
+                    $self->notes( is_cmd_changed => 1 );
 
                 }
 
@@ -339,9 +365,9 @@ sub get_fsa {
             rules => [
                 list_comp => sub {
 
-                    my $state = shift;
+                    my $self = shift;
 
-                    if ( $state->notes('last_command') eq 'list comp' ) {
+                    if ( $self->notes('last_command') eq 'list comp' ) {
 
                         return 1;
 
@@ -355,11 +381,11 @@ sub get_fsa {
                 },
                 list_comp_types => sub {
 
-                    my $state = shift;
+                    my $self = shift;
 
-                    if ( ( $state->notes('last_command') eq 'list comp types' )
+                    if ( ( $self->notes('last_command') eq 'list comp types' )
                         or
-                        ( $state->notes('last_command') eq 'list comp type' ) )
+                        ( $self->notes('last_command') eq 'list comp type' ) )
                     {
 
                         return 1;
@@ -374,9 +400,9 @@ sub get_fsa {
                 },
                 list_params => sub {
 
-                    my $state = shift;
+                    my $self = shift;
 
-                    if ( $state->notes('last_command') =~ $ls_params_regex ) {
+                    if ( $self->notes('last_command') =~ $ls_params_regex ) {
 
                         return 1;
 
@@ -390,9 +416,9 @@ sub get_fsa {
                 },
                 list_tasks => sub {
 
-                    my $state = shift;
+                    my $self = shift;
 
-                    if ( $state->notes('last_command') =~ $ls_tasks_regex ) {
+                    if ( $self->notes('last_command') =~ $ls_tasks_regex ) {
 
                         return 1;
 
@@ -406,9 +432,9 @@ sub get_fsa {
                 },
                 list_servers => sub {
 
-                    my $state = shift;
+                    my $self = shift;
 
-                    if ( $state->notes('last_command') =~ $ls_servers_regex ) {
+                    if ( $self->notes('last_command') =~ $ls_servers_regex ) {
 
                         return 1;
 
@@ -422,9 +448,9 @@ sub get_fsa {
                 },
                 list_comp_def => sub {
 
-                    my $state = shift;
+                    my $self = shift;
 
-                    if ( $state->notes('last_command') =~ $ls_comp_defs_regex )
+                    if ( $self->notes('last_command') =~ $ls_comp_defs_regex )
                     {
 
                         return 1;
@@ -439,9 +465,9 @@ sub get_fsa {
                 },
                 load_preferences => sub {
 
-                    my $state = shift;
+                    my $self = shift;
 
-                    if ( $state->notes('last_command') eq 'load preferences' ) {
+                    if ( $self->notes('last_command') eq 'load preferences' ) {
 
                         return 1;
 
@@ -455,9 +481,9 @@ sub get_fsa {
                 },
                 no_data => sub {
 
-                    my $state = shift;
+                    my $self = shift;
 
-                    if ( $state->notes('last_command') eq '' ) {
+                    if ( $self->notes('last_command') eq '' ) {
 
                         return 1;
 
@@ -478,6 +504,41 @@ sub get_fsa {
             message => 'command submitted'
         }
     );
+
+    $fsa->done(
+        sub {
+
+            my $self = shift;
+
+            my $curr_line = shift( @{ $self->notes('all_data') } );
+
+            if ( defined($curr_line) ) {
+
+                if ( defined( $self->notes('last_command') )
+                    and ( $self->notes('last_command') eq 'exit' ) )
+                {
+
+                    return 1;
+
+                }
+                else {
+
+                    $self->notes( line => $curr_line );
+                    return 0;
+
+                }
+
+            }
+            else {
+
+                return 1;
+
+            }
+
+        }
+    );
+
+    return $fsa;
 
 }
 

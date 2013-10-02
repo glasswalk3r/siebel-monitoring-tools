@@ -240,13 +240,20 @@ sub parse {
 
     my $data_ref = $self->get_raw_data();
 
+    die 'invalid data received to parse'
+      unless ( ( ( ref($data_ref) ) eq 'ARRAY' )
+        and ( scalar( @{$data_ref} ) ) );
+
     my %parsed_lines;
 
     my $line_header_regex = qr/^\-+\s/;
 
-    # cleaning up, state machine should not handle them
-    while (( $data_ref->[ $#{$data_ref} ] eq '' )
-        or ( $data_ref->[ $#{$data_ref} ] =~ ROWS_RETURNED ) )
+# cleaning up, state machine should not handle the end of response from a list command
+    while (
+        ( scalar( @{$data_ref} ) > 0 )
+        and (  ( $data_ref->[ $#{$data_ref} ] eq '' )
+            or ( $data_ref->[ $#{$data_ref} ] =~ ROWS_RETURNED ) )
+      )
     {
 
         pop( @{$data_ref} );
