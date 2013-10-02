@@ -52,7 +52,7 @@ sub class_methods : Tests(6) {
         $parser_class, "get_parser returns a $parser_class instance" );
 
     can_ok( $test->{action},
-        qw(new get_params get_parser get_params do do_parsed) );
+        qw(new get_params get_parser do do_parsed) );
 
   SKIP: {
 

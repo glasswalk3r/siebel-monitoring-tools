@@ -78,6 +78,11 @@ sub class_methods : Tests(+2) {
 
     my $test = shift;
 
+    dies_ok(
+        sub { $test->{action2}->do( $test->get_my_data() ) },
+        'do method must die because the expected server will not be available'
+    );
+
 	$test->SUPER::class_methods();
 
     my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
@@ -92,11 +97,6 @@ sub class_methods : Tests(+2) {
             }
         },
         'data returned by the stash is the expected one'
-    );
-
-    dies_ok(
-        sub { $test->{action2}->do( $test->get_my_data() ) },
-        'do method must die because the expected server will not be available'
     );
 
 }

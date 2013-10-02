@@ -62,7 +62,7 @@ sub logging_cfg {
         else {
 
             confess
-'ENV SIEBEL_SRVRMGR_DEBUG is defined but the value does not exists in the filesystem or is not a file';
+"SIEBEL_SRVRMGR_DEBUG is defined ($ENV{SIEBEL_SRVRMGR_DEBUG}) but the value does not exists in the filesystem or is not a file";
 
         }
 
@@ -91,7 +91,7 @@ sub gimme_logger {
     my $package = shift;
 
     confess 'package parameter must be defined' unless ( defined($package) );
-    my $cfg     = Siebel::Srvrmgr->logging_cfg();
+    my $cfg = Siebel::Srvrmgr->logging_cfg();
 
     confess "Could not start logging facilities"
       unless ( Log::Log4perl->init_once( \$cfg ) );
@@ -124,7 +124,7 @@ The project web page at L<http://code.google.com/p/siebel-monitoring-tools/> con
 
 =head1 AUTHOR
 
-Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<gt>
+Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 

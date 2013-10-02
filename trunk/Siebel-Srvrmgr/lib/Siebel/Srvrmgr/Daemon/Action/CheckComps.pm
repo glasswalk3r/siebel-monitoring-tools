@@ -27,7 +27,7 @@ use Moose;
 use namespace::autoclean;
 use Moose::Util qw(does_role);
 use Siebel::Srvrmgr::Daemon::ActionStash;
-use Carp qw(confess);
+use Carp;
 
 extends 'Siebel::Srvrmgr::Daemon::Action';
 

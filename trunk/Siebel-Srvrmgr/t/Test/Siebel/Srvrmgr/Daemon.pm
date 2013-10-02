@@ -222,6 +222,8 @@ sub clean_up : Test(shutdown) {
 
     }
 
+	$ENV{SIEBEL_SRVRMGR_DEBUG} = undef;
+
 }
 
 1;
