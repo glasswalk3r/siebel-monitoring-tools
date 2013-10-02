@@ -54,6 +54,21 @@ This is an read-only attribute.
 
 =cut
 
+has fsa => (
+    is      => 'ro',
+    isa     => 'FSA::Rules',
+    reader  => 'get_fsa',
+    builder => '_build_fsa'
+);
+
+our $total =0;
+
+sub _build_fsa {
+
+    return Siebel::Srvrmgr::ListParser::FSA->get_fsa();
+
+}
+
 has 'parsed_tree' => (
     is     => 'ro',
     isa    => 'ArrayRef',
@@ -219,14 +234,20 @@ sub set_buffer {
         # already has something, get the last one
         if ( scalar( @{$buffer_ref} ) >= 1 ) {
 
+            $logger->debug('I already have data buffered');
+
             my $last_buffer = $buffer_ref->[ $#{$buffer_ref} ];
 
             if ( $self->is_cmd_changed() ) {
 
+                $logger->debug('Command was changed, creating a new buffer');
                 $self->_set_new_buffer( $type, $line );
 
             }
             else {
+
+                $logger->debug(
+                    'Command is the same, appending data to last buffer');
 
                 if ( $last_buffer->get_type() eq $type ) {
 
@@ -235,7 +256,7 @@ sub set_buffer {
                 }
                 else {
 
-                    if ( $logger->is_warn() ) {
+                    if ( $logger->is_fatal() ) {
 
                         $logger->warn(
 'Command has not changed but type of output has (got '
@@ -475,54 +496,43 @@ sub parse {
     $logger->logdie( 'Received an invalid buffer: ' . ref($data_ref) )
       unless ( ( defined($data_ref) ) and ( ref($data_ref) eq 'ARRAY' ) );
 
-    my $fsa = Siebel::Srvrmgr::ListParser::FSA->get_fsa($logger);
-    weaken($fsa);
+    weaken($data_ref);
 
-    $fsa->done( sub { ( $self->get_last_command() eq 'exit' ) ? 1 : 0 } );
+    $self->get_fsa()->notes( all_data => $data_ref );
 
-    my $line_number = 1;
-    my $state;
+    $self->get_fsa()->start();
 
-    foreach my $line ( @{$data_ref} ) {
+    do {
 
-        $state = $fsa->start() unless defined($state);
+        my $state = $self->get_fsa()->switch();
 
-# :TODO      :10/09/2013 22:03:15:: removing the new line here should not be necessary and is probably being done wrongly
-        $line =~ s/\n$//;
+        if ( defined($state) ) {
 
-        $state->notes( line_num => $line_number );
-        $state->notes( line     => $line );
-        $line_number++;
+            my $curr_msg = $state->message();
 
-        $state = $fsa->switch() unless ( $fsa->done() );
+            if ( $logger->is_debug() ) {
 
-        if ( $logger->is_debug() ) {
+                $logger->debug( 'calling set_buffer with '
+                      . $state->name() . ', '
+                      . $curr_msg )
+                  if ( defined($curr_msg) );
 
-            $logger->debug( 'calling set_buffer with '
-                  . $state->name() . ', '
-                  . $state->message() )
-              if ( defined( $state->message() ) );
+                $logger->debug( 'calling set_last_command with '
+                      . $state->notes('last_command') )
+                  if ( $state->notes('is_cmd_changed') );
 
-            $logger->debug( 'calling set_last_command with '
-                  . $state->notes('last_command') )
-              if ( $state->notes('is_cmd_changed') );
+            }
+
+            $self->is_cmd_changed( $state->notes('is_cmd_changed') );
+            $self->set_buffer( $state->name(), $curr_msg )
+              if ( defined($curr_msg) );
 
         }
 
-        $self->set_buffer( $state->name(), $state->message() )
-          if ( defined( $state->message() ) );
-        $self->set_last_command( $state->notes('last_command') )
-          if ( $state->notes('is_cmd_changed') );
-
-    }
+    } until ( $self->get_fsa()->done() );
 
     $self->append_output();
-
-# :WORKAROUND:17/06/2013 21:31:10:: forcing to destroy references dues memory leak
-    $fsa->DESTROY();
-    undef $fsa;
-
-    undef $data_ref;
+	$self->get_fsa()->reset();
 
 # :WORKAROUND:21/06/2013 20:36:08:: if parse method is called twice, without calling clear_buffer, the buffer will be reused
 # and the returned data will be invalid due removal of the last three lines by Siebel::Srvrmgr::ListParser::Output->parse
@@ -546,6 +556,10 @@ sub DEMOLISH {
 
     $self->clear_buffer();
     $self->clear_parsed_tree();
+
+# :WORKAROUND:17/06/2013 21:31:10:: forcing to destroy references dues memory leak
+    $self->get_fsa()->reset();
+    $self->get_fsa()->DESTROY();
 
 }
 

@@ -154,7 +154,7 @@ has read_timeout => (
     is      => 'rw',
     writer  => 'set_read_timeout',
     reader  => 'get_read_timeout',
-    default => 3 
+    default => 3
 );
 
 =pod
@@ -1250,46 +1250,6 @@ sub close_child {
 
         }
 
-        my @handles = ( $self->get_error(), $self->get_read() );
-        my @handles_names = (qw(error_fh read_fh));
-
-        for ( my $i = 0 ; $i <= 1 ; $i++ ) {
-
-            if ( openhandle( $handles[$i] ) ) {
-
-                if ($has_logger) {
-
-                    $logger->debug(
-                        "Trying to close child $handles_names[$i] handle")
-                      if ( $logger->is_debug() );
-
-                    close( $self->get_error() )
-                      or $logger->fatal(
-                        "Could not close $handles_names[$i] handle: $!");
-
-                }
-                else {
-
-                    close( $handles[$i] )
-                      or warn("Could not close $handles_names[$i] handle: $!");
-
-                }
-
-            }
-            else {
-
-                if ($has_logger) {
-
-                    $logger->warn("$handles_names[$i] is already closed");
-
-                }
-
-            }
-
-        }
-
-        @handles = undef;
-
         if (    ( openhandle( $self->get_write() ) )
             and ( not($SIG_PIPE) )
             and ( not($SIG_ALARM) ) )
@@ -1299,17 +1259,7 @@ sub close_child {
 
             if ( $has_logger && $logger->is_debug() ) {
 
-                $logger->debug(
-'Submitted exit command to srvrmgr. Trying to close child write handle'
-                );
-                close( $self->get_write() )
-                  or $logger->logdie("Could not close write handle: $!");
-
-            }
-            else {
-
-                close( $self->get_write() )
-                  or die("Could not close write handle: $!");
+                $logger->debug('Submitted exit command to srvrmgr');
 
             }
 
@@ -1320,15 +1270,32 @@ sub close_child {
 
         }
 
+        for ( 1 .. 4 ) {
+
+            sleep 1;
+
+            if ( kill( 0, $self->get_pid() ) ) {
+
+                $logger->debug('child process is still there');
+            }
+            else {
+
+                last;
+
+            }
+
+        }
+
         if ( kill 0, $self->get_pid() ) {
 
             if ( $has_logger && $logger->is_debug() ) {
 
-                $logger->debug('srvrmgr is still running, trying to kill it');
+                $logger->debug(
+                    'srvrmgr is still running, trying waitpid on it');
 
             }
 
-            my $ret = waitpid( $self->get_pid(), WNOHANG );
+            my $ret = waitpid( $self->get_pid(), 0 );
 
           SWITCH: {
 

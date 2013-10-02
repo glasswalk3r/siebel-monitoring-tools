@@ -274,6 +274,11 @@ sub _parse_data {
     my $fields_ref = shift;
     my $parsed_ref = shift;
 
+    confess 'invalid fields parameter'
+      unless ( ( defined($fields_ref) )
+        and ( ( ref($fields_ref) ) eq 'ARRAY' )
+        and ( ( scalar( @{$fields_ref} ) ) > 0 ) );
+
     my $server = shift( @{$fields_ref} );
 
     # do not need the servername again
