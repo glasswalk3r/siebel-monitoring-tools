@@ -238,36 +238,33 @@ sub set_buffer {
 
             my $last_buffer = $buffer_ref->[ $#{$buffer_ref} ];
 
-            $logger->debug( $self->is_cmd_changed() );
+            $logger->debug(
+                'Command is the same, appending data to last buffer');
 
-            if ( $self->is_cmd_changed() ) {
+            if ( $last_buffer->get_type() eq $type ) {
 
-                $logger->debug('Command was changed, creating a new buffer');
-                $self->_set_new_buffer( $type, $line );
+                if ( $line ne '' ) {
+
+                    $last_buffer->set_content($line);
+                }
+                else {
+                    $logger->debug(
+'Ignoring first blank line right after command submission'
+                    );
+
+                }
 
             }
             else {
 
-                $logger->debug(
-                    'Command is the same, appending data to last buffer');
+                if ( $logger->is_fatal() ) {
 
-                if ( $last_buffer->get_type() eq $type ) {
-
-                    $last_buffer->set_content($line);
-
-                }
-                else {
-
-                    if ( $logger->is_fatal() ) {
-
-                        $logger->fatal(
-'Command has not changed but type of output has (got '
-                              . $type
-                              . ' instead of '
-                              . $last_buffer->get_type()
-                              . ')' );
-
-                    }
+                    $logger->fatal(
+                        'Command has not changed but type of output has (got '
+                          . $type
+                          . ' instead of '
+                          . $last_buffer->get_type()
+                          . '). Data was ignored' );
 
                 }
 
@@ -276,18 +273,9 @@ sub set_buffer {
         }
         else {
 
-            if ( $line ne '' ) {
-
-                $self->_set_new_buffer( $type, $line );
-
-            }
-            else {
-
-                $logger->debug(
-                    'Ignoring first blank line right after command submission'
-                );
-
-            }
+            $logger->fatal(
+'buffer is still uninitialized even though _create_buffer should already taken care of it'
+            );
 
         }
 
@@ -301,22 +289,23 @@ sub set_buffer {
 }
 
 # adds a new buffer to the buffer attribute
-sub _set_new_buffer {
+sub _create_buffer {
 
     my $self = shift;
     my $type = shift;
-    my $line = shift;
 
-    my $buffer = Siebel::Srvrmgr::ListParser::Buffer->new(
-        {
-            type     => $type,
-            cmd_line => $self->get_last_command()
-        }
-    );
+    if ( Siebel::Srvrmgr::ListParser::OutputFactory->can_create($type) ) {
 
-    $buffer->set_content($line);
+        my $buffer = Siebel::Srvrmgr::ListParser::Buffer->new(
+            {
+                type     => $type,
+                cmd_line => $self->get_last_command()
+            }
+        );
 
-    push( @{ $self->get_buffer() }, $buffer );
+        push( @{ $self->get_buffer() }, $buffer );
+
+    }
 
 }
 
@@ -503,12 +492,15 @@ sub parse {
     my $self     = shift;
     my $data_ref = shift;
 
+# :TODO:03-10-2013:arfreitas: evaluate if having a logger attribute does not have better performance instead doing this logger instantiation everytime
     my $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );
     weaken($logger);
 
     $logger->logdie( 'Received an invalid buffer: ' . ref($data_ref) )
       unless ( ( defined($data_ref) ) and ( ref($data_ref) eq 'ARRAY' ) );
 
+# :TODO:03-10-2013:arfreitas: should assume that $/ is the same line ending character from output to parse
+    chomp( @{$data_ref} );
     weaken($data_ref);
 
     $self->get_fsa()->notes( all_data => $data_ref );
@@ -523,19 +515,43 @@ sub parse {
 
             my $curr_msg = $state->notes('line');
 
-            if ( $state->notes('is_cmd_changed') ) {
+# :TODO:03-10-2013:arfreitas: find a way to keep circular references between the two objects to avoid
+# checking state change everytime with is_cmd_changed
 
-                $logger->debug( 'calling set_last_command with ['
-                      . $state->notes('last_command')
-                      . ']' )
-                  if ( $logger->is_debug() );
+          SWITCH: {
 
-                $self->set_last_command( $state->notes('last_command') );
+# :WORKAROUND:03-10-2013:arfreitas: command_submission defines is_cmd_changed but it is not a valid
+# Siebel::Srvrmgr::ListParser::Output, so it's not worth to create a buffer object for it and discard later.
+# Anyway, is expected that after a command is submitted, the next message is the output from it and it needs
+# a buffer to be stored
+                if ( $self->get_fsa()->prev_state()->name() eq
+                    'command_submission' )
+                {
 
-            }
-            else {
+                    $self->_create_buffer( $state->name() );
+                    last SWITCH;
+                }
 
-                $self->is_cmd_changed(0);
+                if ( $state->notes('is_cmd_changed') ) {
+
+                    $logger->debug( 'calling set_last_command with ['
+                          . $state->notes('last_command')
+                          . ']' )
+                      if ( $logger->is_debug() );
+
+                    $self->set_last_command( $state->notes('last_command') );
+                    last SWITCH;
+
+                }
+
+                if ( $state->notes('create_greetings') ) {
+
+                    $self->_create_buffer( $state->name );
+                    $state->notes( create_greetings  => 0 );
+                    $state->notes( greetings_created => 1 );
+                    last SWITCH;
+
+                }
 
             }
 

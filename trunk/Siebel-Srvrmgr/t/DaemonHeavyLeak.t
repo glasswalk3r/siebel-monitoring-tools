@@ -1,12 +1,16 @@
 package My::Devel::Gladiator;
 
 use Scalar::Util qw(weaken);
+use Cwd;
+use File::Spec;
 
 sub new {
 
     my $class = shift;
 
-    open( my $out, '>', 'c:/temp/temp.txt' ) or die $!;
+    my $file = File::Spec->catfile( getcwd(), 'gladiator_output.txt' );
+
+    open( my $out, '>', $file ) or die "Cannot create $file: $!";
 
     my $self = { counting => {}, out_h => $out };
 
@@ -111,7 +115,7 @@ my $daemon = Siebel::Srvrmgr::Daemon::Heavy->new(
         commands    => [
             Siebel::Srvrmgr::Daemon::Command->new(
                 command => 'list comp',
-				action => 'Dummy'
+                action  => 'Dummy'
             )
         ]
     }
@@ -123,7 +127,7 @@ for ( 1 .. $repeat ) {
 
     $daemon->run();
 
-    $gladiator->increment_count(arena_ref_counts());
+    $gladiator->increment_count( arena_ref_counts() );
     is( $gladiator->count_leaks(), 0, 'gladiator gots zero leaks' );
 
 }
