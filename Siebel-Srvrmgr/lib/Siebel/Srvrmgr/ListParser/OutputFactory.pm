@@ -28,6 +28,8 @@ use Carp;
         }
     );
 
+	if (Siebel::Srvrmgr::ListParser::OutputFactory->can_create('weirdo')) ? print "can\n" : print "cannot\n";
+
 =head1 DESCRIPTION
 
 This is an abstract factory class to create instances of subclass of L<Siebel::Srvrmgr::ListParser::Output> superclass.

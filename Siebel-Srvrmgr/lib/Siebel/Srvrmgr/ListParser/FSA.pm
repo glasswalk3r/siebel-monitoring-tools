@@ -131,8 +131,10 @@ sub get_fsa {
             label    => 'greetings message from srvrmgr',
             on_enter => sub {
                 my $self = shift;
-                $self->notes( is_cmd_changed => 0 );
-                $self->notes( is_data_wanted => 1 );
+                $self->notes( is_cmd_changed     => 0 );
+                $self->notes( is_data_wanted     => 1 );
+                $self->notes( 'create_greetings' => 1 )
+                  unless ( $self->notes('greetings_created') );
             },
             on_exit => sub {
 
