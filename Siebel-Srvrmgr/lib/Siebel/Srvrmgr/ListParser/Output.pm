@@ -91,7 +91,7 @@ has 'data_parsed' => (
 
 =head2 cmd_line
 
-A string of the command that originates the output (the data of C<raw_data> attribute).
+A string of the command that originates from the output (the data of C<raw_data> attribute).
 
 This attribute is required during object creation.
 
@@ -264,9 +264,6 @@ sub parse {
       unless ( @{$data_ref} );
 
     foreach my $line ( @{$data_ref} ) {
-
-        # :TODO      :08/08/2013 18:33:28:: remove this chomp?
-        chomp($line);
 
       SWITCH: {
 

@@ -14,13 +14,17 @@ sub class_methods : Test(+1) {
     my $test_data;
     open( STDOUT, '>', \$test_data )
       or die "Failed to redirect STDOUT to in-memory file: $!";
+
+ # :WORKAROUND:03/10/2013 02:58:17:: somehow, calling superclass class_methods erases the data, and it cannot be recovered later
+	my @backup;
+	@backup = @{$test->get_my_data()};
     $test->SUPER::class_methods();
     close(STDOUT);
 
     $test_data = undef;
     open( STDOUT, '>', \$test_data )
       or die "Failed to redirect STDOUT to in-memory file: $!";
-    $test->{action}->do( $test->get_my_data() );
+    $test->{action}->do( \@backup );
     close(STDOUT);
 
     like(

@@ -144,7 +144,11 @@ sub _set_details {
                 last SWITCH;
 
             }
-            else { confess "got strange list params command: cannot parse"; }
+            else {
+                confess 'got strange list params command: ('
+                  . $self->get_cmd_line()
+                  . ') do not know what do with it';
+            }
 
         }
 
@@ -163,6 +167,10 @@ Execute the method C<_set_details> right after object creation.
 sub BUILD {
 
     my $self = shift;
+
+    confess 'cmd_line attribute must have a string as a value, not ['
+      . $self->get_cmd_line() . ']'
+      unless ( $self->get_cmd_line() =~ /^\w+/ );
 
     $self->_set_details();
 

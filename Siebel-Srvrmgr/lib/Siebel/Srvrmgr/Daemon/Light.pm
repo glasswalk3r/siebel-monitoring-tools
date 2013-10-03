@@ -67,7 +67,7 @@ use POSIX;
 use Scalar::Util qw(weaken);
 use Config;
 use Carp qw(longmess);
-use File::Temp qw(:POSIX);
+use File::Temp;
 use Data::Dumper;
 use Siebel::Srvrmgr;
 
@@ -316,7 +316,8 @@ override _setup_commands => sub {
 
     my $self = shift;
 
-    my ( $fh, $input_file ) = tmpnam();
+ # :WORKAROUND:03/10/2013 03:06:41:: getting a "tmpnam redefined" warning in Perl 5.18
+    my ( $fh, $input_file ) = File::Temp::tmpnam();
 
     foreach my $cmd ( @{ $self->get_commands() } ) {
 
@@ -338,7 +339,7 @@ override _define_params => sub {
     my $params_ref = super();
 
 # :TODO      :20/08/2013 12:31:36:: must define if the output files must be kept or removed
-    $self->_set_output_file( scalar( tmpnam() ) );
+    $self->_set_output_file( scalar( File::Temp::tmpnam() ) );
 
     push(
         @{$params_ref},

@@ -61,7 +61,7 @@ has fsa => (
     builder => '_build_fsa'
 );
 
-our $total =0;
+our $total = 0;
 
 sub _build_fsa {
 
@@ -238,6 +238,8 @@ sub set_buffer {
 
             my $last_buffer = $buffer_ref->[ $#{$buffer_ref} ];
 
+            $logger->debug( $self->is_cmd_changed() );
+
             if ( $self->is_cmd_changed() ) {
 
                 $logger->debug('Command was changed, creating a new buffer');
@@ -258,7 +260,7 @@ sub set_buffer {
 
                     if ( $logger->is_fatal() ) {
 
-                        $logger->warn(
+                        $logger->fatal(
 'Command has not changed but type of output has (got '
                               . $type
                               . ' instead of '
@@ -274,7 +276,18 @@ sub set_buffer {
         }
         else {
 
-            $self->_set_new_buffer( $type, $line );
+            if ( $line ne '' ) {
+
+                $self->_set_new_buffer( $type, $line );
+
+            }
+            else {
+
+                $logger->debug(
+                    'Ignoring first blank line right after command submission'
+                );
+
+            }
 
         }
 
@@ -508,31 +521,41 @@ sub parse {
 
         if ( defined($state) ) {
 
-            my $curr_msg = $state->message();
+            my $curr_msg = $state->notes('line');
 
-            if ( $logger->is_debug() ) {
+            if ( $state->notes('is_cmd_changed') ) {
 
-                $logger->debug( 'calling set_buffer with '
-                      . $state->name() . ', '
-                      . $curr_msg )
-                  if ( defined($curr_msg) );
+                $logger->debug( 'calling set_last_command with ['
+                      . $state->notes('last_command')
+                      . ']' )
+                  if ( $logger->is_debug() );
 
-                $logger->debug( 'calling set_last_command with '
-                      . $state->notes('last_command') )
-                  if ( $state->notes('is_cmd_changed') );
+                $self->set_last_command( $state->notes('last_command') );
+
+            }
+            else {
+
+                $self->is_cmd_changed(0);
 
             }
 
-            $self->is_cmd_changed( $state->notes('is_cmd_changed') );
-            $self->set_buffer( $state->name(), $curr_msg )
-              if ( defined($curr_msg) );
+            if ( $state->notes('is_data_wanted') ) {
+
+                $logger->debug( 'calling set_buffer with ['
+                      . $state->name() . '], ['
+                      . $curr_msg
+                      . ']' )
+                  if ( $logger->is_debug() );
+                $self->set_buffer( $state->name(), $curr_msg );
+
+            }
 
         }
 
     } until ( $self->get_fsa()->done() );
 
     $self->append_output();
-	$self->get_fsa()->reset();
+    $self->get_fsa()->reset();
 
 # :WORKAROUND:21/06/2013 20:36:08:: if parse method is called twice, without calling clear_buffer, the buffer will be reused
 # and the returned data will be invalid due removal of the last three lines by Siebel::Srvrmgr::ListParser::Output->parse
