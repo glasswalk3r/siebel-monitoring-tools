@@ -128,16 +128,17 @@ sub get_fsa {
 
         },
         greetings => {
-            label => 'greetings message from srvrmgr',
-            do    => sub {
-
-                my $self = shift;
-                $self->message( $self->notes('line') );
-
-            },
+            label    => 'greetings message from srvrmgr',
             on_enter => sub {
                 my $self = shift;
                 $self->notes( is_cmd_changed => 0 );
+                $self->notes( is_data_wanted => 1 );
+            },
+            on_exit => sub {
+
+                my $self = shift;
+                $self->notes( is_data_wanted => 0 );
+
             },
             rules => [
                 command_submission => sub {
@@ -160,16 +161,17 @@ sub get_fsa {
             message => 'EOF'
         },
         list_comp => {
-            label => 'parses output from a list comp command',
-            do    => sub {
-
-                my $self = shift;
-                $self->message( $self->notes('line') );
-
-            },
+            label    => 'parses output from a list comp command',
             on_enter => sub {
                 my $self = shift;
                 $self->notes( is_cmd_changed => 0 );
+                $self->notes( is_data_wanted => 1 );
+            },
+            on_exit => sub {
+
+                my $self = shift;
+                $self->notes( is_data_wanted => 0 );
+
             },
             rules => [
                 command_submission => sub {
@@ -184,16 +186,17 @@ sub get_fsa {
             message => 'prompt found'
         },
         list_comp_types => {
-            label => 'parses output from a list comp types command',
-            do    => sub {
-                my $self = shift;
-
-                $self->message( $self->notes('line') );
-
-            },
+            label    => 'parses output from a list comp types command',
             on_enter => sub {
                 my $self = shift;
                 $self->notes( is_cmd_changed => 0 );
+                $self->notes( is_data_wanted => 1 );
+            },
+            on_exit => sub {
+
+                my $self = shift;
+                $self->notes( is_data_wanted => 0 );
+
             },
             rules => [
                 command_submission => sub {
@@ -207,16 +210,17 @@ sub get_fsa {
             message => 'prompt found'
         },
         list_params => {
-            label => 'parses output from a list params command',
-            do    => sub {
-                my $self = shift;
-
-                $self->message( $self->notes('line') );
-
-            },
+            label    => 'parses output from a list params command',
             on_enter => sub {
                 my $self = shift;
                 $self->notes( is_cmd_changed => 0 );
+                $self->notes( is_data_wanted => 1 );
+            },
+            on_exit => sub {
+
+                my $self = shift;
+                $self->notes( is_data_wanted => 0 );
+
             },
             rules => [
                 command_submission => sub {
@@ -230,16 +234,17 @@ sub get_fsa {
             message => 'prompt found'
         },
         list_comp_def => {
-            label => 'parses output from a list comp def command',
-            do    => sub {
-
-                my $self = shift;
-                $self->message( $self->notes('line') );
-
-            },
+            label    => 'parses output from a list comp def command',
             on_enter => sub {
                 my $self = shift;
                 $self->notes( is_cmd_changed => 0 );
+                $self->notes( is_data_wanted => 1 );
+            },
+            on_exit => sub {
+
+                my $self = shift;
+                $self->notes( is_data_wanted => 0 );
+
             },
             rules => [
                 command_submission => sub {
@@ -253,16 +258,17 @@ sub get_fsa {
             message => 'prompt found'
         },
         list_tasks => {
-            label => 'parses output from a list tasks command',
-            do    => sub {
-
-                my $self = shift;
-                $self->message( $self->notes('line') );
-
-            },
+            label    => 'parses output from a list tasks command',
             on_enter => sub {
                 my $self = shift;
                 $self->notes( is_cmd_changed => 0 );
+                $self->notes( is_data_wanted => 1 );
+            },
+            on_exit => sub {
+
+                my $self = shift;
+                $self->notes( is_data_wanted => 0 );
+
             },
             rules => [
                 command_submission => sub {
@@ -276,16 +282,17 @@ sub get_fsa {
             message => 'prompt found'
         },
         list_servers => {
-            label => 'parses output from a list servers command',
-            do    => sub {
-
-                my $self = shift;
-                $self->message( $self->notes('line') );
-
-            },
+            label    => 'parses output from a list servers command',
             on_enter => sub {
                 my $self = shift;
                 $self->notes( is_cmd_changed => 0 );
+                $self->notes( is_data_wanted => 1 );
+            },
+            on_exit => sub {
+
+                my $self = shift;
+                $self->notes( is_data_wanted => 0 );
+
             },
             rules => [
                 command_submission => sub {
@@ -299,16 +306,17 @@ sub get_fsa {
             message => 'prompt found'
         },
         load_preferences => {
-            label => 'parses output from a load preferences command',
-            do    => sub {
-
-                my $self = shift;
-                $self->message( $self->notes('line') );
-
-            },
+            label    => 'parses output from a load preferences command',
             on_enter => sub {
                 my $self = shift;
                 $self->notes( is_cmd_changed => 0 );
+                $self->notes( is_data_wanted => 1 );
+            },
+            on_exit => sub {
+
+                my $self = shift;
+                $self->notes( is_data_wanted => 0 );
+
             },
             rules => [
                 command_submission => sub {
@@ -341,6 +349,9 @@ sub get_fsa {
                     # removing spaces from command
                     $cmd =~ s/^\s+//;
                     $cmd =~ s/\s+$//;
+
+                    $logger->debug("last_command set with '$cmd'")
+                      if $logger->is_debug();
 
                     $self->notes( last_command   => $cmd );
                     $self->notes( is_cmd_changed => 1 );
@@ -383,7 +394,7 @@ sub get_fsa {
 
                     my $self = shift;
 
-                    if ( ( $self->notes('last_command') eq 'list comp types' )
+                    if (   ( $self->notes('last_command') eq 'list comp types' )
                         or
                         ( $self->notes('last_command') eq 'list comp type' ) )
                     {
@@ -450,8 +461,7 @@ sub get_fsa {
 
                     my $self = shift;
 
-                    if ( $self->notes('last_command') =~ $ls_comp_defs_regex )
-                    {
+                    if ( $self->notes('last_command') =~ $ls_comp_defs_regex ) {
 
                         return 1;
 

@@ -11,6 +11,7 @@ Siebel::Srvrmgr::ListParser::OutputFactory - abstract factory class to create Si
 use warnings;
 use strict;
 use MooseX::AbstractFactory;
+use Carp;
 
 =pod
 
@@ -102,7 +103,7 @@ implementation_class_via sub {
     }
     else {
 
-        die "Cannot defined a class for command $last_cmd_type";
+        confess "Cannot defined a class for command '$last_cmd_type'";
 
     }
 

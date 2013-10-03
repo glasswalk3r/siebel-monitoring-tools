@@ -10,8 +10,8 @@ sub class_attributes : Tests(8) {
     my $test = shift;
 
     my @attribs = (
-        'parsed_tree',  'has_tree',       'prompt_regex', 'hello_regex',
-        'last_command', 'is_cmd_changed', 'buffer',       'enterprise'
+        'parsed_tree', 'has_tree', 'last_command', 'is_cmd_changed',
+        'buffer',      'enterprise'
     );
 
     foreach my $attrib (@attribs) {
@@ -45,15 +45,13 @@ sub class_methods : Tests(9) {
     can_ok(
         $class,
         (
-            'get_parsed_tree',  'get_prompt_regex',
-            'set_prompt_regex', 'get_hello_regex',
-            'set_hello_regex',  'get_last_command',
-            'is_cmd_changed',   'set_last_command',
-            'set_buffer',       'clear_buffer',
-            'count_parsed',     'clear_parsed_tree',
-            'set_parsed_tree',  'append_output',
-            'parse',            'get_buffer',
-            'new',              'get_enterprise',
+            'get_parsed_tree', 'get_last_command',
+            'is_cmd_changed',  'set_last_command',
+            'set_buffer',      'clear_buffer',
+            'count_parsed',    'clear_parsed_tree',
+            'set_parsed_tree', 'append_output',
+            'parse',           'get_buffer',
+            'new',             'get_enterprise',
             '_set_enterprise'
         )
     );
