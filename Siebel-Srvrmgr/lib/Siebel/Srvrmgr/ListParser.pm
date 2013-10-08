@@ -146,13 +146,6 @@ has 'fsa' => (
     writer => '_set_fsa'
 );
 
-sub BUILD {
-
-    my $self = shift;
-
-    $self->_set_fsa( Siebel::Srvrmgr::ListParser::FSA->new() );
-
-}
 
 =pod
 
@@ -202,6 +195,22 @@ sub _toggle_cmd_changed {
     my ( $self, $new_value, $old_value ) = @_;
 
     $self->is_cmd_changed(1);
+
+}
+
+=pod
+
+=head2 BUILD
+
+Automaticallu defined the state machine object based on L<Siebel::Srvrmgr::ListParser::FSA>.
+
+=cut
+
+sub BUILD {
+
+    my $self = shift;
+
+    $self->_set_fsa( Siebel::Srvrmgr::ListParser::FSA->new() );
 
 }
 
@@ -504,6 +513,7 @@ sub parse {
     weaken($data_ref);
 
     $self->get_fsa->notes( all_data => $data_ref );
+    $self->get_fsa->notes( line_num => 0 );
     $self->get_fsa->start() unless ( $self->get_fsa()->curr_state() );
 
     do {
@@ -596,8 +606,6 @@ sub DEMOLISH {
     $self->{fsa} = undef;
     $self->clear_buffer();
     $self->clear_parsed_tree();
-
-	syswrite STDOUT, "ListParser is gone\n";
 
 }
 

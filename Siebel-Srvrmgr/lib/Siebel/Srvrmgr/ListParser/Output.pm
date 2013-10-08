@@ -80,6 +80,9 @@ An hash reference with the data parsed from C<raw_data> attribute.
 
 =cut
 
+# :TODO:08-10-2013:arfreitas: verify if it is possible to reduce memory usage by removing data_parsed in some class
+# that don't use it directly
+
 has 'data_parsed' => (
     is     => 'rw',
     isa    => 'HashRef',

@@ -29,7 +29,6 @@ my %config = (
         'Test::Class'              => 0.36,
         'Test::Moose'              => 2.0801,
         'Class::Data::Inheritable' => 0.08,
-        'Test::Memory::Cycle'      => 1.04,
         'Config::Tiny'             => 2.14
     },
     EXE_FILES  => ['srvrmgr-mock.pl'],
