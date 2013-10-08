@@ -101,36 +101,44 @@ my $repeat = 3;
 
 plan tests => $repeat;
 
-my $daemon = Siebel::Srvrmgr::Daemon::Heavy->new(
-    {
-        gateway     => 'whatever',
-        enterprise  => 'whatever',
-        user        => 'whatever',
-        password    => 'whatever',
-        server      => 'whatever',
-        bin         => File::Spec->catfile( getcwd(), 'srvrmgr-mock.pl' ),
-        use_perl    => 1,
-        is_infinite => 0,
-        timeout     => 0,
-        commands    => [
-            Siebel::Srvrmgr::Daemon::Command->new(
-                command => 'list comp',
-                action  => 'Dummy'
-            )
-        ]
+SKIP: {
+
+     skip 'Not a developer machine', $repeat
+      unless ( $ENV{SIEBEL_SRVRMGR_DEVEL} );
+
+    my $daemon = Siebel::Srvrmgr::Daemon::Heavy->new(
+        {
+            gateway     => 'whatever',
+            enterprise  => 'whatever',
+            user        => 'whatever',
+            password    => 'whatever',
+            server      => 'whatever',
+            bin         => File::Spec->catfile( getcwd(), 'srvrmgr-mock.pl' ),
+            use_perl    => 1,
+            is_infinite => 0,
+            timeout     => 0,
+            commands    => [
+                Siebel::Srvrmgr::Daemon::Command->new(
+                    command => 'list comp',
+                    action  => 'Dummy'
+                )
+            ]
+        }
+    );
+
+    my $gladiator = My::Devel::Gladiator->new();
+
+    for ( 1 .. $repeat ) {
+
+        $daemon->run();
+
+        $gladiator->increment_count( arena_ref_counts() );
+        is( $gladiator->count_leaks(), 0, 'gladiator gots zero leaks' );
+
     }
-);
 
-my $gladiator = My::Devel::Gladiator->new();
+    $gladiator->show_accounting();
 
-for ( 1 .. $repeat ) {
-
-    $daemon->run();
-
-    $gladiator->increment_count( arena_ref_counts() );
-    is( $gladiator->count_leaks(), 0, 'gladiator gots zero leaks' );
+	syswrite STDOUT, "program is finished\n";
 
 }
-
-$gladiator->show_accounting();
-

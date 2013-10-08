@@ -19,8 +19,8 @@ use Siebel::Srvrmgr::ListParser::OutputFactory;
 use Siebel::Srvrmgr::ListParser::Buffer;
 use Siebel::Srvrmgr;
 use Log::Log4perl;
-use Siebel::Srvrmgr::ListParser::FSA;
 use Scalar::Util qw(weaken);
+use Siebel::Srvrmgr::ListParser::FSA;
 
 =pod
 
@@ -53,21 +53,6 @@ reference, with parsed data related from one line read from output of C<srvrmgr>
 This is an read-only attribute.
 
 =cut
-
-has fsa => (
-    is      => 'ro',
-    isa     => 'FSA::Rules',
-    reader  => 'get_fsa',
-    builder => '_build_fsa'
-);
-
-our $total = 0;
-
-sub _build_fsa {
-
-    return Siebel::Srvrmgr::ListParser::FSA->get_fsa();
-
-}
 
 has 'parsed_tree' => (
     is     => 'ro',
@@ -153,6 +138,21 @@ has 'enterprise' => (
     reader => 'get_enterprise',
     writer => '_set_enterprise'
 );
+
+has 'fsa' => (
+    is     => 'ro',
+    isa    => 'Siebel::Srvrmgr::ListParser::FSA',
+    reader => 'get_fsa',
+    writer => '_set_fsa'
+);
+
+sub BUILD {
+
+    my $self = shift;
+
+    $self->_set_fsa( Siebel::Srvrmgr::ListParser::FSA->new() );
+
+}
 
 =pod
 
@@ -499,17 +499,16 @@ sub parse {
     $logger->logdie( 'Received an invalid buffer: ' . ref($data_ref) )
       unless ( ( defined($data_ref) ) and ( ref($data_ref) eq 'ARRAY' ) );
 
-# :TODO:03-10-2013:arfreitas: should assume that $/ is the same line ending character from output to parse
+# :TODO:03-10-2013:arfreitas: shouldn't assume that $/ is the same line ending character from output to parse
     chomp( @{$data_ref} );
     weaken($data_ref);
 
-    $self->get_fsa()->notes( all_data => $data_ref );
-
-    $self->get_fsa()->start();
+    $self->get_fsa->notes( all_data => $data_ref );
+    $self->get_fsa->start() unless ( $self->get_fsa()->curr_state() );
 
     do {
 
-        my $state = $self->get_fsa()->switch();
+        my $state = $self->get_fsa->switch();
 
         if ( defined($state) ) {
 
@@ -520,11 +519,11 @@ sub parse {
 
           SWITCH: {
 
-# :WORKAROUND:03-10-2013:arfreitas: command_submission defines is_cmd_changed but it is not a valid
-# Siebel::Srvrmgr::ListParser::Output, so it's not worth to create a buffer object for it and discard later.
+# :WORKAROUND:03-10-2013:arfreitas: command_submission defines is_cmd_changed but it is not a
+# Siebel::Srvrmgr::ListParser::Output instance, so it's not worth to create a buffer object for it and discard later.
 # Anyway, is expected that after a command is submitted, the next message is the output from it and it needs
 # a buffer to be stored
-                if ( $self->get_fsa()->prev_state()->name() eq
+                if ( $self->get_fsa->prev_state()->name() eq
                     'command_submission' )
                 {
 
@@ -568,10 +567,10 @@ sub parse {
 
         }
 
-    } until ( $self->get_fsa()->done() );
+    } until ( $self->get_fsa->done() );
 
     $self->append_output();
-    $self->get_fsa()->reset();
+    $self->get_fsa->reset();
 
 # :WORKAROUND:21/06/2013 20:36:08:: if parse method is called twice, without calling clear_buffer, the buffer will be reused
 # and the returned data will be invalid due removal of the last three lines by Siebel::Srvrmgr::ListParser::Output->parse
@@ -584,7 +583,7 @@ sub parse {
 
 =head2 DEMOLISH
 
-Due issues with memory leak and garbage collectioning, DEMOLISH was implemented to call additional methods from the API to clean buffer and parsed tree
+Due issues with memory leak and garbage collection, DEMOLISH was implemented to call additional methods from the API to clean buffer and parsed tree
 data.
 
 =cut
@@ -593,12 +592,12 @@ sub DEMOLISH {
 
     my $self = shift;
 
+    $self->get_fsa->free_refs();
+    $self->{fsa} = undef;
     $self->clear_buffer();
     $self->clear_parsed_tree();
 
-# :WORKAROUND:17/06/2013 21:31:10:: forcing to destroy references dues memory leak
-    $self->get_fsa()->reset();
-    $self->get_fsa()->DESTROY();
+	syswrite STDOUT, "ListParser is gone\n";
 
 }
 

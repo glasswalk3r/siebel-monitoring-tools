@@ -1,16 +1,18 @@
 package Siebel::Srvrmgr::ListParser::FSA;
 use warnings;
 use strict;
-use FSA::Rules;
 use Log::Log4perl;
 use Siebel::Srvrmgr;
 use Siebel::Srvrmgr::Regexes qw(SRVRMGR_PROMPT CONN_GREET);
+use Scalar::Util qw(weaken);
+
+use parent 'FSA::Rules';
 
 =pod
 
 =head1 NAME
 
-Siebel::Srvrmgr::ListParser::FSA - functions related to FSA::Rules defined for Siebel::Srvrmgr::ListParser
+Siebel::Srvrmgr::ListParser::FSA - the FSA::Rules class specification for Siebel::Srvrmgr::ListParser
 
 =head1 SYNOPSIS
 
@@ -23,17 +25,15 @@ Siebel::Srvrmgr::ListParser::FSA - functions related to FSA::Rules defined for S
 
 =head1 DESCRIPTION
 
-Siebel::Srvrmgr::ListParser::FSA implements the state machine used by L<Siebel::Srvrmgr::ListParser> class.
+Siebel::Srvrmgr::ListParser::FSA subclasses the state machine implemented by L<Siebel::Srvrmgr::ListParser> class.
 
-This class only have static methods and is considered to be experimental.
-
-This class also have a L<Log::Log4perl> instance builtin the L<FSA::Rules> instance returned by L<get_fsa> method.
+This class also have a L<Log::Log4perl> instance built in the L<FSA::Rules> instance returned by L<get_fsa> method.
 
 =head1 EXPORTS
 
 Nothing.
 
-=head1 STATIC METHODS
+=head1 METHODS
 
 =head2 export_diagram
 
@@ -54,13 +54,13 @@ sub export_diagram {
 
 =pod
 
-=head2 get_fsa
+=head2 new
 
 Returns the state machine object defined for usage with a L<Siebel::Srvrmgr::ListParser> instance.
 
 =cut
 
-sub get_fsa {
+sub new {
 
     my $class = shift;
 
@@ -71,6 +71,8 @@ sub get_fsa {
 
     my $logger = Log::Log4perl->get_logger('Siebel::Srvrmgr::ListParser');
 
+    weaken($logger);
+
     my $ls_params_regex =
       qr/list\sparams(\sfor\sserver\s\w+\sfor\scomponent\s\w+)?/;
     my $ls_tasks_regex =
@@ -78,447 +80,8 @@ sub get_fsa {
     my $ls_servers_regex   = qr/list\sserver(s)?.*/;
     my $ls_comp_defs_regex = qr/list\scomp\sdefs?(\s\w+)?/;
 
-    my $fsa = FSA::Rules->new(
-        no_data => {
-            do => sub {
-
-                if ( $logger->is_debug() ) {
-
-                    $logger->debug('Searching for useful data');
-
-                }
-
-            },
-            rules => [
-                greetings => sub {
-
-                    my $self = shift;
-
-                    if ( defined( $self->notes('line') ) ) {
-
-                        return ( $self->notes('line') =~ CONN_GREET );
-
-                    }
-                    else {
-
-                        return 0;
-
-                    }
-
-                },
-                command_submission => sub {
-
-                    my $self = shift;
-
-                    if ( defined( $self->notes('line') ) ) {
-
-                        return ( $self->notes('line') =~ SRVRMGR_PROMPT );
-
-                    }
-                    else {
-
-                        return 0;
-
-                    }
-
-                },
-                no_data => sub { return 1 }
-            ],
-            message => 'Line read'
-
-        },
-        greetings => {
-            label    => 'greetings message from srvrmgr',
-            on_enter => sub {
-                my $self = shift;
-                $self->notes( is_cmd_changed     => 0 );
-                $self->notes( is_data_wanted     => 1 );
-                $self->notes( 'create_greetings' => 1 )
-                  unless ( $self->notes('greetings_created') );
-            },
-            on_exit => sub {
-
-                my $self = shift;
-                $self->notes( is_data_wanted => 0 );
-
-            },
-            rules => [
-                command_submission => sub {
-
-                    my $self = shift;
-                    return ( $self->notes('line') =~ SRVRMGR_PROMPT );
-
-                },
-                greetings => sub { return 1 }
-            ],
-            message => 'prompt found'
-        },
-        end => {
-            do    => sub { $logger->debug('Enterprise says bye-bye') },
-            rules => [
-                no_data => sub {
-                    return 1;
-                  }
-            ],
-            message => 'EOF'
-        },
-        list_comp => {
-            label    => 'parses output from a list comp command',
-            on_enter => sub {
-                my $self = shift;
-                $self->notes( is_cmd_changed => 0 );
-                $self->notes( is_data_wanted => 1 );
-            },
-            on_exit => sub {
-
-                my $self = shift;
-                $self->notes( is_data_wanted => 0 );
-
-            },
-            rules => [
-                command_submission => sub {
-
-                    my $self = shift;
-
-                    return ( $self->notes('line') =~ SRVRMGR_PROMPT );
-
-                },
-                list_comp => sub { return 1; }
-            ],
-            message => 'prompt found'
-        },
-        list_comp_types => {
-            label    => 'parses output from a list comp types command',
-            on_enter => sub {
-                my $self = shift;
-                $self->notes( is_cmd_changed => 0 );
-                $self->notes( is_data_wanted => 1 );
-            },
-            on_exit => sub {
-
-                my $self = shift;
-                $self->notes( is_data_wanted => 0 );
-
-            },
-            rules => [
-                command_submission => sub {
-
-                    my $self = shift;
-                    return ( $self->notes('line') =~ SRVRMGR_PROMPT );
-
-                },
-                list_comp_types => sub { return 1; }
-            ],
-            message => 'prompt found'
-        },
-        list_params => {
-            label    => 'parses output from a list params command',
-            on_enter => sub {
-                my $self = shift;
-                $self->notes( is_cmd_changed => 0 );
-                $self->notes( is_data_wanted => 1 );
-            },
-            on_exit => sub {
-
-                my $self = shift;
-                $self->notes( is_data_wanted => 0 );
-
-            },
-            rules => [
-                command_submission => sub {
-
-                    my $self = shift;
-                    return ( $self->notes('line') =~ SRVRMGR_PROMPT );
-
-                },
-                list_params => sub { return 1; }
-            ],
-            message => 'prompt found'
-        },
-        list_comp_def => {
-            label    => 'parses output from a list comp def command',
-            on_enter => sub {
-                my $self = shift;
-                $self->notes( is_cmd_changed => 0 );
-                $self->notes( is_data_wanted => 1 );
-            },
-            on_exit => sub {
-
-                my $self = shift;
-                $self->notes( is_data_wanted => 0 );
-
-            },
-            rules => [
-                command_submission => sub {
-
-                    my $self = shift;
-                    return ( $self->notes('line') =~ SRVRMGR_PROMPT );
-
-                },
-                list_comp_def => sub { return 1; }
-            ],
-            message => 'prompt found'
-        },
-        list_tasks => {
-            label    => 'parses output from a list tasks command',
-            on_enter => sub {
-                my $self = shift;
-                $self->notes( is_cmd_changed => 0 );
-                $self->notes( is_data_wanted => 1 );
-            },
-            on_exit => sub {
-
-                my $self = shift;
-                $self->notes( is_data_wanted => 0 );
-
-            },
-            rules => [
-                command_submission => sub {
-
-                    my $self = shift;
-                    return ( $self->notes('line') =~ SRVRMGR_PROMPT );
-
-                },
-                list_tasks => sub { return 1; }
-            ],
-            message => 'prompt found'
-        },
-        list_servers => {
-            label    => 'parses output from a list servers command',
-            on_enter => sub {
-                my $self = shift;
-                $self->notes( is_cmd_changed => 0 );
-                $self->notes( is_data_wanted => 1 );
-            },
-            on_exit => sub {
-
-                my $self = shift;
-                $self->notes( is_data_wanted => 0 );
-
-            },
-            rules => [
-                command_submission => sub {
-
-                    my $self = shift;
-                    return ( $self->notes('line') =~ SRVRMGR_PROMPT );
-
-                },
-                list_servers => sub { return 1; }
-            ],
-            message => 'prompt found'
-        },
-        load_preferences => {
-            label    => 'parses output from a load preferences command',
-            on_enter => sub {
-                my $self = shift;
-                $self->notes( is_cmd_changed => 0 );
-                $self->notes( is_data_wanted => 1 );
-            },
-            on_exit => sub {
-
-                my $self = shift;
-                $self->notes( is_data_wanted => 0 );
-
-            },
-            rules => [
-                command_submission => sub {
-
-                    my $self = shift;
-                    return ( $self->notes('line') =~ SRVRMGR_PROMPT );
-
-                },
-                load_preferences => sub { return 1; }
-            ],
-            message => 'prompt found'
-        },
-        command_submission => {
-            do => sub {
-
-                my $self = shift;
-
-                if ( $logger->is_debug() ) {
-
-                    $logger->debug( 'command_submission got ['
-                          . $self->notes('line')
-                          . ']' );
-
-                }
-
-                my $cmd = ( $self->notes('line') =~ SRVRMGR_PROMPT )[1];
-
-                if ( ( defined($cmd) ) and ( $cmd ne '' ) ) {
-
-                    # removing spaces from command
-                    $cmd =~ s/^\s+//;
-                    $cmd =~ s/\s+$//;
-
-                    $logger->debug("last_command set with '$cmd'")
-                      if $logger->is_debug();
-
-                    $self->notes( last_command   => $cmd );
-                    $self->notes( is_cmd_changed => 1 );
-
-                }
-                else {
-
-                    if ( $logger->is_debug() ) {
-
-                        $logger->debug(
-                            'got prompt, but no command submitted in line '
-                              . $self->notes('line_num') );
-
-                    }
-
-                    $self->notes( last_command   => '' );
-                    $self->notes( is_cmd_changed => 1 );
-
-                }
-
-            },
-            rules => [
-                list_comp => sub {
-
-                    my $self = shift;
-
-                    if ( $self->notes('last_command') eq 'list comp' ) {
-
-                        return 1;
-
-                    }
-                    else {
-
-                        return 0;
-
-                    }
-
-                },
-                list_comp_types => sub {
-
-                    my $self = shift;
-
-                    if (   ( $self->notes('last_command') eq 'list comp types' )
-                        or
-                        ( $self->notes('last_command') eq 'list comp type' ) )
-                    {
-
-                        return 1;
-
-                    }
-                    else {
-
-                        return 0;
-
-                    }
-
-                },
-                list_params => sub {
-
-                    my $self = shift;
-
-                    if ( $self->notes('last_command') =~ $ls_params_regex ) {
-
-                        return 1;
-
-                    }
-                    else {
-
-                        return 0;
-
-                    }
-
-                },
-                list_tasks => sub {
-
-                    my $self = shift;
-
-                    if ( $self->notes('last_command') =~ $ls_tasks_regex ) {
-
-                        return 1;
-
-                    }
-                    else {
-
-                        return 0;
-
-                    }
-
-                },
-                list_servers => sub {
-
-                    my $self = shift;
-
-                    if ( $self->notes('last_command') =~ $ls_servers_regex ) {
-
-                        return 1;
-
-                    }
-                    else {
-
-                        return 0;
-
-                    }
-
-                },
-                list_comp_def => sub {
-
-                    my $self = shift;
-
-                    if ( $self->notes('last_command') =~ $ls_comp_defs_regex ) {
-
-                        return 1;
-
-                    }
-                    else {
-
-                        return 0;
-
-                    }
-
-                },
-                load_preferences => sub {
-
-                    my $self = shift;
-
-                    if ( $self->notes('last_command') eq 'load preferences' ) {
-
-                        return 1;
-
-                    }
-                    else {
-
-                        return 0;
-
-                    }
-
-                },
-                no_data => sub {
-
-                    my $self = shift;
-
-                    if ( $self->notes('last_command') eq '' ) {
-
-                        return 1;
-
-                    }
-                    else {
-
-                        return 0;
-
-                    }
-
-                },
-
-                # add other possibilities here of list commands
-                command_submission =>
-                  sub { return 1; }    # this must be the last item
-
-            ],
-            message => 'command submitted'
-        }
-    );
-
-    $fsa->done(
-        sub {
+    my %params = (
+        done => sub {
 
             my $self = shift;
 
@@ -550,9 +113,506 @@ sub get_fsa {
         }
     );
 
-    return $fsa;
+    my $self = $class->SUPER::new(
+        \%params,
+        no_data => {
+            do => sub {
+
+                if ( $logger->is_debug() ) {
+
+                    $logger->debug('Searching for useful data');
+
+                }
+
+            },
+            rules => [
+                greetings => sub {
+
+                    my $state = shift;
+
+                    if ( defined( $state->notes('line') ) ) {
+
+                        return ( $state->notes('line') =~ CONN_GREET );
+
+                    }
+                    else {
+
+                        return 0;
+
+                    }
+
+                },
+                command_submission => sub {
+
+                    my $state = shift;
+
+                    if ( defined( $state->notes('line') ) ) {
+
+                        return ( $state->notes('line') =~ SRVRMGR_PROMPT );
+
+                    }
+                    else {
+
+                        return 0;
+
+                    }
+
+                },
+                no_data => sub { return 1 }
+            ],
+            message => 'Line read'
+
+        },
+        greetings => {
+            label    => 'greetings message from srvrmgr',
+            on_enter => sub {
+
+                my $state = shift;
+                $state->notes( is_cmd_changed     => 0 );
+                $state->notes( is_data_wanted     => 1 );
+                $state->notes( 'create_greetings' => 1 )
+                  unless ( $state->notes('greetings_created') );
+            },
+            on_exit => sub {
+
+                my $state = shift;
+                $state->notes( is_data_wanted => 0 );
+
+            },
+            rules => [
+                command_submission => sub {
+
+                    my $state = shift;
+                    return ( $state->notes('line') =~ SRVRMGR_PROMPT );
+
+                },
+                greetings => sub { return 1 }
+            ],
+            message => 'prompt found'
+        },
+        end => {
+            do    => sub { $logger->debug('Enterprise says bye-bye') },
+            rules => [
+                no_data => sub {
+                    return 1;
+                  }
+            ],
+            message => 'EOF'
+        },
+        list_comp => {
+            label    => 'parses output from a list comp command',
+            on_enter => sub {
+                my $state = shift;
+                $state->notes( is_cmd_changed => 0 );
+                $state->notes( is_data_wanted => 1 );
+            },
+            on_exit => sub {
+
+                my $state = shift;
+                $state->notes( is_data_wanted => 0 );
+
+            },
+            rules => [
+                command_submission => sub {
+
+                    my $state = shift;
+                    return ( $state->notes('line') =~ SRVRMGR_PROMPT );
+
+                },
+                list_comp => sub { return 1; }
+            ],
+            message => 'prompt found'
+        },
+        list_comp_types => {
+            label    => 'parses output from a list comp types command',
+            on_enter => sub {
+                my $state = shift;
+                $state->notes( is_cmd_changed => 0 );
+                $state->notes( is_data_wanted => 1 );
+            },
+            on_exit => sub {
+
+                my $state = shift;
+                $state->notes( is_data_wanted => 0 );
+
+            },
+            rules => [
+                command_submission => sub {
+
+                    my $state = shift;
+                    return ( $state->notes('line') =~ SRVRMGR_PROMPT );
+
+                },
+                list_comp_types => sub { return 1; }
+            ],
+            message => 'prompt found'
+        },
+        list_params => {
+            label    => 'parses output from a list params command',
+            on_enter => sub {
+                my $state = shift;
+                $state->notes( is_cmd_changed => 0 );
+                $state->notes( is_data_wanted => 1 );
+            },
+            on_exit => sub {
+
+                my $state = shift;
+                $state->notes( is_data_wanted => 0 );
+
+            },
+            rules => [
+                command_submission => sub {
+
+                    my $state = shift;
+                    return ( $state->notes('line') =~ SRVRMGR_PROMPT );
+
+                },
+                list_params => sub { return 1; }
+            ],
+            message => 'prompt found'
+        },
+        list_comp_def => {
+            label    => 'parses output from a list comp def command',
+            on_enter => sub {
+                my $state = shift;
+                $state->notes( is_cmd_changed => 0 );
+                $state->notes( is_data_wanted => 1 );
+            },
+            on_exit => sub {
+
+                my $state = shift;
+                $state->notes( is_data_wanted => 0 );
+
+            },
+            rules => [
+                command_submission => sub {
+
+                    my $state = shift;
+                    return ( $state->notes('line') =~ SRVRMGR_PROMPT );
+
+                },
+                list_comp_def => sub { return 1; }
+            ],
+            message => 'prompt found'
+        },
+        list_tasks => {
+            label    => 'parses output from a list tasks command',
+            on_enter => sub {
+                my $state = shift;
+                $state->notes( is_cmd_changed => 0 );
+                $state->notes( is_data_wanted => 1 );
+            },
+            on_exit => sub {
+
+                my $state = shift;
+                $state->notes( is_data_wanted => 0 );
+
+            },
+            rules => [
+                command_submission => sub {
+
+                    my $state = shift;
+                    return ( $state->notes('line') =~ SRVRMGR_PROMPT );
+
+                },
+                list_tasks => sub { return 1; }
+            ],
+            message => 'prompt found'
+        },
+        list_servers => {
+            label    => 'parses output from a list servers command',
+            on_enter => sub {
+                my $state = shift;
+                $state->notes( is_cmd_changed => 0 );
+                $state->notes( is_data_wanted => 1 );
+            },
+            on_exit => sub {
+
+                my $state = shift;
+                $state->notes( is_data_wanted => 0 );
+
+            },
+            rules => [
+                command_submission => sub {
+
+                    my $state = shift;
+                    return ( $state->notes('line') =~ SRVRMGR_PROMPT );
+
+                },
+                list_servers => sub { return 1; }
+            ],
+            message => 'prompt found'
+        },
+        load_preferences => {
+            label    => 'parses output from a load preferences command',
+            on_enter => sub {
+                my $state = shift;
+                $state->notes( is_cmd_changed => 0 );
+                $state->notes( is_data_wanted => 1 );
+            },
+            on_exit => sub {
+
+                my $state = shift;
+                $state->notes( is_data_wanted => 0 );
+
+            },
+            rules => [
+                command_submission => sub {
+
+                    my $state = shift;
+                    return ( $state->notes('line') =~ SRVRMGR_PROMPT );
+
+                },
+                load_preferences => sub { return 1; }
+            ],
+            message => 'prompt found'
+        },
+        command_submission => {
+            do => sub {
+
+                my $state = shift;
+
+                if ( $logger->is_debug() ) {
+
+                    $logger->debug( 'command_submission got ['
+                          . $state->notes('line')
+                          . ']' );
+
+                }
+
+                my $cmd = ( $state->notes('line') =~ SRVRMGR_PROMPT )[1];
+
+                if ( ( defined($cmd) ) and ( $cmd ne '' ) ) {
+
+                    # removing spaces from command
+                    $cmd =~ s/^\s+//;
+                    $cmd =~ s/\s+$//;
+
+                    $logger->debug("last_command set with '$cmd'")
+                      if $logger->is_debug();
+
+                    $state->notes( last_command   => $cmd );
+                    $state->notes( is_cmd_changed => 1 );
+
+                }
+                else {
+
+                    if ( $logger->is_debug() ) {
+
+                        $logger->debug(
+                            'got prompt, but no command submitted in line '
+                              . $state->notes('line_num') );
+
+                    }
+
+                    $state->notes( last_command   => '' );
+                    $state->notes( is_cmd_changed => 1 );
+
+                }
+
+            },
+            rules => [
+                list_comp => sub {
+
+                    my $state = shift;
+
+                    if ( $state->notes('last_command') eq 'list comp' ) {
+
+                        return 1;
+
+                    }
+                    else {
+
+                        return 0;
+
+                    }
+
+                },
+                list_comp_types => sub {
+
+                    my $state = shift;
+
+                    if ( ( $state->notes('last_command') eq 'list comp types' )
+                        or
+                        ( $state->notes('last_command') eq 'list comp type' ) )
+                    {
+
+                        return 1;
+
+                    }
+                    else {
+
+                        return 0;
+
+                    }
+
+                },
+                list_params => sub {
+
+                    my $state = shift;
+
+                    if ( $state->notes('last_command') =~ $ls_params_regex ) {
+
+                        return 1;
+
+                    }
+                    else {
+
+                        return 0;
+
+                    }
+
+                },
+                list_tasks => sub {
+
+                    my $state = shift;
+
+                    if ( $state->notes('last_command') =~ $ls_tasks_regex ) {
+
+                        return 1;
+
+                    }
+                    else {
+
+                        return 0;
+
+                    }
+
+                },
+                list_servers => sub {
+
+                    my $state = shift;
+
+                    if ( $state->notes('last_command') =~ $ls_servers_regex ) {
+
+                        return 1;
+
+                    }
+                    else {
+
+                        return 0;
+
+                    }
+
+                },
+                list_comp_def => sub {
+
+                    my $state = shift;
+
+                    if ( $state->notes('last_command') =~ $ls_comp_defs_regex )
+                    {
+
+                        return 1;
+
+                    }
+                    else {
+
+                        return 0;
+
+                    }
+
+                },
+                load_preferences => sub {
+
+                    my $state = shift;
+
+                    if ( $state->notes('last_command') eq 'load preferences' ) {
+
+                        return 1;
+
+                    }
+                    else {
+
+                        return 0;
+
+                    }
+
+                },
+                no_data => sub {
+
+                    my $state = shift;
+
+                    if ( $state->notes('last_command') eq '' ) {
+
+                        return 1;
+
+                    }
+                    else {
+
+                        return 0;
+
+                    }
+
+                },
+
+                # add other possibilities here of list commands
+                command_submission =>
+                  sub { return 1; }    # this must be the last item
+
+            ],
+            message => 'command submitted'
+        }
+    );
+
+    return $self;
 
 }
+
+=pod
+
+=head2 free_refs
+
+This methods eliminates all circular references that version 0.31 of L<FSA::Rules> has, which makes it impossible to call the C<DESTROY>
+before the program termination.
+
+It should be invoked before program termination, possibly also in C<DESTROY> and C<DEMOLISH> methods of objects to give to the Perl interpreter a change
+to release memory by calling the related C<DESTROY> methods of L<FSA::Rules> and L<FSA::State> instances.
+
+=cut
+
+sub free_refs {
+
+    my $self = shift;
+    weaken($self);
+
+    my $machines = \%FSA::Rules::machines;
+
+    foreach my $state ( keys %{ $machines->{$self}->{table} } ) {
+
+        $machines->{$self}->{table}->{$state} = undef;
+        delete $machines->{$self}->{table}->{$state};
+
+    }
+
+    $self->{done} = undef;
+    $machines->{$self}->{self} = undef;
+
+    my $states = \%FSA::Rules::states;
+
+    foreach my $state ( keys( %{$states} ) ) {
+
+        $states->{$state}->{machine} = undef;
+        delete $states->{$state}->{machine};
+
+        for ( my $i = 0 ; $i <= $#{ $states->{$state}->{rules} } ; $i++ ) {
+
+            $states->{$state}->{rules}->[$i]->{state} = undef;
+
+        }
+
+    }
+
+}
+
+sub DESTROY {
+	
+	my $self = shift;
+
+	$self->SUPER::DESTROY();
+
+	syswrite STDOUT, "FSA::Rules is dead\n";
+	
+	}
 
 1;
 
