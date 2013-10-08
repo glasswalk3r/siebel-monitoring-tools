@@ -6,35 +6,72 @@ use Siebel::Srvrmgr::Daemon::Action::CheckComps;
 use Siebel::Srvrmgr::Daemon::ActionStash;
 use Cwd;
 use File::Spec;
+use Config::Tiny;
 use lib 't';
 use Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Component;
 use Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Server;
 
-my $server = build_server();
-my $repeat = 3;
+my $server      = build_server();
+my $repeat      = 3;
+my $total_tests = ( scalar( @{ $server->components() } ) + 2 ) * $repeat;
 
-plan tests => ( scalar( @{ $server->components() } ) + 2 ) * $repeat;
+plan tests => $total_tests;
 
-my $daemon = Siebel::Srvrmgr::Daemon::Heavy->new(
-    {
-        gateway     => 'whatever',
-        enterprise  => 'whatever',
-        user        => 'whatever',
-        password    => 'whatever',
-        server      => 'whatever',
-        bin         => File::Spec->catfile( getcwd(), 'srvrmgr-mock.pl' ),
-        use_perl    => 1,
-        is_infinite => 0,
-        timeout     => 0,
-        commands    => [
-            Siebel::Srvrmgr::Daemon::Command->new(
-                command => 'list comp',
-                action  => 'CheckComps',
-                params  => [$server]
-            )
-        ]
-    }
-);
+my $daemon;
+
+if ( $ENV{SIEBEL_SRVRMGR_DEVEL} and ( -e $ENV{SIEBEL_SRVRMGR_DEVEL} ) ) {
+
+    my $cfg = Config::Tiny->read( $ENV{SIEBEL_SRVRMGR_DEVEL} );
+
+    $daemon = Siebel::Srvrmgr::Daemon::Heavy->new(
+        {
+            gateway    => $cfg->{_}->{gateway},
+            enterprise => $cfg->{_}->{enterprise},
+            user       => $cfg->{_}->{user},
+            password   => $cfg->{_}->{password},
+            server     => $cfg->{_}->{server},
+            bin        => File::Spec->catfile(
+                $cfg->{_}->{srvrmgr_path},
+                $cfg->{_}->{srvrmgr_bin}
+            ),
+            use_perl    => 1,
+            is_infinite => 0,
+            timeout     => 0,
+            commands    => [
+                Siebel::Srvrmgr::Daemon::Command->new(
+                    command => 'list comp',
+                    action  => 'CheckComps',
+                    params  => [$server]
+                )
+            ]
+        }
+    );
+
+}
+else {
+
+    $daemon = Siebel::Srvrmgr::Daemon::Heavy->new(
+        {
+            gateway     => 'whatever',
+            enterprise  => 'whatever',
+            user        => 'whatever',
+            password    => 'whatever',
+            server      => 'whatever',
+            bin         => File::Spec->catfile( getcwd(), 'srvrmgr-mock.pl' ),
+            use_perl    => 1,
+            is_infinite => 0,
+            timeout     => 0,
+            commands    => [
+                Siebel::Srvrmgr::Daemon::Command->new(
+                    command => 'list comp',
+                    action  => 'CheckComps',
+                    params  => [$server]
+                )
+            ]
+        }
+    );
+
+}
 
 my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
 
@@ -151,4 +188,3 @@ eChannelCMEObjMgr_enu
 eChannelCMEObjMgr_ptb
 eCommunicationsObjMgr_enu
 eCommunicationsObjMgr_ptb
-

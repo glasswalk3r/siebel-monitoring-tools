@@ -36,11 +36,11 @@ sub before : Test(setup) {
       );
 
     # should be able to reuse the same parser if there is no concurrency
-    my $parser = Siebel::Srvrmgr::ListParser->new();
+    $test->{parser} = Siebel::Srvrmgr::ListParser->new();
 
     $test->{action} = $test->class()->new(
         {
-            parser => $parser,
+            parser => $test->{parser}, 
             params => [
                 Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Server->new(
                     {
@@ -54,7 +54,7 @@ sub before : Test(setup) {
 
     $test->{action2} = $test->class()->new(
         {
-            parser => $parser,
+            parser => $test->{parser}, 
             params => [
                 Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Server->new(
                     { name => 'foobar', components => [ $comp1, $comp2 ] }

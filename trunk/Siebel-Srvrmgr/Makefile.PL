@@ -1,7 +1,6 @@
 use lib 'inc';
 use Devel::AssertOS qw(Linux AIX Solaris HPUX MSWin32);
-
-use 5.8.0;
+use 5.008008;
 use warnings;
 use strict;
 use ExtUtils::MakeMaker;
@@ -20,7 +19,7 @@ my %config = (
         'MooseX::Singleton'            => 0.27,
         'MooseX::FollowPBP'            => 0.05,
         'Log::Log4perl'                => 1.41,
-        'YAML::Syck'                   => 1.25
+        'YAML::Syck'                   => 1.25,
     },
     BUILD_REQUIRES => {
         'Test::Exception'          => 0.27,
@@ -30,7 +29,8 @@ my %config = (
         'Test::Class'              => 0.36,
         'Test::Moose'              => 2.0801,
         'Class::Data::Inheritable' => 0.08,
-        'Test::Memory::Cycle'      => 1.04
+        'Test::Memory::Cycle'      => 1.04,
+        'Config::Tiny'             => 2.14
     },
     EXE_FILES  => ['srvrmgr-mock.pl'],
     META_MERGE => {

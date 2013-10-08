@@ -10,11 +10,13 @@ sub before : Tests(setup) {
 
     my $test = shift;
 
+	$test->{parser} = Siebel::Srvrmgr::ListParser->new();
+
     # :TODO      :08/07/2013 12:50:51:: defined methods instead using references
     # keeps the subclass of Siebel::Srvrmgr::Daemon as an attribute
     $test->{action} = $test->class()->new(
         {
-            parser => Siebel::Srvrmgr::ListParser->new(),
+            parser => $test->{parser}, 
             params => ['foobar']
         }
     );
