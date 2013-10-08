@@ -86,6 +86,7 @@ sub new {
             my $self = shift;
 
             my $curr_line = shift( @{ $self->notes('all_data') } );
+            $self->notes( 'line_num' => ( $self->notes('line_num') + 1 ) );
 
             if ( defined($curr_line) ) {
 
@@ -587,32 +588,22 @@ sub free_refs {
     $self->{done} = undef;
     $machines->{$self}->{self} = undef;
 
-    my $states = \%FSA::Rules::states;
+    my $all_states = \%FSA::Rules::states;
 
-    foreach my $state ( keys( %{$states} ) ) {
+    foreach my $state ( @{ $self->states } ) {
 
-        $states->{$state}->{machine} = undef;
-        delete $states->{$state}->{machine};
+        $all_states->{$state}->{machine} = undef;
+        delete $all_states->{$state}->{machine};
 
-        for ( my $i = 0 ; $i <= $#{ $states->{$state}->{rules} } ; $i++ ) {
+        for ( my $i = 0 ; $i <= $#{ $all_states->{$state}->{rules} } ; $i++ ) {
 
-            $states->{$state}->{rules}->[$i]->{state} = undef;
+            $all_states->{$state}->{rules}->[$i]->{state} = undef;
 
         }
 
     }
 
 }
-
-sub DESTROY {
-	
-	my $self = shift;
-
-	$self->SUPER::DESTROY();
-
-	syswrite STDOUT, "FSA::Rules is dead\n";
-	
-	}
 
 1;
 

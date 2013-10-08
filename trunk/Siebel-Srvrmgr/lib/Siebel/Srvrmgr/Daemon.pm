@@ -582,8 +582,6 @@ sub DEMOLISH {
 
     $logger->info( ref($self) . ' says bye-bye' ) if ( $logger->is_info() );
 
-	syswrite STDOUT,  "daemon is gone\n";
-
 }
 
 sub _my_cleanup {

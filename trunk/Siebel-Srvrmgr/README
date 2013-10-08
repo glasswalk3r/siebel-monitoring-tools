@@ -23,6 +23,10 @@ To install this module type the following:
    make test
    make install
 
+To be able to use Siebel::Srvrmgr::Daemon::Heavy it will be necessary to apply the patch patch-FSA-Rules to the FSA-Rules distribution Rules.pm file.
+If the patch is not applied, this distribution will suffer from a memory leak everytime the run() method from Siebel::Srvrmgr::Daemon::Heavy is 
+invoked.
+
 DEPENDENCIES
 
 Please check the Makefile.PL for the dependencies of modules of this distribution.

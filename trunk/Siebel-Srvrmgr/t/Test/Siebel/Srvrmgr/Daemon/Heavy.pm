@@ -6,7 +6,6 @@ use File::Spec;
 use Test::Moose 'has_attribute_ok';
 use Siebel::Srvrmgr::Daemon::Heavy;
 use Config;
-use Test::Memory::Cycle;
 use base 'Test::Siebel::Srvrmgr::Daemon';
 use Siebel::Srvrmgr;
 
@@ -59,7 +58,7 @@ sub class_attributes : Tests(+12) {
 
 }
 
-sub runs : Tests(+11) {
+sub runs : Tests(+10) {
 
     my $test = shift;
 
@@ -82,7 +81,6 @@ sub runs : Tests(+11) {
     ok( $test->{daemon}->run(), 'run method executes successfuly (3)' );
     is( $test->{daemon}->get_child_runs(),
         3, 'get_child_runs returns the expected number' );
-	memory_cycle_ok($test->{daemon}, 'daemon does not have circular references');
 
 }
 
