@@ -1,6 +1,6 @@
 use lib 'inc';
 use Devel::AssertOS qw(Linux AIX Solaris HPUX MSWin32);
-use 5.008008;
+use 5.008009;
 use warnings;
 use strict;
 use ExtUtils::MakeMaker;
@@ -8,7 +8,7 @@ use ExtUtils::MakeMaker;
 my %config = (
     NAME             => 'Siebel::Srvrmgr',
     VERSION_FROM     => 'lib/Siebel/Srvrmgr.pm',    # finds $VERSION
-    MIN_PERL_VERSION => 5.014,
+    MIN_PERL_VERSION => 5.008009, 
     PREREQ_PM        => {
         'namespace::autoclean'         => 0.13,
         'Moose'                        => 2.0401,
@@ -29,7 +29,8 @@ my %config = (
         'Test::Class'              => 0.36,
         'Test::Moose'              => 2.0801,
         'Class::Data::Inheritable' => 0.08,
-        'Config::Tiny'             => 2.14
+        'Config::Tiny'             => 2.14,
+        'Devel::Gladiator'         => 0.04
     },
     EXE_FILES  => ['srvrmgr-mock.pl'],
     META_MERGE => {
