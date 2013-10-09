@@ -130,15 +130,15 @@ override 'do_parsed' => sub {
 
     if ( $obj->isa('Siebel::Srvrmgr::ListParser::Output::ListComp') ) {
 
-        my $servers_ref = $obj->get_servers();
+        my $out_servers_ref = $obj->get_servers(); # servers retrieve from output of srvrmgr
 
         confess
 "Could not fetch servers from the Siebel::Srvrmgr::ListParser::Output::ListComp object returned by the parser"
-          unless ( scalar( @{$servers_ref} ) > 0 );
+          unless ( scalar( @{$out_servers_ref} ) > 0 );
 
-        foreach my $name ( @{$servers_ref} ) {
+        foreach my $out_name ( @{$out_servers_ref} ) {
 
-            my $server = $obj->get_server($name);
+            my $server = $obj->get_server($out_name);
 
             if (
                 $server->isa(
@@ -146,12 +146,12 @@ override 'do_parsed' => sub {
               )
             {
 
-                my $name = $server->get_name();
+                my $exp_name = $server->get_name(); # the expected server name
 
-                if ( exists( $servers{$name} ) ) {
+                if ( exists( $servers{$exp_name} ) ) {
 
                     my $exp_srv =
-                      $servers{$name};    # the expected server reference
+                      $servers{$exp_name};    # the expected server reference
 
                     foreach my $exp_comp ( @{ $exp_srv->components() } ) {
 
@@ -209,15 +209,13 @@ override 'do_parsed' => sub {
                 }    # end of foreach comp
                 else {
 
-                    confess(
-"Unexpected servername [$name] retrieved from buffer.\n Expected are "
-                          . join( ', ', map { "[$_]" } @{$servers_ref} ) );
+                    confess("Unexpected servername [$exp_name] retrieved from buffer.\n Expected servers names are " . join( ', ', map { '[' . $_->name() . ']' } @{$servers} ) );
                 }
 
             }
             else {
 
-                confess "could not fetch $name data";
+                confess "could not fetch $out_name data";
 
             }
 

@@ -11,18 +11,14 @@ use lib 't';
 use Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Component;
 use Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Server;
 
-my $server      = build_server();
-my $repeat      = 3;
-my $total_tests = ( scalar( @{ $server->components() } ) + 2 ) * $repeat;
-
-plan tests => $total_tests;
-
 my $daemon;
+my $server;
 
 if ( $ENV{SIEBEL_SRVRMGR_DEVEL} and ( -e $ENV{SIEBEL_SRVRMGR_DEVEL} ) ) {
 
-    my $cfg = Config::Tiny->read( $ENV{SIEBEL_SRVRMGR_DEVEL} );
-
+	my $cfg = Config::Tiny->read( $ENV{SIEBEL_SRVRMGR_DEVEL} );
+	$server = build_server( $cfg->{_}->{server}, $cfg->{_}->{comp_list} );
+	
     $daemon = Siebel::Srvrmgr::Daemon::Heavy->new(
         {
             gateway    => $cfg->{_}->{gateway},
@@ -34,10 +30,15 @@ if ( $ENV{SIEBEL_SRVRMGR_DEVEL} and ( -e $ENV{SIEBEL_SRVRMGR_DEVEL} ) ) {
                 $cfg->{_}->{srvrmgr_path},
                 $cfg->{_}->{srvrmgr_bin}
             ),
-            use_perl    => 1,
+            use_perl    => 0,
             is_infinite => 0,
-            timeout     => 0,
+            read_timeout => 15,
             commands    => [
+			    Siebel::Srvrmgr::Daemon::Command->new(
+                    command => 'load preferences',
+                    action  => 'LoadPreferences',
+                    params  => [$server]
+                ),
                 Siebel::Srvrmgr::Daemon::Command->new(
                     command => 'list comp',
                     action  => 'CheckComps',
@@ -49,6 +50,8 @@ if ( $ENV{SIEBEL_SRVRMGR_DEVEL} and ( -e $ENV{SIEBEL_SRVRMGR_DEVEL} ) ) {
 
 }
 else {
+
+	$server = build_server( 'siebfoobar' );
 
     $daemon = Siebel::Srvrmgr::Daemon::Heavy->new(
         {
@@ -73,6 +76,10 @@ else {
 
 }
 
+my $repeat = 12;
+my $total_tests = ( scalar( @{ $server->components() } ) + 2 ) * $repeat;
+plan tests => $total_tests;
+set_log();
 my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
 
 for ( 1 .. $repeat ) {
@@ -102,33 +109,89 @@ for ( 1 .. $repeat ) {
 
 }
 
+sub set_log {
+
+    my $log_file = File::Spec->catfile( getcwd(), 'daemon.log' );
+    my $log_cfg = File::Spec->catfile( getcwd(), 'log4perl.cfg' );
+
+    my $config = <<BLOCK;
+log4perl.logger.Siebel.Srvrmgr.Daemon = WARN, LOG1
+log4perl.appender.LOG1 = Log::Log4perl::Appender::File
+log4perl.appender.LOG1.filename  = $log_file
+log4perl.appender.LOG1.mode = clobber
+log4perl.appender.LOG1.layout = Log::Log4perl::Layout::PatternLayout
+log4perl.appender.LOG1.layout.ConversionPattern = %d %p> %F{1}:%L %M - %m%n
+log4perl.logger.Siebel.Srvrmgr.ListParser = WARN, LOG2
+log4perl.appender.LOG2 = Log::Log4perl::Appender::File
+log4perl.appender.LOG2.filename  = parser.log
+log4perl.appender.LOG2.mode = clobber
+log4perl.appender.LOG2.layout = Log::Log4perl::Layout::PatternLayout
+log4perl.appender.LOG2.layout.ConversionPattern = %d %p> %F{1}:%L %M - %m%n
+BLOCK
+
+    open( my $out, '>', $log_cfg )
+      or die 'Cannot create ' . $log_cfg . ": $!\n";
+    print $out $config;
+    close($out) or die 'Could not close ' . $log_cfg . ": $!\n";
+
+    $ENV{SIEBEL_SRVRMGR_DEBUG} = $log_cfg;
+	
+}
+
 sub build_server {
 
+	my $server_name = shift;
+	my $comp_list = shift;
     my @comps;
+	
+	if (defined($comp_list)) {
 
-    while (<DATA>) {
+		my @list = split(/\|/, $comp_list);
+		
+		foreach(@list) {
 
-        chomp();
+			push(
+				@comps,
+				Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Component->new(
+					{
+						name           => $_,
+						description    => 'whatever',
+						componentGroup => 'whatever',
+						OKStatus       => 'Running|Online',
+						criticality    => 5
+					}
+				)
+			);		
+		
+		}
+	
+	} else {
 
-        push(
-            @comps,
-            Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Component->new(
-                {
-                    name           => $_,
-                    description    => 'whatever',
-                    componentGroup => 'whatever',
-                    OKStatus       => 'Running|Online',
-                    criticality    => 5
-                }
-            )
-        );
+		while (<DATA>) {
 
-    }
-    close(DATA);
+			chomp();
+
+			push(
+				@comps,
+				Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Component->new(
+					{
+						name           => $_,
+						description    => 'whatever',
+						componentGroup => 'whatever',
+						OKStatus       => 'Running|Online',
+						criticality    => 5
+					}
+				)
+			);
+
+		}
+		close(DATA);
+		
+	}
 
     return Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Server->new(
         {
-            name       => 'siebfoobar',
+            name       => $server_name,
             components => \@comps
         }
     );

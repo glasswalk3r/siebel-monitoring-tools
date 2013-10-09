@@ -491,6 +491,9 @@ sub run {
     my $parser   = Siebel::Srvrmgr::ListParser->new();
     my $select   = IO::Select->new();
     my $data_ref = $self->_create_handle_data( $select, $logger );
+	my $prompt_regex = qr/srvrmgr(\:\w+)?>\s(.*)?$/;
+	
+	$logger->debug( 'sysread buffer size is ' . $self->get_buffer_size() ) if ($logger->is_debug());
 
     do {
 
@@ -551,6 +554,15 @@ sub run {
                 }
                 else {
 
+				    if ( $logger->is_debug() ) {
+				
+				        $logger->debug( 'Read '
+                          . $data_ref->{$fh_bytes}
+                          . ' bytes from '
+                          . $fh_name );
+						
+				    }
+				
                     if ( $data_ref->{$fh_bytes} == 0 ) {
 
                         $logger->warn( 'got EOF from ' . fileno($fh) . '?' );
@@ -559,22 +571,15 @@ sub run {
 
                     }
 
-                    if ( ( $data_ref->{$fh_bytes} == $self->get_buffer_size() )
-                        and ( $data_ref->{$fh_name} !~ /CRLF$/ ) )
-                    {
+					unless ( ( $data_ref->{$fh_name} =~ /CRLF$/ ) or ($data_ref->{$fh_name} =~ /$prompt_regex/) )
+					{
 
-                        $logger->debug(
-                            'Buffer DOES NOT have CRLF at the end of it');
+						$logger->debug(
+							'Buffer does not ends with CRLF, needs to read more from handle');
 
-                        next;
+						next;
 
-                    }
-
-                    $logger->debug( 'Read '
-                          . $data_ref->{$fh_bytes}
-                          . ' bytes from '
-                          . $fh_name )
-                      if ( $logger->is_debug() );
+					}
 
                     if ( $fh == $self->get_read() ) {
 
@@ -669,7 +674,7 @@ sub run {
         }
         else {
 
-            $logger->debug('buffer is empty');
+            $logger->warn('The internal buffer is empty: check out if the read_timeout is not too low');
 
         }
 
@@ -828,10 +833,11 @@ sub _create_child {
 
     my $self = shift;
 
+	my $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );
+    weaken($logger);
+	
     if ( $self->get_retries() >= $self->get_max_retries() ) {
 
-        my $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );
-        weaken($logger);
         $logger->fatal( 'Maximum retries to spawn srvrmgr reached: '
               . $self->get_max_retries() );
         $logger->warn(
@@ -841,19 +847,16 @@ sub _create_child {
 
     }
 
-    die 'Cannot find program ' . $self->get_bin() . " to execute\n"
+    $logger->logdie('Cannot find program ' . $self->get_bin() . ' to execute')
       unless ( -e $self->get_bin() );
 
     my $params_ref = $self->_define_params();
-
+	
     my ( $pid, $write_h, $read_h, $error_h ) = safe_open3($params_ref);
     $self->_set_pid($pid);
     $self->_set_write($write_h);
     $self->_set_read($read_h);
     $self->_set_error($error_h);
-
-    my $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );
-    weaken($logger);
 
     if ( $logger->is_debug() ) {
 
@@ -893,10 +896,11 @@ sub _process_stderr {
         foreach my $line ( split( "\n", $$data_ref ) ) {
 
             exit if ($SIG_INT);
-
+			
 # :WORKAROUND:09/08/2013 19:12:55:: in MS Windows OS, srvrmgr returns CR characters "alone"
 # like "CRCRLFCRCRLF" for two empty lines. And yes, that sucks big time
             $line =~ s/\r$//;
+			
             $self->_check_error( $line, $logger );
 
         }
@@ -1047,6 +1051,28 @@ sub _check_child {
     weaken($logger);
 
     if ( $self->has_pid() ) {
+	
+	# :WORKAROUND:19/4/2012 19:38:04:: somehow the child process of srvrmgr has to be waited for one second and receive one kill 0 signal before
+# it dies when something goes wrong
+        kill 0, $self->get_pid();
+
+        unless ( kill 0, $self->get_pid() ) {
+
+            $logger->fatal( $self->get_bin()
+                  . " process returned a fatal error: ${^CHILD_ERROR_NATIVE}" );
+
+            $logger->fatal( $? . ' child exit status = ' . ( $? >> 8 ) );
+
+            $self->close_child($logger);
+
+            return 0;
+
+        }
+        else {
+
+            return 1;
+
+        }
 
         # try to read immediatly from stderr if possible
         if ( openhandle( $self->get_error() ) ) {
@@ -1102,28 +1128,6 @@ sub _check_child {
           unless ( openhandle( $self->get_read() ) );
         $logger->fatal('Write pipe from child is closed')
           unless ( openhandle( $self->get_write() ) );
-
-# :WORKAROUND:19/4/2012 19:38:04:: somehow the child process of srvrmgr has to be waited for one second and receive one kill 0 signal before
-# it dies when something goes wrong
-        kill 0, $self->get_pid();
-
-        unless ( kill 0, $self->get_pid() ) {
-
-            $logger->fatal( $self->get_bin()
-                  . " process returned a fatal error: ${^CHILD_ERROR_NATIVE}" );
-
-            $logger->fatal( $? . ' child exit status = ' . ( $? >> 8 ) );
-
-            $self->close_child($logger);
-
-            return 0;
-
-        }
-        else {
-
-            return 1;
-
-        }
 
     }    # end of if has_pid
     else {
