@@ -30,7 +30,6 @@ my %config = (
         'Test::Moose'              => 2.0801,
         'Class::Data::Inheritable' => 0.08,
         'Config::Tiny'             => 2.14,
-        'Devel::Gladiator'         => 0.04
     },
     EXE_FILES  => ['srvrmgr-mock.pl'],
     META_MERGE => {
