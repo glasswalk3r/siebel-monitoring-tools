@@ -121,12 +121,6 @@ log4perl.appender.LOG1.filename  = $log_file
 log4perl.appender.LOG1.mode = clobber
 log4perl.appender.LOG1.layout = Log::Log4perl::Layout::PatternLayout
 log4perl.appender.LOG1.layout.ConversionPattern = %d %p> %F{1}:%L %M - %m%n
-log4perl.logger.Siebel.Srvrmgr.ListParser = WARN, LOG2
-log4perl.appender.LOG2 = Log::Log4perl::Appender::File
-log4perl.appender.LOG2.filename  = parser.log
-log4perl.appender.LOG2.mode = clobber
-log4perl.appender.LOG2.layout = Log::Log4perl::Layout::PatternLayout
-log4perl.appender.LOG2.layout.ConversionPattern = %d %p> %F{1}:%L %M - %m%n
 BLOCK
 
     open( my $out, '>', $log_cfg )

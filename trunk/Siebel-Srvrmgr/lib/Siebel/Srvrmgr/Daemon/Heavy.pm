@@ -578,7 +578,7 @@ sub run {
                         or ( $data_ref->{$fh_name} =~ $prompt_regex ) )
                     {
 
-                        $logger->warn(
+                        $logger->debug(
 'Buffer data does not ends with CRLF or prompt, needs to read more from handle'
                         );
                         $logger->debug(

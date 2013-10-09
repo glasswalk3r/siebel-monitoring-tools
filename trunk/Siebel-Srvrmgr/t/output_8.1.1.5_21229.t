@@ -14,11 +14,18 @@ open( my $in, '<', $path ) or die "Cannot read $path: $!\n";
 
 my @data;
 
-while (<$in>) {
+{
+	
+	local $/ = LF;
 
-    s/$CRLF$//;
-    push( @data, $_ );
+	while (<$in>) {
 
+		s/$CR?$LF/\n/;
+		chomp();
+		push( @data, $_ );
+
+	}
+		
 }
 
 close($in);

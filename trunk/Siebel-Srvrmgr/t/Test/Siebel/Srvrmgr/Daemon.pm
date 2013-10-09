@@ -20,18 +20,12 @@ sub _set_log {
     $test->{log_cfg} = File::Spec->catfile( getcwd(), 'log4perl.cfg' );
 
     my $config = <<BLOCK;
-log4perl.logger.Siebel.Srvrmgr.Daemon = DEBUG, LOG1
+log4perl.logger.Siebel.Srvrmgr.Daemon = WARN, LOG1
 log4perl.appender.LOG1 = Log::Log4perl::Appender::File
 log4perl.appender.LOG1.filename  = $log_file
 log4perl.appender.LOG1.mode = clobber
 log4perl.appender.LOG1.layout = Log::Log4perl::Layout::PatternLayout
 log4perl.appender.LOG1.layout.ConversionPattern = %d %p> %F{1}:%L %M - %m%n
-log4perl.logger.Siebel.Srvrmgr.ListParser = DEBUG, LOG2
-log4perl.appender.LOG2 = Log::Log4perl::Appender::File
-log4perl.appender.LOG2.filename  = xunda.log
-log4perl.appender.LOG2.mode = clobber
-log4perl.appender.LOG2.layout = Log::Log4perl::Layout::PatternLayout
-log4perl.appender.LOG2.layout.ConversionPattern = %d %p> %F{1}:%L %M - %m%n
 BLOCK
 
     open( my $out, '>', $test->{log_cfg} )
