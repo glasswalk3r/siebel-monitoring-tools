@@ -161,6 +161,9 @@ sub run {
 
     if ( scalar(@input_buffer) >= 1 ) {
 
+		$self->normalize_eol(\@input_buffer);
+		chomp(@input_buffer);
+
 # since we should have all output, we parse everthing first to call each action after
         $parser->parse( \@input_buffer );
 

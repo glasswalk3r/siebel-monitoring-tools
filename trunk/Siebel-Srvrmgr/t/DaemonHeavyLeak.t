@@ -95,7 +95,6 @@ use Siebel::Srvrmgr::Daemon::Heavy;
 use Cwd;
 use File::Spec;
 use Scalar::Util qw(weaken);
-use Devel::Gladiator qw(arena_ref_counts);
 
 my $repeat = 3;
 
@@ -103,7 +102,13 @@ plan tests => $repeat;
 
 SKIP: {
 
-     skip 'Not a developer machine', $repeat
+    skip( 'Devel:Gladiator not installed on this system', $repeat )
+      unless do {
+        eval "use Devel::Gladiator qw(arena_ref_counts)";
+        $@ ? 0 : 1;
+      };
+
+    skip 'Not a developer machine', $repeat
       unless ( $ENV{SIEBEL_SRVRMGR_DEVEL} );
 
     my $daemon = Siebel::Srvrmgr::Daemon::Heavy->new(
@@ -138,7 +143,5 @@ SKIP: {
     }
 
     $gladiator->show_accounting();
-
-	syswrite STDOUT, "program is finished\n";
 
 }
