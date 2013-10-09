@@ -488,12 +488,15 @@ sub run {
         }
     );
 
-    my $parser   = Siebel::Srvrmgr::ListParser->new();
-    my $select   = IO::Select->new();
-    my $data_ref = $self->_create_handle_data( $select, $logger );
-	my $prompt_regex = qr/srvrmgr(\:\w+)?>\s(.*)?$/;
-	
-	$logger->debug( 'sysread buffer size is ' . $self->get_buffer_size() ) if ($logger->is_debug());
+    my $parser       = Siebel::Srvrmgr::ListParser->new();
+    my $select       = IO::Select->new();
+    my $data_ref     = $self->_create_handle_buffer( $select, $logger );
+
+    my $prompt_regex = qr/srvrmgr(\:\w+)?>\s(.*)?$/;
+	my $eol_regex = qr/$CRLF$/;
+
+    $logger->debug( 'sysread buffer size is ' . $self->get_buffer_size() )
+      if ( $logger->is_debug() );
 
     do {
 
@@ -554,15 +557,15 @@ sub run {
                 }
                 else {
 
-				    if ( $logger->is_debug() ) {
-				
-				        $logger->debug( 'Read '
-                          . $data_ref->{$fh_bytes}
-                          . ' bytes from '
-                          . $fh_name );
-						
-				    }
-				
+                    if ( $logger->is_debug() ) {
+
+                        $logger->debug( 'Read '
+                              . $data_ref->{$fh_bytes}
+                              . ' bytes from '
+                              . $fh_name );
+
+                    }
+
                     if ( $data_ref->{$fh_bytes} == 0 ) {
 
                         $logger->warn( 'got EOF from ' . fileno($fh) . '?' );
@@ -571,15 +574,21 @@ sub run {
 
                     }
 
-					unless ( ( $data_ref->{$fh_name} =~ /CRLF$/ ) or ($data_ref->{$fh_name} =~ /$prompt_regex/) )
-					{
+                    unless ( ( $data_ref->{$fh_name} =~ $eol_regex )
+                        or ( $data_ref->{$fh_name} =~ $prompt_regex ) )
+                    {
 
-						$logger->debug(
-							'Buffer does not ends with CRLF, needs to read more from handle');
+                        $logger->warn(
+'Buffer data does not ends with CRLF or prompt, needs to read more from handle'
+                        );
+                        $logger->debug(
+                            'Buffer is [' . $data_ref->{$fh_name} . ']' );
 
-						next;
+                        next;
 
-					}
+                    }
+
+					$self->normalize_eol(\$data_ref->{$fh_name});
 
                     if ( $fh == $self->get_read() ) {
 
@@ -674,7 +683,9 @@ sub run {
         }
         else {
 
-            $logger->warn('The internal buffer is empty: check out if the read_timeout is not too low');
+            $logger->warn(
+'The internal buffer is empty: check out if the read_timeout is not too low'
+            );
 
         }
 
@@ -752,7 +763,7 @@ sub run {
 
 }
 
-sub _create_handle_data {
+sub _create_handle_buffer {
 
     my $self   = shift;
     my $select = shift;    # IO::Select object
@@ -833,9 +844,9 @@ sub _create_child {
 
     my $self = shift;
 
-	my $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );
+    my $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );
     weaken($logger);
-	
+
     if ( $self->get_retries() >= $self->get_max_retries() ) {
 
         $logger->fatal( 'Maximum retries to spawn srvrmgr reached: '
@@ -847,11 +858,11 @@ sub _create_child {
 
     }
 
-    $logger->logdie('Cannot find program ' . $self->get_bin() . ' to execute')
+    $logger->logdie( 'Cannot find program ' . $self->get_bin() . ' to execute' )
       unless ( -e $self->get_bin() );
 
     my $params_ref = $self->_define_params();
-	
+
     my ( $pid, $write_h, $read_h, $error_h ) = safe_open3($params_ref);
     $self->_set_pid($pid);
     $self->_set_write($write_h);
@@ -896,11 +907,11 @@ sub _process_stderr {
         foreach my $line ( split( "\n", $$data_ref ) ) {
 
             exit if ($SIG_INT);
-			
+
 # :WORKAROUND:09/08/2013 19:12:55:: in MS Windows OS, srvrmgr returns CR characters "alone"
 # like "CRCRLFCRCRLF" for two empty lines. And yes, that sucks big time
-            $line =~ s/\r$//;
-			
+#            $line =~ s/\r$//;
+
             $self->_check_error( $line, $logger );
 
         }
@@ -939,7 +950,7 @@ sub _process_stdout {
 
 # :WORKAROUND:09/08/2013 19:12:55:: in MS Windows OS, srvrmgr returns CR characters "alone"
 # like "CRCRLFCRCRLF" for two empty lines. And yes, that sucks big time
-        $line =~ s/\r$//;
+#        $line =~ s/\r$//;
 
         if ( $logger->is_debug() ) {
 
@@ -1051,8 +1062,8 @@ sub _check_child {
     weaken($logger);
 
     if ( $self->has_pid() ) {
-	
-	# :WORKAROUND:19/4/2012 19:38:04:: somehow the child process of srvrmgr has to be waited for one second and receive one kill 0 signal before
+
+# :WORKAROUND:19/4/2012 19:38:04:: somehow the child process of srvrmgr has to be waited for one second and receive one kill 0 signal before
 # it dies when something goes wrong
         kill 0, $self->get_pid();
 

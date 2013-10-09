@@ -44,6 +44,7 @@ use Siebel::Srvrmgr;
 use Scalar::Util qw(weaken);
 use Config;
 use Carp qw(longmess);
+use Socket qw(:crlf);
 
 our $SIG_INT   = 0;
 our $SIG_PIPE  = 0;
@@ -462,6 +463,47 @@ sub run {
 
     confess
       'This method must be overrided by subclasses of Siebel::Srvrmgr::Daemon';
+
+}
+
+=pod
+
+=head2 normalize_eol
+
+Expects an array reference as parameter.
+
+Changes any EOL character to LF from each index value.
+
+See perlport -> Issues -> Newlines for details on this.
+
+=cut
+
+sub normalize_eol {
+
+    my $self     = shift;
+    my $data_ref = shift;
+
+    my $ref_type = ref($data_ref);
+
+    confess 'data parameter must be an array or scalar reference'
+      unless ( ( $ref_type eq 'ARRAY' ) or ( $ref_type eq 'SCALAR' ) );
+
+    if ( $ref_type eq 'ARRAY' ) {
+
+        local $/ = LF;
+
+        foreach ( @{$data_ref} ) {
+
+            s/$CR?$LF/\n/g;
+
+        }
+
+    }
+    else {
+
+        $$data_ref =~ s/$CR?$LF/\n/g;
+
+    }
 
 }
 

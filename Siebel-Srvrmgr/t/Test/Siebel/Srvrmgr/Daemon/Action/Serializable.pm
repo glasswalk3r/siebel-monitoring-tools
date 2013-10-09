@@ -5,6 +5,7 @@ use Test::Most;
 use Test::Moose;
 use Siebel::Srvrmgr::ListParser;
 use Storable;
+use Socket qw(:crlf);
 
 # :WORKAROUND:25/06/2013 16:34:40::
 # this package was created because it seems impossible to use Test::Class with two superclasses being inherited, being one of them a role
@@ -21,13 +22,13 @@ BEGIN {
 __PACKAGE__->SKIP_CLASS(1);
 
 # just to avoid "use Storable" in subclasses
- # :TODO      :25/06/2013 16:42:54:: should check if there is a correction for the MooseX related module
+# :TODO      :25/06/2013 16:42:54:: should check if there is a correction for the MooseX related module
 sub recover {
 
-	my $test = shift;
-	my $file = shift;
+    my $test = shift;
+    my $file = shift;
 
-	return Storable::retrieve($file);
+    return Storable::retrieve($file);
 
 }
 
@@ -67,6 +68,12 @@ sub get_my_data {
         my $handle = ref($test) . '::DATA';
 
         my @data = <$handle>;
+
+        local $/ = LF;
+
+        foreach (@data) { s/$CR?$LF/\n/ }
+        chomp(@data);
+
         close($handle);
 
         return $test->{data} = \@data;
@@ -142,8 +149,8 @@ sub recover_me : Test {
           . __PACKAGE__
     );
 
- # :WORKAROUND:25/06/2013 16:45:31:: recover a serialized data requires that the do method is invoked to call the appropriate subclass of
- # Siebel::Srvrmgr::Daemon::Action that applies Siebel::Srvrmgr::Daemon::Action::Serializable Moose role
+# :WORKAROUND:25/06/2013 16:45:31:: recover a serialized data requires that the do method is invoked to call the appropriate subclass of
+# Siebel::Srvrmgr::Daemon::Action that applies Siebel::Srvrmgr::Daemon::Action::Serializable Moose role
     $test->{action}->do( $test->get_my_data() );
 
 }

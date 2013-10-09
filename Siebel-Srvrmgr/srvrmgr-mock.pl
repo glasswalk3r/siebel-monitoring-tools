@@ -4,6 +4,7 @@ use strict;
 use Hash::Util qw(lock_keys);
 use YAML::Syck;
 use Getopt::Std;
+use Socket qw(:crlf);
 
 our $VERSION = 0.03;
 
@@ -92,8 +93,14 @@ sub process_cmd {
 
  # do nothing to get a deadlock when reading STDOUT with Siebel::Srvrmgr::Daemon
             sleep(20);
-            put_text( $handle,
-                [ "\n", "yada yada yada\n", "\n", "1 row returned.\n", "\n" ] );
+            put_text(
+                $handle,
+                [
+                    $CRLF, 'yada yada yada',
+                    $CRLF, $CRLF, '1 row returned.',
+                    $CRLF, $CRLF
+                ]
+            );
             last SWITCH;
 
         }
@@ -142,8 +149,13 @@ sub process_cmd {
 
         if ( $cmd eq 'load preferences' ) {
 
-            put_text( $handle,
-"File: C:\\Siebel\\8.0\\web client\\BIN\\.Siebel_svrmgr.pref\n\n"
+            put_text(
+                $handle,
+                [
+'File: C:\\Siebel\\8.0\\web client\\BIN\\.Siebel_svrmgr.pref',
+                    $CRLF,
+                    $CRLF
+                ]
             );
             last SWITCH;
 
@@ -151,14 +163,14 @@ sub process_cmd {
 
         if ( $cmd eq 'exit' ) {
 
-            put_text( $handle, "\nDisconnecting...\n" );
+            put_text( $handle, [ $CRLF, 'Disconnecting...', $CRLF ] );
             exit(0);
 
         }
 
         if ('') {
 
-            put_text( $handle, "\n" );
+            put_text( $handle, $CRLF );
             last SWITCH;
 
         }
@@ -166,14 +178,17 @@ sub process_cmd {
         if ( $cmd =~ /^list\scomplexquery$/ ) {
 
             put_text( \*STDERR,
-                "oh god, not today... let me stay in bed mommy!\n" );
+                [ 'oh god, not today... let me stay in bed mommy!', $CRLF ] );
+            put_text( $handle, $CRLF );  # must have the prompt in the next line
             last SWITCH;
 
         }
 
         if ( $cmd =~ /^list\sfrag$/ ) {
 
-            put_text( \*STDERR, "SBL-ADM-02043: where is this frag server?\n" );
+            put_text( \*STDERR,
+                [ 'SBL-ADM-02043: where is this frag server?', $CRLF ] );
+            put_text( $handle, $CRLF );
             last SWITCH;
 
         }
@@ -183,19 +198,18 @@ sub process_cmd {
             put_text(
                 $handle,
                 [
-                    "Available commands are:\n",
-                    "load preferences\n",
-                    "list servers\n",
-                    "list comp\n",
-                    "list comp def\n",
-                    "list comp type\n",
-                    "list blockme\n",
-                    "list params\n",
-                    "list params for srproc\n",
-                    "list complexquery\n",
-                    "list frag\n",
-                    "exit\n",
-                    "\n"
+                    'Available commands are:', $CRLF,
+                    'load preferences',        $CRLF,
+                    'list servers',            $CRLF,
+                    'list comp',               $CRLF,
+                    'list comp def',           $CRLF,
+                    'list comp type',          $CRLF,
+                    'list blockme',            $CRLF,
+                    'list params',             $CRLF,
+                    'list params for srproc',  $CRLF,
+                    'list complexquery',       $CRLF,
+                    'list frag',               $CRLF,
+                    'exit',                    $CRLF
                 ]
             );
             last SWITCH;
@@ -203,7 +217,7 @@ sub process_cmd {
         }
         else {
 
-            put_text( $handle, "Invalid command\n" );
+            put_text( $handle, 'Invalid command', $CRLF );
             last SWITCH;
         }
 

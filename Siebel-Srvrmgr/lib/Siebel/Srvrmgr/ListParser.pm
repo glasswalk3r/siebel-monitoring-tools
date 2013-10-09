@@ -21,6 +21,7 @@ use Siebel::Srvrmgr;
 use Log::Log4perl;
 use Scalar::Util qw(weaken);
 use Siebel::Srvrmgr::ListParser::FSA;
+use Socket qw(:crlf);
 
 =pod
 
@@ -145,7 +146,6 @@ has 'fsa' => (
     reader => 'get_fsa',
     writer => '_set_fsa'
 );
-
 
 =pod
 
@@ -487,7 +487,8 @@ sub append_output {
 
 Parses one or more commands output executed through C<srvrmgr> program.
 
-Expects as parameter an array reference with the output of C<srvrmgr>, including the command executed.
+Expects as parameter an array reference with the output of C<srvrmgr>, including the command executed. The array references indexes values should be rid off any
+EOL character.
 
 It will create an L<FSA::Rules> object to parse the given array reference, calling C<append_output> method for each L<Siebel::Srvrmgr::ListParser::Buffer> object
 found.
@@ -508,8 +509,6 @@ sub parse {
     $logger->logdie( 'Received an invalid buffer: ' . ref($data_ref) )
       unless ( ( defined($data_ref) ) and ( ref($data_ref) eq 'ARRAY' ) );
 
-# :TODO:03-10-2013:arfreitas: shouldn't assume that $/ is the same line ending character from output to parse
-    chomp( @{$data_ref} );
     weaken($data_ref);
 
     $self->get_fsa->notes( all_data => $data_ref );
