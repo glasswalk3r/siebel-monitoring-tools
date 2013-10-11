@@ -25,7 +25,7 @@
 
 use warnings;
 use strict;
-use Siebel::Srvrmgr::Daemon;
+use Siebel::Srvrmgr::Daemon::Heavy;
 use Siebel::Srvrmgr::ListParser::Output::ListComp::Server;
 use Siebel::Srvrmgr::ListParser::Output::ListParams;
 use Siebel::Srvrmgr::Daemon::Command;
@@ -35,12 +35,11 @@ use Siebel::Srvrmgr::Exporter::ListCompTypes;
 use File::Spec;
 use Getopt::Std;
 use feature qw(say);
-use Term::Pulse;
+#use Term::Pulse;
 
 $Getopt::Std::STANDARD_HELP_VERSION = 2;
 
 # for stopping Term::Pulse correctly
-$SIG{__DIE__} = sub { pulse_stop() };
 $SIG{INT}     = sub { die "Caught interrupt signal" };
 
 our $VERSION = 1;
@@ -98,23 +97,23 @@ foreach my $option (qw(s g e u p b r)) {
 
 }
 
-pulse_start(
-    name   => 'Connecting to Siebel and getting initial data...',
-    rotate => 1,
-    time   => 1
-) unless ( $opts{q} );
+#pulse_start(
+#    name   => 'Connecting to Siebel and getting initial data...',
+#    rotate => 1,
+#    time   => 1
+#) unless ( $opts{q} );
 
-my $daemon = Siebel::Srvrmgr::Daemon->new(
+my $daemon = Siebel::Srvrmgr::Daemon::Heavy->new(
     {
-        server      => $opts{s},
-        gateway     => $opts{g},
-        enterprise  => $opts{e},
-        user        => $opts{u},
-        password    => $opts{p},
-        bin         => $opts{b},
-        is_infinite => 0,
-        timeout     => 0,
-        commands    => [
+        server       => $opts{s},
+        gateway      => $opts{g},
+        enterprise   => $opts{e},
+        user         => $opts{u},
+        password     => $opts{p},
+        bin          => $opts{b},
+        is_infinite  => 0,
+        read_timeout => 5,
+        commands     => [
             Siebel::Srvrmgr::Daemon::Command->new(
                 {
                     command => 'load preferences',
@@ -146,7 +145,7 @@ my $server_comps = $sieb_srv->get_comps();
 
 my $comp_regex = qr/$opts{r}/;
 
-pulse_stop() unless ( $opts{q} );
+#pulse_stop() unless ( $opts{q} );
 
 my $out;
 
@@ -157,9 +156,13 @@ if ( defined( $opts{o} ) ) {
 
 }
 
+my $no_match = 1;
+
 foreach my $comp_alias ( @{$server_comps} ) {
 
     next unless ( $comp_alias =~ $comp_regex );
+	
+	$no_match = 0;
 
     my $command =
         'list params for server '
@@ -232,6 +235,13 @@ foreach my $comp_alias ( @{$server_comps} ) {
 }
 
 close($out) if ( defined($out) );
+
+if ( $no_match ) {
+
+	warn "Could not match any component alias to the string '$opts{r}'. Removing the output file (probably empty anyway)...";
+	unlink($opts{o}) or die "Cannot remove $opts{o}: $!\n";
+
+}
 
 sub get_comp_type_alias {
 
