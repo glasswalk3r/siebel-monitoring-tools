@@ -112,7 +112,7 @@ sub process_cmd {
 
         }
 
-        if ( $cmd =~ /^list\sparams\sfor\s(server\s\w+)?srproc$/ ) {
+        if ( $cmd =~ /^list\sparams\sfor\s(server\s\w+\s)?comp(onent)?\ssrproc$/ ) {
 
             put_text( $handle, $data_ref->{list_params_for_srproc} );
             last SWITCH;
