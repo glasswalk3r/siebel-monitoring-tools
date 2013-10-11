@@ -32,34 +32,24 @@ and the function returns 1 in this case. Otherwise it will return 0.
 
 =cut
 
-sub do {
+override 'do_parsed' => sub {
 
-    my $self   = shift;
-    my $buffer = shift;    # array reference
+    my $self = shift;
+    my $obj  = shift;
 
-    super();
+    if ( $obj->isa('Siebel::Srvrmgr::ListParser::Output::ListParams') ) {
 
-    $self->get_parser()->parse($buffer);
+        my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
 
-    my $tree = $self->get_parser()->get_parsed_tree();
+        $stash->set_stash( [$obj] );
 
-    foreach my $obj ( @{$tree} ) {
+        return 1;
 
-        if ( $obj->isa('Siebel::Srvrmgr::ListParser::Output::ListParams') ) {
-
-            my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
-
-            $stash->set_stash( [$obj] );
-
-            return 1;
-
-        }
-
-    }    # end of foreach block
+    }
 
     return 0;
 
-}
+};
 
 =pod
 

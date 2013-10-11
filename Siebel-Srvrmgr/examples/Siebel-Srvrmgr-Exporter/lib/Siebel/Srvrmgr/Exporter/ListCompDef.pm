@@ -37,32 +37,20 @@ and the function returns 1 in this case. Otherwise it will return 0.
 
 =cut
 
-override 'do' => sub {
+override 'do_parsed' => sub {
 
-    my $self   = shift;
-    my $buffer = shift;    # array reference
+    my $self = shift;
+    my $obj  = shift;
 
-    super();
+    if ( $obj->isa('Siebel::Srvrmgr::ListParser::Output::ListCompDef') ) {
 
-    my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
+        my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
+        $stash->set_stash( [ $obj->get_data_parsed() ] );
 
-    $self->get_parser()->parse($buffer);
+        return 1;
 
-    my $tree = $self->get_parser()->get_parsed_tree();
+    }
 
-    foreach my $obj ( @{$tree} ) {
-
-        if ( $obj->isa('Siebel::Srvrmgr::ListParser::Output::ListCompDef') ) {
-
-            $stash->set_stash( [ $obj->get_data_parsed() ] );
-
-            return 1;
-
-        }
-
-    }    # end of foreach block
-
-    $stash->set_stash([]);
     return 0;
 
 };
