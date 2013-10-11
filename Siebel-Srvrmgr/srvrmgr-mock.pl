@@ -112,7 +112,7 @@ sub process_cmd {
 
         }
 
-        if ( $cmd =~ /^list\sparams\sfor\ssrproc$/ ) {
+        if ( $cmd =~ /^list\sparams\sfor\s(server\s\w+)?srproc$/ ) {
 
             put_text( $handle, $data_ref->{list_params_for_srproc} );
             last SWITCH;
@@ -217,7 +217,7 @@ sub process_cmd {
         }
         else {
 
-            put_text( $handle, 'Invalid command', $CRLF );
+            put_text( $handle, [ 'Invalid command', $CRLF ] );
             last SWITCH;
         }
 
