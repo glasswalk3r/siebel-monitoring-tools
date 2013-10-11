@@ -34,7 +34,7 @@ system(
     '-e',   $dummy, '-u',    $dummy,
     '-p',   $dummy, '-b',
     File::Spec->catfile( $Config{sitebin}, 'srvrmgr-mock.pl' ),
-    '-r',      'Foo', '-x', '-o',
+    '-r',      'SRProc', '-x', '-o',
     $filename, '-q'
   ) == 0
   or die "failed to execute export_comps.pl: $!\n";
