@@ -46,52 +46,44 @@ This method will return 1 if this operation was executed sucessfuly, 0 otherwise
 
 =cut
 
-override 'do' => sub {
+override 'do_parsed' => sub {
 
-    my $self   = shift;
-    my $buffer = shift;    # array reference
-
-    super();
+    my $self = shift;
+    my $obj  = shift;
 
     my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
-    $self->get_parser()->parse($buffer);
-    my $tree = $self->get_parser()->get_parsed_tree();
 
-    foreach my $obj ( @{$tree} ) {
+    if ( $obj->isa('Siebel::Srvrmgr::ListParser::Output::ListComp') ) {
 
-        if ( $obj->isa('Siebel::Srvrmgr::ListParser::Output::ListComp') ) {
+        my $servers_ref = $obj->get_servers();
 
-            my $servers_ref = $obj->get_servers();
+        warn "Could not fetch servers\n"
+          unless ( scalar( @{$servers_ref} ) > 0 );
 
-            warn "Could not fetch servers\n"
-              unless ( scalar( @{$servers_ref} ) > 0 );
+        foreach my $servername ( @{$servers_ref} ) {
 
-            foreach my $servername ( @{$servers_ref} ) {
+            my $server = $obj->get_server($servername);
 
-                my $server = $obj->get_server($servername);
+            if (
+                $server->isa(
+                    'Siebel::Srvrmgr::ListParser::Output::ListComp::Server')
+              )
+            {
 
-                if (
-                    $server->isa(
-                        'Siebel::Srvrmgr::ListParser::Output::ListComp::Server')
-                  )
-                {
+                $stash->set_stash( [$server] );
 
-                    $stash->set_stash( [$server] );
+                return 1;
 
-                    return 1;
+            }
+            else {
 
-                }
-                else {
-
-                    warn "could not fetch $servername data\n";
-
-                }
+                warn "could not fetch $servername data\n";
 
             }
 
         }
 
-    }    # end of foreach block
+    }
 
     return 0;
 
