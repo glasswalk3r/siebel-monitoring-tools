@@ -12,9 +12,9 @@ BEGIN { use_ok('Siebel::Srvrmgr::Exporter') }
 my $expected_digest;
 
 # the differences below are due the line end character differences
-if ( $Config{osname} eq 'win32' ) {
+if ( $Config{osname} eq 'MSWin32' ) {
 
-    $expected_digest = 'da9f0c660ebb68b341a8e858f5915678';
+    $expected_digest = 'e1d662b1be600d49af4cf92d40cd7fe0';
 
 }
 else { # else is for UNIX-line OS
