@@ -112,7 +112,8 @@ sub process_cmd {
 
         }
 
-        if ( $cmd =~ /^list\sparams\sfor\s(server\s\w+\s)?comp(onent)?\ssrproc$/ ) {
+		# must be case insensitive because of test from the export_comps.pl
+        if ( $cmd =~ /^list\sparams\sfor\s(server\s\w+\s)?comp(onent)?\ssrproc$/i ) {
 
             put_text( $handle, $data_ref->{list_params_for_srproc} );
             last SWITCH;
@@ -216,8 +217,8 @@ sub process_cmd {
 
         }
         else {
-
-            put_text( $handle, [ 'Invalid command', $CRLF ] );
+#TODO: check out how the srvrmgr exact print invalid command messages to replicate here
+            put_text( $handle, [ 'Invalid command', $CRLF, $CRLF ] );
             last SWITCH;
         }
 
