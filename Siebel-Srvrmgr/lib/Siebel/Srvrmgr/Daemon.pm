@@ -406,7 +406,7 @@ sub BUILD {
 
     my $self = shift;
 
-    foreach my $attrib (qw(gateway enterprise user password server bin)) {
+    foreach my $attrib (qw(gateway enterprise user password bin)) {
 
         confess "parameter $attrib must have a defined value"
           unless ( ( defined( $self->{$attrib} ) )
@@ -542,7 +542,7 @@ sub _define_params {
     );
 
     push( @params, '/s', $self->get_server() )
-      if ( defined( $self->get_server() ) );
+      if ( ( defined( $self->get_server() ) ) and ($self->get_server() ne '') );
 
 # :WORKAROUND:06/08/2013 21:05:32:: if a perlscript will be executed (like for automated testing of this distribution)
 # then the perl interpreter must be part of the command path to avoid calling cmd.exe (in Microsoft Windows)

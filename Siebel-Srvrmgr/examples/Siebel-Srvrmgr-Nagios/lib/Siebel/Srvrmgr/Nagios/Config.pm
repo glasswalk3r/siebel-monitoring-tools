@@ -1,7 +1,8 @@
 package Siebel::Srvrmgr::Nagios::Config;
 use XML::Rabbit::Root;
+use Carp;
 
-add_xpath_namespace 'ns1' => 'http://code.google.com/p/siebel-monitoring-tools';
+add_xpath_namespace 'ns1' => 'http://code.google.com/p/siebel-monitoring-tools/';
 
 =pod
 
@@ -124,9 +125,9 @@ sub BUILD {
                 }
                 else {
 
-                    die 'Undefined value for '
+                    confess 'Undefined value for '
                       . $comp->name() . '->'
-                      . $comp->componentGroup();
+                      . $comp->componentGroup() . ' in server ' . $server->name() . ' configuration';
 
                 }
 
