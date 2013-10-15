@@ -396,17 +396,37 @@ sub reset_retries {
 
 }
 
+=head2 BUILD
+
+Validate if the parameters gateway, enterprise, user,  password,  server and bin are defined.
+
+=cut
+
+sub BUILD {
+
+    my $self = shift;
+
+    foreach my $attrib (qw(gateway enterprise user password server bin)) {
+
+        confess "parameter $attrib must have a defined value"
+          unless ( ( defined( $self->{$attrib} ) )
+            and ( $self->{$attrib} ne '' ) );
+
+    }
+
+}
+
 # for better security
 sub _check_cmd {
 
     my $self = shift;
     my $cmd  = shift;
 
-    die( 'Invalid command received for execution: '
+    confess( 'Invalid command received for execution: '
           . Dumper( $self->get_cmd_stack() ) )
       unless ( defined($cmd) );
 
-    die("Insecure command from command stack [$cmd]. Execution aborted")
+    confess("Insecure command from command stack [$cmd]. Execution aborted")
       unless ( ( $cmd =~ /^load/ )
         or ( $cmd =~ /^list/ )
         or ( $cmd =~ /^exit/ ) );
