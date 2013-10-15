@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ns1:siebelMonitor xmlns:ns1="http://code.google.com/p/siebel-monitoring-tools/">
 	<ns1:connection>
-		<ns1:siebelServer/>
+	    <!-- Siebel::Srvrmgr allows multiple servers, but comp_mon.pl expects a single server to check the component status, so the value below is required -->
+		<ns1:siebelServer>siebelsrv01</ns1:siebelServer>
 		<ns1:srvrmgrPath>C:\Siebel\8.1\Client_1\BIN</ns1:srvrmgrPath>
 		<ns1:srvrmgrExec>srvrmgr.exe</ns1:srvrmgrExec>
 		<ns1:siebelEnterprise>foobar</ns1:siebelEnterprise>
@@ -99,6 +100,7 @@
 				<ns1:componentGroup name="SystemAux" defaultOKStatus="Online|Running"/>
 				<ns1:componentGroup name="TaskUI" defaultOKStatus="Online|Running"/>
 				<ns1:componentGroup name="Workflow" defaultOKStatus="Online|Running"/>
+				<ns1:componentGroup name="ADM" defaultOKStatus="Online|Running"/>
 			</ns1:componentsGroups>
 		</ns1:server>
 		<ns1:server name="siebelsrv03">

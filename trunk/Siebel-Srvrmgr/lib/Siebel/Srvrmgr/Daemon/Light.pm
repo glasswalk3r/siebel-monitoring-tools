@@ -207,7 +207,7 @@ sub run {
         }
         else {
 
-            $logger->fatal('Parser did not have a parsed tree after parsing');
+            $logger->logdie('Parser did not have a parsed tree after parsing');
 
         }
 

@@ -1,10 +1,11 @@
 use warnings;
 use strict;
-use Siebel::Srvrmgr::Daemon;
+use Siebel::Srvrmgr::Daemon::Light;
 use File::Spec::Functions qw(tmpdir catfile);
 use Nagios::Plugin;
 use Siebel::Srvrmgr::Daemon::ActionStash;
 use Siebel::Srvrmgr::Nagios::Config;
+use Siebel::Srvrmgr::Daemon::Command;
 
 #    COPYRIGHT AND LICENCE
 #
@@ -28,7 +29,7 @@ use Siebel::Srvrmgr::Nagios::Config;
 my $np = Nagios::Plugin->new(
     shortname => 'SCM',
     usage     => "Usage: %s -w -c -f",
-    version   => '0.1'
+    version   => '0.2'
 );
 
 $np->add_arg(
@@ -62,8 +63,10 @@ eval {
     $cfg =
       Siebel::Srvrmgr::Nagios::Config->new(
         file => $np->opts->configuration() );
+		
+    die 'siebelServer element requires a non-empty value in XML configuration file' unless ( $cfg->server() ne '' );
 
-    my $daemon = Siebel::Srvrmgr::Daemon->new(
+    my $daemon = Siebel::Srvrmgr::Daemon::Light->new(
         {
             gateway     => $cfg->gateway(),
             enterprise  => $cfg->enterprise(),
@@ -117,7 +120,7 @@ sub calc_status {
 
     my $status = 0;
 
-    my $result_data = $results->get_stash();
+    my $result_data = $results->shift_stash();
 
     if ( exists( $result_data->{ $cfg->server() } ) ) {
 
