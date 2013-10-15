@@ -1,8 +1,8 @@
 package Siebel::Srvrmgr::Nagios;
 
-use 5.016003;
+use 5.008009;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 1;
 __END__
