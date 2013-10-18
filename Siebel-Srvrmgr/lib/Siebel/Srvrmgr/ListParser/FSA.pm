@@ -574,7 +574,6 @@ to release memory by calling the related C<DESTROY> methods of L<FSA::Rules> and
 sub free_refs {
 
     my $self = shift;
-    weaken($self);
 
     my $machines = \%FSA::Rules::machines;
 

@@ -3,8 +3,7 @@ README
 These files are a complete Nagios plugin for setup Siebel components monitoring:
 
 - commands.cfg: this file is the Nagios commands configuration file. It contains an example of how the comp_mon.pl should be executed
-- comp_mon.pl: this Perl script is the main part of the Nagios Plugin. It must be edited to have the correct parameters to connect to the a Siebel 
-Enterprise with srvrmgr program.
+- comp_mon.pl: this Perl script is the main part of the Nagios Plugin.
 - comp_mon.xml: this is the XML file used to configure which Siebel Server and corresponding modules should be monitored
 - comp_mon.xsd: the XML Schema to validate comp_mon.xml, if necessary
 - NSC.ini: this is an example of NSC client used to monitor the components. The NSC must be installed in a Windows computer

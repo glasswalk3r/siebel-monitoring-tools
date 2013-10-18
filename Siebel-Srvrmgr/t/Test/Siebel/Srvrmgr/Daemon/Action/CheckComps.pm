@@ -17,7 +17,7 @@ sub before : Test(setup) {
     my $comp1 =
       Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Component->new(
         {
-            name           => 'SynchMgr',
+            alias          => 'SynchMgr',
             description    => 'foobar',
             componentGroup => 'foobar',
             OKStatus       => 'Running',
@@ -27,7 +27,7 @@ sub before : Test(setup) {
     my $comp2 =
       Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Component->new(
         {
-            name           => 'WfProcMgr',
+            alias          => 'WfProcMgr',
             description    => 'foobar',
             componentGroup => 'foobar',
             OKStatus       => 'Running',
@@ -40,7 +40,7 @@ sub before : Test(setup) {
 
     $test->{action} = $test->class()->new(
         {
-            parser => $test->{parser}, 
+            parser => $test->{parser},
             params => [
                 Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Server->new(
                     {
@@ -54,7 +54,7 @@ sub before : Test(setup) {
 
     $test->{action2} = $test->class()->new(
         {
-            parser => $test->{parser}, 
+            parser => $test->{parser},
             params => [
                 Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Server->new(
                     { name => 'foobar', components => [ $comp1, $comp2 ] }
@@ -83,7 +83,7 @@ sub class_methods : Tests(+2) {
         'do method must die because the expected server will not be available'
     );
 
-	$test->SUPER::class_methods();
+    $test->SUPER::class_methods();
 
     my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
 

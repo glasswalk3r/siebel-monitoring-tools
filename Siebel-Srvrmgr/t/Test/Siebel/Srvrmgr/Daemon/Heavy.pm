@@ -120,6 +120,7 @@ sub runs_much_more : Tests(60) {
         for ( 1 .. 60 ) {
 
             ok( $test->{daemon}->run(), 'run method executes successfuly' );
+			sleep(5);
 
         }
 

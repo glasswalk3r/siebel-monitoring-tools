@@ -11,25 +11,19 @@ use base 'Test::Siebel::Srvrmgr::Daemon';
 sub class_methods : Tests(+1) {
 
     my $test = shift;
-	$test->SUPER::class_methods();
+    $test->SUPER::class_methods();
 
-    can_ok(
-        $test->{daemon},
-        (
-            qw(_del_file _del_input_file _del_output_file _check_system)
-        )
-    );
+    can_ok( $test->{daemon},
+        (qw(_del_file _del_input_file _del_output_file _check_system)) );
 
 }
 
 sub class_attributes : Tests(+2) {
 
     my $test = shift;
-	$test->SUPER::class_attributes();
+    $test->SUPER::class_attributes();
 
-    my @attribs = (
-		qw(output_file input_file)
-    );
+    my @attribs = (qw(output_file input_file));
 
     foreach my $attribute (@attribs) {
 
@@ -39,7 +33,7 @@ sub class_attributes : Tests(+2) {
 
 }
 
-sub runs : Tests(10) {
+sub runs : Tests(9) {
 
     my $test = shift;
 
@@ -47,12 +41,8 @@ sub runs : Tests(10) {
     is( $test->{daemon}->get_child_runs(),
         1, 'get_child_runs returns the expected number' );
 
-    my $shifted_cmd;
-    ok( $shifted_cmd = $test->{daemon}->shift_commands(),
-        'shift_command works' );
-    isa_ok( $shifted_cmd, 'Siebel::Srvrmgr::Daemon::Command' );
-    ok( $test->{daemon}->shift_commands(), 'shift_command works' );
-    ok( $test->{daemon}->shift_commands(), 'shift_command works' );
+    is( $test->{daemon}->shift_commands(),
+        undef, 'shift_command does not removes a load preferences command' );
 
     ok( $test->{daemon}->run(), 'run method executes successfuly (2)' );
     is( $test->{daemon}->get_child_runs(),
@@ -60,6 +50,25 @@ sub runs : Tests(10) {
     ok( $test->{daemon}->run(), 'run method executes successfuly (3)' );
     is( $test->{daemon}->get_child_runs(),
         3, 'get_child_runs returns the expected number' );
+
+    $test->{daemon}->set_commands(
+        [
+            Siebel::Srvrmgr::Daemon::Command->new(
+                command => 'list comp type',
+                action  => 'ListCompTypes',
+                params  => ['dump1']
+            ),
+            Siebel::Srvrmgr::Daemon::Command->new(
+                command => 'list comp type',
+                action  => 'ListCompTypes',
+                params  => ['dump1']
+            ),
+        ]
+    );
+
+    my $cmd;
+    ok( $cmd = $test->{daemon}->shift_commands(), 'shift_commands works' );
+    isa_ok( $cmd, 'Siebel::Srvrmgr::Daemon::Command' );
 
 }
 
