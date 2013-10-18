@@ -1,7 +1,7 @@
 package Siebel::Srvrmgr::Daemon::Action::CheckComps::Server;
 
 use Moose::Role;
-use Moose::Util::TypeConstraints;
+use Siebel::Srvrmgr::Types;
 
 =pod
 
@@ -22,12 +22,11 @@ A string representing the name of the Siebel Server.
 
 =cut
 
- # :TODO      :24/07/2013 12:17:37:: use Perl Best Practices for getters/setters
-
 has name => (
-    isa      => 'Str',
+    isa      => 'NotNullStr',
     is       => 'rw',
-    required => 1
+    required => 1,
+    reader   => 'get_name'
 );
 
 =pod
@@ -38,26 +37,19 @@ An array reference with instances of classes that have the L<Siebel::Srvrmgr::Da
 
 =cut
 
-role_type 'CheckCompsComp',
-  { role => 'Siebel::Srvrmgr::Daemon::Action::CheckComps::Component' };
-
 # :TODO      :24/07/2013 12:41:06:: this has to be changed to a HashRef to enable searching objects by name
-has components =>
-  ( isa => 'ArrayRef[CheckCompsComp]', is => 'rw', required => 1 );
+has components => (
+    isa      => 'ArrayRef[CheckCompsComp]',
+    is       => 'rw',
+    required => 1,
+    reader   => 'get_components'
+);
 
 =pod
 
 =head1 METHODS
 
-One for each one of the attributes, with the same name for invocation. Those methods B<must> be overrided by the classes that applies this role or
-an exception will be raised.
-
-=cut
-
-requires 'name';
-requires 'components';
-
-=pod
+Each attribute has it's respective getter named as C<get_><attribute name>.
 
 =head1 SEE ALSO
 

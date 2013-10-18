@@ -1,6 +1,7 @@
 package Siebel::Srvrmgr::Daemon::Action::CheckComps::Component;
 
 use Moose::Role;
+use Siebel::Srvrmgr::Types;
 
 =pod
 
@@ -15,13 +16,18 @@ about which components are available in a Siebel server and which is their expec
 
 =head1 ATTRIBUTES
 
-=head2 name
+=head2 alias
 
-A string representing the name of the component.
+A string representing the alias of the component.
 
 =cut
- # :TODO      :24/07/2013 12:54:17:: component alias is the correct term
-has name => ( isa => 'Str', is => 'ro', required => 1 );
+
+has alias => (
+    isa      => 'NotNullStr',
+    is       => 'ro',
+    reader   => 'get_alias',
+    required => 1
+);
 
 =pod
 
@@ -31,7 +37,8 @@ A string representing the description of the component.
 
 =cut
 
-has description => ( isa => 'Str', is => 'ro', required => 1 );
+has description =>
+  ( isa => 'Str', is => 'ro', required => 1, reader => 'get_description' );
 
 =pod
 
@@ -41,7 +48,12 @@ A string representing the Component Group alias that this component is part of.
 
 =cut
 
-has componentGroup => ( isa => 'Str', is => 'ro', required => 1 );
+has componentGroup => (
+    isa      => 'NotNullStr',
+    is       => 'ro',
+    required => 1,
+    reader   => 'get_componentGroup',
+);
 
 =pod
 
@@ -51,7 +63,13 @@ The status that the component is expected to have. It may be one, several (conca
 
 =cut
 
-has OKStatus => ( isa => 'Str', is => 'ro', required => 1 );
+has OKStatus => (
+    isa      => 'NotNullStr',
+    is       => 'ro',
+    required => 1,
+    reader   => 'get_OKStatus',
+    required => 1
+);
 
 =pod
 
@@ -61,24 +79,19 @@ A integer indicating how critical it is if the component does not have the expec
 
 =cut
 
-has criticality => ( isa => 'Int', is => 'ro', required => 1 );
+has criticality => (
+    isa      => 'Int',
+    is       => 'ro',
+    required => 1,
+    reader   => 'get_criticality',
+    required => 1
+);
 
 =pod
 
 =head1 METHODS
 
-One for each one of the attributes, with the same name for invocation. Those methods B<must> be overrided by the classes that applies this role or
-an exception will be raised.
-
-=cut
-
-requires 'name';
-requires 'description';
-requires 'componentGroup';
-requires 'OKStatus';
-requires 'criticality';
-
-=pod
+All attributes have their respective getter as C<get_><attribute name>.
 
 =head1 SEE ALSO
 

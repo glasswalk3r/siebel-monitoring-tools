@@ -155,12 +155,12 @@ override 'do_parsed' => sub {
 
                     foreach my $exp_comp ( @{ $exp_srv->components() } ) {
 
-                        my $comp = $server->get_comp( $exp_comp->name() );
+                        my $comp = $server->get_comp( $exp_comp->get_alias() );
 
                         if ( defined($comp) ) {
 
                             my @valid_status =
-                              split( /\|/, $exp_comp->OKStatus() );
+                              split( /\|/, $exp_comp->get_OKStatus() );
 
                             my $is_ok = 0;
 
@@ -180,13 +180,13 @@ override 'do_parsed' => sub {
                             if ($is_ok) {
 
                                 $checked_comps{ $exp_srv->name() }
-                                  ->{ $exp_comp->name() } = 1;
+                                  ->{ $exp_comp->get_alias() } = 1;
 
                             }
                             else {
 
                                 $checked_comps{ $exp_srv->name() }
-                                  ->{ $exp_comp->name() } = 0;
+                                  ->{ $exp_comp->get_alias() } = 0;
 
 # :TODO      :04/06/2013 19:16:51:: must use a environment variable to indicate Log::Log4perl configuration and then enable logging here
 #                                    warn 'invalid status got for ',

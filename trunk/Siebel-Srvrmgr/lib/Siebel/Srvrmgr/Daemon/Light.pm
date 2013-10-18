@@ -161,8 +161,8 @@ sub run {
 
     if ( scalar(@input_buffer) >= 1 ) {
 
-		$self->normalize_eol(\@input_buffer);
-		chomp(@input_buffer);
+        $self->normalize_eol( \@input_buffer );
+        chomp(@input_buffer);
 
 # since we should have all output, we parse everthing first to call each action after
         $parser->parse( \@input_buffer );
@@ -319,7 +319,7 @@ override _setup_commands => sub {
 
     my $self = shift;
 
- # :WORKAROUND:03/10/2013 03:06:41:: getting a "tmpnam redefined" warning in Perl 5.18
+# :WORKAROUND:03/10/2013 03:06:41:: getting a "tmpnam redefined" warning in Perl 5.18
     my ( $fh, $input_file ) = File::Temp::tmpnam();
 
     foreach my $cmd ( @{ $self->get_commands() } ) {
@@ -332,6 +332,35 @@ override _setup_commands => sub {
     close($fh);
 
     $self->_set_input_file($input_file);
+
+};
+
+=pod
+
+=head2 shift_commands
+
+Overrided from parent class.
+
+If the first command is a LOAD PREFERENCES, the C<commands> attribute will not be shifted and the method returns C<undef>.
+
+Otherwise, the same behaviour from parent will be executed.
+
+=cut
+
+override shift_commands => sub {
+
+    my $self = shift;
+	
+    if ( $self->get_commands()->[0]->get_command() =~ /load\spreferences/i ) {
+
+        return undef;
+
+    }
+    else {
+
+        return super();
+
+    }
 
 };
 
@@ -354,6 +383,7 @@ override _define_params => sub {
 
 };
 
+# :TODO:18-10-2013:arfreitas: this should be done by IPC.pm module?
 sub _manual_check {
 
     my $self   = shift;
@@ -376,6 +406,7 @@ sub _manual_check {
 
 }
 
+# :TODO:18-10-2013:arfreitas: this should be done by IPC.pm module?
 sub _check_system {
 
     my $self   = shift;

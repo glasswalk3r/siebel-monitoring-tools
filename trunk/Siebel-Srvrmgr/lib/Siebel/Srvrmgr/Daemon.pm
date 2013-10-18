@@ -37,7 +37,6 @@ Implementation details are reserved to subclasses of Siebel::Srvrmgr::Daemon: be
 =cut
 
 use Moose;
-use namespace::autoclean;
 use Siebel::Srvrmgr::Regexes qw(SIEBEL_ERROR);
 use POSIX;
 use Siebel::Srvrmgr;
@@ -514,7 +513,7 @@ sub normalize_eol {
 
         foreach ( @{$data_ref} ) {
 
-            s/$CR?$LF/\n/g;
+            s/$CR?$LF/\n/og;
 
         }
 

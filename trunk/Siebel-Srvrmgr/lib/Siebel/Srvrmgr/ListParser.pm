@@ -22,6 +22,7 @@ use Log::Log4perl;
 use Scalar::Util qw(weaken);
 use Siebel::Srvrmgr::ListParser::FSA;
 use Socket qw(:crlf);
+use namespace::autoclean;
 
 =pod
 

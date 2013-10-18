@@ -16,9 +16,9 @@ my $server;
 
 if ( $ENV{SIEBEL_SRVRMGR_DEVEL} and ( -e $ENV{SIEBEL_SRVRMGR_DEVEL} ) ) {
 
-	my $cfg = Config::Tiny->read( $ENV{SIEBEL_SRVRMGR_DEVEL} );
-	$server = build_server( $cfg->{_}->{server}, $cfg->{_}->{comp_list} );
-	
+    my $cfg = Config::Tiny->read( $ENV{SIEBEL_SRVRMGR_DEVEL} );
+    $server = build_server( $cfg->{_}->{server}, $cfg->{_}->{comp_list} );
+
     $daemon = Siebel::Srvrmgr::Daemon::Heavy->new(
         {
             gateway    => $cfg->{_}->{gateway},
@@ -30,11 +30,11 @@ if ( $ENV{SIEBEL_SRVRMGR_DEVEL} and ( -e $ENV{SIEBEL_SRVRMGR_DEVEL} ) ) {
                 $cfg->{_}->{srvrmgr_path},
                 $cfg->{_}->{srvrmgr_bin}
             ),
-            use_perl    => 0,
-            is_infinite => 0,
+            use_perl     => 0,
+            is_infinite  => 0,
             read_timeout => 15,
-            commands    => [
-			    Siebel::Srvrmgr::Daemon::Command->new(
+            commands     => [
+                Siebel::Srvrmgr::Daemon::Command->new(
                     command => 'load preferences',
                     action  => 'LoadPreferences',
                     params  => [$server]
@@ -51,7 +51,7 @@ if ( $ENV{SIEBEL_SRVRMGR_DEVEL} and ( -e $ENV{SIEBEL_SRVRMGR_DEVEL} ) ) {
 }
 else {
 
-	$server = build_server( 'siebfoobar' );
+    $server = build_server('siebfoobar');
 
     $daemon = Siebel::Srvrmgr::Daemon::Heavy->new(
         {
@@ -76,7 +76,7 @@ else {
 
 }
 
-my $repeat = 12;
+my $repeat      = 12;
 my $total_tests = ( scalar( @{ $server->components() } ) + 2 ) * $repeat;
 plan tests => $total_tests;
 set_log();
@@ -112,7 +112,7 @@ for ( 1 .. $repeat ) {
 sub set_log {
 
     my $log_file = File::Spec->catfile( getcwd(), 'daemon.log' );
-    my $log_cfg = File::Spec->catfile( getcwd(), 'log4perl.cfg' );
+    my $log_cfg  = File::Spec->catfile( getcwd(), 'log4perl.cfg' );
 
     my $config = <<BLOCK;
 log4perl.logger.Siebel.Srvrmgr.Daemon = WARN, LOG1
@@ -129,59 +129,62 @@ BLOCK
     close($out) or die 'Could not close ' . $log_cfg . ": $!\n";
 
     $ENV{SIEBEL_SRVRMGR_DEBUG} = $log_cfg;
-	
+
 }
 
 sub build_server {
 
-	my $server_name = shift;
-	my $comp_list = shift;
+    my $server_name = shift;
+    my $comp_list   = shift;
     my @comps;
-	
-	if (defined($comp_list)) {
 
-		my @list = split(/\|/, $comp_list);
-		
-		foreach(@list) {
+    if ( defined($comp_list) ) {
 
-			push(
-				@comps,
-				Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Component->new(
-					{
-						name           => $_,
-						description    => 'whatever',
-						componentGroup => 'whatever',
-						OKStatus       => 'Running|Online',
-						criticality    => 5
-					}
-				)
-			);		
-		
-		}
-	
-	} else {
+        my @list = split( /\|/, $comp_list );
 
-		while (<DATA>) {
+        foreach (@list) {
 
-			chomp();
+            push(
+                @comps,
+                Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Component
+                  ->new(
+                    {
+                        alias          => $_,
+                        description    => 'whatever',
+                        componentGroup => 'whatever',
+                        OKStatus       => 'Running|Online',
+                        criticality    => 5
+                    }
+                  )
+            );
 
-			push(
-				@comps,
-				Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Component->new(
-					{
-						name           => $_,
-						description    => 'whatever',
-						componentGroup => 'whatever',
-						OKStatus       => 'Running|Online',
-						criticality    => 5
-					}
-				)
-			);
+        }
 
-		}
-		close(DATA);
-		
-	}
+    }
+    else {
+
+        while (<DATA>) {
+
+            chomp();
+
+            push(
+                @comps,
+                Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Component
+                  ->new(
+                    {
+                        alias          => $_,
+                        description    => 'whatever',
+                        componentGroup => 'whatever',
+                        OKStatus       => 'Running|Online',
+                        criticality    => 5
+                    }
+                  )
+            );
+
+        }
+        close(DATA);
+
+    }
 
     return Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Server->new(
         {
