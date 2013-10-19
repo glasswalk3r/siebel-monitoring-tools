@@ -1,4 +1,4 @@
-package Nagios::Plugin::Siebel::CheckComps::Action::Check::Server;
+package Nagios::Plugin::Siebel::Srvrmgr::Action::Check::Server;
 use Moose;
 use namespace::autoclean;
 use MooseX::FollowPBP;
@@ -48,6 +48,9 @@ sub has_comp {
 
     my $self       = shift;
     my $comp_alias = shift;
+	
+	use Carp;
+	confess "component alias must be defined" unless (defined($comp_alias));
 
     return ( exists( $self->get_comps_by_name()->{$comp_alias} ) );
 

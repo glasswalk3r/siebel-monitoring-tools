@@ -45,7 +45,7 @@ override 'check_comp' => sub {
     my $server_name = shift;
     my $comp_alias  = shift;
 
-    my $comp = $self->_validate_param($comp_alias);
+    my $comp = $self->_validate_alias($comp_alias);
 
     unless ( $self->get_cache()->is_valid($comp_alias) ) {
 

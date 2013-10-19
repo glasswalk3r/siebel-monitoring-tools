@@ -1,3 +1,4 @@
+#!/usr/bin/perl
 use warnings;
 use strict;
 use RPC::XML;
@@ -7,7 +8,7 @@ use TryCatch;
 
 my $np = Nagios::Plugin->new(
     shortname => 'NRPC',
-    usage     => "Usage: %s -w -c -f",
+    usage     => "Usage: %s -w -c -h -a -p -s",
     version   => '0.1'
 );
 
@@ -44,6 +45,12 @@ $np->add_arg(
     help     => "-p, --port=INTEGER. The RPC XML Server port to connect to",
 );
 
+$np->add_arg(
+    spec     => "server|s=s",
+    required => 1,
+    help     => "-s, --server=STRING. The Siebel Server name to check the component status",
+);
+
 $np->getopts();
 $np->shortname( $np->opts()->alias() );
 
@@ -56,6 +63,7 @@ try {
 
     my $request = RPC::XML::request->new(
         'siebel.srvrmgr.xmlrpc.checkComponent',
+        RPC::XML::string->new( $np->opts()->server() ), 
         RPC::XML::string->new( $np->opts()->alias() )
     );
 

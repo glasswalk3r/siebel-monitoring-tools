@@ -3,7 +3,7 @@ use warnings;
 use strict;
 use RPC::XML::Server;
 use RPC::XML::Procedure;
-use Nagios::Cache::Server;
+use Nagios::Plugin::Siebel::Srvrmgr::Daemon::Cache;
 use TryCatch;
 
 #    COPYRIGHT AND LICENCE
@@ -27,7 +27,7 @@ use TryCatch;
 
 print 'Starting Nagios::Cache::Server...';
 
-my $daemon = Nagios::Cache::Server->new(
+my $daemon = Nagios::Plugin::Siebel::Srvrmgr::Daemon::Cache->new(
     {
         config_file   => 'conf.yml',
         cache_expires => 120
@@ -38,17 +38,17 @@ print "done\n";
 
 print 'Starting RPC::XML::Server...';
 my $rpc_server = RPC::XML::Server->new(
-    port       => 80,
+    port       => 8080,
     no_default => 1,
 
 # :TODO      :07/08/2013 15:17:43:: must review error codes as defined by XML-RPC specification
     fault_table => {
-        'Nagios::Memcached::Exception::InvalidCompAlias' =>
+        'Nagios::Plugin::Siebel::Srvrmgr::Exception::InvalidCompAlias' =>
           [ 600 => 'Error: %s' ],
-        'Nagios::Memcached::Exception::NotFoundCompAlias' =>
+        'Nagios::Plugin::Siebel::Srvrmgr::Exception::NotFoundCompAlias' =>
           [ 601 => 'Error: %s' ],
-        'Nagios::Memcached::Exception::InvalidServer' => [ 602 => 'Error: %s' ],
-        'Nagios::Memcached::Exception::InvalidSrvrmgrData' =>
+        'Nagios::Plugin::Siebel::Srvrmgr::Exception::InvalidServer' => [ 602 => 'Error: %s' ],
+        'Nagios::Plugin::Siebel::Srvrmgr::Exception::InvalidSrvrmgrData' =>
           [ 603 => 'Error: %s' ],
     }
 );
@@ -57,7 +57,7 @@ $rpc_server->add_method(
         {
             name      => 'siebel.srvrmgr.xmlrpc.checkComponent',
             code      => \&check_comp,
-            signature => ['struct string'],
+            signature => ['struct string string'],
             help =>
 'Expects a component alias as parameter, returning a boolean indicating if the component is ok (true) or not (false)',
             version => 1,
@@ -65,21 +65,22 @@ $rpc_server->add_method(
         }
     )
 );
-say 'done';
-say 'Ready to accept requests';
+print "done\n";
+print "Ready to accept requests\n";
 
 $rpc_server->server_loop();
 
 sub check_comp {
 
-    my $self       = shift;
-    my $comp_alias = shift;
+    my $self          = shift;
+	my $siebel_server = shift;
+    my $comp_alias    = shift;
 
     my $comp;
 
     try {
 
-        $comp = $daemon->check_comp($comp_alias);
+        $comp = $daemon->check_comp($siebel_server, $comp_alias);
 
 # :TODO      :24/07/2013 13:06:35:: probably could do this automatically with Moose meta
         return RPC::XML::struct->new(
