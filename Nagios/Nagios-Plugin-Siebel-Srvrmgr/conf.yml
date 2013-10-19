@@ -4,8 +4,8 @@ connection:
   siebelEnterprise: SBA_80 
   siebelGateway: siebel1
   siebelServer: siebel1
-  srvrmgrExec: srvrmgr.exe
-  srvrmgrPath: C:/Siebel/8.1/Client/BIN
+  srvrmgrExec: srvrmgr-mock.pl
+  srvrmgrPath: /home/arfreitas/Projetos/siebel-monitoring-tools/Siebel-Srvrmgr
   user: SADMIN
 servers: 
   siebappdev: 
