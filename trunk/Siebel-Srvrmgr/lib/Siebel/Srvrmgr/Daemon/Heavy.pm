@@ -488,12 +488,12 @@ sub run {
         }
     );
 
-    my $parser       = Siebel::Srvrmgr::ListParser->new();
-    my $select       = IO::Select->new();
-    my $data_ref     = $self->_create_handle_buffer( $select, $logger );
+    my $parser   = Siebel::Srvrmgr::ListParser->new();
+    my $select   = IO::Select->new();
+    my $data_ref = $self->_create_handle_buffer( $select, $logger );
 
     my $prompt_regex = qr/srvrmgr(\:\w+)?>\s(.*)?$/;
-	my $eol_regex = qr/$CRLF$/;
+    my $eol_regex    = qr/$CRLF$/;
 
     $logger->debug( 'sysread buffer size is ' . $self->get_buffer_size() )
       if ( $logger->is_debug() );
@@ -502,6 +502,7 @@ sub run {
 
         exit if ($SIG_INT);
 
+# :TODO:18-10-2013:arfreitas: move all code inside the while block to a different method to help and clean up lexicals
         while ( my @ready = $select->can_read( $self->get_read_timeout() ) ) {
 
             foreach my $fh (@ready) {
@@ -588,7 +589,7 @@ sub run {
 
                     }
 
-					$self->normalize_eol(\$data_ref->{$fh_name});
+                    $self->normalize_eol( \$data_ref->{$fh_name} );
 
                     if ( $fh == $self->get_read() ) {
 
@@ -621,6 +622,8 @@ sub run {
             }    # end of foreach block
 
         }    # end of while block
+
+		$data_ref = undef;
 
         # below is the place for a Action object
         if ( scalar(@input_buffer) >= 1 ) {
@@ -1388,7 +1391,7 @@ sub close_child {
 
 =head1 CAVEATS
 
-This class is still considered experimental and should be used with care.
+This class is still considered experimental and should be used with care. Tests with MS Windows (and the nature of doing IPC within the plataform) makes it difficult do use this class in Microsoft OS's.
 
 The C<srvrmgr> program uses buffering, which makes difficult to read the generated output as expected.
 
