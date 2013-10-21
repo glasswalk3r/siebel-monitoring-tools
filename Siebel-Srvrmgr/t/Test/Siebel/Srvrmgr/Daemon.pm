@@ -208,7 +208,11 @@ sub clean_up : Test(shutdown) {
 
     while ( readdir(DIR) ) {
 
-        push( @files, $_ ) if (/^dump\w/);
+        if ( defined($_) ) {
+
+            push( @files, $_ ) if (/^dump\w/);
+
+        }
 
     }
 
@@ -222,7 +226,7 @@ sub clean_up : Test(shutdown) {
 
     }
 
-	$ENV{SIEBEL_SRVRMGR_DEBUG} = undef;
+    $ENV{SIEBEL_SRVRMGR_DEBUG} = undef;
 
 }
 

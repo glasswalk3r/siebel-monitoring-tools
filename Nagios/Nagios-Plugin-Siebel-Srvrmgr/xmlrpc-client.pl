@@ -80,16 +80,16 @@ SWITCH: {
 
     if ( ( ref($resp) ) eq 'RPC::XML::struct' ) {
 
-        my $status;
+        my $error_level;
 
         if ( $resp->{isOK} ) {
 
-            $status = 0
+            $error_level = 0
 
         }
         else {
 
-            $status = $resp->{criticality};
+            $error_level = $resp->{criticality};
 
         }
 
@@ -99,8 +99,8 @@ SWITCH: {
         );
 
         $np->nagios_exit(
-            return_code => $np->check_threshold($status),
-            message     => 'Components status is ' . $status
+            return_code => $np->check_threshold($error_level),
+            message     => 'Components error level is ' . $error_level
         );
 
         last SWITCH;
