@@ -19,10 +19,10 @@ use Scalar::Util qw(weaken);
 has 'config_file' =>
   ( is => 'ro', isa => 'Str', reader => 'get_config_file', required => 1 );
 has 'daemon' => (
-    is       => 'ro',
-    isa      => 'Siebel::Srvrmgr::Daemon',
-    reader   => 'get_daemon',
-    writer   => '_set_daemon'
+    is     => 'ro',
+    isa    => 'Siebel::Srvrmgr::Daemon',
+    reader => 'get_daemon',
+    writer => '_set_daemon'
 );
 has 'stash' => (
     is     => 'ro',
@@ -33,11 +33,30 @@ has 'stash' => (
 has 'siebel_servers' => (
     is     => 'ro',
     isa    => 'HashRef[Nagios::Plugin::Siebel::Srvrmgr::Action::Check::Server]',
-    reader => 'get_siebel_server',
-    writer => '_set_siebel_server'
+    reader => 'get_siebel_servers',
+    writer => '_set_siebel_servers'
 );
 has use_perl =>
   ( isa => 'Bool', is => 'ro', reader => 'use_perl', default => 0 );
+
+sub get_server_by_name {
+
+    my $self = shift;
+    my $name = shift;
+
+    if ( exists( $self->{siebel_servers}->{$name} ) ) {
+
+        return $self->{siebel_servers}->{$name};
+
+    }
+    else {
+
+        die Nagios::Plugin::Siebel::Srvrmgr::Exception::InvalidServer->new(
+            { servername => $name } );
+
+    }
+
+}
 
 sub BUILD {
 
@@ -45,79 +64,75 @@ sub BUILD {
 
 # :WORKAROUND:13/06/2013 10:18:53:: the cfg may have multiple servers, but this program will expect a single one
     my $cfg = LoadFile( $self->get_config_file() );
-	my %servers;
+    my %servers;
 
-    foreach my $server (keys($cfg->{servers})) {
-		
+    foreach my $server ( keys( $cfg->{servers} ) ) {
 
+        my @comps;
+        my $comps_ref   = $cfg->{servers}->{$server}->{components};
+        my $comp_groups = $cfg->{servers}->{$server}->{componentsGroups};
 
-		
-		}
+        foreach my $comp_alias ( keys( %{$comps_ref} ) ) {
 
-    my @comps;
-    my $comps_ref =
-      $cfg->{servers}->{ $cfg->{connection}->{siebelServer} }->{components};
+            my ( $ok_status, $criticality );
 
-    my $comp_groups = $cfg->{servers}->{ $cfg->{connection}->{siebelServer} }
-      ->{componentsGroups};
+            if ( exists( $comps_ref->{$comp_alias}->{OKStatus} ) ) {
 
-    foreach my $comp_alias ( keys( %{$comps_ref} ) ) {
+                $ok_status = $comps_ref->{$comp_alias}->{OKStatus};
 
-        my ( $ok_status, $criticality );
+            }
+            else {
 
-        if ( exists( $comps_ref->{$comp_alias}->{OKStatus} ) ) {
+                $ok_status =
+                  $comp_groups->{ $comps_ref->{$comp_alias}->{ComponentGroup} }
+                  ->{OKStatus};
 
-            $ok_status = $comps_ref->{$comp_alias}->{OKStatus};
+            }
 
-        }
-        else {
+            if ( exists( $comps_ref->{$comp_alias}->{criticality} ) ) {
 
-            $ok_status =
-              $comp_groups->{ $comps_ref->{$comp_alias}->{ComponentGroup} }
-              ->{OKStatus};
+                $criticality = $comps_ref->{$comp_alias}->{criticality};
 
-        }
+            }
+            else {
 
-        if ( exists( $comps_ref->{$comp_alias}->{criticality} ) ) {
+                $criticality =
+                  $comp_groups->{ $comps_ref->{$comp_alias}->{ComponentGroup} }
+                  ->{criticality}
 
-            $criticality = $comps_ref->{$comp_alias}->{criticality};
+            }
 
-        }
-        else {
+            die Nagios::Plugin::Siebel::Srvrmgr::Exception::InvalidCompConf
+              ->new()
+              unless ( defined($ok_status) and defined($criticality) );
 
-            $criticality =
-              $comp_groups->{ $comps_ref->{$comp_alias}->{ComponentGroup} }
-              ->{criticality}
+            push(
+                @comps,
+                Nagios::Plugin::Siebel::Srvrmgr::Action::Check::Component->new(
+                    {
+                        alias       => $comp_alias,
+                        description => $comps_ref->{$comp_alias}->{description},
+                        componentGroup =>
+                          $comps_ref->{$comp_alias}->{ComponentGroup},
+                        OKStatus    => $ok_status,
+                        criticality => $criticality
+                    }
+                )
+            );
 
-        }
+        }    # end of foreach components
 
-        die Nagios::Plugin::Siebel::Srvrmgr::Exception::InvalidCompConf->new()
-          unless ( defined($ok_status) and defined($criticality) );
-
-        push(
-            @comps,
-            Nagios::Plugin::Siebel::Srvrmgr::Action::Check::Component->new(
-                {
-                    alias       => $comp_alias,
-                    description => $comps_ref->{$comp_alias}->{description},
-                    componentGroup =>
-                      $comps_ref->{$comp_alias}->{ComponentGroup},
-                    OKStatus    => $ok_status,
-                    criticality => $criticality
-                }
-            )
-        );
-
-    }
-
-    $self->_set_siebel_server(
-        Nagios::Plugin::Siebel::Srvrmgr::Action::Check::Server->new(
+        $servers{$server} =
+          Nagios::Plugin::Siebel::Srvrmgr::Action::Check::Server->new(
             {
-                name       => $cfg->{connection}->{siebelServer},
+                name       => $server,
                 components => \@comps
             }
-        )
-    );
+          );
+
+    }    # end of foreach servers
+
+    $self->_set_siebel_servers( \%servers );
 
     $self->_set_daemon(
         Siebel::Srvrmgr::Daemon::Light->new(
@@ -126,7 +141,6 @@ sub BUILD {
                 enterprise => $cfg->{connection}->{siebelEnterprise},
                 user       => $cfg->{connection}->{user},
                 password   => $cfg->{connection}->{password},
-                server     => $cfg->{connection}->{siebelServer},
                 bin        => File::Spec->catfile(
                     $cfg->{connection}->{srvrmgrPath},
                     $cfg->{connection}->{srvrmgrExec}
@@ -140,12 +154,17 @@ sub BUILD {
                     Siebel::Srvrmgr::Daemon::Command->new(
                         command => 'list comp',
                         action  => 'CheckComps',
-                        params  => [ $self->get_siebel_server() ]
+                        params  => [ ( values(%servers) ) ]
                     )
                 ]
             }
         )
     );
+
+    $self->get_daemon->set_server( $cfg->{connection}->{siebelServer} )
+      if (  ( exists( $cfg->{connection}->{siebelServer} ) )
+        and ( defined( $cfg->{connection}->{siebelServer} ) )
+        and ( $cfg->{connection}->{siebelServer} ne '' ) );
 
     $self->_set_stash( Siebel::Srvrmgr::Daemon::ActionStash->instance() );
 
@@ -153,22 +172,29 @@ sub BUILD {
 
 sub _validate_alias {
 
-    my $self       = shift;
-    my $comp_alias = shift;
+    my $self        = shift;
+    my $server_name = shift;
+    my $comp_alias  = shift;
+
+    my $server = $self->get_server_by_name($server_name);
 
     die Nagios::Plugin::Siebel::Srvrmgr::Exception::NotFoundCompAlias->new()
-      unless ( $self->get_siebel_server()->has_comp($comp_alias) );
+      unless ( $server->has_comp($comp_alias) );
 
-    my $comp = $self->get_siebel_server()->get_comp($comp_alias);
+    my $comp = $server->get_comp_by_name($comp_alias);
 
     die Nagios::Plugin::Siebel::Srvrmgr::Exception::InvalidCompAlias->new()
-      unless ( defined($comp) );
+      unless ( ( defined($comp) )
+        and ( $comp->isa('Nagios::Plugin::Siebel::Srvrmgr::Action::Check::Component') )
+      );
+
+    die Nagios::Plugin::Siebel::Srvrmgr::Exception::CompNotEqual->new(
+        { expected => $comp->get_alias(), received => $comp_alias } )
+      unless ( $comp->get_alias() eq $comp_alias );
 
     $comp->set_isOK(0);    # sanity check
 
-    die Nagios::Plugin::Siebel::Srvrmgr::Exception::CompNotEqual->new(
-        { expected => $comp->name(), received => $comp_alias } )
-      unless ( $comp->get_alias() eq $comp_alias );
+	return $comp;
 
 }
 
@@ -178,12 +204,12 @@ sub check_comp {
     my $server_name = shift;
     my $comp_alias  = shift;
 
-    my $comp = $self->_validate_alias($comp_alias);
+    my $comp = $self->_validate_alias( $server_name, $comp_alias );
 
     $self->get_daemon()->run();
     $self->get_daemon()->shift_commands();
 
-    $self->get_comp_status($comp);
+    $self->get_comp_status( $server_name, $comp );
 
     return $comp;
 
@@ -191,16 +217,15 @@ sub check_comp {
 
 sub get_comp_status {
 
-    my $self = shift;
-    my $comp = shift;
+    my $self        = shift;
+    my $server_name = shift;
+    my $comp        = shift;
 
     my $srvrmgr_data = $self->get_stash()->get_stash()->[0];
     weaken($srvrmgr_data);
 
     die Nagios::Plugin::Siebel::Srvrmgr::Exception::InvalidSrvrmgrData->new()
       unless ( ref($srvrmgr_data) eq 'HASH' );
-
-    my $server_name = $self->get_daemon()->get_server();
 
     die Nagios::Plugin::Siebel::Srvrmgr::Exception::InvalidServer->new(
         { servername => $server_name } )

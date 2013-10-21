@@ -19,7 +19,7 @@ sub BUILD {
 
     foreach my $comp ( @{ $self->components() } ) {
 
-        $self->{comps_by_name}->{ $comp->name() } = $comp;
+        $self->{comps_by_name}->{ $comp->get_alias() } = $comp;
 
     }
 
@@ -48,11 +48,10 @@ sub has_comp {
 
     my $self       = shift;
     my $comp_alias = shift;
-	
-	use Carp;
-	confess "component alias must be defined" unless (defined($comp_alias));
 
-    return ( exists( $self->get_comps_by_name()->{$comp_alias} ) );
+    die "component alias must be defined" unless ( defined($comp_alias) );
+
+    return ( exists( $self->{comps_by_name}->{$comp_alias} ) );
 
 }
 
@@ -61,7 +60,16 @@ sub get_comp_by_name {
     my $self       = shift;
     my $comp_alias = shift;
 
-    return $self->get_comps_by_name()->{$comp_alias};
+    if ( $self->has_comp($comp_alias) ) {
+
+        return $self->{comps_by_name}->{$comp_alias};
+
+    }
+    else {
+
+        return undef;
+
+    }
 
 }
 
