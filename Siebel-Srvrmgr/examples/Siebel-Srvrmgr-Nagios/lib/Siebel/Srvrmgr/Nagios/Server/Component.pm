@@ -21,7 +21,7 @@ The name of the component.
 
 =cut
 
-has_xpath_value 'name' => './@name';
+has_xpath_value 'alias' => './@name';
 
 =head2 description
 
