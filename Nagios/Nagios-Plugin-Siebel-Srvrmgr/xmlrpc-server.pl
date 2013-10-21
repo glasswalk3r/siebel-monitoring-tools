@@ -5,6 +5,7 @@ use RPC::XML::Server;
 use RPC::XML::Procedure;
 use Nagios::Plugin::Siebel::Srvrmgr::Daemon::Cache;
 use TryCatch;
+use Getopt::Std;
 
 #    COPYRIGHT AND LICENCE
 #
@@ -25,12 +26,27 @@ use TryCatch;
 #    You should have received a copy of the GNU General Public License
 #    along with Siebel Monitoring Tools.  If not, see <http://www.gnu.org/licenses/>.
 
+my %opts;
+
+getopts( 'c:x:p:', \%opts );
+
+die 'command line parameter -c must have an value'
+  unless ( ( exists( $opts{c} ) ) and ( defined( $opts{c} ) ) );
+
+$opts{x} = 120
+  unless ( ( exists( $opts{x} ) ) and ( defined( $opts{x} ) ) and ($opts{x} =~ /^\d+$/));
+
+$opts{p} = 0
+  unless ( ( exists( $opts{p} ) ) and ( defined( $opts{p} ) ) and ($opts{p} == 1) );
+
 print 'Starting Nagios::Cache::Server...';
 
+# :TODO:20-10-2013:arfreitas: make daemon type configurable by command line option
 my $daemon = Nagios::Plugin::Siebel::Srvrmgr::Daemon::Cache->new(
     {
-        config_file   => 'conf.yml',
-        cache_expires => 120
+        config_file   => $opts{c}, 
+        cache_expires => $opts{x}, 
+		use_perl => $opts{p}
     }
 );
 
@@ -47,7 +63,8 @@ my $rpc_server = RPC::XML::Server->new(
           [ 600 => 'Error: %s' ],
         'Nagios::Plugin::Siebel::Srvrmgr::Exception::NotFoundCompAlias' =>
           [ 601 => 'Error: %s' ],
-        'Nagios::Plugin::Siebel::Srvrmgr::Exception::InvalidServer' => [ 602 => 'Error: %s' ],
+        'Nagios::Plugin::Siebel::Srvrmgr::Exception::InvalidServer' =>
+          [ 602 => 'Error: %s' ],
         'Nagios::Plugin::Siebel::Srvrmgr::Exception::InvalidSrvrmgrData' =>
           [ 603 => 'Error: %s' ],
     }
@@ -97,7 +114,6 @@ sub check_comp {
         );
 
     }
-
 # :TODO      :31/07/2013 13:11:23:: some exceptions should terminate server execution
     catch($e) {
 
@@ -112,6 +128,6 @@ sub check_comp {
 
         }
 
-      }
+    }
 
 }
