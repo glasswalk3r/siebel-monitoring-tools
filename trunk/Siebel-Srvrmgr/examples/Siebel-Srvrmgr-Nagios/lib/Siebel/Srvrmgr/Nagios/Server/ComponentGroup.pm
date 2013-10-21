@@ -19,7 +19,7 @@ The name of the component group.
 
 =cut
 
-has_xpath_value 'name'           => './@name';
+has_xpath_value 'name'           => './@name', reader => 'get_name';
 
 =head2 defaultOKStatus
 
@@ -28,7 +28,7 @@ have a explicit OKStatus defined in the XML configuration file.
 
 =cut
 
-has_xpath_value 'OKStatus'       => './@defaultOKStatus';
+has_xpath_value 'OKStatus'       => './@defaultOKStatus', reader => 'get_OKStatus';
 
 finalize_class();
 __END__
