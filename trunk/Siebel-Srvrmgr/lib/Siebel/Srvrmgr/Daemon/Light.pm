@@ -66,7 +66,7 @@ use POSIX;
 use Scalar::Util qw(weaken);
 use Config;
 use Carp qw(longmess);
-#use File::Temp;
+use File::Temp;
 use Data::Dumper;
 use Siebel::Srvrmgr;
 
