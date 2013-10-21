@@ -153,7 +153,7 @@ override 'do_parsed' => sub {
                     my $exp_srv =
                       $servers{$exp_name};    # the expected server reference
 
-                    foreach my $exp_comp ( @{ $exp_srv->components() } ) {
+                    foreach my $exp_comp ( @{ $exp_srv->get_components() } ) {
 
                         my $comp = $server->get_comp( $exp_comp->get_alias() );
 
