@@ -18,7 +18,6 @@ Siebel::Srvrmgr::Daemon::Light - class for running commmands with Siebel srvrmgr
             user        => 'user',
             password    => 'password',
             bin         => 'c:\\siebel\\client\\bin\\srvrmgr.exe',
-            is_infinite => 1,
 			commands    => [
 			        Siebel::Srvrmgr::Daemon::Command->new(
                         command => 'load preferences',
@@ -67,7 +66,7 @@ use POSIX;
 use Scalar::Util qw(weaken);
 use Config;
 use Carp qw(longmess);
-use File::Temp;
+#use File::Temp;
 use Data::Dumper;
 use Siebel::Srvrmgr;
 
@@ -273,28 +272,30 @@ sub _del_file {
     my $self     = shift;
     my $filename = shift;
 
-    if ( -e $filename ) {
+    if ( defined($filename) ) {
+        if ( -e $filename ) {
 
-        my $ret = unlink $filename;
+            my $ret = unlink $filename;
 
-        if ($ret) {
+            if ($ret) {
 
-            return 1;
+                return 1;
+
+            }
+            else {
+
+                warn "Could not remove $filename: $!";
+                return 0;
+
+            }
 
         }
         else {
 
-            warn "Could not remove $filename: $!";
+            warn "File $filename does not exists";
             return 0;
 
         }
-
-    }
-    else {
-
-        warn "File $filename does not exists";
-        return 0;
-
     }
 
 }
@@ -350,7 +351,7 @@ Otherwise, the same behaviour from parent will be executed.
 override shift_commands => sub {
 
     my $self = shift;
-	
+
     if ( $self->get_commands()->[0]->get_command() =~ /load\spreferences/i ) {
 
         return undef;

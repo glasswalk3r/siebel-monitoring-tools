@@ -183,7 +183,7 @@ An boolean defining if the interaction loop should be infinite or not.
 
 =cut
 
-has is_infinite => ( isa => 'Bool', is => 'ro', required => 1 );
+has is_infinite => ( isa => 'Bool', is => 'ro', default => sub { 0 } );
 
 =pod
 
@@ -211,7 +211,7 @@ has alarm_timeout => (
 
 A boolean attribute used mostly for testing of this class.
 
-If true, if will prepend the complete path of the Perl interpreter to the parameters before calling the C<srvrmgr> program (of course, srvrmgr must
+If true, if will prepend the complete path of the Perl interpreter to the parameters before calling the C<srvrmgr> program (of course the "srvrmgr" must
 be itself a Perl script).
 
 It defaults to false.
@@ -541,7 +541,8 @@ sub _define_params {
     );
 
     push( @params, '/s', $self->get_server() )
-      if ( ( defined( $self->get_server() ) ) and ($self->get_server() ne '') );
+      if (  ( defined( $self->get_server() ) )
+        and ( $self->get_server() ne '' ) );
 
 # :WORKAROUND:06/08/2013 21:05:32:: if a perlscript will be executed (like for automated testing of this distribution)
 # then the perl interpreter must be part of the command path to avoid calling cmd.exe (in Microsoft Windows)

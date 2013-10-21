@@ -42,7 +42,7 @@ None by default.
     Config::Tiny [2.14]
     DBD::ODBC [1.43]
     DBI [1.623]
-    Term::Pulse [0.04]
+    Term::Pulse [0.05]
     XML::Rabbit [0.3]
     Devel::CheckOS [1.71]
     Class::Data::Inheritable [0.08]

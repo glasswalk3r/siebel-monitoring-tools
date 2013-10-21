@@ -122,7 +122,7 @@ override 'do_parsed' => sub {
 
     foreach my $server ( @{$servers} ) {
 
-        $servers{ $server->name() } = $server;
+        $servers{ $server->get_name() } = $server;
 
     }
 
@@ -179,7 +179,7 @@ override 'do_parsed' => sub {
 
                             if ($is_ok) {
 
-                                $checked_comps{ $exp_srv->name() }
+                                $checked_comps{ $exp_srv->get_name() }
                                   ->{ $exp_comp->get_alias() } = 1;
 
                             }
@@ -198,9 +198,9 @@ override 'do_parsed' => sub {
                         }
                         else {
 
-                            confess
+                            warn
                               'Could not find any component with name [',
-                              $exp_comp->name() . ']';
+                              $exp_comp->get_alias() . ']';
 
                         }
 
@@ -209,7 +209,7 @@ override 'do_parsed' => sub {
                 }    # end of foreach comp
                 else {
 
-                    confess("Unexpected servername [$exp_name] retrieved from buffer.\n Expected servers names are " . join( ', ', map { '[' . $_->name() . ']' } @{$servers} ) );
+                    confess("Unexpected servername [$exp_name] retrieved from buffer.\n Expected servers names are " . join( ', ', map { '[' . $_->get_name() . ']' } @{$servers} ) );
                 }
 
             }
