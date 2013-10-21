@@ -31,7 +31,7 @@ sub BUILD {
     $self->_set_cache(
         CHI->new(
             namespace  => __PACKAGE__,
-            driver     => 'Memory',
+            driver     => 'RawMemory',
             expires_in => $self->get_cache_expires(),
             global     => 1
         )
@@ -74,12 +74,10 @@ sub _feed_cache {
     my $srvrmgr_data = $self->get_stash()->shift_stash();
 
     foreach my $comp_alias ( keys( %{ $srvrmgr_data->{$server_name} } ) ) {
-
-        die Nagios::Plugin::Siebel::Srvrmgr::Exception::CacheFailure->new()
-          unless ( $self->get_cache()
-            ->set( $comp_alias, $srvrmgr_data->{$server_name}->{$comp_alias} )
-          );
-
+	
+	    die Nagios::Plugin::Siebel::Srvrmgr::Exception::CacheFailure->new( {key => $comp_alias, value => $srvrmgr_data->{$server_name}->{$comp_alias} } )
+          unless ( defined( $self->get_cache()->set( $comp_alias, $srvrmgr_data->{$server_name}->{$comp_alias} ) ) );
+		
     }
 
 }

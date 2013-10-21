@@ -114,7 +114,6 @@ sub check_comp {
         );
 
     }
-# :TODO      :31/07/2013 13:11:23:: some exceptions should terminate server execution
     catch($e) {
 
         if ( ref($e) ) {
