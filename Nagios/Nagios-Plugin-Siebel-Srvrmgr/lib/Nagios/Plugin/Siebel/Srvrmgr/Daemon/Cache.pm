@@ -45,20 +45,20 @@ override 'check_comp' => sub {
     my $server_name = shift;
     my $comp_alias  = shift;
 
-    my $comp = $self->_validate_alias($comp_alias);
+    my $comp = $self->_validate_alias( $server_name, $comp_alias );
 
     unless ( $self->get_cache()->is_valid($comp_alias) ) {
 
         $self->get_daemon()->run();
         $self->get_daemon()->shift_commands();
-        $self->get_comp_status($comp);
+        $self->get_comp_status($server_name, $comp);
         $self->_feed_cache( $server_name, $comp );
 
     }
     else {
 
         my $status = $self->get_cache()->get($comp_alias);
-        $self->set_isOK($status);
+        $comp->set_isOK($status);
 
     }
 
@@ -75,7 +75,7 @@ sub _feed_cache {
 
     foreach my $comp_alias ( keys( %{ $srvrmgr_data->{$server_name} } ) ) {
 
-        die Nagios::Memcached::Exception::CacheFailure->new()
+        die Nagios::Plugin::Siebel::Srvrmgr::Exception::CacheFailure->new()
           unless ( $self->get_cache()
             ->set( $comp_alias, $srvrmgr_data->{$server_name}->{$comp_alias} )
           );
