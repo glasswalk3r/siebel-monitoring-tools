@@ -185,7 +185,7 @@ override 'do_parsed' => sub {
                             }
                             else {
 
-                                $checked_comps{ $exp_srv->name() }
+                                $checked_comps{ $exp_srv->get_name() }
                                   ->{ $exp_comp->get_alias() } = 0;
 
 # :TODO      :04/06/2013 19:16:51:: must use a environment variable to indicate Log::Log4perl configuration and then enable logging here
