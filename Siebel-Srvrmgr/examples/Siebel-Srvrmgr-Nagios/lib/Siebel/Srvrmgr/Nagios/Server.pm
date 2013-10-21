@@ -21,7 +21,7 @@ The Siebel server name.
 
 =cut
 
-has_xpath_value 'name'             => './@name';
+has_xpath_value 'name'             => './@name', reader => 'get_name';
 
 =head2 components
 
@@ -30,7 +30,7 @@ A list of L<Siebel::Srvrmgr::Nagios::Server::Component> instances.
 =cut
 
 has_xpath_object_list 'components' => './ns1:components/ns1:component' =>
-  'Siebel::Srvrmgr::Nagios::Server::Component';
+  'Siebel::Srvrmgr::Nagios::Server::Component', reader => 'get_components';
 
 =head2 componentsGroups
 
@@ -40,7 +40,7 @@ A list of L<Siebel::Srvrmgr::Nagios::ComponentGroup> instances.
 
 has_xpath_object_list 'componentGroups' =>
   './ns1:componentsGroups/ns1:componentGroup' =>
-  'Siebel::Srvrmgr::Nagios::Server::ComponentGroup';
+  'Siebel::Srvrmgr::Nagios::Server::ComponentGroup', reader => 'get_componentGroups';
 
 with 'Siebel::Srvrmgr::Daemon::Action::CheckComps::Server';
 

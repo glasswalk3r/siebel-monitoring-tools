@@ -74,8 +74,6 @@ eval {
             password    => $cfg->password(),
             server      => $cfg->server(),
             bin         => catfile( $cfg->srvrmgrPath(), $cfg->srvrmgrBin() ),
-            is_infinite => 0,
-            timeout     => 0,
             commands    => [
                 Siebel::Srvrmgr::Daemon::Command->new(
                     command => 'load preferences',
@@ -133,16 +131,16 @@ sub calc_status {
 
                 my $servers = $cfg->servers();
 
-                my $comps = $servers->[0]->components();
+                my $comps = $servers->[0]->get_components();
 
  # :TODO      :04/06/2013 19:14:18:: should check if the returned component has the corresponding component in the configuration
  # and issue a warning if not,  at least
  # looping over the available components is not efficient too
                 foreach my $comp ( @{$comps} ) {
 
-                    if ( $comp->name() eq $comp_name ) {
+                    if ( $comp->get_alias() eq $comp_name ) {
 
-                        $status += $comp->criticality();
+                        $status += $comp->get_criticality();
 
                     }
 

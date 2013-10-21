@@ -21,7 +21,7 @@ The name of the component.
 
 =cut
 
-has_xpath_value 'alias' => './@name';
+has_xpath_value 'alias' => './@alias', reader => 'get_alias';
 
 =head2 description
 
@@ -29,7 +29,7 @@ The description of the Siebel component.
 
 =cut
 
-has_xpath_value 'description' => './@description';
+has_xpath_value 'description' => './@description', reader => 'get_description';
 
 =head2 componentGroup
 
@@ -37,7 +37,7 @@ The component group name of which the component is part of.
 
 =cut
 
-has_xpath_value 'componentGroup' => './@ComponentGroup';
+has_xpath_value 'componentGroup' => './@ComponentGroup', reader => 'get_componentGroup';
 
 =head2 OKStatus
 
@@ -45,7 +45,7 @@ A string representing the status that indicates that the component is working as
 
 =cut
 
-has_xpath_value 'OKStatus' => './@OKStatus';
+has_xpath_value 'OKStatus' => './@OKStatus', reader => 'get_OKStatus';
 
 =head2 criticality
 
@@ -55,7 +55,7 @@ Higher values means more critical the component is.
 
 =cut
 
-has_xpath_value 'criticality' => './@criticality';
+has_xpath_value 'criticality' => './@criticality', reader => 'get_criticality';
 
 with 'Siebel::Srvrmgr::Daemon::Action::CheckComps::Component';
 
