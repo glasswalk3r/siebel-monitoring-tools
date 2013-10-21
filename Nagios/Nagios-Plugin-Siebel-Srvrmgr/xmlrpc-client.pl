@@ -82,14 +82,14 @@ SWITCH: {
 
         my $error_level;
 
-        if ( $resp->{isOK} ) {
+        if ( $resp->{isOK}->value() ) {
 
             $error_level = 0
 
         }
         else {
 
-            $error_level = $resp->{criticality};
+            $error_level = $resp->{criticality}->value();
 
         }
 
@@ -110,15 +110,25 @@ SWITCH: {
     if ( ( ref($resp) ) eq 'RPC::XML::fault' ) {
 
         $np->nagios_die( 'An error was returned while checking the component: '
-              . $resp->string() );
+              . $resp->as_string() );
 
         last SWITCH;
     }
     else {
-        $np->nagios_die(
-            'Received an unrecognized response from RPC XML server: '
-              . ref($resp) );
+
+		if (defined($resp)) {
+			
+			$np->nagios_die(
+				'Received an unrecognized response from RPC XML server ' . $np->opts->hostname() . ': ' . ref($resp) );
+			
+		} else {
+				
+			$np->nagios_die('Received an unrecognized response from RPC XML server ' . $np->opts->hostname());
+				
+		}
+
         last SWITCH;
+
     }
 
 }
