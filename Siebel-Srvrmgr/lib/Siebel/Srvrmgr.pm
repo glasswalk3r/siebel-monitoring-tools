@@ -150,7 +150,6 @@ along with Siebel Monitoring Tools.  If not, see <http://www.gnu.org/licenses/>.
 1;
 
 __DATA__
-log4perl.threshold = OFF
 log4perl.logger.Siebel.Srvrmgr.Daemon=FATAL, A1
 log4perl.appender.A1=Log::Log4perl::Appender::Screen
 log4perl.appender.A1.stderr=0
