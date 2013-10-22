@@ -21,8 +21,7 @@ my %config = (
         'Log::Log4perl'                => 1.41,
         'YAML::Syck'                   => 1.25,
     },
-    BUILD_REQUIRES => {
-        'Test::Exception'          => 0.27,
+    TEST_REQUIRES => {
         'Test::Most'               => 0.25,
         'Test::Pod'                => 1.22,
         'Test::Pod::Coverage'      => 1.08,

@@ -4,7 +4,7 @@ use 5.016003;
 use strict;
 use warnings;
 
-our $VERSION = 0.01;
+our $VERSION = 0.02;
 
 1;
 __END__
@@ -26,7 +26,7 @@ None by default.
 
     namespace::autoclean [0.13]
     Moose [2.0401]
-    FSA::Rules [0.29]
+    FSA::Rules [0.32]
     MooseX::Storage [0.33]
     Moose::Util::TypeConstraints [2.0402]
     MooseX::Params::Validate [0.15]
@@ -51,6 +51,7 @@ None by default.
     Test::Most [0.25]
     Test::Pod [1.22]
     Test::Pod::Coverage [1.08]
+	Test::Moose [2.0801]
 
 =head1 SEE ALSO
 

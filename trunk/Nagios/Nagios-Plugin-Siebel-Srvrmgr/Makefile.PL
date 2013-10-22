@@ -11,12 +11,13 @@ my %config = (
     MIN_PERL_VERSION => 5.008009,
     PREREQ_PM        => {
         'Siebel::Srvrmgr' => 0.10,
+        'XML::Parser'     => 2.41,
         'RPC::XML'        => 1.56,
         'YAML::Syck'      => 1.27,
         'CHI'             => 0.58,
         'TryCatch'        => 1.003002
     },
-    EXE_FILES  => [],
+    EXE_FILES  => [ 'xmlrpc-client.pl', 'xmlrpc-server.pl' ],
     META_MERGE => {
         resources => {
             license  => 'http://www.gnu.org/licenses/gpl.txt',
