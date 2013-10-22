@@ -1,0 +1,17 @@
+Changes
+commands.cfg
+comp_mon.pl
+comp_mon.xml
+comp_mon.xsd
+lib/Siebel/Srvrmgr/Nagios.pm
+lib/Siebel/Srvrmgr/Nagios/Config.pm
+lib/Siebel/Srvrmgr/Nagios/Server.pm
+lib/Siebel/Srvrmgr/Nagios/Server/Component.pm
+lib/Siebel/Srvrmgr/Nagios/Server/ComponentGroup.pm
+Makefile.PL
+MANIFEST			This list of files
+NSC.ini
+README
+t/pod-coverage.t
+t/pod.t
+t/Siebel-Srvrmgr-Nagios.t

@@ -1,0 +1,52 @@
+--- 
+connection: 
+  password: SADMIN
+  siebelEnterprise: SBA_80 
+  siebelGateway: siebel1
+  siebelServer:
+  srvrmgrExec: srvrmgr.exe
+  srvrmgrPath: E:/Siebel/8.0/client/BIN
+  user: SADMIN
+servers: 
+  siebel1: 
+    components: 
+      FSMSrvr:
+        description: File System Manager
+        ComponentGroup: SystemAux
+      SSEObjMgr_enu:
+        description: Sales Object Manager (ENU)
+        ComponentGroup: Sales
+      ServerMgr:
+        description: Server Manager
+        ComponentGroup: System
+      SRBroker:
+        description: Server Request Broker
+        ComponentGroup: System
+      SRProc:
+        description: Server Request Processor
+        ComponentGroup: SystemAux
+      SvrTblCleanup:
+        description: Server Tables Cleanup
+        ComponentGroup: SystemAux
+      SvrTaskPersist:
+        description: Server Task Persistance
+        ComponentGroup: SystemAux
+      AdminNotify:
+        description: Siebel Administrator Notification Component
+        ComponentGroup: SystemAux
+      SCBroker:
+        description: Siebel Connection Broker
+        ComponentGroup: System
+      SMCObjMgr_enu:
+        description: Siebel Mobile Connector Object Manager (ENU)
+        ComponentGroup: Sales
+    componentsGroups:
+      Sales:
+        OKStatus: Online|Running
+        criticality: 4
+      System:
+        OKStatus: Online|Running
+        criticality: 3
+      SystemAux:
+        OKStatus: Online|Running
+        criticality: 3
