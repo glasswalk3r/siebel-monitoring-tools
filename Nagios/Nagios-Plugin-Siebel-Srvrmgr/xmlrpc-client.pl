@@ -51,6 +51,12 @@ $np->add_arg(
     help     => "-s, --server=STRING. The Siebel Server name to check the component status",
 );
 
+$np->add_arg(
+	spec => 'timeout|t=i', 
+	required => 0, 
+	help => '-t, --timeout=INTEGER. The timeout in seconds while trying to reach the XML RPC server'
+);
+
 $np->getopts();
 $np->shortname( $np->opts()->alias() );
 
@@ -60,6 +66,16 @@ try {
 
     my $cli = RPC::XML::Client->new(
         'http://' . $np->opts()->hostname() . ':' . $np->opts()->port() );
+
+	if (defined($np->opts()->timeout())) {
+		
+		$cli->timeout($np->opts()->timeout());
+		
+	} else {
+			
+		$cli->timeout(60);
+			
+	}
 
     my $request = RPC::XML::request->new(
         'siebel.srvrmgr.xmlrpc.checkComponent',
@@ -116,10 +132,9 @@ SWITCH: {
     }
     else {
 
-		if (defined($resp)) {
+		if ((defined($resp)) and ((ref($resp)) eq '')) {
 			
-			$np->nagios_die(
-				'Received an unrecognized response from RPC XML server ' . $np->opts->hostname() . ': ' . ref($resp) );
+			$np->nagios_die( $resp );
 			
 		} else {
 				
