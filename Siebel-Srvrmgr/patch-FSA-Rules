@@ -1,0 +1,11 @@
+--- Rules.pm	2013-10-04 10:07:19.709133355 -0300
++++ Rules.pm	2013-10-08 00:53:02.431829991 -0300
+@@ -294,7 +294,7 @@
+ 
+ =cut
+ 
+-my (%machines, %states);
++our (%machines, %states);
+ 
+ sub new {
+     my $class = shift;

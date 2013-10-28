@@ -35,7 +35,7 @@ Regular expression to match the C<srvrmgr> prompt, with or without any command. 
 
 sub SRVRMGR_PROMPT {
 
-    return qr/^srvrmgr(\:\w+)?>\s(.*)?$/;
+    return qr/^srvrmgr(\:[\w\_\-]+)?>\s(.*)?$/;
 
 }
 
