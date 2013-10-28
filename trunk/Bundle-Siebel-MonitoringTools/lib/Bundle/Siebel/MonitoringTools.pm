@@ -1,6 +1,6 @@
 package Bundle::Siebel::MonitoringTools;
 
-use 5.016003;
+use 5.008009;
 use strict;
 use warnings;
 
