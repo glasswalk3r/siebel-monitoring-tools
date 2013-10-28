@@ -1,16 +1,8 @@
-Bundle-Siebel-MonitoringTools version 0.01
+Bundle-Siebel-MonitoringTools version
 ==========================================
 
-The README is used to introduce the module and provide instructions on
-how to install the module, any machine dependencies it may have (for
-example C compilers and installed libraries) and any other information
-that should be provided before the module is installed.
-
-A README file is required for CPAN modules since CPAN extracts the
-README file from a module distribution so that people browsing the
-archive can use it get an idea of the modules uses. It is usually a
-good idea to provide version information here so that people can
-decide whether fixes for the module are worth downloading.
+This distribution in a bundle to install all distributions that are required to full use of
+the Siebel Monitoring Tools applications.
 
 INSTALLATION
 
@@ -18,23 +10,15 @@ To install this module type the following:
 
    perl Makefile.PL
    make
-   make test
    make install
 
-DEPENDENCIES
-
-This module requires these other modules and libraries:
-
-  blah blah blah
+But you probably will want to install it from a CPAN shell to have all the dependencies resolved automatically.
 
 COPYRIGHT AND LICENCE
 
-Put the correct copyright and licence information here.
-
-Copyright (C) 2013 by Alceu Rodrigues de Freitas Junior
+Copyright (C) 2013 by Alceu Rodrigues de Freitas Junior (arfreitas@cpan.org)
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.16.3 or,
 at your option, any later version of Perl 5 you may have available.
-
 
