@@ -1,4 +1,4 @@
-use 5.014;
+use 5.008009;
 use ExtUtils::MakeMaker;
 
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
@@ -6,7 +6,7 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     NAME         => 'Siebel::Srvrmgr::Exporter',
     VERSION_FROM => 'lib/Siebel/Srvrmgr/Exporter.pm',    # finds $VERSION
-    PREREQ_PM => { 'Siebel::Srvrmgr' => 0.09, 'Term::Pulse' => 0.04 },
+    PREREQ_PM => { 'Siebel::Srvrmgr' => 0.11, 'Term::Pulse' => 0.04 },
     (
         $] >= 5.005
         ?    ## Add these new keywords supported since 5.005

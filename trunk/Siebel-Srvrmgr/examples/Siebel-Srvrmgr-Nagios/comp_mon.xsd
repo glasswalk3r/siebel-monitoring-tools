@@ -27,7 +27,7 @@
                         <xs:sequence minOccurs="1" maxOccurs="unbounded">
                           <xs:element name="component">
                             <xs:complexType>
-                              <xs:attribute name="name" type="xs:string" use="required" />
+                              <xs:attribute name="alias" type="xs:string" use="required" />
                               <xs:attribute name="description" type="xs:string" use="required" />
                               <xs:attribute name="ComponentGroup" type="xs:string" use="required" />
                               <xs:attribute name="OKStatus" type="xs:string" use="optional" />

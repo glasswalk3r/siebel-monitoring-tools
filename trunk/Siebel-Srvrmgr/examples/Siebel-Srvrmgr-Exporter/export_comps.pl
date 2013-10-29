@@ -34,13 +34,12 @@ use Siebel::Srvrmgr::Exporter::ListComp;
 use Siebel::Srvrmgr::Exporter::ListCompTypes;
 use File::Spec;
 use Getopt::Std;
-use feature qw(say);
-#use Term::Pulse;
+use Term::Pulse;
 
 $Getopt::Std::STANDARD_HELP_VERSION = 2;
 
 # for stopping Term::Pulse correctly
-$SIG{INT}     = sub { die "Caught interrupt signal" };
+$SIG{INT} = sub { die "Caught interrupt signal" };
 
 our $VERSION = 1;
 
@@ -50,11 +49,11 @@ sub HELP_MESSAGE {
 
     if ( ( defined($option) ) and ( ref($option) eq '' ) ) {
 
-        say "'-$option' parameter cannot be null";
+        print "'-$option' parameter cannot be null\n";
 
     }
 
-    say <<BLOCK;
+    print <<BLOCK;
 
 export_comps - version $VERSION
 
@@ -97,11 +96,11 @@ foreach my $option (qw(s g e u p b r)) {
 
 }
 
-#pulse_start(
-#    name   => 'Connecting to Siebel and getting initial data...',
-#    rotate => 1,
-#    time   => 1
-#) unless ( $opts{q} );
+pulse_start(
+    name   => 'Connecting to Siebel and getting initial data...',
+    rotate => 1,
+    time   => 1
+) unless ( $opts{q} );
 
 my $daemon = Siebel::Srvrmgr::Daemon::Heavy->new(
     {
@@ -140,12 +139,12 @@ my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
 
 $daemon->run();
 
-my $sieb_srv = $stash->shift_stash();
+my $sieb_srv     = $stash->shift_stash();
 my $server_comps = $sieb_srv->get_comps();
 
 my $comp_regex = qr/$opts{r}/;
 
-#pulse_stop() unless ( $opts{q} );
+pulse_stop() unless ( $opts{q} );
 
 my $out;
 
@@ -161,8 +160,8 @@ my $no_match = 1;
 foreach my $comp_alias ( @{$server_comps} ) {
 
     next unless ( $comp_alias =~ $comp_regex );
-	
-	$no_match = 0;
+
+    $no_match = 0;
 
     my $command =
         'list params for server '
@@ -236,10 +235,11 @@ foreach my $comp_alias ( @{$server_comps} ) {
 
 close($out) if ( defined($out) );
 
-if ( $no_match ) {
+if ($no_match) {
 
-	warn "Could not match any component alias to the string '$opts{r}'. Removing the output file (probably empty anyway)...";
-	unlink($opts{o}) or die "Cannot remove $opts{o}: $!\n";
+    warn
+"Could not match any component alias to the string '$opts{r}'. Removing the output file (probably empty anyway)...";
+    unlink( $opts{o} ) or die "Cannot remove $opts{o}: $!\n";
 
 }
 

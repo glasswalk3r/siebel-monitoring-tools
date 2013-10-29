@@ -163,7 +163,7 @@ sub run {
         $self->normalize_eol( \@input_buffer );
         chomp(@input_buffer);
 
-# since we should have all output, we parse everthing first to call each action after
+# since we should have all output, we parse everything first to call each action after
         $parser->parse( \@input_buffer );
 
         if ( $parser->has_tree() ) {
