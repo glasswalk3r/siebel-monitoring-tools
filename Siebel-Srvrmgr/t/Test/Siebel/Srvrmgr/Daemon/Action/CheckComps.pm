@@ -78,12 +78,15 @@ sub class_methods : Tests(+2) {
 
     my $test = shift;
 
+# :WORKAROUND:28-10-2013:arfreitas: parse() from Siebel::Srvrmgr::ListParser will automatically clean the array reference when it's finished
+    my @backup = $test->get_my_data();
+    $test->SUPER::class_methods();
+    $test->set_my_data( \@backup );
+
     dies_ok(
         sub { $test->{action2}->do( $test->get_my_data() ) },
         'do method must die because the expected server will not be available'
     );
-
-    $test->SUPER::class_methods();
 
     my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
 

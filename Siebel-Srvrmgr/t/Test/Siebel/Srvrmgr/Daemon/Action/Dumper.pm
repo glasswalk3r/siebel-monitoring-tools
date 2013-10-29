@@ -6,32 +6,39 @@ use Test::More;
 sub class_methods : Test(+1) {
 
     my $test = shift;
+    my @backup;
 
+    {
 # :WORKAROUND:03-06-2013:arfreitas: redirecting STDOUT to avoid having problems with TAP
-    close(STDOUT);
+        local *STDOUT;
 
-	# redirecting parent class execution
-    my $test_data;
-    open( STDOUT, '>', \$test_data )
-      or die "Failed to redirect STDOUT to in-memory file: $!";
+        # redirecting parent class execution
+        my $test_data;
+        open( STDOUT, '>', \$test_data )
+          or die "Failed to redirect STDOUT to in-memory file: $!";
 
- # :WORKAROUND:03/10/2013 02:58:17:: somehow, calling superclass class_methods erases the data, and it cannot be recovered later
-	my @backup;
-	@backup = @{$test->get_my_data()};
-    $test->SUPER::class_methods();
-    close(STDOUT);
+# :WORKAROUND:03/10/2013 02:58:17:: somehow, calling superclass class_methods erases the data, and it cannot be recovered later
+        @backup = @{ $test->get_my_data() };
+        $test->SUPER::class_methods();
+    }
 
     $test_data = undef;
-    open( STDOUT, '>', \$test_data )
-      or die "Failed to redirect STDOUT to in-memory file: $!";
-    $test->{action}->do( \@backup );
-    close(STDOUT);
 
-    like(
-        $test_data,
-        qr/Siebel::Srvrmgr::ListParser::Output::ListParams/,
-        'Dumper output matches expected regular expression'
-    );
+    {
+
+        local *STDOUT;
+
+        open( STDOUT, '>', \$test_data )
+          or die "Failed to redirect STDOUT to in-memory file: $!";
+        $test->{action}->do( \@backup );
+
+        like(
+            $test_data,
+            qr/Siebel::Srvrmgr::ListParser::Output::ListParams/,
+            'Dumper output matches expected regular expression'
+        );
+
+    }
 
 }
 

@@ -623,7 +623,7 @@ sub run {
 
         }    # end of while block
 
-		$data_ref = undef;
+        $data_ref = undef;
 
         # below is the place for a Action object
         if ( scalar(@input_buffer) >= 1 ) {
@@ -951,10 +951,6 @@ sub _process_stdout {
 
         exit if ( $SIG_INT or $SIG_PIPE );
 
-# :WORKAROUND:09/08/2013 19:12:55:: in MS Windows OS, srvrmgr returns CR characters "alone"
-# like "CRCRLFCRCRLF" for two empty lines. And yes, that sucks big time
-#        $line =~ s/\r$//;
-
         if ( $logger->is_debug() ) {
 
             if ( defined($line) ) {
@@ -1032,24 +1028,15 @@ sub _process_stdout {
 
                     }
 
-# this is specific for load preferences response since it may contain the prompt string (Siebel 7.5.3.17)
-                    if ( $line =~ /$load_pref_regex/ ) {
-
-                        push( @{$buffer_ref}, $line );
-
-# :TODO      :03/09/2013 12:11:27:: check if a print with an empty line is not required here
-#syswrite $self->get_write(), "\n";
-
-                    }
-
                 }
+
+                push( @{$buffer_ref}, $line );
 
                 last SWITCH;
 
             }
 
-# no prompt detection, keep reading output from srvrmgr.exe
-# :WARNING   :03/06/2013 18:22:40:: might cause a deadlock if the srvrmgr does not have anything else to read
+# no prompt detection, keep reading output from srvrmgr
             else { push( @{$buffer_ref}, $line ); }
 
         }
@@ -1167,9 +1154,7 @@ sub _my_cleanup {
 
         if ( $logger->is_info() ) {
 
-            $logger->info(
-'srvrmgr program was not yet executed, no child process to terminate'
-            );
+            $logger->info( 'No child process to terminate' );
 
         }
 
@@ -1368,7 +1353,7 @@ sub close_child {
         }
         else {
 
-            $logger->warn('child process is already gone')
+            $logger->warn('Child process is already gone')
               if ( $has_logger && $logger->is_warn() );
 
         }
@@ -1379,7 +1364,7 @@ sub close_child {
     }
     else {
 
-        $logger->info('Has no child PID available to close')
+        $logger->info('Has no child PID available to terminate')
           if ( $has_logger && $logger->is_info() );
         return 0;
 

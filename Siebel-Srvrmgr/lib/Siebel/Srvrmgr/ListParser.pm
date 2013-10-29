@@ -23,6 +23,7 @@ use Scalar::Util qw(weaken);
 use Siebel::Srvrmgr::ListParser::FSA;
 use Socket qw(:crlf);
 use namespace::autoclean;
+use Carp;
 
 =pod
 
@@ -232,7 +233,7 @@ sub set_buffer {
     my $line = shift;
 
     my $log_cfg = Siebel::Srvrmgr->logging_cfg();
-    die 'Could not start logging facilities'
+    confess 'Could not start logging facilities'
       unless ( Log::Log4perl->init_once( \$log_cfg ) );
     my $logger = Log::Log4perl->get_logger('Siebel::Srvrmgr::ListParser');
     weaken($logger);
@@ -507,14 +508,16 @@ sub parse {
     my $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );
     weaken($logger);
 
-    $logger->logdie( 'Received an invalid buffer: ' . ref($data_ref) )
-      unless ( ( defined($data_ref) ) and ( ref($data_ref) eq 'ARRAY' ) );
+    $logger->logdie( 'Received an invalid buffer as parameter' )
+      unless ( ( defined($data_ref) ) and ( ref($data_ref) eq 'ARRAY' ) and (scalar(@{$data_ref}) > 0) );
 
     weaken($data_ref);
 
     $self->get_fsa->notes( all_data => $data_ref );
     $self->get_fsa->notes( line_num => 0 );
     $self->get_fsa->start() unless ( $self->get_fsa()->curr_state() );
+
+    my $found_prompt = 0;
 
     do {
 
@@ -523,6 +526,7 @@ sub parse {
         if ( defined($state) ) {
 
             my $curr_msg = $state->notes('line');
+			$found_prompt = $state->notes('found_prompt');
 
 # :TODO:03-10-2013:arfreitas: find a way to keep circular references between the two objects to avoid
 # checking state change everytime with is_cmd_changed
@@ -586,6 +590,10 @@ sub parse {
 # and the returned data will be invalid due removal of the last three lines by Siebel::Srvrmgr::ListParser::Output->parse
 # This should help with memory utilization too
     $self->clear_buffer();
+
+    confess
+      'Received an invalid buffer to process: could not find the command prompt'
+      unless ($found_prompt);
 
     return 1;
 

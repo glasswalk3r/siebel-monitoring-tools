@@ -20,6 +20,14 @@ sub startup : Test( startup => 1 ) {
 
 }
 
+sub set_my_data {
+
+    my $self = shift;
+
+    $self->{data} = shift;
+
+}
+
 sub get_my_data {
 
     my $test = shift;
@@ -35,7 +43,8 @@ sub get_my_data {
         my @data;
 
         while (<$handle>) {
- # :WORKAROUND:12/08/2013 12:27:24:: new implementation of Daemon removes new lines characters from srvrmgr output
+
+# :WORKAROUND:12/08/2013 12:27:24:: new implementation of Daemon removes new lines characters from srvrmgr output
             chomp();
             push( @data, $_ );
 
@@ -45,8 +54,8 @@ sub get_my_data {
 
         if (@data) {
 
-			$test->{data} = \@data;
-		    return $test->{data};
+            $test->{data} = \@data;
+            return $test->{data};
 
         }
 

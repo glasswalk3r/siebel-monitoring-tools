@@ -19,7 +19,7 @@ if ( $Config{osname} eq 'MSWin32' ) {
 }
 else { # else is for UNIX-line OS
 
-    $expected_digest = '652aef6a89329e14c56fc6d33e6739f4';
+    $expected_digest = '986b1b0709346c5769c2bd173d2558aa';
 
 }
 
@@ -27,6 +27,8 @@ my $filename = 'test.txt';
 
 # srvrmgr-mock.pl ignores all parameters
 my $dummy = 'foobar';
+
+die "Cannot find srvrmgr-mock.pl for execution" unless (-e (File::Spec->catfile( $Config{sitebin}, 'srvrmgr-mock.pl' )));
 
 system(
     'perl', '-I',   '.\lib', 'export_comps.pl',

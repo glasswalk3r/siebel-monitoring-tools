@@ -27,7 +27,7 @@ use Moose;
 use namespace::autoclean;
 use Moose::Util qw(does_role);
 use Siebel::Srvrmgr::Daemon::ActionStash;
-use Carp;
+use Siebel::Srvrmgr;
 
 extends 'Siebel::Srvrmgr::Daemon::Action';
 
@@ -117,6 +117,9 @@ override 'do_parsed' => sub {
     my $self = shift;
     my $obj  = shift;
 
+    my $logger = Siebel::Srvrmgr->gimme_logger('Siebel::Srvrmgr::Daemon');
+    $logger->info('Starting run method');
+
     my $servers = $self->get_params();   # array reference
     my %servers;                         # to locate the expected servers easier
 
@@ -130,7 +133,8 @@ override 'do_parsed' => sub {
 
     if ( $obj->isa('Siebel::Srvrmgr::ListParser::Output::ListComp') ) {
 
-        my $out_servers_ref = $obj->get_servers(); # servers retrieve from output of srvrmgr
+        my $out_servers_ref =
+          $obj->get_servers();    # servers retrieve from output of srvrmgr
 
         confess
 "Could not fetch servers from the Siebel::Srvrmgr::ListParser::Output::ListComp object returned by the parser"
@@ -146,7 +150,7 @@ override 'do_parsed' => sub {
               )
             {
 
-                my $exp_name = $server->get_name(); # the expected server name
+                my $exp_name = $server->get_name();   # the expected server name
 
                 if ( exists( $servers{$exp_name} ) ) {
 
@@ -188,19 +192,23 @@ override 'do_parsed' => sub {
                                 $checked_comps{ $exp_srv->get_name() }
                                   ->{ $exp_comp->get_alias() } = 0;
 
-# :TODO      :04/06/2013 19:16:51:: must use a environment variable to indicate Log::Log4perl configuration and then enable logging here
-#                                    warn 'invalid status got for ',
-#                                      $exp_comp->name(), ' ',
-#                                      $comp->cp_disp_run_state();
+                                $logger->warn( 'invalid status got for '
+                                      . $exp_comp->get_alias() . ' "'
+                                      . $comp->cp_disp_run_state()
+                                      . '" instead of "'
+                                      . $exp_comp->get_OKStatus()
+                                      . '"' )
+                                  if ( $logger->is_warn() );
 
                             }
 
                         }
                         else {
 
-                            warn
-                              'Could not find any component with name [',
-                              $exp_comp->get_alias() . ']';
+                            $logger->warn(
+                                'Could not find any component with name [',
+                                $exp_comp->get_alias() . ']' )
+                              if ( $logger->is_warn() );
 
                         }
 
@@ -209,13 +217,17 @@ override 'do_parsed' => sub {
                 }    # end of foreach comp
                 else {
 
-                    confess("Unexpected servername [$exp_name] retrieved from buffer.\n Expected servers names are " . join( ', ', map { '[' . $_->get_name() . ']' } @{$servers} ) );
+                    $logger->logdie(
+"Unexpected servername [$exp_name] retrieved from buffer.\n Expected servers names are "
+                          . join( ', ',
+                            map { '[' . $_->get_name() . ']' } @{$servers} )
+                    );
                 }
 
             }
             else {
 
-                confess "could not fetch $out_name data";
+                $logger->logdie("could not fetch $out_name data");
 
             }
 

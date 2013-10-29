@@ -47,7 +47,7 @@ Regular expression to match the C<load preferences> response once the command is
 
 =cut
 
-sub LOAD_PREF_RESP { return qr/^(srvrmgr(\:\w+)?>)?\s?File\:\s.*\.pref$/; }
+sub LOAD_PREF_RESP { return qr/^(srvrmgr(\:[\w\_\-]+)?>)?\s?File\:\s.*\.pref$/; }
 
 =pod
 
@@ -57,7 +57,7 @@ Regular expression to match the C<load preferences> command when submitted.
 
 =cut
 
-sub LOAD_PREF_CMD { return qr/^(srvrmgr(\:\w+)?>)?\s?load preferences$/; }
+sub LOAD_PREF_CMD { return qr/^(srvrmgr(\:[\w\_\-]+)?>)?\s?load preferences$/; }
 
 =pod
 

@@ -35,7 +35,7 @@ sub _constructor : Test(2) {
 
 }
 
-sub class_methods : Tests(9) {
+sub class_methods : Tests(11) {
 
     my $test  = shift;
     my $class = $test->class;
@@ -61,6 +61,18 @@ sub class_methods : Tests(9) {
         'get_buffer returns an array reference'
     );
 
+    # :WORKAROUND:29-10-2013:arfreitas: providing data to the last two tests
+    my @backup;
+
+    # just the list comp command and it's output
+    for ( my $i = 26 ; $i <= 59 ; $i++ ) {
+
+        push( @backup, $test->get_my_data()->[$i] );
+
+    }
+
+    $backup[0] =~ s/^srvrmgr\:SUsrvr\>/srvrmgr:S%srvr>/;
+
     ok( $test->{parser}->parse( $test->get_my_data() ), 'parse method works' );
 
     isa_ok( $test->{parser}->get_enterprise(),
@@ -74,7 +86,7 @@ sub class_methods : Tests(9) {
 
     ok( $test->{parser}->clear_buffer(), 'clear_buffer method works' );
 
-    ok( $test->{parser}->has_tree, 'the parser has a parsed tree' );
+    ok( $test->{parser}->has_tree(), 'the parser has a parsed tree' );
 
     my $last_cmd = 'list comp def SRProc';
 
@@ -85,6 +97,16 @@ sub class_methods : Tests(9) {
 
     is( $test->{parser}->count_parsed(),
         $total_itens, "count_parsed method returns $total_itens" );
+
+    dies_ok(
+        sub { $test->{parser}->parse( \@backup ) },
+        'parse() dies if cannot find the prompt'
+    );
+    like(
+        $@,
+        qr/could\snot\sfind\sthe\scommand\sprompt/,
+        'get the correct error message'
+    );
 
 }
 
@@ -117,7 +139,7 @@ Connected to 1 server(s) out of a total of 1 server(s) in the enterprise
 srvrmgr:SUsrvr> load preferences
 File: C:\Siebel\8.0\web client\BIN\.Siebel_svrmgr.pref
 
-srvrmgr> list comp
+srvrmgr:SUsrvr> list comp
 
 SV_NAME     CC_ALIAS              CC_NAME                               CT_ALIAS  CG_ALIAS      CC_RUNMODE   CP_DISP_RUN_STATE  CP_NUM_RUN_TASKS  CP_MAX_TASKS  CP_ACTV_MTS_PROCS  CP_MAX_MTS_PROCS  CP_START_TIME        CP_END_TIME          CP_STATUS  CC_INCARN_NO  CC_DESC_TEXT  
 ----------  --------------------  ------------------------------------  --------  ------------  -----------  -----------------  ----------------  ------------  -----------------  ----------------  -------------------  -------------------  ---------  ------------  ------------  

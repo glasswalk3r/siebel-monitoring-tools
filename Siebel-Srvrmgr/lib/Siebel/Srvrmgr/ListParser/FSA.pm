@@ -381,6 +381,7 @@ sub new {
 
                 }
 
+				$state->notes(found_prompt => 1);
                 my $cmd = ( $state->notes('line') =~ SRVRMGR_PROMPT )[1];
 
                 if ( ( defined($cmd) ) and ( $cmd ne '' ) ) {
