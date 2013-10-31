@@ -44,6 +44,7 @@ use Scalar::Util qw(weaken);
 use Config;
 use Carp qw(longmess);
 use Socket qw(:crlf);
+use Siebel::Srvrmgr::Types;
 
 our $SIG_INT   = 0;
 our $SIG_PIPE  = 0;
@@ -86,7 +87,7 @@ object creation with the C<new> method.
 =cut
 
 has gateway => (
-    isa      => 'Str',
+    isa      => 'NotNullStr',
     is       => 'rw',
     required => 1,
     reader   => 'get_gateway',
@@ -101,7 +102,7 @@ object creation with the C<new> method.
 =cut
 
 has enterprise => (
-    isa      => 'Str',
+    isa      => 'NotNullStr',
     is       => 'rw',
     required => 1,
     reader   => 'get_enterprise',
@@ -116,7 +117,7 @@ object creation with the C<new> method.
 =cut
 
 has user => (
-    isa      => 'Str',
+    isa      => 'NotNullStr',
     is       => 'rw',
     required => 1,
     reader   => 'get_user',
@@ -131,7 +132,7 @@ object creation with the C<new> method.
 =cut
 
 has password => (
-    isa      => 'Str',
+    isa      => 'NotNullStr',
     is       => 'rw',
     required => 1,
     reader   => 'get_password',
@@ -168,7 +169,7 @@ This is a required attribute during object creation with the C<new> method.
 =cut
 
 has bin => (
-    isa      => 'Str',
+    isa      => 'NotNullStr',
     is       => 'rw',
     required => 1,
     reader   => 'get_bin',
@@ -392,26 +393,6 @@ sub reset_retries {
     $self->_set_retries(0);
 
     return 1;
-
-}
-
-=head2 BUILD
-
-Validate if the parameters gateway, enterprise, user,  password,  server and bin are defined.
-
-=cut
-
-sub BUILD {
-
-    my $self = shift;
-
-    foreach my $attrib (qw(gateway enterprise user password bin)) {
-
-        confess "parameter $attrib must have a defined value"
-          unless ( ( defined( $self->{$attrib} ) )
-            and ( $self->{$attrib} ne '' ) );
-
-    }
 
 }
 
