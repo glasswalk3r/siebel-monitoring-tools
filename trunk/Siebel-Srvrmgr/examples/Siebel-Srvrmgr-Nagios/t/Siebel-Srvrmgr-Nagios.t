@@ -7,8 +7,8 @@ BEGIN { use_ok('Siebel::Srvrmgr::Nagios') }
 
 $SIG{INT} = \&clean_up;
 
-my $cfg = create_config();
-my @args = ( 'perl', 'comp_mon.pl', '-w', '1', '-c', '3', '-f', $cfg );
+my $config = create_config();
+my @args = ( 'perl', 'comp_mon.pl', '-w', '1', '-c', '3', '-f', $config );
 system(@args);
 
 is( ( $? >> 8 ), 2, 'comp_mon.pl returns a CRITICAL' )
@@ -16,7 +16,7 @@ is( ( $? >> 8 ), 2, 'comp_mon.pl returns a CRITICAL' )
 
 sub clean_up {
 
-    unlink($cfg) or die "Could not remove $cfg: $!";
+    unlink($config) or die "Could not remove $config: $!";
 
 }
 
@@ -27,9 +27,19 @@ sub check_exec {
     if ( $error_code == -1 ) {
         return "failed to execute: $!\n";
     }
-    else ( $error_code & 127 ) {
-        return "child died with signal %d, %s coredump\n",
-          ( $error_code & 127 ), ( $error_code & 128 ) ? 'with' : 'without';
+    elsif ( $error_code & 127 ) {
+        return sprintf(
+            "child died with signal %d, %s coredump",
+            (
+                ( $error_code & 127 ),
+                ( $error_code & 128 ) ? 'with' : 'without'
+            )
+        );
+    }
+    else {
+
+        return sprintf "child exited with value %d\n", $? >> 8;
+
     }
 
 }
