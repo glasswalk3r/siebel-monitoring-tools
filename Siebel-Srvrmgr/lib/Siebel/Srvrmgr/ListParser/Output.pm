@@ -129,7 +129,7 @@ has 'fields_pattern' => (
 =head2 header_regex
 
 The regular expression used to match the header of the list <command> output (the sequence of column names).
-This is a regular expression reference as returned by C<qr> operator, which means that the regular expression is already optimized.
+This is a regular expression reference as returned by C<qr> operator, which means that the regular expression is already compiled.
 
 =cut
 
@@ -147,7 +147,7 @@ has 'header_regex' => (
 
 The regular expression used to match the columns separator. Even thought the output has (or should have) a fixed size, the columns
 are separated by a string.
-This is a regular expression reference as returned by C<qr> operator, which means that the regular expression is already optimized.
+This is a regular expression reference as returned by C<qr> operator, which means that the regular expression is already compiled.
 col_sep has a builder C<sub> that can be override if the regular expression is different of C<\s{2,}>.
 
 =cut
@@ -338,6 +338,8 @@ You probably don't want to mess around with this method (that is "private") but 
 schema of fields is different from defining them from the lenght of "------" header lines present in all output from commands of srvrmgr program.
 
 =cut
+
+                                                # :TODO:31-10-2013:arfreitas: change the method name to _define_field_pattern
 
 sub _define_pattern {
 

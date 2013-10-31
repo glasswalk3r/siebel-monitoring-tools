@@ -4,7 +4,7 @@ use 5.008009;
 use strict;
 use warnings;
 
-our $VERSION = 0.02;
+our $VERSION = 0.03;
 
 1;
 __END__
@@ -14,9 +14,11 @@ Bundle::Siebel::MonitoringTools - bundle for installing all Perl dependencies fo
 
 =head1 DESCRIPTION
 
-This is a bundle to install all Siebel Monitoring Tools Perl distributions that are dependencies for the project to work.
+This is a bundle to install all distributions that are required for the L<Siebel::Srvrmgr> API to work.
 
 If you don't know what it is a Perl CPAN bundle, don't worry: just installing this distribution will take care of everything else.
+
+L<Siebel::Srvrmgr> is an API to monitor Siebel On Premise CRM systems. You may find more information about in the project website.
 
 =head2 EXPORT
 
@@ -56,6 +58,10 @@ None by default.
 =head1 SEE ALSO
 
 =over
+
+=item *
+
+L<Siebel::Srvrmgr>
 
 =item *
 

@@ -38,7 +38,7 @@ BLOCK
 
 }
 
-sub _constructor : Tests(+2) {
+sub _constructor : Tests(+12) {
 
     my $test = shift;
     $test->_set_log();
@@ -61,17 +61,27 @@ sub _constructor : Tests(+2) {
             ]
         ];
 
+		my $error_regex = qr/This\sattribute\svalue\smust\sbe\sa\sdefined,\snon-empty\sstring/;
+
+        foreach (qw(gateway enterprise user password bin)) {
+
+            dies_ok( sub { $test->class()->new( $test->bad_instance($_) ) },
+                "attribute '$_' cannot be an empty string" );
+
+			like($@, $error_regex, 'got the correct error message from trying');
+
+        }
+
         ok(
             $test->{daemon} = $test->class()->new(
                 {
-                    server      => $test->{test_data}->[0]->[2],
-                    gateway     => $test->{test_data}->[1]->[2],
-                    enterprise  => $test->{test_data}->[2]->[2],
-                    user        => $test->{test_data}->[3]->[2],
-                    password    => $test->{test_data}->[4]->[2],
-                    bin         => $test->{test_data}->[5]->[2],
-                    is_infinite => 0,
-                    use_perl    => 1
+                    server     => $test->{test_data}->[0]->[2],
+                    gateway    => $test->{test_data}->[1]->[2],
+                    enterprise => $test->{test_data}->[2]->[2],
+                    user       => $test->{test_data}->[3]->[2],
+                    password   => $test->{test_data}->[4]->[2],
+                    bin        => $test->{test_data}->[5]->[2],
+                    use_perl   => 1
                     , # important to avoid calling another interpreter besides perl when invoked by IPC::Open3
                     commands => [
                         Siebel::Srvrmgr::Daemon::Command->new(
@@ -106,6 +116,34 @@ sub _constructor : Tests(+2) {
     $test->{daemon} = $test->class()
       unless ( ( defined( $test->{daemon} ) )
         and ( $test->{daemon}->isa( $test->class() ) ) );
+
+}
+
+sub bad_instance {
+
+    my $test        = shift;
+    my $attrib_name = shift;
+
+    my %attribs = (
+        server     => $test->{test_data}->[0]->[2],
+        gateway    => $test->{test_data}->[1]->[2],
+        enterprise => $test->{test_data}->[2]->[2],
+        user       => $test->{test_data}->[3]->[2],
+        password   => $test->{test_data}->[4]->[2],
+        bin        => $test->{test_data}->[5]->[2],
+        use_perl   => 1
+        , # important to avoid calling another interpreter besides perl when invoked by IPC::Open3
+        commands => [
+            Siebel::Srvrmgr::Daemon::Command->new(
+                command => 'load preferences',
+                action  => 'LoadPreferences'
+            ),
+        ]
+    );
+
+    $attribs{$attrib_name} = '';
+
+    return \%attribs;
 
 }
 
