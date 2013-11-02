@@ -1,0 +1,24 @@
+Bundle-Siebel-MonitoringTools version
+==========================================
+
+This distribution in a bundle to install all distributions that are required to full use of
+the Siebel Monitoring Tools applications.
+
+INSTALLATION
+
+To install this module type the following:
+
+   perl Makefile.PL
+   make
+   make install
+
+But you probably will want to install it from a CPAN shell to have all the dependencies resolved automatically.
+
+COPYRIGHT AND LICENCE
+
+Copyright (C) 2013 by Alceu Rodrigues de Freitas Junior (arfreitas@cpan.org)
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.16.3 or,
+at your option, any later version of Perl 5 you may have available.
+

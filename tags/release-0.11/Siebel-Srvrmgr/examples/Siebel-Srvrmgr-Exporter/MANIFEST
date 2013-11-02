@@ -1,0 +1,6 @@
+Changes
+Makefile.PL
+MANIFEST
+README
+t/Siebel-Srvrmgr-Exporter.t
+lib/Siebel/Srvrmgr/Exporter.pm
