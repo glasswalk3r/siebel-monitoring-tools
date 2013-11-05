@@ -1,6 +1,13 @@
-Changes
-Makefile.PL
-MANIFEST
-README
-t/Siebel-Srvrmgr-Exporter.t
+ChangeLog
+export_comps.pl
 lib/Siebel/Srvrmgr/Exporter.pm
+lib/Siebel/Srvrmgr/Exporter/ListComp.pm
+lib/Siebel/Srvrmgr/Exporter/ListCompDef.pm
+lib/Siebel/Srvrmgr/Exporter/ListCompTypes.pm
+lib/Siebel/Srvrmgr/Exporter/ListParams.pm
+Makefile.PL
+MANIFEST			This list of files
+README
+t/pod-coverage.t
+t/pod.t
+t/Siebel-Srvrmgr-Exporter.t

@@ -1,6 +1,0 @@
-Revision history for Perl extension Siebel::Srvrmgr::Exporter.
-
-0.01  Thu May  9 15:40:12 2013
-	- original version; created by h2xs 1.23 with options
-		-A -X -n Siebel::Srvrmgr::Exporter
-

@@ -35,13 +35,12 @@ use Siebel::Srvrmgr::Exporter::ListCompTypes;
 use File::Spec;
 use Getopt::Std;
 use Term::Pulse;
+use Siebel::Srvrmgr::Exporter;
 
 $Getopt::Std::STANDARD_HELP_VERSION = 2;
 
 # for stopping Term::Pulse correctly
 $SIG{INT} = sub { die "Caught interrupt signal" };
-
-our $VERSION = 1;
 
 sub HELP_MESSAGE {
 
@@ -55,7 +54,7 @@ sub HELP_MESSAGE {
 
     print <<BLOCK;
 
-export_comps - version $VERSION
+export_comps - version $Siebel::Srvrmgr::Exporter::VERSION
 
 This program will connect to a Siebel server and exports all components configuration in the form of "create component" commands.
 Those commands can be used with srvrmgr program to recreate those components in another Siebel server. Think of it something like a "Siebel component dumper".
