@@ -1,5 +1,8 @@
 #summary table of contents of all wiki pages
+#labels Featured
   * [NagiosPlugins Nagios plug-ins]
   * [DeveloperNotes Developers Notes]
   * [SrvrmgrOutput Srvrmgr Output]
-  * [PerlDistroSetup Perl-Srvrgrm Installation]
+  * [PerlDistroSetup Perl-Srvrmgr Setup]
+  * [MoreScreenshots Some screenshots from the plug-ins in action]
+  * [Presentations Some presentations about the project]
