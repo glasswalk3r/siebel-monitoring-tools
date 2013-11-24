@@ -1,17 +1,17 @@
-package Siebel::Srvrmgr::ListParser::Output::ListCompDef;
+package Siebel::Srvrmgr::ListParser::Output::Tabular::ListCompDef;
 
 =pod
 
 =head1 NAME
 
-Siebel::Srvrmgr::ListParser::Output::ListCompDef - subclass to parse component definitions
+Siebel::Srvrmgr::ListParser::Output::Tabular::ListCompDef - subclass to parse component definitions
 
 =cut
 
 use Moose;
 use namespace::autoclean;
 
-extends 'Siebel::Srvrmgr::ListParser::Output';
+extends 'Siebel::Srvrmgr::ListParser::Output::Tabular';
 
 =pod
 
@@ -19,11 +19,11 @@ extends 'Siebel::Srvrmgr::ListParser::Output';
 
 	use Siebel::Srvrmgr::ListParser::Output::ListCompDef;
 
-	my $comp_defs = Siebel::Srvrmgr::ListParser::Output::ListCompDef->new({});
+	my $comp_defs = Siebel::Srvrmgr::ListParser::Output::Tabular::ListCompDef->new({});
 
 =head1 DESCRIPTION
 
-This subclass of L<SiebeL::Srvrmgr::ListParser::Output> parses the output of the command C<list comp def COMPONENT_NAME>.
+This subclass of L<SiebeL::Srvrmgr::ListParser::Output::Tabular> parses the output of the command C<list comp def COMPONENT_NAME>.
 
 The order of the fields and their configuration must follow the pattern defined below:
 
@@ -40,11 +40,11 @@ The order of the fields and their configuration must follow the pattern defined 
 
 =head1 ATTRIBUTES
 
-All attributes of L<SiebeL::Srvrmgr::ListParser::Output>.
+All attributes of L<SiebeL::Srvrmgr::ListParser::Output::Tabular>.
 
 =head1 METHODS
 
-All methods of L<SiebeL::Srvrmgr::ListParser::Output> plus the ones explaned below.
+All methods of L<SiebeL::Srvrmgr::ListParser::Output::Tabular> plus the ones explaned below.
 
 =head2 get_comp_defs
 
@@ -137,11 +137,11 @@ sub _parse_data {
 
 =head1 SEE ALSO
 
-=over 2
+=over
 
 =item *
 
-L<Siebel::Srvrmgr::ListParser::Output>
+L<Siebel::Srvrmgr::ListParser::Output::Tabular>
 
 =item *
 
@@ -174,5 +174,6 @@ along with Siebel Monitoring Tools.  If not, see L<http://www.gnu.org/licenses/>
 
 =cut
 
-no Moose;
 __PACKAGE__->meta->make_immutable;
+
+1;

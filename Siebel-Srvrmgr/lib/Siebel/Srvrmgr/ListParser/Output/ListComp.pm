@@ -1,10 +1,10 @@
-package Siebel::Srvrmgr::ListParser::Output::ListComp;
+package Siebel::Srvrmgr::ListParser::Output::Tabular::ListComp;
 
 =pod
 
 =head1 NAME
 
-Siebel::Srvrmgr::ListParser::Output::Listcomp - subclass that parses list comp commands output of srvrmgr.
+Siebel::Srvrmgr::ListParser::Output::Tabular::Listcomp - subclass that parses list comp commands output of srvrmgr.
 
 =cut
 
@@ -15,17 +15,17 @@ use Siebel::Srvrmgr::ListParser::Output::ListComp::Comp;
 
 =head1 SYNOPSIS
 
-See L<Siebel::Srvrmgr::ListParser::Output>.
+See L<Siebel::Srvrmgr::ListParser::Output::Tabular>.
 
 =cut
 
-extends 'Siebel::Srvrmgr::ListParser::Output';
+extends 'Siebel::Srvrmgr::ListParser::Output::Tabular';
 
 =pod
 
 =head1 DESCRIPTION
 
-This class extends L<Siebel::Srvrmgr::ListParser::Output> base class adding support for parsing C<list comp> commands.
+This class extends L<Siebel::Srvrmgr::ListParser::Output::Tabular> base class adding support for parsing C<list comp> commands.
 
 The module is capable of identifying output of several servers configured in the enterprise and organizes the components
 found for each server.
@@ -72,7 +72,7 @@ This output above should be the default but it will be necessary to have the con
 		CC_INCARN_NO (23):  Incarnation Number
 		CC_DESC_TEXT (251):  Component description
 
-because L<Siebel::Srvrmgr::ListParser::Output::ListComp::Comp> will expect to have all columns names without being 
+because L<Siebel::Srvrmgr::ListParser::Output::Tabular::ListComp::Comp> will expect to have all columns names without being 
 truncated. This class will check those columns names and order and it will raise an exception if it found something different
 from the expected.
 
@@ -174,27 +174,25 @@ sub _set_comp_attribs {
 
 }
 
-=head2 get_fields_pattern
-
-Returns the field_pattern attribute as a string.
+=pod
 
 =head2 get_comp_attribs
 
-Returns the value of comp_attribs attribute as an array reference.
+Returns the value of C<comp_attribs> attribute.
 
 =head2 get_last_server
 
-Returns the last_server attribute as a string.
+Returns the C<last_server> attribute.
 
 =head2 get_servers
 
-Returns the value of servers attribute as an array reference.
+Returns the value of C<servers> attribute.
 
 =head2 get_server
 
 Expects as parameter the name of a server which output was parsed. 
 
-If the server exists in the C<servers> attribute, it returns a L<Siebel::Srvrmgr::ListParser::Output::ListComp::Server> 
+If the server exists in the C<servers> attribute, it returns a L<Siebel::Srvrmgr::ListParser::Output::Tabular::ListComp::Server> 
 object. Otherwise it will return C<undef>.
 
 =cut
@@ -338,11 +336,11 @@ L<namespace::autoclean>
 
 =item *
 
-L<Siebel::Srvrmgr::ListParser::Output::ListComp::Server>
+L<Siebel::Srvrmgr::ListParser::Output::Tabular::ListComp::Server>
 
 =item *
 
-L<Siebel::Srvrmgr::ListParser::Output::ListComp::Comp>
+L<Siebel::Srvrmgr::ListParser::Output::Tabular::ListComp::Comp>
 
 =back
 
@@ -371,6 +369,5 @@ along with Siebel Monitoring Tools.  If not, see L<http://www.gnu.org/licenses/>
 
 =cut
 
-no Moose;
 __PACKAGE__->meta->make_immutable;
 

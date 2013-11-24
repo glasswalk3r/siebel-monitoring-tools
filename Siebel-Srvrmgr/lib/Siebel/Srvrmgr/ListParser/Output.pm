@@ -14,7 +14,6 @@ Siebel::Srvrmgr::ListParser::Output - base class of srvrmgr output
 															raw_data => \@data, 
 															cmd_line => 'list something from somewhere'});
 
-	print 'Fields pattern: ', $output->get_fields_pattern(), "\n";
 	$output->store($complete_pathname);
 
 =cut
@@ -26,7 +25,6 @@ use namespace::autoclean;
 use Carp;
 use Siebel::Srvrmgr::Regexes qw(ROWS_RETURNED);
 
-# :TODO      :25/06/2013 18:42:01:: must find a way to store only the non-compiled regex
 with Storage( io => 'StorableFile' );
 
 =pod
@@ -105,81 +103,25 @@ has 'cmd_line' =>
 
 =pod
 
-=head2 fields_pattern
-
-When starting processing the output of C<list comp> command, the header is read and the size of each column is taken
-from the header of each column. With this information a pattern is build to match each value foreach line read. This 
-attribute will hold the string that describes this pattern (that latter will be used with the C<unpack()> builtin function).
-
-Therefore is B<really> important that the header of C<srvrmgr> program is not removed or the parser will not work properly
-and probably an exception will be raised by it.
+=head2 clear_raw
 
 =cut
 
-has 'fields_pattern' => (
-    is      => 'ro',
-    isa     => 'Str',
-    reader  => 'get_fields_pattern',
-    writer  => '_set_fields_pattern',
-    default => sub { '' }
-);
-
-=pod
-
-=head2 header_regex
-
-The regular expression used to match the header of the list <command> output (the sequence of column names).
-This is a regular expression reference as returned by C<qr> operator, which means that the regular expression is already compiled.
-
-=cut
-
-has 'header_regex' => (
-    is      => 'ro',
-    isa     => 'RegexpRef',
-    builder => '_set_header_regex',
-    reader  => 'get_header_regex',
-    lazy    => 1
-);
-
-=pod
-
-=head2 col_sep
-
-The regular expression used to match the columns separator. Even thought the output has (or should have) a fixed size, the columns
-are separated by a string.
-This is a regular expression reference as returned by C<qr> operator, which means that the regular expression is already compiled.
-col_sep has a builder C<sub> that can be override if the regular expression is different of C<\s{2,}>.
-
-=cut
-
-has 'col_sep' => (
-    is      => 'ro',
-    isa     => 'RegexpRef',
-    builder => '_set_col_sep',
-    reader  => 'get_col_sep',
-    lazy    => 1
-);
-
-=head2 header_cols
-
-An array reference with all the header columns names, in the exact sequence their appear in the output.
-
-=cut
-
-has 'header_cols' => (
-    is     => 'rw',
-    isa    => 'ArrayRef',
-    reader => 'get_header_cols',
-    writer => 'set_header_cols'
+has 'clear_raw' => (
+    is      => 'rw',
+    isa     => 'Bool',
+    reader  => 'clear_raw',
+    writer  => 'set_clear_raw',
+    default => 0
 );
 
 =pod
 
 =head1 METHODS
 
-=head2 get_fields_pattern
+=head2 clear_raw
 
-Returns an string of the attribute C<fields_pattern>.
+=head2 set_clear_raw
 
 =head2 get_cmd_line
 
@@ -228,272 +170,17 @@ sub BUILD {
 
 =head2 parse
 
-The method that actually does the parse of C<raw_data> attribute.
-
-This method should be overrided by subclasses which output does not have a defined header, since this method expects to find a header
-in the data to be parsed.
+This method must be overrided by subclasses.
 
 =cut
-
-# :TODO      :08/07/2013 18:50:42:: create POD for all steps executed by the method and which methods are called for each event
 
 sub parse {
 
-    my $self = shift;
-
-    my $data_ref = $self->get_raw_data();
-
-    die 'invalid data received to parse'
-      unless ( ( ( ref($data_ref) ) eq 'ARRAY' )
-        and ( scalar( @{$data_ref} ) ) );
-
-    my %parsed_lines;
-
-    my $line_header_regex = qr/^\-+\s/;
-
-# cleaning up, state machine should not handle the end of response from a list command
-    while (
-        ( scalar( @{$data_ref} ) > 0 )
-        and (  ( $data_ref->[ $#{$data_ref} ] eq '' )
-            or ( $data_ref->[ $#{$data_ref} ] =~ ROWS_RETURNED ) )
-      )
-    {
-
-        pop( @{$data_ref} );
-
-    }
-
-    confess 'Raw data became invalid after initial cleanup'
-      unless ( @{$data_ref} );
-
-    foreach my $line ( @{$data_ref} ) {
-
-      SWITCH: {
-
-            if ( $line eq '' ) {
-
-                # do nothing
-                last SWITCH;
-            }
-
-            if ( $line =~ $line_header_regex )
-            {    # this is the '-------' below the header
-
-                $self->_define_pattern($line);
-                last SWITCH;
-
-            }
-
-            # this is the header
-            if ( $line =~ $self->get_header_regex() ) {
-
-                $self->_set_header($line);
-                last SWITCH;
-
-            }
-            else {
-
-                my @fields_values;
-
-                if ( defined( $self->get_fields_pattern() ) ) {
-
-                    @fields_values =
-                      unpack( $self->get_fields_pattern(), $line );
-
-                }
-                else {
-
-                    confess
-                      "Cannot continue without having fields pattern defined";
-
-                }
-
-                unless ( $self->_parse_data( \@fields_values, \%parsed_lines ) )
-                {
-
-                    confess 'Could not parse fields from line [' . $line . ']';
-
-                }
-
-            }
-
-        }
-
-    }
-
-    $self->set_data_parsed( \%parsed_lines );
-    $self->set_raw_data( [] );
-
-    return 1;
+confess 'parse method must be overrided by subclasses of Siebel::Srvrmgr::ListParser::Output';
 
 }
 
 =pod
-
-=head2 _define_pattern
-
-Defines and sets the attribute C<fields_pattern>. This method is invoked automatically from the C<parse> method.
-
-You probably don't want to mess around with this method (that is "private") but will want to override it in subclasses if their
-schema of fields is different from defining them from the lenght of "------" header lines present in all output from commands of srvrmgr program.
-
-=cut
-
-                                                # :TODO:31-10-2013:arfreitas: change the method name to _define_field_pattern
-
-sub _define_pattern {
-
-    my $self = shift;
-    my $line = shift;
-
-# :TODO      :17/06/2013 14:02:51:: should use default field separator attribute here
-    my @columns = split( /\s{2}/, $line );
-
-    my $pattern;
-
-    foreach my $column (@columns) {
-
-# :WARNING   :09/05/2013 12:19:37:: + 2 because of the spaces after the "---" that will be trimmed, but this will cause problems
-# with the split_fields method if col_seps is different from two spaces
-        $pattern .= 'A' . ( length($column) + 2 );
-
-    }
-
-    $self->_set_fields_pattern($pattern);
-
-    return 1;
-
-}
-
-=pod
-
-=head2 _set_col_sep
-
-This is a builder C<sub> to define C<col_sep> attribute. It is quite unlike it will be necessary to change that, but one can override it in subclasses
-if needed.
-
-This is a "private" method and should be used internally only.
-
-=cut
-
-sub _set_col_sep {
-
-    return qr/\s{2,}/;
-
-}
-
-=pod
-
-=head2 get_col_sep
-
-Getter of C<col_sep> attribute.
-
-=head2 _split_fields
-
-Split a output line into fields as defined by C<get_col_sep> method. It expects a string as parameter.
-
-Returns an array reference.
-
-This is a "private" method and should be used internally only.
-
-=cut
-
-sub _split_fields {
-
-    my $self = shift;
-    my $line = shift;
-
-    my @columns = split( $self->get_col_sep(), $line );
-
-    return \@columns;
-
-}
-
-=pod
-
-=head2 _set_header
-
-Used to split and define the header fields (see attribute C<header_cols>).
-
-This is a "private" method and should be used internally only but could be overrided by subclasses if it is necessary to change any field before setting
-the C<header_cols> attribute.
-
-It expects the header line as a parameter, setting the C<header_cols> attribute and returning true in the case of success.
-
-=cut
-
-sub _set_header {
-
-    my $self = shift;
-    my $line = shift;
-
-    $self->set_header_cols( $self->_split_fields($line) );
-
-    return 1;
-
-}
-
-=pod
-
-=head2 _parse_data
-
-This method is responsible to parse the data from a list command output, after the header was parsed successfully.
-
-This method must be overrided by subclasses since Siebel::Srvrmgr::Output doesn't know anything about how to parse it.
-
-This method in "private" and should be used internally only (more specific, inside the C<parse> method).
-
-The method expects the following parameters:
-
-=over
-
-=item fields 
-
-An array reference with the fields recovered from the output of the list command.
-
-=item parsed data
-
-An hash reference with all the data already parsed by the C<parse> method.
-
-=back
-
-The method must return true or false depending on the result of parsing the fields and incrementing the parsed data as expected.
-
-=cut
-
-# :TODO      :08/05/2013 18:21:53:: should change this to a real method? Seems to be that almost all subclasses does the same
-# process to parse their respective details besides header
-sub _parse_data {
-
-    confess ' _parse_data method must be overrided by subclasses of '
-      . __PACKAGE__;
-
-}
-
-=pod
-
-=head2 _set_header_regex
-
-Expects no parameter. It sets the C<header_regex> attribute.
-
-This method is the builder method of C<header_regex> attribute and must be overrided by subclasses of Siebel::Srvrmgr::ListParser::Output since the
-superclass knows nothing about the format of the header from the list command output.
-
-=cut
-
-sub _set_header_regex {
-
-    confess '_set_header_regex method must be overrided by subclasses of '
-      . __PACKAGE__;
-
-}
-
-=pod
-
-=head1 CAVEATS
-
-All subclasses of Siebel::Srvrmgr::ListParser::Output expect to have both the header and trailer of executed commands in C<srvrmgr> program. Removing one or both 
-of them will result in parsing errors and probably exceptions.
 
 =head1 SEE ALSO
 

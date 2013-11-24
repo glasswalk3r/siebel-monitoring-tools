@@ -444,22 +444,14 @@ sub run {
 
     my ( $read_h, $write_h, $error_h );
 
-# :WORKAROUND:31/07/2013 14:42:33:: must initialize the Log::Log4perl after forking the srvrmgr to avoid sharing filehandles
     unless ( $self->has_pid() ) {
 
-        $logger = $self->_create_child();
+        confess( $self->get_bin()
+              . ' returned un unrecoverable error, aborting execution' )
+          unless ( $self->create_child() );
 
-        unless ( ( defined($logger) ) and ( ref($logger) ) ) {
-
-            die( $self->get_bin()
-                  . ' returned un unrecoverable error, aborting execution' )
-
-        }
-        else {
-
-            weaken($logger);
-
-        }
+# :WORKAROUND:31/07/2013 14:42:33:: must initialize the Log::Log4perl after forking the srvrmgr to avoid sharing filehandles
+        $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );
 
     }
     else {
@@ -472,6 +464,7 @@ sub run {
 
     }
 
+    weaken($logger);
     $logger->info('Starting run method');
 
 # :WARNING:28/06/2011 19:47:26:: reading the output is hanging without a dummy input
@@ -488,7 +481,7 @@ sub run {
         }
     );
 
-    my $parser   = Siebel::Srvrmgr::ListParser->new();
+    my $parser   = $self->create_parser();
     my $select   = IO::Select->new();
     my $data_ref = $self->_create_handle_buffer( $select, $logger );
 
@@ -891,7 +884,7 @@ sub _create_child {
     else {
 
         $self->_set_child_runs(0);
-        return $logger;
+        return 1;
 
     }
 
@@ -1036,7 +1029,7 @@ sub _process_stdout {
 
             }
 
-# no prompt detection, keep reading output from srvrmgr
+            # no prompt detection, keep reading output from srvrmgr
             else { push( @{$buffer_ref}, $line ); }
 
         }
@@ -1154,7 +1147,7 @@ sub _my_cleanup {
 
         if ( $logger->is_info() ) {
 
-            $logger->info( 'No child process to terminate' );
+            $logger->info('No child process to terminate');
 
         }
 
