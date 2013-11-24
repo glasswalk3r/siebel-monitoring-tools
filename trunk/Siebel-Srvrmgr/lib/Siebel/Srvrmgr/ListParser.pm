@@ -142,11 +142,31 @@ has 'enterprise' => (
     writer => '_set_enterprise'
 );
 
+=pod
+
+=head2 fsa
+
+=cut
+
 has 'fsa' => (
     is     => 'ro',
     isa    => 'Siebel::Srvrmgr::ListParser::FSA',
     reader => 'get_fsa',
     writer => '_set_fsa'
+);
+
+=pod
+
+=head2 clear_raw
+
+=cut
+
+has clear_raw => (
+    is      => 'rw',
+    isa     => 'Bool',
+    reader  => 'clear_raw',
+    writer  => 'set_clear_raw',
+    default => 1
 );
 
 =pod
@@ -204,7 +224,7 @@ sub _toggle_cmd_changed {
 
 =head2 BUILD
 
-Automaticallu defined the state machine object based on L<Siebel::Srvrmgr::ListParser::FSA>.
+Automatically defines the state machine object based on L<Siebel::Srvrmgr::ListParser::FSA>.
 
 =cut
 
@@ -220,7 +240,7 @@ sub BUILD {
 
 =head2 set_buffer
 
-Sets the buffer attribute,  inserting new C<Siebel::Srvrmgr::ListParser::Buffer> objects into the array reference as necessary.
+Sets the buffer attribute, inserting new C<Siebel::Srvrmgr::ListParser::Buffer> objects into the array reference as necessary.
 
 Expects an instance of a L<FSA::State> class as parameter (obligatory parameter).
 
@@ -508,8 +528,10 @@ sub parse {
     my $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );
     weaken($logger);
 
-    $logger->logdie( 'Received an invalid buffer as parameter' )
-      unless ( ( defined($data_ref) ) and ( ref($data_ref) eq 'ARRAY' ) and (scalar(@{$data_ref}) > 0) );
+    $logger->logdie('Received an invalid buffer as parameter')
+      unless ( ( defined($data_ref) )
+        and ( ref($data_ref) eq 'ARRAY' )
+        and ( scalar( @{$data_ref} ) > 0 ) );
 
     weaken($data_ref);
 
@@ -526,7 +548,7 @@ sub parse {
         if ( defined($state) ) {
 
             my $curr_msg = $state->notes('line');
-			$found_prompt = $state->notes('found_prompt');
+            $found_prompt = $state->notes('found_prompt');
 
 # :TODO:03-10-2013:arfreitas: find a way to keep circular references between the two objects to avoid
 # checking state change everytime with is_cmd_changed

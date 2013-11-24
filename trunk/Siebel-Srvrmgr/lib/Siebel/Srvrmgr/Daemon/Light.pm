@@ -137,7 +137,7 @@ sub run {
     weaken($logger);
     $logger->info('Starting run method');
 
-    my $parser = Siebel::Srvrmgr::ListParser->new();
+    my $parser = $self->create_parser();
 
     if ( $logger->is_debug() ) {
 

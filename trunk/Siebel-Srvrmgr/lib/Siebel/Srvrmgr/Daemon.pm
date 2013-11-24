@@ -72,7 +72,7 @@ to the Enterprise only, not specifying which Siebel Server to connect.
 =cut
 
 has server => (
-    isa      => 'Str',
+    isa      => 'NotNullStr',
     is       => 'rw',
     required => 0,
     reader   => 'get_server',
@@ -280,9 +280,31 @@ has retries => (
     default => 0
 );
 
+=head2 clear_raw
+
+=cut
+
+has clear_raw => (
+    is      => 'rw',
+    is      => 'Bool',
+    reader  => 'clear_raw',
+    writer  => 'set_clear_raw',
+    default => 1
+);
+
+=head2 field_delimiter
+
+=cut
+
+has field_delimiter => ( is => 'ro', is => 'Chr', reader => 'get_field_del' );
+
 =pod
 
 =head1 METHODS
+
+=head2 clear_raw
+
+=head2 set_clear_raw
 
 =head2 get_alarm
 
@@ -507,6 +529,37 @@ sub normalize_eol {
 
 }
 
+=pod
+
+=head2 create_parser
+
+Returns an instance of a L<Siebel::Srvrmgr::ListParser> class.
+
+=cut
+
+sub create_parser {
+
+    my $self = shift;
+
+    if ( $self->get_field_del() ) {
+
+        return Siebel::Srvrmgr::ListParser->new(
+            {
+                clear_raw       => $self->clear_raw(),
+                field_delimiter => $self->get_field_del()
+            }
+        );
+
+    }
+    else {
+
+        return Siebel::Srvrmgr::ListParser->new(
+            { clear_raw => $self->clear_raw() } );
+
+    }
+
+}
+
 sub _define_params {
 
     my $self = shift;
@@ -522,8 +575,7 @@ sub _define_params {
     );
 
     push( @params, '/s', $self->get_server() )
-      if (  ( defined( $self->get_server() ) )
-        and ( $self->get_server() ne '' ) );
+      if ( defined( $self->get_server() ) );
 
 # :WORKAROUND:06/08/2013 21:05:32:: if a perlscript will be executed (like for automated testing of this distribution)
 # then the perl interpreter must be part of the command path to avoid calling cmd.exe (in Microsoft Windows)

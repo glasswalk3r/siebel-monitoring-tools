@@ -1,4 +1,4 @@
-package Siebel::Srvrmgr::ListParser::Output::ListCompTypes;
+package Siebel::Srvrmgr::ListParser::Output::Tabular::ListCompTypes;
 use Moose;
 use namespace::autoclean;
 
@@ -6,11 +6,11 @@ use namespace::autoclean;
 
 =head1 NAME
 
-Siebel::Srvrmgr::ListParser::Output::ListCompTypes - subclass to parse list comp types command
+Siebel::Srvrmgr::ListParser::Output::Tabular::ListCompTypes - subclass to parse list comp types command
 
 =cut
 
-extends 'Siebel::Srvrmgr::ListParser::Output';
+extends 'Siebel::Srvrmgr::ListParser::Output::Tabular';
 
 =pod
 
@@ -20,7 +20,7 @@ See L<Siebel::Srvrmgr::ListParser::Output> for examples.
 
 =head1 DESCRIPTION
 
-This subclass of L<Siebel::Srvrmgr::ListParser::Output> parses the output of the command C<list comp types>.
+This subclass of L<Siebel::Srvrmgr::ListParser::Output::Tabular> parses the output of the command C<list comp types>.
 
 This is the list configuration of the C<srvrmgr> expected by the module:
 
@@ -93,11 +93,11 @@ sub _parse_data {
 
 =head1 SEE ALSO
 
-=over 2
+=over
 
 =item *
 
-L<Siebel::Srvrmgr::ListParser::Output>
+L<Siebel::Srvrmgr::ListParser::Output::Tabular>
 
 =item *
 

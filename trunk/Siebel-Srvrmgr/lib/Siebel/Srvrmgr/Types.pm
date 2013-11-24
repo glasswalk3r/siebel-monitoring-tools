@@ -28,6 +28,12 @@ subtype 'NotNullStr', as 'Str',
   where { ( defined($_) ) and ( $_ ne '' ) },
   message { 'This attribute value must be a defined, non-empty string' };
 
+subtype 'OutputTabularType', as 'Str', where {
+    ( defined($_) )
+      and ( $_ ne '' )
+      and ( ( $_ eq 'fixed' ) or ( $_ eq 'delimited' ) );
+}, message { 'This attribute value must be a defined, non-empty string' };
+
 role_type 'CheckCompsComp',
   { role => 'Siebel::Srvrmgr::Daemon::Action::CheckComps::Component' };
 

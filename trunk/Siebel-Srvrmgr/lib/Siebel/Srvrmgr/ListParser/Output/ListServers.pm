@@ -1,4 +1,4 @@
-package Siebel::Srvrmgr::ListParser::Output::ListServers;
+package Siebel::Srvrmgr::ListParser::Output::Tabular::ListServers;
 use Moose;
 use namespace::autoclean;
 
@@ -6,11 +6,11 @@ use namespace::autoclean;
 
 =head1 NAME
 
-Siebel::Srvrmgr::ListParser::Output::ListServers - subclass to parse list servers command
+Siebel::Srvrmgr::ListParser::Output::Tabular::ListServers - subclass to parse list servers command
 
 =cut
 
-extends 'Siebel::Srvrmgr::ListParser::Output';
+extends 'Siebel::Srvrmgr::ListParser::Output::Tabular';
 
 =pod
 
@@ -20,7 +20,7 @@ See L<Siebel::Srvrmgr::ListParser::Output> for examples.
 
 =head1 DESCRIPTION
 
-This subclass of L<Siebel::Srvrmgr::ListParser::Output> parses the output of the command C<list servers>.
+This subclass of L<Siebel::Srvrmgr::ListParser::Output::Tabular> parses the output of the command C<list servers>.
 
 =head1 ATTRIBUTES
 
@@ -106,7 +106,7 @@ sub _parse_data {
 
 =item *
 
-L<Siebel::Srvrmgr::ListParser::Output>
+L<Siebel::Srvrmgr::ListParser::Output::Tabular>
 
 =item *
 

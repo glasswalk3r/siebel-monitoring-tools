@@ -1,10 +1,10 @@
-package Siebel::Srvrmgr::ListParser::Output::Greetings;
+package Siebel::Srvrmgr::ListParser::Output::Enterprise;
 
 =pod
 
 =head1 NAME
 
-Siebel::Srvrmgr::ListParser::Output::Greetings - subclass that represents the initial information from a Siebel server when connected through srvrmgr program.
+Siebel::Srvrmgr::ListParser::Output::Enterprise - subclass that represents the initial information from a Siebel server when connected through srvrmgr program.
 
 =head1 SYNOPSIS
 
@@ -116,10 +116,6 @@ has 'help' => (
 
 =pod
 
-=head2 field_pattern
-
-This attribute makes no sense for Greetings class, there it will always be equal C<undef>.
-
 =head1 METHODS
 
 See L<Siebel::Srvrmgr::ListParser::Output> class for inherited methods.
@@ -146,12 +142,7 @@ Returns a integer as the value of total_connected attribute.
 
 =head2 parse
 
-This method overrides the superclass method since Siebel::Srvrmgr::ListParser::Output::Greetings simply does not follows the same sequence
-of parsing as the other subclasses.
-
-Parses the data available in the C<raw_data> attribute, setting the attribute C<data_parsed> at the end of process.
-
-Also the attribute C<raw_data> has his reference changed to an empty array reference and the end of process.
+This method overrides the superclass.
 
 =cut
 
@@ -164,6 +155,15 @@ override 'parse' => sub {
     my $is_copyright = 0;
 
     my %data_parsed;
+
+    #Copyright (c) 2001 Siebel Systems, Inc.  All rights reserved.
+    my $copyright_regex = qr/^Copyright\s\(c\)/;
+    my $more_copyright  = /^[\w\(]+/;
+    my $help_regex      = qr/^Type\s\"help\"/;
+
+    #Connected to 1 server(s) out of a total of 1 server(s) in the enterprise
+    #Connected to 2 server(s) out of a total of 2 server(s) in the enterprise
+    my $connected_regex = qr/^Connected\sto\d\sserver\(s\)/;
 
     foreach my $line ( @{$data_ref} ) {
 
@@ -192,9 +192,8 @@ override 'parse' => sub {
 
             }
 
-            if ( $line =~ /^Copyright/ ) {
+            if ( $line =~ $copyright_regex ) {
 
-                #Copyright (c) 2001 Siebel Systems, Inc.  All rights reserved.
                 $self->_set_copyright($line);
                 $data_parsed{copyright} = $line;
                 $is_copyright = 1;
@@ -202,7 +201,7 @@ override 'parse' => sub {
 
             }
 
-            if ( $line =~ /^Type\s\"help\"/ ) {
+            if ( $line =~ $help_regex ) {
 
                 $self->_set_help($line);
                 $data_parsed{help} = $line;
@@ -211,10 +210,8 @@ override 'parse' => sub {
 
             }
 
-            if ( $line =~ /^Connected/ ) {
+            if ( $line =~ $connected_regex ) {
 
-       #Connected to 1 server(s) out of a total of 1 server(s) in the enterprise
-       #Connected to 2 server(s) out of a total of 2 server(s) in the enterprise
                 my @words = split( /\s/, $line );
 
                 $self->_set_total_servers( $words[9] );
@@ -225,7 +222,7 @@ override 'parse' => sub {
 
             }
 
-            if ( $line =~ /^[\w\(]+/ ) {
+            if ( $line =~ $more_copyright ) {
 
                 $self->_set_copyright($line) if ($is_copyright);
                 $data_parsed{copyright} = $line;
@@ -234,8 +231,8 @@ override 'parse' => sub {
             }
             else {
 
-                confess 'Do not know how to deal with line content [' . $line
-                  . ']';
+                confess 'Do not know how to deal with line content "' . $line
+                  . '"';
 
             }
 
@@ -269,54 +266,11 @@ sub _set_copyright {
 
 }
 
-# :TODO      :08/07/2013 15:51:18:: must separate Output functionality from expectation of output in tabular format
-
-# the methods below are overrided just because
-# the parent class demands, but they are useless for Greetings (they are never invoked internally)
-# since parse method is overrided as well
-override '_set_header_regex' => sub {
-
-    return qr/^.$/;
-
-};
-
-override '_parse_data' => sub {
-
-    return 1;
-
-};
-
-=pod
-
-=head2 BUILD
-
-The BUILD method sets defaults values for the attributes C<fields_patterns> and C<header_cols> during object creation, but those values are used
-only for passing tests of the API since they make no sense at all. This method should be removed in future releases of the API when the when the
-classes inheritance schema is changed to separate L<Siebel::Srvrmgr::ListParser::Output> methods and attributes from the expectation of having
-the output in tabular configuration.
-
-=cut
-
-sub BUILD {
-
-    my $self = shift;
-
-    $self->_set_fields_pattern('undefined');
-    $self->set_header_cols( [] );
-
-}
-
 =pod
 
 =head1 CAVEATS
 
 Beware that the parse method is called automatically as soon as the object is created.
-
-Greetings also does not follows the concept of fields from the superclass since it's output isn't tabular, so some related methods have "dummy" 
-implementations since they make no sense at all to be invoked.
-
-This is a good indicator that the superclass should be refactored to separate behaviour of output interpretation from tabular data expectation, so you might
-expect this interface to be changed in future releases.
 
 =head1 SEE ALSO
 

@@ -1,4 +1,4 @@
-package Siebel::Srvrmgr::ListParser::Output::ListParams;
+package Siebel::Srvrmgr::ListParser::Output::Tabular::ListParams;
 use Moose;
 use namespace::autoclean;
 use Carp;
@@ -7,23 +7,23 @@ use Carp;
 
 =head1 NAME
 
-Siebel::Srvrmgr::ListParser::Output::ListParams - subclass to parse output of the command C<list comp params>.
+Siebel::Srvrmgr::ListParser::Output::Tabular::ListParams - subclass to parse output of the command C<list comp params>.
 
 =cut
 
-extends 'Siebel::Srvrmgr::ListParser::Output';
+extends 'Siebel::Srvrmgr::ListParser::Output::Tabular';
 
 =pod
 
 =head1 SYNOPSIS
 
-	use Siebel::Srvrmgr::ListParser::Output::ListParams;
+	use Siebel::Srvrmgr::ListParser::Output::Tabular::ListParams;
 
-	my $comp_params = Siebel::Srvrmgr::ListParser::Output::ListParams->new({ data_type => 'list_comp_params', 
+	my $comp_params = Siebel::Srvrmgr::ListParser::Output::Tabular::ListParams->new({ data_type => 'list_comp_params', 
 																			 raw_data => \@com_data, 
 															                 cmd_line => 'list params for server XXXX component YYYY'});
 
-	my $server_params = Siebel::Srvrmgr::ListParser::Output::ListParams->new({ data_type => 'sometype', 
+	my $server_params = Siebel::Srvrmgr::ListParser::Output::Tabular::ListParams->new({ data_type => 'sometype', 
 																			   raw_data => \@server_data,
 															                   cmd_line => 'list params for server XXXX'});
 

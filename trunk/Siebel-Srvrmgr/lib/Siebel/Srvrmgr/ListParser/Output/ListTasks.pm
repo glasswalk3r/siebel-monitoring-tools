@@ -1,4 +1,4 @@
-package Siebel::Srvrmgr::ListParser::Output::ListTasks;
+package Siebel::Srvrmgr::ListParser::Output::Tabular::ListTasks;
 use Moose;
 use Siebel::Srvrmgr::ListParser::Output::ListTasks::Task;
 use namespace::autoclean;
@@ -11,7 +11,7 @@ Siebel::Srvrmgr::ListParser::Output::ListTasks - subclass to parse list tasks co
 
 =cut
 
-extends 'Siebel::Srvrmgr::ListParser::Output';
+extends 'Siebel::Srvrmgr::ListParser::Output::Tabular';
 
 =pod
 
@@ -219,7 +219,7 @@ is not fixed sized neither separated by a character and the content (and width o
 
 =item *
 
-L<Siebel::Srvrmgr::ListParser::Output>
+L<Siebel::Srvrmgr::ListParser::Output::Tabular>
 
 =item *
 
