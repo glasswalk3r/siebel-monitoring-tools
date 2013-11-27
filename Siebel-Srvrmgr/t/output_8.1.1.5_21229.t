@@ -8,7 +8,7 @@ use Socket qw(:crlf);
 
 my $output_filename = '8.1.1.5_21229.txt';
 
-my $path = File::Spec->catfile( getcwd(), 't', 'output', $output_filename );
+my $path = File::Spec->catfile( getcwd(), 't', 'output', 'fixed', $output_filename );
 
 open( my $in, '<', $path ) or die "Cannot read $path: $!\n";
 
@@ -56,7 +56,7 @@ is( scalar( @{$res} ),
     scalar(@expected), 'the expected number of parsed objects is returned' );
 
 isa_ok( $parser->get_enterprise(),
-    'Siebel::Srvrmgr::ListParser::Output::Greetings' );
+    'Siebel::Srvrmgr::ListParser::Output::Enterprise' );
 is( $parser->get_enterprise()->get_version(),
     '8.1.1.5', 'enterprise attribute has the correct version' );
 is( $parser->get_enterprise()->get_patch(),

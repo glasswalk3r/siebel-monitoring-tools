@@ -12,6 +12,7 @@ use warnings;
 use strict;
 use MooseX::AbstractFactory;
 use Carp;
+use Hash::Util qw(lock_hash);
 
 =pod
 
@@ -39,6 +40,8 @@ C<Siebel::Srvrmgr::ListParser::OutputFactory::table_mapping> for the mapping bet
 
 =head1 METHODS
 
+All methods below are class methods.
+
 =head2 create
 
 Returns the instance of the class defined by the type given as parameter. Expects two parameters: an string with the type
@@ -51,9 +54,13 @@ Expects a string as the output type.
 Returns true if there is a mapping between the given type and a subclass of L<Siebel::Srvrmgr::ListParser::Output>;
 otherwise it returns false;
 
+=head2 get_mapping
+
+Returns an hash reference with the mapping between the parsed types and subclasses of L<Siebel::Srvrmgr::ListParser::Ouput>.
+
 =head1 SEE ALSO
 
-=over 3
+=over
 
 =item *
 
@@ -71,17 +78,26 @@ L<Siebel::Srvrmgr::ListParser>
 
 =cut
 
- # :TODO      :01/07/2013 13:37:06:: create "static" method to return this data
-our %table_mapping = (
-    'list_comp'        => 'ListComp',
-    'list_params'      => 'ListParams',
-    'list_comp_def'    => 'ListCompDef',
-    'greetings'        => 'Greetings',
-    'list_comp_types'  => 'ListCompTypes',
+my %table_mapping = (
+    'list_comp'        => 'Tabular::ListComp',
+    'list_params'      => 'Tabular::ListParams',
+    'list_comp_def'    => 'Tabular::ListCompDef',
+    'greetings'        => 'Enterprise',
+    'list_comp_types'  => 'Tabular::ListCompTypes',
     'load_preferences' => 'LoadPreferences',
-    'list_tasks'       => 'ListTasks',
-    'list_servers'     => 'ListServers'
+    'list_tasks'       => 'Tabular::ListTasks',
+    'list_servers'     => 'Tabular::ListServers'
 );
+
+lock_hash(%table_mapping);
+
+sub get_mapping {
+
+	my %copy = %table_mapping;
+
+	return \%copy;
+
+}
 
 sub can_create {
 

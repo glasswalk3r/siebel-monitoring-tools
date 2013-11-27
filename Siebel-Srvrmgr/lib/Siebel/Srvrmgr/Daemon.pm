@@ -43,8 +43,11 @@ use Siebel::Srvrmgr;
 use Scalar::Util qw(weaken);
 use Config;
 use Carp qw(longmess);
-use Socket qw(:crlf);
 use Siebel::Srvrmgr::Types;
+
+use constant CR => \015;
+use constant LF => \012;
+use constant CRLF => \015\012;
 
 our $SIG_INT   = 0;
 our $SIG_PIPE  = 0;
@@ -516,14 +519,14 @@ sub normalize_eol {
 
         foreach ( @{$data_ref} ) {
 
-            s/$CR?$LF/\n/og;
+            s/CR()?LF()/\n/og;
 
         }
 
     }
     else {
 
-        $$data_ref =~ s/$CR?$LF/\n/g;
+        $$data_ref =~ s/CR()?LF()/\n/g;
 
     }
 
