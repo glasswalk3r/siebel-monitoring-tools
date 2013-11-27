@@ -1,14 +1,14 @@
 package Test::Siebel::Srvrmgr::ListParser::OutputFactory;
 
 use Test::Most;
-use base 'Test::Siebel::Srvrmgr';
+use parent 'Test::Siebel::Srvrmgr';
 
-sub constructor : Tests(+8) {
+sub constructor : Tests(+13) {
 
     my $test  = shift;
     my $class = $test->class;
 
-    can_ok( $class, 'create' );
+    can_ok( $class, qw(create can_create get_mapping) );
 
     dies_ok {
         my $output =
@@ -17,18 +17,27 @@ sub constructor : Tests(+8) {
     }
     'the create method fail with an invalid class';
 
-    ok( $class->can_create('list_comp'),     'list_comp is a valid type' );
-    ok( $class->can_create('list_params'),   'list_params is a valid type' );
-    ok( $class->can_create('list_comp_def'), 'list_comp_def is a valid type' );
-    ok( $class->can_create('greetings'),     'greetings is a valid type' );
-    ok(
-        $class->can_create('list_comp_types'),
-        'list_comp_types is a valid type'
-    );
-    ok(
-        $class->can_create('load_preferences'),
-        'load_preferences is a valid type'
-    );
+    foreach my $type (
+        qw(list_servers list_comp list_params list_comp_def greetings list_comp_types load_preferences)
+      )
+    {
+
+        ok( $class->can_create($type), "$type is a valid type" );
+
+    }
+
+    my $table;
+
+    ok( $table = $class->get_mapping(), 'get_mapping returns something' );
+
+    is( ref($table), 'HASH', 'get_mapping returns an hash ref' );
+
+    my $previous = scalar( keys( %{ $class->get_mapping() } ) );
+
+    ok( delete( $table->{list_comp} ),
+        'it is ok to remove keys from the hash ref' );
+
+    is( $previous, scalar( keys( %{ $class->get_mapping() } ) ), 'original mapping stays untouched' );
 
 }
 
