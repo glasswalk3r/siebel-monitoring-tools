@@ -14,6 +14,14 @@ has structure_type => (
     required => 1
 );
 
+has expected_fields => (
+    is      => 'ro',
+    isa     => 'ArrayRef',
+    reader  => 'get_expected_fields',
+	writer => '_set_expected_fields', 
+    builder => '_build_expected'
+);
+
 has known_types => (
     is      => 'ro',
     isa     => 'HashRef[Str]',
@@ -35,6 +43,13 @@ has found_header => (
     writer  => '_set_found_header',
     default => 0
 );
+
+sub _build_expected {
+
+    confess
+'This method must be overrided by subclasses of Siebel::Srvrmgr::Output::Tabular';
+
+}
 
 sub _consume_data {
 

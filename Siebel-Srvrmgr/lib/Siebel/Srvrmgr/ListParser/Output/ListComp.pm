@@ -142,6 +142,24 @@ has 'servers' => (
 
 =cut
 
+sub _build_expected {
+
+    my $self = shift;
+
+    $self->_set_expected_fields(
+        [
+            'CC_NAME',           'CT_ALIAS',
+            'CG_ALIAS',          'CC_RUNMODE',
+            'CP_DISP_RUN_STATE', 'CP_NUM_RUN_TASKS',
+            'CP_MAX_TASKS',      'CP_ACTV_MTS_PROCS',
+            'CP_MAX_MTS_PROCS',  'CP_START_TIME',
+            'CP_END_TIME',       'CP_STATUS',
+            'CC_INCARN_NO',      'CC_DESC_TEXT'
+        ]
+    );
+
+}
+
 sub _set_comp_attribs {
 
     my $self = shift;

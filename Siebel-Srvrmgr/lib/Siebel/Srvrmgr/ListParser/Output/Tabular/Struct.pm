@@ -76,9 +76,10 @@ An array reference with all the header columns names, in the exact sequence thei
 
 has 'header_cols' => (
     is     => 'ro',
-    isa    => 'ArrayRef[Ref]',
+    isa    => 'ArrayRef',
     reader => 'get_header_cols',
-    writer => '_set_header_cols'
+    writer => '_set_header_cols', 
+	required => 1
 );
 
 =pod
