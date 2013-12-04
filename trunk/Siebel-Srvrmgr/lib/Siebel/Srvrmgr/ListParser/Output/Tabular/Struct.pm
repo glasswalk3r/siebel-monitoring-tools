@@ -27,12 +27,6 @@ use Carp;
 
 =head1 DESCRIPTION
 
-Siebel::Srvrmgr::ListParser::Output is a superclass of output types classes.
-
-It contains only basic attributes and methods that enable specific parsing and serializable methods.
-
-The C<parse> method must be overrided by subclasses or a exception will be raised during object creation.
-
 =head1 ATTRIBUTES
 
 =head2 header_regex
@@ -44,10 +38,20 @@ The regular expression used to match the header of the list <command> output (th
 has 'header_regex' => (
     is      => 'ro',
     isa     => 'Str',
-    builder => '_set_header_regex',
+    builder => '_build_header_regex',
+    writer  => '_set_header_regex',
     reader  => 'get_header_regex',
     lazy    => 1
 );
+
+sub _build_header_regex {
+
+    my $self = shift;
+
+    $self->_set_header_regex(
+        join( $self->get_col_sep(), @{ $self->get_headers_cols() } ) );
+
+}
 
 =pod
 
@@ -55,18 +59,30 @@ has 'header_regex' => (
 
 The regular expression used to match the columns separator. Even thought the output has (or should have) a fixed size, the columns
 are separated by a string.
-This is a regular expression reference as returned by C<qr> operator, which means that the regular expression is already compiled.
-col_sep has a builder C<sub> that can be override if the regular expression is different of C<\s{2,}>.
+
+This is a regular expression reference as returned by C<qr> operator, which means that the regular expression is 
+already compiled.
+
+col_sep has a builder C<sub> that can be override if the regular expression should be different of 
+the default C<\s{2,}>.
 
 =cut
 
 has 'col_sep' => (
     is      => 'ro',
     isa     => 'Str',
-    builder => '_set_col_sep',
+    builder => '_build_col_sep',
+    writer  => '_set_col_sep',
     reader  => 'get_col_sep',
     lazy    => 1
 );
+
+sub _build_col_sep {
+
+    my $self = shift;
+    $self->_set_col_sep('\s{2}');
+
+}
 
 =head2 header_cols
 
@@ -75,11 +91,11 @@ An array reference with all the header columns names, in the exact sequence thei
 =cut
 
 has 'header_cols' => (
-    is     => 'ro',
-    isa    => 'ArrayRef',
-    reader => 'get_header_cols',
-    writer => '_set_header_cols', 
-	required => 1
+    is       => 'ro',
+    isa      => 'ArrayRef',
+    reader   => 'get_header_cols',
+    writer   => '_set_header_cols',
+    required => 1
 );
 
 =pod
@@ -109,11 +125,17 @@ sub split_fields {
     my $self = shift;
     my $line = shift;
 
-    my $regex = $self->get_col_sep();
+	my $separator = $self->get_col_sep();
 
-    my @columns = split( /$regex/, $line );
+    my @columns = split( /$separator/, $line );
 
     return \@columns;
+
+}
+
+sub define_fields_pattern {
+
+	confess 'this method must be overrided by subclasses of Siebel::Srvrmgr::ListParser::Output::Tabular::Struct';
 
 }
 
@@ -121,8 +143,9 @@ sub split_fields {
 
 =head1 CAVEATS
 
-All subclasses of Siebel::Srvrmgr::ListParser::Output expect to have both the header and trailer of executed commands in C<srvrmgr> program. Removing one or both 
-of them will result in parsing errors and probably exceptions.
+All subclasses of Siebel::Srvrmgr::ListParser::Output::Tabular::Struct expect to have both the header and trailer of 
+executed commands in C<srvrmgr> program. Removing one or both of them will result in parsing errors and 
+probably exceptions.
 
 =head1 SEE ALSO
 
@@ -176,5 +199,3 @@ along with Siebel Monitoring Tools.  If not, see L<http://www.gnu.org/licenses/>
 =cut
 
 __PACKAGE__->meta->make_immutable;
-
-1;

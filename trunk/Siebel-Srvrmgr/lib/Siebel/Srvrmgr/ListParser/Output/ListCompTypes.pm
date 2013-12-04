@@ -16,7 +16,7 @@ extends 'Siebel::Srvrmgr::ListParser::Output::Tabular';
 
 =head1 SYNOPSIS
 
-See L<Siebel::Srvrmgr::ListParser::Output> for examples.
+See L<Siebel::Srvrmgr::ListParser::Output::Tabular> for examples.
 
 =head1 DESCRIPTION
 
@@ -48,13 +48,16 @@ Sets the attribute C<types_attribs>. Expects an array reference as parameter.
 
 =cut
 
-sub _set_header_regex {
+sub _build_expected {
 
-    return qr/^CT_NAME\s.*\sCT_DESC_TEXT(\s+)?$/;
+    my $self = shift;
+
+    $self->_set_expected_fields(
+        [ 'CT_NAME', 'CT_RUNMODE', 'CT_ALIAS', 'CT_DESC_TEXT' ] );
 
 }
 
-sub _parse_data {
+sub _consume_data {
 
     my $self       = shift;
     my $fields_ref = shift;
@@ -64,7 +67,7 @@ sub _parse_data {
 
     my $list_len = scalar( @{$fields_ref} );
 
-    my $columns_ref = $self->get_header_cols();
+    my $columns_ref = $self->get_expected_fields();
 
     confess "Could not retrieve the name of the fields"
       unless ( defined($columns_ref) );

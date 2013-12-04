@@ -7,6 +7,8 @@ use Siebel::Srvrmgr::Regexes qw(ROWS_RETURNED);
 use Siebel::Srvrmgr::ListParser::Output::Tabular::Struct::Fixed;
 use Siebel::Srvrmgr::ListParser::Output::Tabular::Struct::Delimited;
 
+extends 'Siebel::Srvrmgr::ListParser::Output';
+
 has structure_type => (
     is       => 'ro',
     isa      => 'OutputTabularType',

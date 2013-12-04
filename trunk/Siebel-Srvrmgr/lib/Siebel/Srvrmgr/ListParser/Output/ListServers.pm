@@ -16,11 +16,13 @@ extends 'Siebel::Srvrmgr::ListParser::Output::Tabular';
 
 =head1 SYNOPSIS
 
-See L<Siebel::Srvrmgr::ListParser::Output> for examples.
+See L<Siebel::Srvrmgr::ListParser::Output::Tabular> for examples.
 
 =head1 DESCRIPTION
 
 This subclass of L<Siebel::Srvrmgr::ListParser::Output::Tabular> parses the output of the command C<list servers>.
+
+=FOOBAR: include the expected order of fields from list servers
 
 =head1 ATTRIBUTES
 
@@ -47,24 +49,38 @@ where the keys are the Siebel servers names, each one holding a reference to ano
 
 =cut
 
-sub _set_header_regex {
+sub _build_expected {
 
-    return qr/^SBLSRVR_NAME\s.*\sSBLSRVR_STATUS(\s+)?$/;
+    my $self = shift;
+
+    $self->_set_expected_fields(
+        [
+            'SBLSRVR_NAME',  'SBLSRVR_GROUP_NAME',
+            'HOST_NAME',     'INSTALL_DIR',
+            'SBLMGR_PID',    'SV_DISP_STATE',
+            'SBLSRVR_STATE', 'START_TIME',
+            'END_TIME',      'SBLSRVR_STATUS'
+        ]
+    );
 
 }
 
-around '_split_fields' => sub {
+sub get_lc_fields {
 
-    my $orig = shift;
     my $self = shift;
+    my @names;
 
-    my $line = lc(shift);
+    foreach ( @{ $self->get_expected_fields() } ) {
 
-    $self->$orig($line);
+        push( @names, lc($_) );
 
-};
+    }
 
-sub _parse_data {
+    return \@names;
+
+}
+
+sub _consume_data {
 
     my $self       = shift;
     my $fields_ref = shift;
@@ -73,10 +89,7 @@ sub _parse_data {
     my $list_len    = scalar( @{$fields_ref} );
     my $server_name = $fields_ref->[0];
 
-    my $columns_ref = $self->get_header_cols();
-
-    confess "Could not retrieve the name of the fields"
-      unless ( defined($columns_ref) );
+    my $columns_ref = $self->get_lc_fields();
 
     if ( @{$fields_ref} ) {
 
@@ -102,7 +115,7 @@ sub _parse_data {
 
 =head1 SEE ALSO
 
-=over 2
+=over
 
 =item *
 

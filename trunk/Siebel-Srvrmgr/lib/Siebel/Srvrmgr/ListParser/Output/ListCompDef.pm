@@ -64,41 +64,23 @@ It raises an exception when the parser is not able to define the C<fields_patter
 
 =cut
 
-sub _set_header_regex {
+sub _build_expected {
 
-    return qr/^CC_NAME\s.*\sCC_INCARN_NO\s*$/;
+    my $self = shift;
+
+    $self->_set_expected_fields(
+        [
+            'CC_NAME',           'CT_NAME',
+            'CC_RUNMODE',        'CC_ALIAS',
+            'CC_ENABLE_DISP_ST', 'CC_DESC_TEXT',
+            'CG_NAME',           'CG_ALIAS',
+            'CC_INCARN_NO'
+        ]
+    );
 
 }
 
-=pod
-
-=head2 _define_pattern
-
-This method overrides the method from the parent class. The pattern is strict following the expected configuration from the "list comp def" command
-from srvrmgr, as described in the DESCRIPTION.
-
-=cut
-
-override '_define_pattern' => sub {
-
-    my $self = shift;
-	# to make it easier for maintainence
-    my @sizes = ( 76, 76, 31, 31, 61, 251, 76, 31, 23 );
-    my $pattern;
-
-# :WARNING   :09/05/2013 12:19:37:: + 2 because of the spaces after the "---" that will be trimmed, but this will cause problems
-# with the split_fields method if col_seps is different from two space
-    foreach (@sizes) {
-
-        $pattern .= 'A' . ( $_ + 2 );
-
-    }
-
-    $self->_set_fields_pattern($pattern);
-
-};
-
-sub _parse_data {
+sub _consume_data {
 
     my $self       = shift;
     my $fields_ref = shift;
@@ -108,7 +90,7 @@ sub _parse_data {
 
     my $list_len = scalar( @{$fields_ref} );
 
-    my $columns_ref = $self->get_header_cols();
+    my $columns_ref = $self->get_expected_fields();
 
     die "Cannot continue without defining fields names"
       unless ( defined($columns_ref) );
