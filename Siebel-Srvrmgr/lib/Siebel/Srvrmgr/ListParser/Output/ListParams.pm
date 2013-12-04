@@ -87,7 +87,8 @@ has server =>
 
 =head2 comp_alias
 
-An string of the component alias respective to the command executed, if available (considering that the parameter may be of the server, not a component).
+An string of the component alias respective to the command executed, if available (considering that the 
+parameter may be of the server, not a component).
 
 =cut
 
@@ -102,7 +103,8 @@ has comp_alias => (
 
 =head2 _set_details
 
-A "private" method used to get the servername and component alias from the command line given as parameter during object creation.
+A "private" method used to get the servername and component alias from the command line given as parameter 
+during object creation.
 
 =cut
 
@@ -176,13 +178,28 @@ sub BUILD {
 
 }
 
-sub _set_header_regex {
+sub _build_expected {
 
-    return qr/^PA_ALIAS\s.*\sPA_NAME/;
+    my $self = shift;
+
+    $self->_set_expected_fields(
+        [
+
+            'PA_ALIAS',
+            'PA_VALUE',
+            'PA_DATATYPE',
+            'PA_SCOPE',
+            'PA_SUBSYSTEM',
+            'PA_SETLEVEL',
+            'PA_DISP_SETLEVEL',
+            'PA_NAME'
+
+        ]
+    );
 
 }
 
-sub _parse_data {
+sub _consume_data {
 
     my $self       = shift;
     my $fields_ref = shift;
@@ -192,7 +209,7 @@ sub _parse_data {
 
         my $pa_alias    = $fields_ref->[0];
         my $list_len    = scalar( @{$fields_ref} );
-        my $columns_ref = $self->get_header_cols();
+        my $columns_ref = $self->get_expected_fields();
 
         for ( my $i = 1 ; $i < $list_len ; $i++ )
         {    # starting from 1 to skip the field PA_ALIAS
@@ -223,11 +240,11 @@ Despite that, the L<Storable> C<retrieve> function is capable to recover such da
 
 =head1 SEE ALSO
 
-=over 3
+=over
 
 =item *
 
-L<Siebel::Srvrmgr::ListParser::Output>
+L<Siebel::Srvrmgr::ListParser::Output::Tabular>
 
 =item *
 

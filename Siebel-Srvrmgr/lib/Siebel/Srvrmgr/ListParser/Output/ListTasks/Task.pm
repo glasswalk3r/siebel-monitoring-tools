@@ -67,11 +67,11 @@ Since all attributes are read-only there is no corresponding setter.
 
 =head1 SEE ALSO
 
-=over 3
+=over
 
 =item *
 
-L<Siebel::Srvrmgr::ListParser::Output::ListTasks>
+L<Siebel::Srvrmgr::ListParser::Output::Tabular::ListTasks>
 
 =item *
 
@@ -109,4 +109,3 @@ along with Siebel Monitoring Tools.  If not, see L<http://www.gnu.org/licenses/>
 =cut
 
 __PACKAGE__->meta->make_immutable;
-1;

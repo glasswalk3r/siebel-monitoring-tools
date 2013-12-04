@@ -115,10 +115,11 @@ An array reference with the components attributes. This is a read-only attribute
 =cut
 
 has 'comp_attribs' => (
-    is     => 'ro',
-    isa    => 'ArrayRef',
-    reader => 'get_comp_attribs',
-    writer => '__set_comp_attribs',
+    is      => 'ro',
+    isa     => 'ArrayRef',
+    reader  => 'get_comp_attribs',
+    builder => '_build_comp_attribs',
+    writer  => '_set_comp_attribs',
 );
 
 =pod
@@ -148,24 +149,24 @@ sub _build_expected {
 
     $self->_set_expected_fields(
         [
-            'CC_NAME',           'CT_ALIAS',
-            'CG_ALIAS',          'CC_RUNMODE',
-            'CP_DISP_RUN_STATE', 'CP_NUM_RUN_TASKS',
-            'CP_MAX_TASKS',      'CP_ACTV_MTS_PROCS',
-            'CP_MAX_MTS_PROCS',  'CP_START_TIME',
-            'CP_END_TIME',       'CP_STATUS',
-            'CC_INCARN_NO',      'CC_DESC_TEXT'
+            'SV_NAME',           'CC_NAME',
+            'CT_ALIAS',          'CG_ALIAS',
+            'CC_RUNMODE',        'CP_DISP_RUN_STATE',
+            'CP_NUM_RUN_TASKS',  'CP_MAX_TASKS',
+            'CP_ACTV_MTS_PROCS', 'CP_MAX_MTS_PROCS',
+            'CP_START_TIME',     'CP_END_TIME',
+            'CP_STATUS',         'CC_INCARN_NO',
+            'CC_DESC_TEXT'
         ]
     );
 
 }
 
-sub _set_comp_attribs {
+sub _build_comp_attribs {
 
     my $self = shift;
-    my $data = shift;
 
-    my @expected_attribs = (
+    my $self->_set_comp_attribs(
         'CC_NAME',           'CT_ALIAS',
         'CG_ALIAS',          'CC_RUNMODE',
         'CP_DISP_RUN_STATE', 'CP_NUM_RUN_TASKS',
@@ -174,21 +175,6 @@ sub _set_comp_attribs {
         'CP_END_TIME',       'CP_STATUS',
         'CC_INCARN_NO',      'CC_DESC_TEXT'
     );
-
-    for ( my $i = 0 ; $i <= $#expected_attribs ; $i++ ) {
-
-        unless ( $data->[$i] eq $expected_attribs[$i] ) {
-
-            die 'invalid attribute name recovered from output: expected '
-              . $expected_attribs[$i]
-              . ', got '
-              . $data->[$i];
-
-        }
-
-    }
-
-    $self->__set_comp_attribs($data);
 
 }
 
@@ -225,7 +211,8 @@ sub get_server {
         return Siebel::Srvrmgr::ListParser::Output::ListComp::Server->new(
             {
                 name => $servername,
-                data => $self->get_data_parsed()->{$servername}
+                data => $self->get_data_parsed()->{$servername}, 
+				comp_attribs => $self->get_comp_attribs()
             }
         );
 
@@ -248,43 +235,7 @@ sub _set_last_server {
 
 }
 
-sub _set_header_regex {
-
-    return qr/^SV_NAME\s+CC_ALIAS/;
-
-}
-
-=pod
-
-=head2 _set_header
-
-_set_header method is overrided to also set the C<comp_attribs> attribute. The parent class method is also invoked (prior to setting C<comp_attribs>).
-
-=cut
-
-override '_set_header' => sub {
-
-    my $self = shift;
-    my $line = shift;
-
-    # defines header_cols
-    super();
-
-    my $columns_ref = $self->get_header_cols();
-
-    #SV_NAME is useless here
-    shift( @{$columns_ref} );
-
-    # component alias do not need to be maintained here
-    shift( @{$columns_ref} );
-
-    $self->_set_comp_attribs($columns_ref);
-
-    return 1;
-
-};
-
-sub _parse_data {
+sub _consume_data {
 
     my $self       = shift;
     my $fields_ref = shift;
@@ -322,6 +273,9 @@ sub _parse_data {
 
             my $server = $self->get_last_server();
 
+# :TODO      :02-12-2013 07:56:56:: we already know the sequence names of fields of a component, we can
+# make lazy instantiation of object using this information, so an array here would use less memory instead of using a
+# hash reference to keep column_name => value
             $parsed_ref->{$server}->{$comp_alias}->{ $columns_ref->[$i] } =
               $fields_ref->[$i];
 
@@ -342,7 +296,7 @@ sub _parse_data {
 
 =head1 SEE ALSO
 
-=over 4 
+=over
 
 =item *
 
@@ -350,15 +304,15 @@ L<Moose>
 
 =item *
 
-L<namespace::autoclean>
+L<Siebel::Srvrmgr::ListParser::Output::Tabular>
 
 =item *
 
-L<Siebel::Srvrmgr::ListParser::Output::Tabular::ListComp::Server>
+L<Siebel::Srvrmgr::ListParser::Output::ListComp::Server>
 
 =item *
 
-L<Siebel::Srvrmgr::ListParser::Output::Tabular::ListComp::Comp>
+L<Siebel::Srvrmgr::ListParser::Output::ListComp::Comp>
 
 =back
 
