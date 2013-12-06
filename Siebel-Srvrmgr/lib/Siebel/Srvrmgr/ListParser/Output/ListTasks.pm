@@ -69,16 +69,11 @@ will be raised.
 
 =cut
 
-has task_counter => (
-    is      => 'ro',
-    reader  => 'get_task_counter',
-    isa     => 'Int',
-    default => 0
-);
-
 sub _build_expected {
 
     my $self = shift;
+
+	if ($self->get_type() eq 'delimited') {
 
     $self->_set_expected_fields->(
         [
@@ -93,6 +88,11 @@ sub _build_expected {
         ]
     );
 
+} else {
+
+
+}
+
 }
 
 =pod
@@ -103,36 +103,58 @@ All from parent class. Some are overrided.
 
 =cut
 
-sub get_next_task {
-
-    my $self   = shift;
-    my $server = shift;
-
-    if ( $self->get_tasks_counter() <= $self->get_total_tasks() ) {
-
-        my $fields_ref =
-          $self->get_data_parsed()->{server}->[ $self->get_task_counter() ];
-
-        $self->_increment_counter();
-
-        return Siebel::Srvrmgr::ListParser::Output::ListTasks::Task->new(
-            {
-                server_name => $fields_ref->[0],
-                comp_alias  => $fields_ref->[1],
-                id          => $fields_ref->[2],
-                pid         => $fields_ref->[3],
-                status      => $fields_ref->[4]
-            }
-        );
-
-    }
-}
-
-sub _increment_counter {
+sub get_servers {
 
     my $self = shift;
-    $self->{tasks_counter}++;
 
+    return keys( %{ $self->get_data_parsed() } );
+
+}
+
+sub get_tasks {
+
+    my $self    = shift;
+    my $server  = shift;
+    my $counter = 0;
+
+    confess 'servername parameter is required'
+      unless ( ( defined($server) ) and ( $server =~ /\w+/ ) );
+
+    my $data_ref = $self->get_data_parsed();
+
+    confess "servername '$server' is not available in the output parsed"
+      unless ( exists( $data_ref->{$server} ) );
+
+    my $total = scalar( @{ $data_ref->{$server} } );
+
+    my $server_ref = $self->get_data_parsed()->{$server};
+
+    return sub {
+
+        if ( $counter <= $total ) {
+
+            my $fields_ref = $server_ref->[$counter];
+
+            $counter++;
+
+            return Siebel::Srvrmgr::ListParser::Output::ListTasks::Task->new(
+                {
+                    server_name => $fields_ref->[0],
+                    comp_alias  => $fields_ref->[1],
+                    id          => $fields_ref->[2],
+                    pid         => $fields_ref->[3],
+                    status      => $fields_ref->[4]
+                }
+            );
+
+        }
+        else {
+
+            return undef;
+
+        }
+
+      }
 }
 
 sub _consume_data {
@@ -173,8 +195,7 @@ not being able to properly parse the output from the command.
 
 The problem is that the output is not following the expected fixed width as setup with the 
 C<configure list tasks show...> command: with that, the output width is resized depending on the content of each 
-column and thus impossible to predict how to parse it correctly. The result is messy since the output
-is not fixed sized neither separated by a character and the content (and width of it) cannot be predicted.
+column and thus impossible to predict how to parse it correctly.
 
 That said, this class will make all the fields available from C<list tasks> if a field delimited output was
 configured within srvrmgr.
@@ -219,4 +240,3 @@ along with Siebel Monitoring Tools.  If not, see L<http://www.gnu.org/licenses/>
 =cut
 
 __PACKAGE__->meta->make_immutable;
-1;

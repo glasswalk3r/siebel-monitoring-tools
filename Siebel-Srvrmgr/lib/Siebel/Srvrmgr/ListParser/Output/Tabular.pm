@@ -103,6 +103,9 @@ sub parse {
     my $struct = $self->get_known_types()->{ $self->get_type() }
       ->new( { header_cols => $self->get_expected_fields() } );
 
+	  my $header = $struct->get_header_regex();
+	  my $header_regex = qr/$header/;
+
     foreach my $line ( @{$data_ref} ) {
 
       SWITCH: {
@@ -122,7 +125,7 @@ sub parse {
             }
 
             # this is the header
-            if ( $line =~ $self->get_header_regex() ) {
+            if ( $line =~ $header_regex ) {
 
                 $self->_set_found_header(1);
                 last SWITCH;
