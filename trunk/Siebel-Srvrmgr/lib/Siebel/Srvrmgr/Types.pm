@@ -30,7 +30,6 @@ subtype 'NotNullStr', as 'Str',
 
 subtype 'OutputTabularType', as 'Str', where {
     ( defined($_) )
-      and ( $_ ne '' )
       and ( ( $_ eq 'fixed' ) or ( $_ eq 'delimited' ) );
 }, message { 'This attribute value must be a defined, non-empty string' };
 
