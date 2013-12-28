@@ -41,7 +41,7 @@ has known_types => (
 has found_header => (
     is      => 'ro',
     isa     => 'Bool',
-    reader  => 'founder_header',
+    reader  => 'found_header',
     writer  => '_set_found_header',
     default => 0
 );
@@ -138,7 +138,7 @@ sub parse {
                 confess "Cannot continue without having fields pattern defined"
                   unless ( ( defined($fields_ref) ) and ( @{$fields_ref} ) );
 
-                unless ( $self->consume_data( $fields_ref, \%parsed_lines ) ) {
+                unless ( $self->_consume_data( $fields_ref, \%parsed_lines ) ) {
 
                     confess 'Could not parse fields from line [' . $line . ']';
 
@@ -200,5 +200,5 @@ along with Siebel Monitoring Tools.  If not, see L<http://www.gnu.org/licenses/>
 
 =cut
 
-__PACKAGE__->meta->make->immutable;
+__PACKAGE__->meta->make_immutable;
 1;

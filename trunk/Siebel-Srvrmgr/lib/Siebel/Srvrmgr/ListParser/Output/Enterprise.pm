@@ -15,6 +15,7 @@ See L<Siebel::Srvrmgr::ListParser::Output>.
 use Moose;
 use Siebel::Srvrmgr::Regexes qw(CONN_GREET);
 use Carp;
+use List::Util qw(sum);
 
 extends 'Siebel::Srvrmgr::ListParser::Output';
 
@@ -152,18 +153,24 @@ override 'parse' => sub {
 
     my $data_ref = $self->get_raw_data();
 
-    my $is_copyright = 0;
-
     my %data_parsed;
 
     #Copyright (c) 2001 Siebel Systems, Inc.  All rights reserved.
     my $copyright_regex = qr/^Copyright\s\(c\)/;
-    my $more_copyright  = /^[\w\(]+/;
+    my $more_copyright  = qr/^[\w\(]+/;
     my $help_regex      = qr/^Type\s\"help\"/;
 
     #Connected to 1 server(s) out of a total of 1 server(s) in the enterprise
     #Connected to 2 server(s) out of a total of 2 server(s) in the enterprise
-    my $connected_regex = qr/^Connected\sto\d\sserver\(s\)/;
+    my $connected_regex = qr/^Connected\sto\s\d+\sserver\(s\)/;
+
+    my %check = (
+        conn_greet     => 0,
+        copyright      => 0,
+        help           => 0,
+        connected      => 0,
+        more_copyright => 0
+    );
 
     foreach my $line ( @{$data_ref} ) {
 
@@ -188,6 +195,7 @@ override 'parse' => sub {
                 $words[8] =~ tr/[]//d;
                 $self->_set_patch( $words[8] );
                 $data_parsed{patch} = $words[8];
+                $check{conn_greet}  = 1;
                 last SWITCH;
 
             }
@@ -196,7 +204,7 @@ override 'parse' => sub {
 
                 $self->_set_copyright($line);
                 $data_parsed{copyright} = $line;
-                $is_copyright = 1;
+                $check{copyright}       = 1;
                 last SWITCH;
 
             }
@@ -205,7 +213,7 @@ override 'parse' => sub {
 
                 $self->_set_help($line);
                 $data_parsed{help} = $line;
-                $is_copyright = 0;
+                $check{help}       = 1;
                 last SWITCH;
 
             }
@@ -218,14 +226,16 @@ override 'parse' => sub {
                 $self->_set_total_conn( $words[2] );
                 $data_parsed{total_servers} = $words[9];
                 $data_parsed{total_conn}    = $words[2];
+                $check{connected}           = 1;
                 last SWITCH;
 
             }
 
             if ( $line =~ $more_copyright ) {
 
-                $self->_set_copyright($line) if ($is_copyright);
+                $self->_set_copyright($line) if ( $check{copyright} );
                 $data_parsed{copyright} = $line;
+                $check{more_copyright}  = 1;
                 last SWITCH;
 
             }
@@ -243,7 +253,21 @@ override 'parse' => sub {
     $self->set_data_parsed( \%data_parsed );
     $self->set_raw_data( [] );
 
-    return 1;
+    if ( ( keys(%check) ) == ( sum( values(%check) ) ) ) {
+
+        return 1;
+
+    }
+    else {
+
+        foreach my $key ( keys(%check) ) {
+
+            warn "$key was not matched" unless ( $check{$key} );
+
+        }
+        return 0;
+
+    }
 
 };
 
