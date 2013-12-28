@@ -1,43 +1,36 @@
-package Test::Siebel::Srvrmgr::ListParser::Output::Greetings;
+package Test::Siebel::Srvrmgr::ListParser::Output::Enterprise;
 
 use Test::Most;
 use base 'Test::Siebel::Srvrmgr::ListParser::Output';
-use Test::Moose 'has_attribute_ok';
 
-sub class_attributes : Tests(+6) {
+sub class_attributes : Tests {
 
     my $test = shift;
 
-    $test->SUPER::class_attributes();
-
-    my @attributes = (
-        'version',         'patch',
-        'copyright',       'total_servers',
-        'total_connected', 'help'
+    $test->SUPER::class_attributes(
+        [
+            'version',         'patch',
+            'copyright',       'total_servers',
+            'total_connected', 'help'
+        ]
     );
-
-    foreach my $attrib (@attributes) {
-
-        has_attribute_ok( $test->get_output(), $attrib );
-
-    }
 
 }
 
 sub get_data_type {
 
-	return 'greetings';
+    return 'greetings';
 
 }
 
-sub class_methods : Tests(+6) {
+sub class_methods : Tests(+5) {
 
     my $test = shift;
 
-    $test->SUPER::class_methods();
-
-    can_ok( $test->get_output(),
-        qw(get_version get_patch get_copyright get_total_servers get_total_conn get_help)
+    $test->SUPER::class_methods(
+        [
+            qw(get_version get_patch get_copyright get_total_servers get_total_conn get_help)
+        ]
     );
 
     is( $test->get_output()->get_version(),

@@ -1,7 +1,6 @@
 package Test::Siebel::Srvrmgr::ListParser::Output::LoadPreferences;
 
 use Test::Most;
-use Test::Moose qw(has_attribute_ok);
 use base qw(Test::Siebel::Srvrmgr::ListParser::Output);
 
 sub get_data_type {
@@ -16,19 +15,19 @@ sub get_cmd_line {
 
 }
 
-sub class_attributes : Test(+1) {
+sub class_attributes : Test {
 
     my $test = shift;
 
-    has_attribute_ok( $test->get_output(), 'location' );
+    $test->SUPER::class_attributes( ['location'] );
 
 }
 
-sub class_methods : Tests(+2) {
+sub class_methods : Tests(+1) {
 
     my $test = shift;
 
-    can_ok( $test->get_output(), qw(get_location set_location) );
+    $test->SUPER::class_methods( [qw(get_location set_location)] );
 
     is(
         $test->get_output()->get_location(),
