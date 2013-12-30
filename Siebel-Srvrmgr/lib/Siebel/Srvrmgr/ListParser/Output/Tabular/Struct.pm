@@ -64,8 +64,7 @@ has 'col_sep' => (
 
 sub _build_col_sep {
 
-    my $self = shift;
-    $self->_set_col_sep('\s{2}');
+    confess '_build_col_sep must be overrided by subclasses';
 
 }
 

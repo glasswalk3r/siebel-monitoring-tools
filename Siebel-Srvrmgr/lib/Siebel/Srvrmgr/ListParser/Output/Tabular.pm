@@ -4,6 +4,7 @@ use Moose;
 use namespace::autoclean;
 use Carp;
 use Siebel::Srvrmgr::Regexes qw(ROWS_RETURNED);
+use Siebel::Srvrmgr::Types;
 use Siebel::Srvrmgr::ListParser::Output::Tabular::Struct::Fixed;
 use Siebel::Srvrmgr::ListParser::Output::Tabular::Struct::Delimited;
 
@@ -14,6 +15,12 @@ has structure_type => (
     isa      => 'OutputTabularType',
     reader   => 'get_type',
     required => 1
+);
+
+has col_sep => (
+    is     => 'ro',
+    isa    => 'Chr',
+    reader => 'get_col_sep'
 );
 
 has expected_fields => (
@@ -100,8 +107,24 @@ sub parse {
     confess 'Raw data became invalid after initial cleanup'
       unless ( @{$data_ref} );
 
-    my $struct = $self->get_known_types()->{ $self->get_type() }
-      ->new( { header_cols => $self->get_expected_fields() } );
+    my $struct;
+
+    if ( $self->get_col_sep() ) {
+
+        $struct = $self->get_known_types()->{ $self->get_type() }->new(
+            {
+                header_cols => $self->get_expected_fields(),
+                col_sep     => $self->get_col_sep()
+            }
+        );
+
+    }
+    else {
+
+        $struct = $self->get_known_types()->{ $self->get_type() }
+          ->new( { header_cols => $self->get_expected_fields() } );
+
+    }
 
     my $header       = $struct->get_header_regex();
     my $header_regex = qr/$header/;
