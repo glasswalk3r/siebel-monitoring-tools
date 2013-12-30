@@ -20,7 +20,7 @@ has expected_fields => (
     is      => 'ro',
     isa     => 'ArrayRef',
     reader  => 'get_expected_fields',
-	writer => '_set_expected_fields', 
+    writer  => '_set_expected_fields',
     builder => '_build_expected'
 );
 
@@ -103,8 +103,8 @@ sub parse {
     my $struct = $self->get_known_types()->{ $self->get_type() }
       ->new( { header_cols => $self->get_expected_fields() } );
 
-	  my $header = $struct->get_header_regex();
-	  my $header_regex = qr/$header/;
+    my $header       = $struct->get_header_regex();
+    my $header_regex = qr/$header/;
 
     foreach my $line ( @{$data_ref} ) {
 
@@ -119,7 +119,8 @@ sub parse {
             if ( $line =~ $line_header_regex )
             {    # this is the '-------' below the header
 
-                $struct->define_fields_pattern($line);
+                confess 'could not defined fields pattern'
+                  unless ( $struct->define_fields_pattern($line) );
                 last SWITCH;
 
             }
