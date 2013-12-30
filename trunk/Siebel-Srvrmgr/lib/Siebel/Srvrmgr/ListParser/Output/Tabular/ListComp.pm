@@ -149,7 +149,8 @@ sub _build_expected {
 
     $self->_set_expected_fields(
         [
-            'SV_NAME',           'CC_NAME',
+            'SV_NAME',,
+            'CC_ALIAS',          'CC_NAME',
             'CT_ALIAS',          'CG_ALIAS',
             'CC_RUNMODE',        'CP_DISP_RUN_STATE',
             'CP_NUM_RUN_TASKS',  'CP_MAX_TASKS',
@@ -166,14 +167,16 @@ sub _build_comp_attribs {
 
     my $self = shift;
 
-    my $self->_set_comp_attribs(
-        'CC_NAME',           'CT_ALIAS',
-        'CG_ALIAS',          'CC_RUNMODE',
-        'CP_DISP_RUN_STATE', 'CP_NUM_RUN_TASKS',
-        'CP_MAX_TASKS',      'CP_ACTV_MTS_PROCS',
-        'CP_MAX_MTS_PROCS',  'CP_START_TIME',
-        'CP_END_TIME',       'CP_STATUS',
-        'CC_INCARN_NO',      'CC_DESC_TEXT'
+    $self->_set_comp_attribs(
+        [
+            'CC_NAME',           'CT_ALIAS',
+            'CG_ALIAS',          'CC_RUNMODE',
+            'CP_DISP_RUN_STATE', 'CP_NUM_RUN_TASKS',
+            'CP_MAX_TASKS',      'CP_ACTV_MTS_PROCS',
+            'CP_MAX_MTS_PROCS',  'CP_START_TIME',
+            'CP_END_TIME',       'CP_STATUS',
+            'CC_INCARN_NO',      'CC_DESC_TEXT'
+        ]
     );
 
 }
@@ -210,9 +213,9 @@ sub get_server {
 
         return Siebel::Srvrmgr::ListParser::Output::ListComp::Server->new(
             {
-                name => $servername,
-                data => $self->get_data_parsed()->{$servername}, 
-				comp_attribs => $self->get_comp_attribs()
+                name         => $servername,
+                data         => $self->get_data_parsed()->{$servername},
+                comp_attribs => $self->get_comp_attribs()
             }
         );
 

@@ -176,7 +176,8 @@ This method must be overrided by subclasses.
 
 sub parse {
 
-confess 'parse method must be overrided by subclasses of Siebel::Srvrmgr::ListParser::Output';
+    confess
+'parse method must be overrided by subclasses of Siebel::Srvrmgr::ListParser::Output';
 
 }
 

@@ -12,6 +12,13 @@ has fields_pattern => (
     writer => '_set_fields_pattern'
 );
 
+sub _build_col_sep {
+
+    my $self = shift;
+    $self->_set_col_sep('\s{2,}');
+
+}
+
 sub define_fields_pattern {
 
     my $self = shift;
@@ -51,9 +58,18 @@ sub get_fields {
     my $self = shift;
     my $line = shift;
 
-    my @fields = unpack( $self->get_fields_pattern(), $line );
+    if ( defined( $self->get_fields_pattern() ) ) {
 
-    return \@fields;
+        my @fields = unpack( $self->get_fields_pattern(), $line );
+
+        return \@fields;
+
+    }
+    else {
+
+        confess 'cannot procede without fields_pattern being defined first';
+
+    }
 
 }
 
