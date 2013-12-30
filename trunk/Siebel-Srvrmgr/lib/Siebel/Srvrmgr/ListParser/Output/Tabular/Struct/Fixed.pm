@@ -1,12 +1,16 @@
 package Siebel::Srvrmgr::ListParser::Output::Tabular::Struct::Fixed;
 
 use Moose;
-use MooseX::FollowPBP;
 use namespace::autoclean;
 
 extends 'Siebel::Srvrmgr::ListParser::Output::Tabular::Struct';
 
-has fields_pattern => ( is => 'rw', is => 'Str' );
+has fields_pattern => (
+    is     => 'ro',
+    isa    => 'Str',
+    reader => 'get_fields_pattern',
+    writer => '_set_fields_pattern'
+);
 
 sub define_fields_pattern {
 
@@ -14,22 +18,31 @@ sub define_fields_pattern {
     my $line = shift;
 
     my $separator = $self->get_col_sep();
+    my $comp_sep  = qr/$separator/;
 
-    my @columns = split( /$separator/, $line );
+    # :TODO:30-12-2013:: some logging would ne nice here
+    if ( $line =~ $comp_sep ) {
 
-    my $pattern;
+        my @columns = split( /$separator/, $line );
 
-    foreach my $column (@columns) {
+        my $pattern;
 
-# :WARNING   :09/05/2013 12:19:37:: + 2 because of the spaces after the "---" that will be trimmed, but this will cause problems
-# with the split_fields method if col_seps is different from two spaces
-        $pattern .= 'A' . ( length($column) + 2 );
+        foreach my $column (@columns) {
+
+# :WARNING   :09/05/2013 12:19:37:: + 2 because of the spaces after the "---" that will be trimmed
+            $pattern .= 'A' . ( length($column) + 2 );
+
+        }
+
+        $self->_set_fields_pattern($pattern);
+        return 1;
 
     }
+    else {
 
-    $self->_set_fields_pattern($pattern);
+        return 0;
 
-    return 1;
+    }
 
 }
 

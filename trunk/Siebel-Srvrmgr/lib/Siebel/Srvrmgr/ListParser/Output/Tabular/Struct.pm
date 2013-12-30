@@ -4,18 +4,7 @@ package Siebel::Srvrmgr::ListParser::Output::Tabular::Struct;
 
 =head1 NAME
 
-Siebel::Srvrmgr::ListParser::Output::Tabular::Struct - base class of srvrmgr output
-
-=head1 SYNOPSIS
-
-	use Siebel::Srvrmgr::ListParser::Output;
-
-	my $output = Siebel::Srvrmgr::ListParser::Output->new({ data_type => 'sometype', 
-															raw_data => \@data, 
-															cmd_line => 'list something from somewhere'});
-
-	print 'Fields pattern: ', $output->get_fields_pattern(), "\n";
-	$output->store($complete_pathname);
+Siebel::Srvrmgr::ListParser::Output::Tabular::Struct - base class of srvrmgr tabular output
 
 =cut
 
@@ -49,7 +38,7 @@ sub _build_header_regex {
     my $self = shift;
 
     $self->_set_header_regex(
-        join( $self->get_col_sep(), @{ $self->get_headers_cols() } ) );
+        join( $self->get_col_sep(), @{ $self->get_header_cols() } ) );
 
 }
 
@@ -57,14 +46,10 @@ sub _build_header_regex {
 
 =head2 col_sep
 
-The regular expression used to match the columns separator. Even thought the output has (or should have) a fixed size, the columns
-are separated by a string.
-
-This is a regular expression reference as returned by C<qr> operator, which means that the regular expression is 
-already compiled.
+A regular expression string used to match the columns separator.
 
 col_sep has a builder C<sub> that can be override if the regular expression should be different of 
-the default C<\s{2,}>.
+the default C<\s{2}>.
 
 =cut
 
@@ -118,6 +103,8 @@ Split a output line into fields as defined by C<get_col_sep> method. It expects 
 
 Returns an array reference.
 
+If the separator could not be matched against the string, returns C<undef>.
+
 =cut
 
 sub split_fields {
@@ -125,17 +112,35 @@ sub split_fields {
     my $self = shift;
     my $line = shift;
 
-	my $separator = $self->get_col_sep();
+    my $sep = $self->get_col_sep();
 
-    my @columns = split( /$separator/, $line );
+    my $comp_sep = qr/$sep/;
 
-    return \@columns;
+    if ( $line =~ $comp_sep ) {
+
+        my @columns = split( $comp_sep, $line );
+        return \@columns;
+
+    }
+    else {
+
+        return undef;
+
+    }
 
 }
 
 sub define_fields_pattern {
 
-	confess 'this method must be overrided by subclasses of Siebel::Srvrmgr::ListParser::Output::Tabular::Struct';
+    confess
+'define_fields_pattern must be overrided by subclasses of Siebel::Srvrmgr::ListParser::Output::Tabular::Struct';
+
+}
+
+sub get_fields {
+
+    confess
+'get_fields must be overrided by subclasses of Siebel::Srvrmgr::ListParser::Output::Tabular::Struct';
 
 }
 
