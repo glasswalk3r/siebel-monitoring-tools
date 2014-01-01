@@ -33,7 +33,7 @@ The order of the fields and their configuration must follow the pattern defined 
 		CC_RUNMODE (31):  Component run mode (enum)
 		CC_ALIAS (31):  Component alias
 		CC_DISP_ENABLE_ST (61):   Display enablement state (translatable)
-		CC_DESC_TEXT (251):   Component description
+		CC_DESC_TEXT (115):   Component description
 		CG_NAME (76):  Component group
 		CG_ALIAS (31):  Component Group Alias
 		CC_INCARN_NO (23):  Incarnation Number
@@ -72,7 +72,7 @@ sub _build_expected {
         [
             'CC_NAME',           'CT_NAME',
             'CC_RUNMODE',        'CC_ALIAS',
-            'CC_ENABLE_DISP_ST', 'CC_DESC_TEXT',
+            'CC_DISP_ENABLE_ST', 'CC_DESC_TEXT',
             'CG_NAME',           'CG_ALIAS',
             'CC_INCARN_NO'
         ]

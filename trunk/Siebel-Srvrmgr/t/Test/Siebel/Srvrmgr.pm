@@ -1,6 +1,7 @@
 package Test::Siebel::Srvrmgr;
 
 use Test::More;
+use File::Spec;
 use base qw(Test::Class Class::Data::Inheritable);
 
 BEGIN {
@@ -20,11 +21,11 @@ sub startup : Test( startup => 1 ) {
 
 }
 
-sub set_my_data {
+sub get_output_file {
 
-    my $self = shift;
+    my $test = shift;
 
-    $self->{data} = shift;
+    return $test->{output_file};
 
 }
 
@@ -32,42 +33,23 @@ sub get_my_data {
 
     my $test = shift;
 
-    if ( exists( $test->{data} ) ) {
+    open( my $in, '<', $test->get_output_file() )
+      or die 'cannot read ' . $test->get_output_file() . ': ' . $!;
 
-        return $test->{data};
+    my @data;
 
-    }
-    else {
+    while (<$in>) {
 
-        my $handle = ref($test) . '::DATA';
-        my @data;
-
-        while (<$handle>) {
-
-# :WORKAROUND:12/08/2013 12:27:24:: new implementation of Daemon removes new lines characters from srvrmgr output
-            chomp();
-            push( @data, $_ );
-
-        }
-
-        close($handle);
-
-        if (@data) {
-
-            $test->{data} = \@data;
-            return $test->{data};
-
-        }
-
-# :WORKAROUND:25/06/2013 16:51:19:: to avoid multiple inheritance, this will support subclasses that needs dummy data to be returned
-# as Test::Siebel::Srvrmgr::Action does
-        else {
-
-            return [qw(foo bar something)];
-
-        }
+        # input text files for testing are expected to have UNIX EOL character
+        s/\012$//;
+        push( @data, $_ );
 
     }
+
+    close($in);
+
+    $test->{data} = \@data;
+    return $test->{data};
 
 }
 

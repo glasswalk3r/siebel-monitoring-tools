@@ -99,11 +99,12 @@ This attribute is used during parsing of C<list comp> command and is a read-only
 =cut
 
 has 'last_server' => (
-    is      => 'ro',
-    isa     => 'Str',
-    reader  => 'get_last_server',
-    writer  => '__set_last_server',
-    default => ''
+    is       => 'ro',
+    isa      => 'Str',
+    reader   => 'get_last_server',
+    writer   => '__set_last_server',
+    default  => '',
+    init_arg => undef
 );
 
 =pod
@@ -272,9 +273,9 @@ sub _consume_data {
 
     if ( @{$fields_ref} ) {
 
-        for ( my $i = 0 ; $i < $list_len ; $i++ ) {
+        my $server = $self->get_last_server();
 
-            my $server = $self->get_last_server();
+        for ( my $i = 0 ; $i < $list_len ; $i++ ) {
 
 # :TODO      :02-12-2013 07:56:56:: we already know the sequence names of fields of a component, we can
 # make lazy instantiation of object using this information, so an array here would use less memory instead of using a

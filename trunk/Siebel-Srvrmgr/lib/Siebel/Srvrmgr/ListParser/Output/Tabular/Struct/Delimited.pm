@@ -13,6 +13,19 @@ has trimmer => (
     builder => '_build_trimmer'
 );
 
+ # :WORKAROUND:01-01-2014 18:42:35:: could not user super() because
+ # it was using a "default" value after calling _set_header_regex
+override '_build_header_regex' => sub {
+
+    my $self = shift;
+
+    my $new_sep = '(\s+)?' . $self->get_col_sep();
+
+    $self->_set_header_regex( join( $new_sep, @{ $self->get_header_cols() } ) );
+
+};
+
+# :WORKAROUND:01-01-2014 17:43:39:: used closure to compile the regex only once
 sub _build_trimmer {
 
     my $r_spaces = qr/\s+$/;

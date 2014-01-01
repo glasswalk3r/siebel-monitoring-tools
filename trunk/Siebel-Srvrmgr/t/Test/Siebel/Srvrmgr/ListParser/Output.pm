@@ -92,15 +92,14 @@ sub _constructor : Tests(3) {
 
     }
 
-  SKIP: {
+    SKIP: {
 
         skip $test->class()
-          . ' subclass should not cause an exception with new()', 1
+          . ' subclass should not cause an exception with new()', 1 
           unless ( $test->is_super() );
 
         dies_ok(
             sub {
-
                 $test->class()->new($params_ref);
             },
             $test->get_super() . ' new() causes an exception'
