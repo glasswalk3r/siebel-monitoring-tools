@@ -1,83 +1,13 @@
 package Test::Siebel::Srvrmgr::ListParser::Output::Tabular::ListComp;
 
 use Test::Most;
-use Test::Moose 'has_attribute_ok';
-use Hash::Util qw(lock_keys unlock_keys);
-use base 'Test::Siebel::Srvrmgr::ListParser::Output::Tabular';
+use parent 'Test::Siebel::Srvrmgr::ListParser::Output::Tabular';
 
 sub class_attributes : Tests(no_plan) {
 
     my $test = shift;
 
     $test->SUPER::class_attributes( [qw(last_server comp_attribs servers)] );
-
-}
-
-sub get_structure_type {
-
-    my $test = shift;
-
-    return $test->{structure_type};
-
-}
-
-sub get_col_sep {
-
-    my $test = shift;
-    return $test->{col_sep};
-
-}
-
-sub get_output_file {
-
-    my $test = shift;
-
-    return $test->{output_file};
-
-}
-
-#overriding Test::Siebel::Srvrmgr get_my_data to be able to read text files
-sub get_my_data {
-
-    my $test = shift;
-
-    open( my $in, '<', $test->get_output_file() )
-      or die 'cannot read ' . $test->get_output_file() . ': ' . $!;
-
-    my @data = <$in>;
-    close($in);
-
-    $test->{data} = \@data;
-    return $test->{data};
-
-}
-
-sub _constructor : Test(no_plan) {
-
-    my $test = shift;
-
-    if ( $test->get_col_sep() ) {
-
-        $test->SUPER::_constructor(
-            {
-                last_server    => 'siebel1',
-                structure_type => $test->get_structure_type(),
-                col_sep        => $test->get_col_sep()
-            }
-        );
-
-    }
-    else {
-
-        # this server name is expected from the files used for testing
-        $test->SUPER::_constructor(
-            {
-                last_server    => 'siebel1',
-                structure_type => $test->get_structure_type()
-            }
-        );
-
-    }
 
 }
 

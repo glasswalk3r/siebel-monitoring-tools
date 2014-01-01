@@ -56,14 +56,14 @@ has found_header => (
 sub _build_expected {
 
     confess
-'This method must be overrided by subclasses of Siebel::Srvrmgr::Output::Tabular';
+'_build_expected must be overrided by subclasses of Siebel::Srvrmgr::Output::Tabular';
 
 }
 
 sub _consume_data {
 
     confess
-'This method must be overrided by subclasses of Siebel::Srvrmgr::ListParser::Output::Tabular';
+'_consume_data must be overrided by subclasses of Siebel::Srvrmgr::ListParser::Output::Tabular';
 
 }
 
@@ -84,7 +84,7 @@ sub parse {
 
     my $data_ref = $self->get_raw_data();
 
-    die 'invalid data received to parse'
+    confess 'Invalid data to parse'
       unless ( ( ( ref($data_ref) ) eq 'ARRAY' )
         and ( scalar( @{$data_ref} ) ) );
 
@@ -123,7 +123,6 @@ sub parse {
 
         $struct = $self->get_known_types()->{ $self->get_type() }
           ->new( { header_cols => $self->get_expected_fields() } );
-
     }
 
     my $header       = $struct->get_header_regex();
@@ -174,7 +173,7 @@ sub parse {
 
     }
 
-    confess 'cannot keep parsing: header not found'
+    confess 'failure detected while parsing: header not found'
       unless ( $self->found_header() );
 
     $self->set_data_parsed( \%parsed_lines );
