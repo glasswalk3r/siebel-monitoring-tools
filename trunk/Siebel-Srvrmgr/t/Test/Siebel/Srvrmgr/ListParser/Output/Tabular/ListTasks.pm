@@ -1,9 +1,9 @@
-package Test::Siebel::Srvrmgr::ListParser::Output::ListTasks;
+package Test::Siebel::Srvrmgr::ListParser::Output::Tabular::ListTasks;
 
 use Test::Most;
 use Siebel::Srvrmgr::ListParser::Output::ListTasks::Task;
 use Siebel::Srvrmgr::ListParser::Output::ListTasks;
-use base qw(Test::Siebel::Srvrmgr::ListParser::Output);
+use base qw(Test::Siebel::Srvrmgr::ListParser::Output::Tabular);
 
 sub get_data_type {
 
@@ -17,8 +17,6 @@ sub get_cmd_line {
 
 }
 
-# :TODO      :10/06/2013 16:40:59:: have to move all test classes to a new package name to avoid clashing with other packages like Test::Output
-# :TODO      :10/06/2013 16:30:22:: this is a subclass, the parent tests are missing! should use inheritance here
 sub class_methods : Tests(+5) {
 
     my $test = shift;

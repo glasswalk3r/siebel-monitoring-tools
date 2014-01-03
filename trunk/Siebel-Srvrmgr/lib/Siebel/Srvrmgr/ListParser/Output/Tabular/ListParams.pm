@@ -42,6 +42,10 @@ The parser expects to have the following configuration of fields for the respect
 		PA_SUBSYSTEM (31):  Parameter subsystem
 		PA_SETLEVEL (31):  Internal level at which value was set
 		PA_DISP_SETLEVEL (61):  Display level at which value was set (translatable)
+		PA:
+		PA:
+		PA:
+		PA:
 		PA_NAME (76):  Parameter name
 
 The C<data_parsed> attribute will return the following data estructure:
@@ -184,7 +188,6 @@ sub _build_expected {
 
     $self->_set_expected_fields(
         [
-
             'PA_ALIAS',
             'PA_VALUE',
             'PA_DATATYPE',
@@ -192,8 +195,11 @@ sub _build_expected {
             'PA_SUBSYSTEM',
             'PA_SETLEVEL',
             'PA_DISP_SETLEVEL',
+		    'PA', 
+		    'PA', 
+		    'PA', 
+		    'PA', 
             'PA_NAME'
-
         ]
     );
 
