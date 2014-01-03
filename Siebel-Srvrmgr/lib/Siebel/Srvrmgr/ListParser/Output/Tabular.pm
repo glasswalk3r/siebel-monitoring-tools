@@ -88,9 +88,6 @@ sub parse {
       unless ( ( ( ref($data_ref) ) eq 'ARRAY' )
         and ( scalar( @{$data_ref} ) ) );
 
-    my %parsed_lines;
-
-    my $line_header_regex = qr/^\-+\s/;
 
 # cleaning up, state machine should not handle the end of response from a list command
     while (
@@ -127,6 +124,10 @@ sub parse {
 
     my $header       = $struct->get_header_regex();
     my $header_regex = qr/$header/;
+    my %parsed_lines;
+    my $line_header_regex = qr/^\-+\s/;
+
+	$DB::single = 1;
 
     foreach my $line ( @{$data_ref} ) {
 

@@ -50,17 +50,6 @@ sub _constructor : Test(+2) {
 
     }
 
-#    if ( ( defined($attribs_ref) ) and ( ref($attribs_ref) eq 'HASH' ) ) {
-#
-#        $test->SUPER::_constructor($attribs_ref);
-#
-#    }
-#    else {
-#
-#        $test->SUPER::_constructor( { structure_type => 'fixed' } );
-#
-#    }
-
   SKIP: {
 
         skip $test->class()

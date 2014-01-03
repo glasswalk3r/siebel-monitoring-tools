@@ -71,4 +71,15 @@ sub class_methods : Tests(+5) {
 
 }
 
+sub get_data_type {
+
+	return 'list_comp';
+
+}
+
+sub get_cmd_line {
+
+	return 'list comp';
+}
+
 1;

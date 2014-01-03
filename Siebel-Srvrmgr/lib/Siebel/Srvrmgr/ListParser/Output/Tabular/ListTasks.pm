@@ -1,7 +1,7 @@
 package Siebel::Srvrmgr::ListParser::Output::Tabular::ListTasks;
-use Moose;
 
-#use Siebel::Srvrmgr::ListParser::Output::ListTasks::Task;
+use Moose;
+use Siebel::Srvrmgr::ListParser::Output::ListTasks::Task;
 use namespace::autoclean;
 
 =pod
@@ -73,25 +73,32 @@ sub _build_expected {
 
     my $self = shift;
 
-	if ($self->get_type() eq 'delimited') {
+    if ( $self->get_type() eq 'delimited' ) {
 
-    $self->_set_expected_fields->(
-        [
-            'SV_NAME',           'CC_ALIAS',
-            'TK_TASKID',         'TK_PID',
-            'TK_DISP_RUNSTATE',  'CC_RUNMODE',
-            'TK_START_TIME',     'TK_END_TIME',
-            'TK_STATUS',         'CG_ALIAS',
-            'TK_PARENT_TASKNUM', 'CC_INCARN_NO',
-            'TK_LABEL',          'TK_TASKTYPE',
-            'TK_PING_TIME'
-        ]
-    );
+        $self->_set_expected_fields->(
+            [
+                'SV_NAME',           'CC_ALIAS',
+                'TK_TASKID',         'TK_PID',
+                'TK_DISP_RUNSTATE',  'CC_RUNMODE',
+                'TK_START_TIME',     'TK_END_TIME',
+                'TK_STATUS',         'CG_ALIAS',
+                'TK_PARENT_TASKNUM', 'CC_INCARN_NO',
+                'TK_LABEL',          'TK_TASKTYPE',
+                'TK_PING_TIME'
+            ]
+        );
 
-} else {
+    }
+    else {
 
+        $self->_set_expected_fields->(
+            [
+                'SV_NAME', 'CC_ALIAS', 'TK_TASKID', 'TK_PID',
+                'TK_DISP_RUNSTATE'
+            ]
+        );
 
-}
+    }
 
 }
 
