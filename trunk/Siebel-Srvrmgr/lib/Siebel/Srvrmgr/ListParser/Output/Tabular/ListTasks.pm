@@ -75,7 +75,7 @@ sub _build_expected {
 
     if ( $self->get_type() eq 'delimited' ) {
 
-        $self->_set_expected_fields->(
+        $self->_set_expected_fields(
             [
                 'SV_NAME',           'CC_ALIAS',
                 'TK_TASKID',         'TK_PID',
@@ -91,7 +91,7 @@ sub _build_expected {
     }
     else {
 
-        $self->_set_expected_fields->(
+        $self->_set_expected_fields(
             [
                 'SV_NAME', 'CC_ALIAS', 'TK_TASKID', 'TK_PID',
                 'TK_DISP_RUNSTATE'
@@ -113,6 +113,8 @@ All from parent class. Some are overrided.
 sub get_servers {
 
     my $self = shift;
+
+	$DB::single = 1;
 
     return keys( %{ $self->get_data_parsed() } );
 

@@ -28,7 +28,8 @@ has expected_fields => (
     isa     => 'ArrayRef',
     reader  => 'get_expected_fields',
     writer  => '_set_expected_fields',
-    builder => '_build_expected'
+    builder => '_build_expected',
+    lazy    => 1
 );
 
 has known_types => (
@@ -88,7 +89,6 @@ sub parse {
       unless ( ( ( ref($data_ref) ) eq 'ARRAY' )
         and ( scalar( @{$data_ref} ) ) );
 
-
 # cleaning up, state machine should not handle the end of response from a list command
     while (
         ( scalar( @{$data_ref} ) > 0 )
@@ -126,8 +126,6 @@ sub parse {
     my $header_regex = qr/$header/;
     my %parsed_lines;
     my $line_header_regex = qr/^\-+\s/;
-
-	$DB::single = 1;
 
     foreach my $line ( @{$data_ref} ) {
 
