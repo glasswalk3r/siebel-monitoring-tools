@@ -27,41 +27,123 @@ An object that represents each task from a C<list tasks> command output from srv
 
 =head1 ATTRIBUTES
 
-All attributes are required unless documented that is not.
+The list of attributes, with their respective inner parenthesis:
 
-=head2 server_name
+=over
 
-Name of the Siebel server where the task information was recovered.
+=item *
 
-=head2 comp_alias
+server_name: Server name (string)
 
-The component alias corresponding to the task.
+=item *
 
-=head2 id
+comp_alias: Component alias (string)
 
-The task id.
+=item *
 
-=head2 pid
+id: Internal task id (integer)
 
-The corresponding process identifier from the running OS of the task (in fact, the PID from the related component process).
+=item *
 
-=head2 status
+pid: Task process id (integer)
 
-Task-reported status.
+=item *
+
+run_state: Task run state (string)
+
+=item *
+
+run_mode: Task run mode (string)
+
+=item *
+
+start_time: Task start time (string)
+
+=item *
+
+end_time: Task end time (string)
+
+=item *
+
+status: Task-reported status (string)
+
+=item *
+
+group_alias: Component group alias (string)
+
+=item *
+
+parent_id: Parent task id (integer)
+
+=item *
+
+incarn_no: Incarnation Number (integer)
+
+=item *
+
+label: Task Label (string)
+
+=item *
+
+type: Task Type (string)
+
+=item *
+
+ping_time: Last ping time for task (string)
+
+=back
+
+The attributes that are required are:
+
+=over
+
+=item *
+
+server_name
+
+=item *
+
+comp_alias
+
+=item *
+
+id
+
+=item *
+
+pid
+
+=item *
+
+status
+
+=back
+
+Depending on the type of output recovered from the C<srvrmgr>, not all attributes will be available but the required.
 
 =cut
 
-has 'server_name'    => ( is => 'ro', isa => 'Str', required => 1 );
-has 'comp_alias'     => ( is => 'ro', isa => 'Str', required => 1 );
-has 'id'             => ( is => 'ro', isa => 'Int', required => 1 );
-has 'pid'            => ( is => 'ro', isa => 'Int', required => 1 );
-has 'status'         => ( is => 'ro', isa => 'Str', required => 1 );
+has 'server_name' => ( is => 'ro', isa => 'Str', required   => 1 );
+has 'comp_alias'  => ( is => 'ro', isa => 'Str', required   => 1 );
+has 'id'          => ( is => 'ro', isa => 'Int', required   => 1 );
+has 'pid'         => ( is => 'ro', isa => 'Int', required   => 1 );
+has 'run_state'   => ( is => 'ro', isa => 'Str', required   => 1 );
+has 'run_mode'    => ( is => 'ro', isa => 'Str', 'required' => 0 );
+has 'start_time'  => ( is => 'ro', isa => 'Str', 'required' => 0 );
+has 'end_time'    => ( is => 'ro', isa => 'Str', 'required' => 0 );
+has 'status'      => ( is => 'ro', isa => 'Str', 'required' => 0 );
+has 'group_alias' => ( is => 'ro', isa => 'Str', 'required' => 0 );
+has 'parent_id'   => ( is => 'ro', isa => 'Int', 'required' => 0 );
+has 'incarn_no'   => ( is => 'ro', isa => 'Int', 'required' => 0 );
+has 'label'       => ( is => 'ro', isa => 'Str', 'required' => 0 );
+has 'type'        => ( is => 'ro', isa => 'Str', 'required' => 0 );
+has 'ping_time'   => ( is => 'ro', isa => 'Str', 'required' => 0 );
 
 =pod
 
 =head1 METHODS
 
-All attributes have a getter named "get_<attribute name>".
+All attributes have a getter named C<get_E<lt>attribute nameE<gt>>.
 
 Since all attributes are read-only there is no corresponding setter.
 

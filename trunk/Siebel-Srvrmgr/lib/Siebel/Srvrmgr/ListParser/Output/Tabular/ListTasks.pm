@@ -3,6 +3,7 @@ package Siebel::Srvrmgr::ListParser::Output::Tabular::ListTasks;
 use Moose;
 use Siebel::Srvrmgr::ListParser::Output::ListTasks::Task;
 use namespace::autoclean;
+use Siebel::Srvrmgr::Regexes qw(SIEBEL_SERVER);
 
 =pod
 
@@ -26,7 +27,7 @@ This class is still a working progress, which means it is not working as expecte
 
 This subclass of L<Siebel::Srvrmgr::ListParser::Output::Tabular> parses the output of the command C<list tasks>.
 
-It is expected that the C<srvrmgr> program has a proper configuration for the C<list tasks> command. The configuration
+It is expected that the C<srvrmgr> program has a proper configuration for the C<list tasks> command. The default configuration
 can see below:
 
 	srvrmgr> configure list tasks
@@ -46,10 +47,9 @@ can see below:
         TK_TASKTYPE (31):  Task Type
         TK_PING_TIME (11):  Last ping time for task
 
-This output above should be the default. If you want to use fixed width configuration within srvrmgr
-this will be the expected configuration:
+If you want to use fixed width configuration within srvrmgr this will be the expected configuration:
 
-srvrmgr> configure list tasks
+    srvrmgr> configure list tasks
         SV_NAME (31):  Server name
         CC_ALIAS (31):  Component alias
         TK_TASKID (11):  Internal task id
@@ -114,9 +114,35 @@ sub get_servers {
 
     my $self = shift;
 
-	$DB::single = 1;
-
     return keys( %{ $self->get_data_parsed() } );
+
+}
+
+sub count_tasks {
+
+    my $self   = shift;
+    my $server = shift;
+
+    my $server_ref = $self->_val_tasks_server($server);
+
+    return scalar( @{$server_ref} );
+
+}
+
+sub _val_tasks_server {
+
+    my $self   = shift;
+    my $server = shift;
+
+    confess 'Siebel Server name parameter is required and must be valid'
+      unless ( ( defined($server) ) and ( $server =~ SIEBEL_SERVER ) );
+
+    my $data_ref = $self->get_data_parsed();
+
+    confess "servername '$server' is not available in the output parsed"
+      unless ( exists( $data_ref->{$server} ) );
+
+    return $data_ref->{$server};
 
 }
 
@@ -126,17 +152,9 @@ sub get_tasks {
     my $server  = shift;
     my $counter = 0;
 
-    confess 'servername parameter is required'
-      unless ( ( defined($server) ) and ( $server =~ /\w+/ ) );
+    my $server_ref = $self->_val_tasks_server($server);
 
-    my $data_ref = $self->get_data_parsed();
-
-    confess "servername '$server' is not available in the output parsed"
-      unless ( exists( $data_ref->{$server} ) );
-
-    my $total = scalar( @{ $data_ref->{$server} } );
-
-    my $server_ref = $self->get_data_parsed()->{$server};
+    my $total = scalar( @{$server_ref} ) - 1;
 
     return sub {
 
@@ -146,15 +164,47 @@ sub get_tasks {
 
             $counter++;
 
-            return Siebel::Srvrmgr::ListParser::Output::ListTasks::Task->new(
-                {
+            if ( $self->get_type() eq 'fixed' ) {
+
+                return Siebel::Srvrmgr::ListParser::Output::ListTasks::Task
+                  ->new(
+                    {
+                        server_name => $fields_ref->[0],
+                        comp_alias  => $fields_ref->[1],
+                        id          => $fields_ref->[2],
+                        pid         => $fields_ref->[3],
+                        run_state   => $fields_ref->[4]
+                    }
+                  );
+
+            }
+            else {
+
+                my %params = (
                     server_name => $fields_ref->[0],
                     comp_alias  => $fields_ref->[1],
                     id          => $fields_ref->[2],
                     pid         => $fields_ref->[3],
-                    status      => $fields_ref->[4]
-                }
-            );
+                    run_state   => $fields_ref->[4],
+                    run_mode    => $fields_ref->[5],
+                    start_time  => $fields_ref->[6],
+                    end_time    => $fields_ref->[7],
+                    status      => $fields_ref->[8],
+                    group_alias => $fields_ref->[9],
+                    label       => $fields_ref->[12],
+                    type        => $fields_ref->[13],
+                    ping_time   => $fields_ref->[14]
+                );
+
+                $params{parent_id} = $fields_ref->[10]
+                  unless ( $fields_ref->[10] eq '' );
+                $params{incarn_no} = $fields_ref->[11]
+                  unless ( $fields_ref->[11] eq '' );
+
+                return Siebel::Srvrmgr::ListParser::Output::ListTasks::Task
+                  ->new(\%params);
+
+            }
 
         }
         else {
@@ -197,7 +247,8 @@ sub _consume_data {
 
 =head1 CAVEATS
 
-Unfornately, to the present moment this class is not working as expected.
+Unfornately the results of C<list tasks> command does not works as expected if a fixed width output type is selected due a bug with 
+the C<srvrmgr> itself in recent versions of Siebel (8 and beyond).
 
 Even though a L<Siebel::Srvrmgr::ListParser> instance is capable of identifying a C<list tasks> command output, this class is 
 not being able to properly parse the output from the command.
@@ -208,6 +259,8 @@ column and thus impossible to predict how to parse it correctly.
 
 That said, this class will make all the fields available from C<list tasks> if a field delimited output was
 configured within srvrmgr.
+
+This problems does not happens when a delimited output is selected, so all fields will be available.
 
 =head1 SEE ALSO
 
