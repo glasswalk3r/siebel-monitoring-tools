@@ -1,5 +1,6 @@
 package Test::Siebel::Srvrmgr::ListParser::Output::Tabular::ListTasks;
 
+use Test::Moose;
 use Test::Most;
 use parent qw(Test::Siebel::Srvrmgr::ListParser::Output::Tabular);
 
@@ -21,10 +22,23 @@ sub class_methods : Tests(no_plan) {
 
     $test->SUPER::class_methods( [qw(get_servers get_tasks)] );
 
-	$DB::single = 1;
+    my @fixed_attribs = qw(server_name comp_alias id pid status);
+    my @del_attribs   = (
+        'run_mode',    'start_time', 'end_time',  'status',
+        'group_alias', 'parent_id',  'incarn_no', 'label',
+        'type',        'ping_time'
+    );
 
     $test->num_tests(
-        scalar( @{ $test->get_output()->get_data_parsed()->{siebel1} } ) + 6 );
+        '+'
+          . (
+            (
+                scalar(
+                    @{ $test->get_output()->get_data_parsed()->{siebel1} }
+                ) * ( scalar(@fixed_attribs) + scalar(@del_attribs) + 1 )
+            ) + 12
+          )
+    );
 
     ok( $test->get_output()->get_data_parsed(), 'get_data_parsed works' );
 
@@ -50,6 +64,29 @@ sub class_methods : Tests(no_plan) {
     cmp_deeply( $test->get_output()->get_servers(),
         (qw(siebel1)), 'get_servers() returns the expected value' );
 
+    dies_ok { $test->get_output()->get_tasks() }
+    'get_tasks dies when invoked without a Siebel server name';
+    like(
+        $@,
+        qr/Siebel\sServer\sname\sparameter\sis\srequired\sand\smust\sbe\svalid/,
+        'dies with correct message'
+    );
+    dies_ok { $test->get_output()->get_tasks() }
+    'get_tasks dies when invoked with an invalid Siebel server name';
+    like(
+        $@,
+        qr/Siebel\sServer\sname\sparameter\sis\srequired\sand\smust\sbe\svalid/,
+        'dies with correct message'
+    );
+
+    dies_ok { $test->get_output()->get_tasks('foobar') }
+    'get_tasks dies when invoked with an unexisting Siebel server name';
+    like(
+        $@,
+        qr/\sis\snot\savailable\sin\sthe\soutput\sparsed/,
+        'dies with correct message'
+    );
+
     my $next_task = $test->get_output()->get_tasks('siebel1');
 
     is( ref($next_task), 'CODE', 'get_tasks returns a code reference' );
@@ -57,6 +94,26 @@ sub class_methods : Tests(no_plan) {
     while ( my $task = $next_task->() ) {
 
         isa_ok( $task, 'Siebel::Srvrmgr::ListParser::Output::ListTasks::Task' );
+
+        foreach my $attrib (@fixed_attribs) {
+
+            has_attribute_ok( $task, $attrib );
+
+        }
+
+      SKIP: {
+
+            skip 'These tests are for delimited output type only',
+              scalar(@del_attribs)
+              unless ( $test->get_output()->get_type() eq 'delimited' );
+
+            foreach my $attrib (@del_attribs) {
+
+                has_attribute_ok( $task, $attrib );
+
+            }
+
+        }
 
     }
 
@@ -68,7 +125,7 @@ sub class_methods : Tests(no_plan) {
                         {
                             'comp_alias'  => 'eChannelCMEObjMgr_ptb',
                             'pid'         => '5364',
-                            'status'      => 'Completed',
+                            'run_state'   => 'Completed',
                             'id'          => '127926815',
                             'server_name' => 'siebfoobar2'
                         }
