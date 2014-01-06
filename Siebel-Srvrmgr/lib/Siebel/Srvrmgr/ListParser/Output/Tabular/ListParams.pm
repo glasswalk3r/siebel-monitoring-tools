@@ -188,18 +188,12 @@ sub _build_expected {
 
     $self->_set_expected_fields(
         [
-            'PA_ALIAS',
-            'PA_VALUE',
-            'PA_DATATYPE',
-            'PA_SCOPE',
-            'PA_SUBSYSTEM',
-            'PA_SETLEVEL',
-            'PA_DISP_SETLEVEL',
-		    'PA', 
-		    'PA', 
-		    'PA', 
-		    'PA', 
-            'PA_NAME'
+            'PA_ALIAS',         'PA_VALUE',
+            'PA_DATATYPE',      'PA_SCOPE',
+            'PA_SUBSYSTEM',     'PA_SETLEVEL',
+            'PA_DISP_SETLEVEL', 'PA',
+            'PA',               'PA',
+            'PA',               'PA_NAME'
         ]
     );
 
@@ -211,11 +205,18 @@ sub _consume_data {
     my $fields_ref = shift;
     my $parsed_ref = shift;
 
+    my $columns_ref = $self->get_expected_fields();
+
+# :WORKAROUND:05-01-2014:: must give different names since the default storage is an hash
+    $columns_ref->[7]  = 'PA_1';
+    $columns_ref->[8]  = 'PA_2';
+    $columns_ref->[9]  = 'PA_3';
+    $columns_ref->[10] = 'PA_4';
+
     if ( @{$fields_ref} ) {
 
-        my $pa_alias    = $fields_ref->[0];
-        my $list_len    = scalar( @{$fields_ref} );
-        my $columns_ref = $self->get_expected_fields();
+        my $pa_alias = $fields_ref->[0];
+        my $list_len = scalar( @{$fields_ref} );
 
         for ( my $i = 1 ; $i < $list_len ; $i++ )
         {    # starting from 1 to skip the field PA_ALIAS
