@@ -93,9 +93,9 @@ lock_hash(%table_mapping);
 
 sub get_mapping {
 
-	my %copy = %table_mapping;
+    my %copy = %table_mapping;
 
-	return \%copy;
+    return \%copy;
 
 }
 
@@ -113,7 +113,26 @@ implementation_class_via sub {
     my $last_cmd_type = shift;
     my $object_data   = shift;    # hash ref
 
+    confess 'object data is required' unless ( defined($object_data) );
+
     if ( exists( $table_mapping{$last_cmd_type} ) ) {
+
+        if ( $table_mapping{$last_cmd_type} =~ /^Tabular/ ) {
+
+            my $field_del = shift;
+
+            if ( defined($field_del) ) {
+
+                $object_data->{col_sep}        = $field_del;
+                $object_data->{structure_type} = 'delimited';
+            }
+            else {
+
+                $object_data->{structure_type} = 'fixed';
+
+            }
+
+        }
 
         return 'Siebel::Srvrmgr::ListParser::Output::'
           . $table_mapping{$last_cmd_type};
