@@ -24,6 +24,7 @@ use Siebel::Srvrmgr::ListParser::FSA;
 use Socket qw(:crlf);
 use namespace::autoclean;
 use Carp;
+use Siebel::Srvrmgr::Types;
 
 =pod
 
@@ -168,6 +169,8 @@ has clear_raw => (
     writer  => 'set_clear_raw',
     default => 1
 );
+
+has field_delimiter => ( is => 'ro', isa => 'Chr', reader => 'get_field_del' );
 
 =pod
 
@@ -443,6 +446,8 @@ sub append_output {
     my $self   = shift;
     my $buffer = shift;
 
+	$DB::single = 1;
+
     if ( defined($buffer) ) {
 
         my $output = Siebel::Srvrmgr::ListParser::OutputFactory->create(
@@ -451,10 +456,11 @@ sub append_output {
                 data_type => $buffer->get_type(),
                 raw_data  => $buffer->get_content(),
                 cmd_line  => $buffer->get_cmd_line()
-            }
+            },
+            $self->get_field_del()
         );
 
-        if ( $output->isa('Siebel::Srvrmgr::ListParser::Output::Greetings') ) {
+        if ( $output->isa('Siebel::Srvrmgr::ListParser::Output::Enterprise') ) {
 
             $self->_set_enterprise($output);
 
@@ -479,11 +485,13 @@ sub append_output {
                     data_type => $buffer->get_type(),
                     raw_data  => $buffer->get_content(),
                     cmd_line  => $buffer->get_cmd_line()
-                }
+                },
+                $self->get_field_del()
             );
 
             if (
-                $output->isa('Siebel::Srvrmgr::ListParser::Output::Greetings') )
+                $output->isa('Siebel::Srvrmgr::ListParser::Output::Enterprise')
+              )
             {
 
                 $self->_set_enterprise($output);
