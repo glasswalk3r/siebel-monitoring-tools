@@ -29,6 +29,8 @@ sub class_methods : Tests(+2) {
     is( $test->get_output()->get_comp_alias(),
         'SRProc', 'get_comp_alias returns the expected component alias' );
 
+# :TODO:05-01-2014:: should test if the parsed data is equal to the expected one
+
 }
 
 sub class_attributes : Tests(no_plan) {

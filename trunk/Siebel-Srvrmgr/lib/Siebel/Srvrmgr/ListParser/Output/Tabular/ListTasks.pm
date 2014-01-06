@@ -47,7 +47,7 @@ can see below:
         TK_TASKTYPE (31):  Task Type
         TK_PING_TIME (11):  Last ping time for task
 
-If you want to use fixed width configuration within srvrmgr this will be the expected configuration:
+If you want to use fixed width configuration from C<srvrmgr> this will be the expected configuration:
 
     srvrmgr> configure list tasks
         SV_NAME (31):  Server name
@@ -56,11 +56,26 @@ If you want to use fixed width configuration within srvrmgr this will be the exp
         TK_PID (11):  Task process id
         TK_DISP_RUNSTATE (61):  Task run state
 
-If you want to use the field delimited output from srvrmgr then this the expected configuration:
+If you want to use the field delimited output from C<srvrmgr> then this the expected configuration:
 
-=FOOBAR put the output expected here
+	srvrmgr> configure list tasks
+		SV_NAME (31):  Server name
+		CC_ALIAS (31):  Component alias
+		TK_TASKID (11):  Internal task id
+		TK_PID (11):  Task process id
+		TK_DISP_RUNSTATE (61):  Task run state
+		CC_RUNMODE (31):  Task run mode
+		TK_START_TIME (21):  Task start time
+		TK_END_TIME (21):  Task end time
+		TK_STATUS (251):  Task-reported status
+		CG_ALIAS (31):  Component group alias
+		TK_PARENT_TASKNUM (18):  Parent task id
+		CC_INCARN_NO (23):  Incarnation Number
+		TK_LABEL (76):  Task Label
+		TK_TASKTYPE (31):  Task Type
+		TK_PING_TIME (12):  Last ping time for task
 
-Order of the fields is important too: everytime those fields are parsed, if they do not follow the order above an exception 
+The order of the fields is important too: everytime those fields are parsed, if they do not follow the order above an exception 
 will be raised.
 
 =head1 ATTRIBUTES
