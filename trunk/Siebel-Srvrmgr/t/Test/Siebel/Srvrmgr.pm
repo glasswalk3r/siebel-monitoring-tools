@@ -48,8 +48,7 @@ sub get_my_data {
 
     close($in);
 
-    $test->{data} = \@data;
-    return $test->{data};
+    return \@data;
 
 }
 
