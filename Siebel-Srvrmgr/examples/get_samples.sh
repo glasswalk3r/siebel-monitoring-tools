@@ -34,12 +34,9 @@ user=SADMIN
 password=SADMIN
 
 collect $gateway $enterprise $user $password 'list_cmd_del.txt' 'delimited' 
-collect $gateway $enterprise $user $password 'list_cmd_del.txt' 'fixed' 
+collect $gateway $enterprise $user $password 'list_cmd_fixed.txt' 'fixed' 
 
-echo "Packing files..."
 tar czvf all.tgz delimited fixed
-
-echo "Removing temporary files"
 rm -rfv delimited fixed
 
 echo "Finished"

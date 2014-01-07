@@ -25,6 +25,7 @@ use Socket qw(:crlf);
 use namespace::autoclean;
 use Carp;
 use Siebel::Srvrmgr::Types;
+use String::BOM qw(string_has_bom strip_bom_from_string);
 
 =pod
 
@@ -138,7 +139,7 @@ This object has some details about the enterprise connected. Check the related P
 
 has 'enterprise' => (
     is     => 'ro',
-    isa    => 'Siebel::Srvrmgr::ListParser::Output::Greetings',
+    isa    => 'Siebel::Srvrmgr::ListParser::Output::Enterprise',
     reader => 'get_enterprise',
     writer => '_set_enterprise'
 );
@@ -446,11 +447,9 @@ sub append_output {
     my $self   = shift;
     my $buffer = shift;
 
-	$DB::single = 1;
-
     if ( defined($buffer) ) {
 
-        my $output = Siebel::Srvrmgr::ListParser::OutputFactory->create(
+        my $output = Siebel::Srvrmgr::ListParser::OutputFactory->build(
             $buffer->get_type(),
             {
                 data_type => $buffer->get_type(),
@@ -479,7 +478,7 @@ sub append_output {
 
         foreach my $buffer ( @{$buffer_ref} ) {
 
-            my $output = Siebel::Srvrmgr::ListParser::OutputFactory->create(
+            my $output = Siebel::Srvrmgr::ListParser::OutputFactory->build(
                 $buffer->get_type(),
                 {
                     data_type => $buffer->get_type(),
@@ -543,6 +542,12 @@ sub parse {
 
     weaken($data_ref);
 
+    if ( string_has_bom( $data_ref->[0] ) ) {
+
+        $data_ref->[0] = strip_bom_from_string( $data_ref->[0] );
+
+    }
+
     $self->get_fsa->notes( all_data => $data_ref );
     $self->get_fsa->notes( line_num => 0 );
     $self->get_fsa->start() unless ( $self->get_fsa()->curr_state() );
@@ -564,7 +569,7 @@ sub parse {
           SWITCH: {
 
 # :WORKAROUND:03-10-2013:arfreitas: command_submission defines is_cmd_changed but it is not a
-# Siebel::Srvrmgr::ListParser::Output instance, so it's not worth to create a buffer object for it and discard later.
+# Siebel::Srvrmgr::ListParser::Output subclass, so it's not worth to create a buffer object for it and discard later.
 # Anyway, is expected that after a command is submitted, the next message is the output from it and it needs
 # a buffer to be stored
                 if ( $self->get_fsa->prev_state()->name() eq
