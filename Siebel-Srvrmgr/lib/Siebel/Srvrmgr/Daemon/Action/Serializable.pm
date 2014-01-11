@@ -87,7 +87,7 @@ L<Siebel::Srvrmgr::Daemon::Action>
 
 =head1 AUTHOR
 
-Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<E<gt>
+Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<Egt>
 
 =head1 COPYRIGHT AND LICENSE
 

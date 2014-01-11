@@ -81,6 +81,12 @@ sub BUILD {
 
 }
 
+override '_build_exp_output' => sub {
+
+    return 'Siebel::Srvrmgr::ListParser::Output::Tabular::ListComp';
+
+};
+
 =head2 do_parsed
 
 Expects a array reference as the buffer output from C<srvrmgr> program as a parameter.
@@ -131,13 +137,14 @@ override 'do_parsed' => sub {
 
     my %checked_comps;
 
-    if ( $obj->isa('Siebel::Srvrmgr::ListParser::Output::ListComp') ) {
+    if ( $obj->isa( $self->get_exp_output ) ) {
 
         my $out_servers_ref =
           $obj->get_servers();    # servers retrieve from output of srvrmgr
 
-        confess
-"Could not fetch servers from the Siebel::Srvrmgr::ListParser::Output::ListComp object returned by the parser"
+        $logger->die( 'Could not fetch servers from the '
+              . $self->get_exp_output
+              . 'object returned by the parser' )
           unless ( scalar( @{$out_servers_ref} ) > 0 );
 
         foreach my $out_name ( @{$out_servers_ref} ) {
@@ -236,6 +243,8 @@ override 'do_parsed' => sub {
     }
     else {
 
+        $logger->debug( 'object received ISA not' . $self->get_exp_output() )
+          if ( $logger->is_debug() );
         return 0;
 
     }

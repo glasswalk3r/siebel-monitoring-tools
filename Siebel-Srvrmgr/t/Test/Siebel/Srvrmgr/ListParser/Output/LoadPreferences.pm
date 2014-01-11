@@ -15,7 +15,7 @@ sub get_cmd_line {
 
 }
 
-sub class_attributes : Test {
+sub class_attributes : Test(no_plan) {
 
     my $test = shift;
 
@@ -31,15 +31,11 @@ sub class_methods : Tests(+1) {
 
     is(
         $test->get_output()->get_location(),
-        'C:\Siebel\8.0\web client\BIN\.Siebel_svrmgr.pref',
+        '/opt/oracle/app/product/8.0.0/siebel_1/siebsrvr/bin/.Siebel_svrmgr.pref',
         'get_location returns the correct data'
     );
 
 }
 
 1;
-
-__DATA__
-srvrmgr:SUsrvr> load preferences
-File: C:\Siebel\8.0\web client\BIN\.Siebel_svrmgr.pref
 

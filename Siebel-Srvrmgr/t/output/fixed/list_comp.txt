@@ -1,3 +1,5 @@
+srvrmgr> list comp
+
 SV_NAME  CC_ALIAS        CC_NAME                                       CT_ALIAS     CG_ALIAS   CC_RUNMODE   CP_DISP_RUN_STATE  CP_NUM_RUN_TASKS  CP_MAX_TASKS  CP_ACTV_MTS_PROCS  CP_MAX_MTS_PROCS  CP_START_TIME        CP_END_TIME  CP_STATUS  CC_INCARN_NO  CC_DESC_TEXT  
 -------  --------------  --------------------------------------------  -----------  ---------  -----------  -----------------  ----------------  ------------  -----------------  ----------------  -------------------  -----------  ---------  ------------  ------------  
 siebel1  FSMSrvr         File System Manager                           FSMSrvr      SystemAux  Batch        Online             0                 20            1                  1                 2013-12-08 17:11:30               Enabled                                
