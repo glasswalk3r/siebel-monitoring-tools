@@ -1,7 +1,7 @@
 package Test::Siebel::Srvrmgr::ListParser::Output::Tabular::ListServers;
 
 use Test::Most;
-use base 'Test::Siebel::Srvrmgr::ListParser::Output::Tabular';
+use parent 'Test::Siebel::Srvrmgr::ListParser::Output::Tabular';
 
 sub get_data_type {
 

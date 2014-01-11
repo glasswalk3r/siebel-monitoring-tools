@@ -69,8 +69,6 @@ override 'parse' => sub {
 
     my %parsed_lines;
 
-	$DB::single = 1;
-
     foreach my $line ( @{$data_ref} ) {
 
       SWITCH: {

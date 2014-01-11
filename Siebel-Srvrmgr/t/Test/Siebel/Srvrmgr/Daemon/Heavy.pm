@@ -6,7 +6,7 @@ use File::Spec;
 use Test::Moose 'has_attribute_ok';
 use Siebel::Srvrmgr::Daemon::Heavy;
 use Config;
-use base 'Test::Siebel::Srvrmgr::Daemon';
+use parent 'Test::Siebel::Srvrmgr::Daemon';
 use Siebel::Srvrmgr;
 
 sub class_methods : Test(+1) {

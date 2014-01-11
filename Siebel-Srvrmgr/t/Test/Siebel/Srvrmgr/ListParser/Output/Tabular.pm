@@ -24,6 +24,20 @@ sub get_super {
 
 }
 
+# overriding parent's because the files will have the command itself followed by the output of it
+sub get_my_data {
+
+    my $test = shift;
+
+    my $data_ref = $test->SUPER::get_my_data();
+
+    shift( @{$data_ref} );    #command
+    shift( @{$data_ref} );    #new line
+
+    return $data_ref;
+
+}
+
 sub _constructor : Test(+2) {
 
     my $test        = shift;
@@ -60,9 +74,10 @@ sub _constructor : Test(+2) {
             sub {
                 $test->class()->new(
                     {
-                        data_type => $test->get_data_type(),
-                        cmd_line  => $test->get_cmd_line(),
-                        raw_data  => $test->get_my_data()
+                        data_type      => $test->get_data_type(),
+                        cmd_line       => $test->get_cmd_line(),
+                        raw_data       => $test->get_my_data(),
+                        structure_type => $test->get_structure_type()
                     }
                 );
             },
@@ -121,21 +136,13 @@ sub class_methods : Test(+2) {
         skip $test->get_super() . ' does not have instance for those tests', 2
           if ( $test->is_super() );
 
-        ok(
-            $test->get_output()
-              ->set_raw_data( [] ),
-            'set_raw_data works'
-        );
+        ok( $test->get_output()->set_raw_data( [] ), 'set_raw_data works' );
 
         dies_ok
           sub { $test->get_output()->parse() },
           'test parse validation 1';
 
-        like(
-            $@,
-            qr/Invalid\sdata\sto\sparse/,
-            'invalid data to parse'
-        );
+        like( $@, qr/Invalid\sdata\sto\sparse/, 'invalid data to parse' );
 
         ok(
             $test->get_output()
