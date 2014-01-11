@@ -1,3 +1,5 @@
+srvrmgr> list tasks
+
 SV_NAME|CC_ALIAS      |TK_TASKID|TK_PID|TK_DISP_RUNSTATE |CC_RUNMODE |TK_START_TIME      |TK_END_TIME        |TK_STATUS                                                                                                       |CG_ALIAS |TK_PARENT_TASKNUM|CC_INCARN_NO|TK_LABEL                |TK_TASKTYPE|TK_PING_TIME|
 -------  --------------  ---------  ------  -----------------  -----------  -------------------  -------------------  ----------------------------------------------------------------------------------------------------------------  ----------------  -----------  ------------  ------------------------  -----------  -----------  
 siebel1|ServerMgr     |15728642 |6963  |Running          |Interactive|2013-12-08 18:31:48|2000-00-00 00:00:00|Processing "List Tasks" command                                                                                 |System   |                 |0           |                        |Normal     |           |

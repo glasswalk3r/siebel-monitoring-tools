@@ -7,7 +7,7 @@ use Test::Moose 'has_attribute_ok';
 use Siebel::Srvrmgr::Daemon;
 use Siebel::Srvrmgr::Daemon::Command;
 use Log::Log4perl;
-use base 'Test::Siebel::Srvrmgr';
+use parent 'Test::Siebel::Srvrmgr';
 use Siebel::Srvrmgr;
 
 $SIG{INT} = \&clean_up;

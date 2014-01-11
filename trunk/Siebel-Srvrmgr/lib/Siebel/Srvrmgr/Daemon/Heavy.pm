@@ -79,7 +79,6 @@ use Siebel::Srvrmgr::IPC;
 use IO::Select;
 use Encode;
 use Carp qw(longmess);
-use Socket qw(:crlf);
 use Siebel::Srvrmgr;
 
 extends 'Siebel::Srvrmgr::Daemon';
@@ -448,7 +447,7 @@ sub run {
 
         confess( $self->get_bin()
               . ' returned un unrecoverable error, aborting execution' )
-          unless ( $self->create_child() );
+          unless ( $self->_create_child() );
 
 # :WORKAROUND:31/07/2013 14:42:33:: must initialize the Log::Log4perl after forking the srvrmgr to avoid sharing filehandles
         $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );
@@ -457,7 +456,6 @@ sub run {
     else {
 
         $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );
-        weaken($logger);
         $logger->info( 'Reusing PID ', $self->get_pid() )
           if ( $logger->is_debug() );
         $ignore_output = 1;
@@ -486,7 +484,7 @@ sub run {
     my $data_ref = $self->_create_handle_buffer( $select, $logger );
 
     my $prompt_regex = qr/srvrmgr(\:\w+)?>\s(.*)?$/;
-    my $eol_regex    = qr/$CRLF$/;
+    my $eol_regex    = qr/\015\012$/;
 
     $logger->debug( 'sysread buffer size is ' . $self->get_buffer_size() )
       if ( $logger->is_debug() );
@@ -812,15 +810,15 @@ sub _create_handle_buffer {
 
       SWITCH: {
 
-            if ( $/ eq CR ) {
+            if ( $/ eq \015 ) {
                 $logger->debug( $assert . 'CR' );
                 last SWITCH;
             }
-            if ( $/ eq CRLF ) {
+            if ( $/ eq ( \015 . \012 ) ) {
                 $logger->debug( $assert . 'CRLF' );
                 last SWITCH;
             }
-            if ( $/ eq LF ) {
+            if ( $/ eq \012 ) {
                 $logger->debug( $assert . 'LF' );
                 last SWITCH;
             }

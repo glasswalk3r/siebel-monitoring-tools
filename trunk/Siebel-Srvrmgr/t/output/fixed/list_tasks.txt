@@ -1,3 +1,5 @@
+srvrmgr> list tasks
+
 SV_NAME  CC_ALIAS        TK_TASKID  TK_PID  TK_DISP_RUNSTATE   
 -------  --------------  ---------  ------  -----------------  
 siebel1  ServerMgr       16777218   6974    Running            

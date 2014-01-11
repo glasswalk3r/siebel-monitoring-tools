@@ -45,10 +45,6 @@ use Config;
 use Carp qw(longmess);
 use Siebel::Srvrmgr::Types;
 
-use constant CR => \015;
-use constant LF => \012;
-use constant CRLF => \015\012;
-
 our $SIG_INT   = 0;
 our $SIG_PIPE  = 0;
 our $SIG_ALARM = 0;
@@ -289,7 +285,7 @@ has retries => (
 
 has clear_raw => (
     is      => 'rw',
-    is      => 'Bool',
+    isa     => 'Bool',
     reader  => 'clear_raw',
     writer  => 'set_clear_raw',
     default => 1
@@ -299,7 +295,7 @@ has clear_raw => (
 
 =cut
 
-has field_delimiter => ( is => 'ro', is => 'Chr', reader => 'get_field_del' );
+has field_delimiter => ( is => 'ro', isa => 'Chr', reader => 'get_field_del' );
 
 =pod
 
@@ -513,20 +509,22 @@ sub normalize_eol {
     confess 'data parameter must be an array or scalar reference'
       unless ( ( $ref_type eq 'ARRAY' ) or ( $ref_type eq 'SCALAR' ) );
 
+    my $c_regex = qr/\015?\012/;
+
     if ( $ref_type eq 'ARRAY' ) {
 
-        local $/ = LF;
+        local $/ = \012;
 
         foreach ( @{$data_ref} ) {
 
-            s/CR()?LF()/\n/og;
+            s/$c_regex/\n/g;
 
         }
 
     }
     else {
 
-        $$data_ref =~ s/CR()?LF()/\n/g;
+        $$data_ref =~ s/$c_regex/\n/g;
 
     }
 

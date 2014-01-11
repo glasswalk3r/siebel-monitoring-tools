@@ -1,7 +1,7 @@
 package Test::Siebel::Srvrmgr::ListParser::Output::LoadPreferences;
 
 use Test::Most;
-use base qw(Test::Siebel::Srvrmgr::ListParser::Output);
+use parent qw(Test::Siebel::Srvrmgr::ListParser::Output);
 
 sub get_data_type {
 

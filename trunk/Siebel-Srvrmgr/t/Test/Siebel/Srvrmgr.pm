@@ -14,14 +14,24 @@ sub new {
 
     my $class      = shift;
     my $params_ref = shift;
+    my $self;
 
-    confess "must receive an hash reference as parameter"
-      unless ( ( defined($params_ref) ) and ( ref($params_ref) eq 'HASH' ) );
+    if ( defined($params_ref) ) { # ones that use get_my_data
 
-    $params_ref->{output_file} =
-      File::Spec->catfile( @{ $params_ref->{output_file} } );
+        confess "must receive an hash reference as parameter"
+          unless ( ref($params_ref) eq 'HASH' );
 
-    my $self = $class->SUPER::new( %{$params_ref} );
+        $params_ref->{output_file} =
+          File::Spec->catfile( @{ $params_ref->{output_file} } );
+
+        $self = $class->SUPER::new( %{$params_ref} );
+
+    }
+    else {
+
+        $self = $class->SUPER::new();
+
+    }
 
     return $self;
 
@@ -54,7 +64,7 @@ sub get_my_data {
 
     my $file = $test->get_output_file();
 
-    die "Don't have a defined file to read!" unless ( defined($file) );
+    confess "Don't have a defined file to read!" unless ( defined($file) );
 
     open( my $in, '<', $file )
       or die "cannot read $file: $!";
