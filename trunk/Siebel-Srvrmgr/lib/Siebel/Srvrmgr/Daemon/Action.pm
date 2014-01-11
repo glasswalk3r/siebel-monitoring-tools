@@ -89,6 +89,22 @@ has params => (
     default => sub { [] }
 );
 
+has expected_output => (
+    isa     => 'Str',
+    is      => 'ro',
+    reader  => 'get_exp_output',
+    writer  => '_set_exp_output',
+    builder => '_build_exp_output',
+    lazy    => 1                      #some subclasses will not use it
+);
+
+sub _build_exp_output {
+
+    confess
+'subclasses of Siebel::Srvrmgr::Daemon::Action must overrided _build_exp_output';
+
+}
+
 =pod
 
 =head1 METHODS
@@ -126,7 +142,7 @@ This method does:
 
 sub do {
 
-    my $self = shift;
+    my $self   = shift;
     my $buffer = shift;
 
     $self->get_parser()->parse($buffer);
@@ -137,7 +153,7 @@ sub do {
 
     foreach my $item ( @{$tree} ) {
 
-        $was_found = $self->do_parsed( $item );
+        $was_found = $self->do_parsed($item);
         last if ($was_found);
 
     }

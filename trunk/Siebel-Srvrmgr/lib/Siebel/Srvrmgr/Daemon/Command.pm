@@ -26,8 +26,6 @@ L<Siebel::Srvrmgr::Daemon::Action>) and an optional parameter in the form of an 
 
 =cut
 
-use warnings;
-use strict;
 use Moose;
 use MooseX::FollowPBP;
 use namespace::autoclean;

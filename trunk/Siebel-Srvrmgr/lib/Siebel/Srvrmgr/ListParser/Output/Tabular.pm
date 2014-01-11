@@ -106,20 +106,36 @@ sub parse {
 
     my $struct;
 
-    if ( $self->get_col_sep() ) {
+  SWITCH: {
 
-        $struct = $self->get_known_types()->{ $self->get_type() }->new(
-            {
-                header_cols => $self->get_expected_fields(),
-                col_sep     => $self->get_col_sep()
-            }
-        );
+        if ( ( $self->get_type eq 'delimited' ) and $self->get_col_sep() ) {
 
-    }
-    else {
+            $struct = $self->get_known_types()->{ $self->get_type() }->new(
+                {
+                    header_cols => $self->get_expected_fields(),
+                    col_sep     => $self->get_col_sep()
+                }
+            );
 
-        $struct = $self->get_known_types()->{ $self->get_type() }
-          ->new( { header_cols => $self->get_expected_fields() } );
+            last SWITCH;
+
+        }
+
+        if ( $self->get_type() eq 'fixed' ) {
+
+            $struct = $self->get_known_types()->{ $self->get_type() }
+              ->new( { header_cols => $self->get_expected_fields() } );
+
+        }
+        else {
+
+            confess "Don't know what to do with "
+              . $self->get_type()
+              . ' and column separator = '
+              . $self->get_col_sep();
+
+        }
+
     }
 
     my $header       = $struct->get_header_regex();

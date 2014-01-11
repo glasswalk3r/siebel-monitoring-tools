@@ -1,4 +1,21 @@
 use lib 't';
 use Test::Siebel::Srvrmgr::Daemon::Action::ListParams;
 
-Test::Class->runtests;
+my $filename = 'list_comp_params.txt';
+
+my $fixed = Test::Siebel::Srvrmgr::Daemon::Action::ListParams->new(
+    {
+        structure_type => 'fixed',
+        output_file    => [ qw(t output fixed), $filename ]
+    }
+);
+
+my $delimited = Test::Siebel::Srvrmgr::Daemon::Action::ListParams->new(
+    {
+        col_sep        => '|',
+        structure_type => 'delimited',
+        output_file    => [ qw(t output delimited), $filename ]
+    }
+);
+
+Test::Class->runtests( $fixed, $delimited );

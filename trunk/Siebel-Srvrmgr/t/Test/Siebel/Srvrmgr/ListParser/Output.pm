@@ -38,6 +38,20 @@ sub get_output {
 
 }
 
+# overriding parent's because the files will have the command itself followed by the output of it
+sub get_my_data {
+
+    my $test = shift;
+
+    my $data_ref = $test->SUPER::get_my_data();
+
+    shift( @{$data_ref} );    #command
+    shift( @{$data_ref} );    #new line
+
+    return $data_ref;
+
+}
+
 # after setting the Siebel::Srvrgmr::ListParser::Output instance,
 # use lock_keys to avoid subclasses to create their own references of instances
 sub set_output {
@@ -92,10 +106,10 @@ sub _constructor : Tests(3) {
 
     }
 
-    SKIP: {
+  SKIP: {
 
         skip $test->class()
-          . ' subclass should not cause an exception with new()', 1 
+          . ' subclass should not cause an exception with new()', 1
           unless ( $test->is_super() );
 
         dies_ok(

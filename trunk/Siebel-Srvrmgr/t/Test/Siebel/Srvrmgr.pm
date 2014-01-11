@@ -2,10 +2,29 @@ package Test::Siebel::Srvrmgr;
 
 use Test::More;
 use File::Spec;
-use base qw(Test::Class Class::Data::Inheritable);
+use String::BOM qw(string_has_bom strip_bom_from_string);
+use parent qw(Test::Class Class::Data::Inheritable);
+use Carp;
 
 BEGIN {
     __PACKAGE__->mk_classdata('class');
+}
+
+sub new {
+
+    my $class      = shift;
+    my $params_ref = shift;
+
+    confess "must receive an hash reference as parameter"
+      unless ( ( defined($params_ref) ) and ( ref($params_ref) eq 'HASH' ) );
+
+    $params_ref->{output_file} =
+      File::Spec->catfile( @{ $params_ref->{output_file} } );
+
+    my $self = $class->SUPER::new( %{$params_ref} );
+
+    return $self;
+
 }
 
 sub startup : Test( startup => 1 ) {
@@ -33,8 +52,12 @@ sub get_my_data {
 
     my $test = shift;
 
-    open( my $in, '<', $test->get_output_file() )
-      or die 'cannot read ' . $test->get_output_file() . ': ' . $!;
+    my $file = $test->get_output_file();
+
+    die "Don't have a defined file to read!" unless ( defined($file) );
+
+    open( my $in, '<', $file )
+      or die "cannot read $file: $!";
 
     my @data;
 
@@ -47,6 +70,12 @@ sub get_my_data {
     }
 
     close($in);
+
+    if ( string_has_bom( $data[0] ) ) {
+
+        $data[0] = strip_bom_from_string( $data[0] );
+
+    }
 
     return \@data;
 
