@@ -17,9 +17,9 @@ if ( $Config{osname} eq 'MSWin32' ) {
     $expected_digest = 'e1d662b1be600d49af4cf92d40cd7fe0';
 
 }
-else { # else is for UNIX-line OS
+else {    # else is for UNIX-line OS
 
-    $expected_digest = '986b1b0709346c5769c2bd173d2558aa';
+    $expected_digest = 'a1213bb22274318234a12ef434c37db5';
 
 }
 
@@ -28,13 +28,14 @@ my $filename = 'test.txt';
 # srvrmgr-mock.pl ignores all parameters
 my $dummy = 'foobar';
 
-die "Cannot find srvrmgr-mock.pl for execution" unless (-e (File::Spec->catfile( $Config{sitebin}, 'srvrmgr-mock.pl' )));
+die "Cannot find srvrmgr-mock.pl for execution"
+  unless ( -e ( File::Spec->catfile( $Config{sitebin}, 'srvrmgr-mock.pl' ) ) );
 
 system(
-    'perl', '-I',   '.\lib', 'export_comps.pl',
-    '-s',   $dummy, '-g',    $dummy,
-    '-e',   $dummy, '-u',    $dummy,
-    '-p',   $dummy, '-b',
+    'perl', '-Ilib', 'export_comps.pl',
+    '-s', $dummy, '-g', $dummy,
+    '-e', $dummy, '-u', $dummy,
+    '-p', $dummy, '-b',
     File::Spec->catfile( $Config{sitebin}, 'srvrmgr-mock.pl' ),
     '-r',      'SRProc', '-x', '-o',
     $filename, '-q'
@@ -43,11 +44,8 @@ system(
 
 open( my $fh, '<', $filename ) or die "Can't open '$filename': $!";
 binmode($fh);
-is(
-    Digest::MD5->new->addfile($fh)->hexdigest(),
-    $expected_digest,
-    'can get expected output from srvrmgr-mock'
-);
+is( Digest::MD5->new->addfile($fh)->hexdigest(),
+    $expected_digest, 'can get expected output from srvrmgr-mock' );
 
 close($fh);
 

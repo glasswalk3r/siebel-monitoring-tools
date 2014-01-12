@@ -65,6 +65,14 @@ sub _build_expected {
 
 }
 
+=pod
+
+=head2 get_lc_fields
+
+Returns an array reference with all the expected fields names in lowercase.
+
+=cut
+
 sub get_lc_fields {
 
     my $self = shift;

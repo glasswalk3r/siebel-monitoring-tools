@@ -40,7 +40,7 @@ sub class_attributes : Test(+1) {
 
 }
 
-sub class_methods : Tests(+2) {
+sub class_methods : Tests(+3) {
 
     my $test = shift;
 
@@ -61,6 +61,12 @@ sub class_methods : Tests(+2) {
             '20'
         ],
         'get_fields returns an array reference with the correct fields'
+    );
+
+    is(
+        $test->get_struct()->get_header_regex(),
+        join( ( '(\s+)?' . $test->get_sep() ), @{ $test->get_cols() } ),
+        'get_header_regex returns the correct value'
     );
 
 }

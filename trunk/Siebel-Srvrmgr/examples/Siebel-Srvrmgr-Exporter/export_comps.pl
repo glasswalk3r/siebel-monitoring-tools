@@ -27,7 +27,7 @@ use warnings;
 use strict;
 use Siebel::Srvrmgr::Daemon::Heavy;
 use Siebel::Srvrmgr::ListParser::Output::ListComp::Server;
-use Siebel::Srvrmgr::ListParser::Output::ListParams;
+use Siebel::Srvrmgr::ListParser::Output::Tabular::ListParams;
 use Siebel::Srvrmgr::Daemon::Command;
 use Siebel::Srvrmgr::Exporter::ListCompDef;
 use Siebel::Srvrmgr::Exporter::ListComp;
@@ -192,7 +192,9 @@ foreach my $comp_alias ( @{$server_comps} ) {
 
     my @params;
 
-    foreach my $param_alias ( keys( %{ $params->{data_parsed} } ) ) {
+    my @sorted = sort( keys( %{ $params->{data_parsed} } ) );
+
+    foreach my $param_alias (@sorted) {
 
         my $param = $params->{data_parsed}->{$param_alias};
 

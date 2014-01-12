@@ -281,6 +281,10 @@ has retries => (
 
 =head2 clear_raw
 
+A boolean attribute that defines if the raw data recovered from C<srvrmgr> should be kept or discarded as soon as possibly.
+
+Having a default value of true, it should help reducing memory usage or debugging, if set false.
+
 =cut
 
 has clear_raw => (
@@ -293,6 +297,12 @@ has clear_raw => (
 
 =head2 field_delimiter
 
+This is a single character attribute. It tells the Daemon class to consider a field delimiter, if such options was
+set in the C<srvrmgr> program. If this option is used but this attribute is not set accordinly, parsing will probably
+fail.
+
+Since this attribute should be defined during Daemon object instance, it is read-only.
+
 =cut
 
 has field_delimiter => ( is => 'ro', isa => 'Chr', reader => 'get_field_del' );
@@ -301,9 +311,17 @@ has field_delimiter => ( is => 'ro', isa => 'Chr', reader => 'get_field_del' );
 
 =head1 METHODS
 
+=head2 get_field_del
+
+Getter for the C<field_delimiter> attribute.
+
 =head2 clear_raw
 
+Getter for the C<clear_raw> attribute.
+
 =head2 set_clear_raw
+
+Setter for the C<clear_raw> attribute.
 
 =head2 get_alarm
 

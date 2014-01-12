@@ -10,7 +10,7 @@ sub get_to_unpack {
 
 }
 
-sub class_methods : Tests(+2) {
+sub class_methods : Tests(+3) {
 
     my $test = shift;
 
@@ -27,6 +27,12 @@ sub class_methods : Tests(+2) {
         $test->get_struct()->get_fields( $test->get_to_unpack() ),
         [ 'siebel1', 'FSMSrvr', 'File System Manager' ],
         'get_fields returns an array reference with the correct fields'
+    );
+
+    is(
+        $test->get_struct()->get_header_regex(),
+        join( $test->get_sep(), @{ $test->get_cols() } ),
+        'get_header_regex returns the correct value'
     );
 
 }

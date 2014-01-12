@@ -42,10 +42,16 @@ C<Siebel::Srvrmgr::ListParser::OutputFactory::table_mapping> for the mapping bet
 
 All methods below are class methods.
 
-=head2 create
+=head2 build
 
 Returns the instance of the class defined by the type given as parameter. Expects two parameters: an string with the type
-of output and an hash reference with the parameters expected by the C<new> method of L<Siebel::Srvrmgr::ListParser::Output>.
+of output and an hash reference with the parameters expected by the C<new> method of L<Siebel::Srvrmgr::ListParser::Output> subclasses.
+
+A third, optional parameter, is required if the desired instance is a subclass of L<Siebel::Srvrmgr::ListParser::Output::Tabular>: one must
+pass a single character as the field separator, if exists in the output to be parsed.
+
+Despite using L<MooseX::AbstractFactory> to implement the Abstract Factory pattern, this method must be invoked instead of C<create>
+so the class will be able to make additional checkings necessary to define defaults for subclasses of L<Siebel::Srvrmgr::ListParser::Output::Tabular>.
 
 =head2 can_create
 
