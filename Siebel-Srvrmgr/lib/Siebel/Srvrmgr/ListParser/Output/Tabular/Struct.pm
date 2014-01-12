@@ -4,7 +4,7 @@ package Siebel::Srvrmgr::ListParser::Output::Tabular::Struct;
 
 =head1 NAME
 
-Siebel::Srvrmgr::ListParser::Output::Tabular::Struct - base class of srvrmgr tabular output
+Siebel::Srvrmgr::ListParser::Output::Tabular::Struct - base class for parsing srvrmgr tabular output
 
 =cut
 
@@ -16,11 +16,23 @@ use Carp;
 
 =head1 DESCRIPTION
 
+This is a base classes to parse C<srvrmgr> output in tabular form. That means that the output is expected to be
+as a table, having a header and a clear definition of columns.
+
+The subclasses of this class are expected to be used inside an output class like L<Siebel::Srvrmgr::ListParser::Output::Tabular>
+since it will know the differences in parsing fixed width output from delimited one.
+
 =head1 ATTRIBUTES
 
 =head2 header_regex
 
+This attribute is read-only.
+
 The regular expression used to match the header of the list <command> output (the sequence of column names).
+
+There is a L<Moose> C<builder> associated with it, so the definition of the regular expression is created automatically.
+
+This attribute is also C<lazy>.
 
 =cut
 
@@ -46,10 +58,14 @@ sub _build_header_regex {
 
 =head2 col_sep
 
+This attribute is read-only.
+
 A regular expression string used to match the columns separator.
 
-col_sep has a builder C<sub> that can be override if the regular expression should be different of 
-the default C<\s{2}>.
+col_sep has a builder C<sub> that must be override by subclasses of this class or
+an exception will be raised.
+
+This attribute is also C<lazy>.
 
 =cut
 
@@ -70,6 +86,8 @@ sub _build_col_sep {
 
 =head2 header_cols
 
+This attribute is read-only and required during object instantiation.
+
 An array reference with all the header columns names, in the exact sequence their appear in the output.
 
 =cut
@@ -86,15 +104,15 @@ has 'header_cols' => (
 
 =head1 METHODS
 
+All the attributes, since read-only, have their associated getters.
+
 =head2 get_col_sep
+
+Returns the col_sep attribute value.
 
 =head2 get_header_cols
 
-=head2 set_header_cols
-
-=head2 get_col_sep
-
-Getter of C<col_sep> attribute.
+Returns the header_cols attribute value.
 
 =head2 split_fields
 
@@ -129,12 +147,34 @@ sub split_fields {
 
 }
 
+=pod
+
+=head2 define_fields_pattern
+
+This method must be overrided by subclasses of this classes or an exception will be raised.
+
+It is responsible to define automatically the fields pattern to be used during parsing to retrieve
+fields values.
+
+=cut
+
 sub define_fields_pattern {
 
     confess
 'define_fields_pattern must be overrided by subclasses of Siebel::Srvrmgr::ListParser::Output::Tabular::Struct';
 
 }
+
+=pod
+
+=head2 get_fields
+
+This method must be overrided by subclasses of this classes or an exception will be raised.
+
+This methods returns the fields data as an array reference. Expects as parameter the string of the line of
+C<srvrmgr> output.
+
+=cut
 
 sub get_fields {
 
@@ -153,7 +193,7 @@ probably exceptions.
 
 =head1 SEE ALSO
 
-=over 5
+=over
 
 =item *
 
@@ -165,15 +205,11 @@ L<Moose>
 
 =item *
 
-L<MooseX::Storage>
+L<Siebel::Srvrmgr::ListParser::Output::Tabular::Struct::Fixed>
 
 =item *
 
-L<MooseX::Storage::IO::StorableFile>
-
-=item *
-
-L<namespace::autoclean>
+L<Siebel::Srvrmgr::ListParser::Output::Tabular::Struct::Delimited>
 
 =back
 
@@ -183,7 +219,7 @@ Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>.
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2012 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>.
+This software is copyright (c) 2013 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>.
 
 This file is part of Siebel Monitoring Tools.
 

@@ -112,8 +112,10 @@ sub process_cmd {
 
         }
 
-		# must be case insensitive because of test from the export_comps.pl
-        if ( $cmd =~ /^list\sparams\sfor\s(server\s\w+\s)?comp(onent)?\ssrproc$/i ) {
+        # must be case insensitive because of test from the export_comps.pl
+        if ( $cmd =~
+            /^list\sparams\sfor\s(server\s\w+\s)?comp(onent)?\ssrproc$/i )
+        {
 
             put_text( $handle, $data_ref->{list_params_for_srproc} );
             last SWITCH;
@@ -199,18 +201,18 @@ sub process_cmd {
             put_text(
                 $handle,
                 [
-                    'Available commands are:', $CRLF,
-                    'load preferences',        $CRLF,
-                    'list servers',            $CRLF,
-                    'list comp',               $CRLF,
-                    'list comp def',           $CRLF,
-                    'list comp type',          $CRLF,
-                    'list blockme',            $CRLF,
-                    'list params',             $CRLF,
-                    'list params for srproc',  $CRLF,
-                    'list complexquery',       $CRLF,
-                    'list frag',               $CRLF,
-                    'exit',                    $CRLF
+                    'Available commands are:',     $CRLF,
+                    'load preferences',            $CRLF,
+                    'list servers',                $CRLF,
+                    'list comp',                   $CRLF,
+                    'list comp def',               $CRLF,
+                    'list comp type',              $CRLF,
+                    'list blockme',                $CRLF,
+                    'list params',                 $CRLF,
+                    'list params for comp srproc', $CRLF,
+                    'list complexquery',           $CRLF,
+                    'list frag',                   $CRLF,
+                    'exit',                        $CRLF
                 ]
             );
             last SWITCH;
@@ -218,7 +220,7 @@ sub process_cmd {
         }
         else {
 #TODO: check out how the srvrmgr exact print invalid command messages to replicate here
-            put_text( $handle, [ 'Invalid command', $CRLF, $CRLF ] );
+            put_text( $handle, [ 'Invalid command or syntax. See online help', $CRLF, $CRLF ] );
             last SWITCH;
         }
 

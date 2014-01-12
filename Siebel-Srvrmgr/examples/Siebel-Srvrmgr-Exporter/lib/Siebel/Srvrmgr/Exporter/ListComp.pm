@@ -53,7 +53,7 @@ override 'do_parsed' => sub {
 
     my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
 
-    if ( $obj->isa('Siebel::Srvrmgr::ListParser::Output::ListComp') ) {
+    if ( $obj->isa('Siebel::Srvrmgr::ListParser::Output::Tabular::ListComp') ) {
 
         my $servers_ref = $obj->get_servers();
 

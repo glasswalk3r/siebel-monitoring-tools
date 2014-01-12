@@ -4,6 +4,7 @@ use Test::Most;
 use Test::Moose 'has_attribute_ok';
 use Hash::Util qw(lock_keys);
 use parent 'Test::Siebel::Srvrmgr';
+use Carp;
 
 sub get_super {
 
@@ -29,7 +30,7 @@ sub get_struct {
 
 sub get_sep {
 
-    return '\s{2}';
+    return '\s{2,}';
 
 }
 
@@ -46,7 +47,7 @@ sub set_struct {
     my $test  = shift;
     my $value = shift;
 
-    die 'Invalid parameter'
+    confess 'Invalid parameter'
       unless ( $value->isa( $test->get_super() ) );
 
     $test->{struct} = $value;
@@ -140,26 +141,32 @@ sub class_methods : Tests(no_plan) {
 
     }
 
-    $test->num_tests( ( scalar(@methods) ) + 8 );
+    $test->num_tests( ( scalar(@methods) ) + 7 );
 
     can_ok( $test->get_struct(), @methods );
-    is( $test->get_struct()->get_col_sep(),
-        $test->get_sep(), 'get_col_sep returns the correct value' );
+
+  SKIP: {
+
+        skip 'Superclass would generate an exception in this case', 4
+          if ( $test->is_super() );
+
+        is( $test->get_struct()->get_col_sep(),
+            $test->get_sep(), 'get_col_sep returns the correct value' );
+        is_deeply(
+            $test->get_struct()->split_fields( $test->get_to_split() ),
+            [qw(AAAA BBBB CCCC)],
+            'split_fields returns an array reference with the correct fields'
+        );
+        is_deeply(
+            $test->get_struct()->split_fields( $test->get_fail_split() ),
+            undef,
+            'split_fields returns undef if the separator cannot be matched'
+        );
+
+    }
+
     is_deeply( $test->get_struct()->get_header_cols(),
         $test->get_cols(), 'get_header_cols returns the correct value' );
-    is(
-        $test->get_struct()->get_header_regex(),
-        join( $test->get_sep(), @{ $test->get_cols() } ),
-        'get_header_regex returns the correct value'
-    );
-    is_deeply(
-        $test->get_struct()->split_fields( $test->get_to_split() ),
-        [qw(AAAA BBBB CCCC)],
-        'split_fields returns an array reference with the correct fields'
-    );
-    is_deeply( $test->get_struct()->split_fields( $test->get_fail_split() ),
-        undef,
-        'split_fields returns undef if the separator cannot be matched' );
 
   SKIP: {
 

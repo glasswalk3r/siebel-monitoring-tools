@@ -78,10 +78,6 @@ If you want to use the field delimited output from C<srvrmgr> then this the expe
 The order of the fields is important too: everytime those fields are parsed, if they do not follow the order above an exception 
 will be raised.
 
-=head1 ATTRIBUTES
-
-=head2 task_counter
-
 =cut
 
 sub _build_expected {
@@ -121,7 +117,11 @@ sub _build_expected {
 
 =head1 METHODS
 
-All from parent class. Some are overrided.
+Some methods from the parent classes are overrided.
+
+=head2 get_servers
+
+Returns a list of the Siebel Server names from the parsed output.
 
 =cut
 
@@ -132,6 +132,17 @@ sub get_servers {
     return keys( %{ $self->get_data_parsed() } );
 
 }
+
+=pod
+
+=head2 count_tasks
+
+Returns an integer representing the number of tasks recovered from the parsed output.
+
+Expects a string as parameter being the Siebel Server name, so the number of tasks are those related to the
+server passed as argument.
+
+=cut
 
 sub count_tasks {
 
@@ -160,6 +171,20 @@ sub _val_tasks_server {
     return $data_ref->{$server};
 
 }
+
+=pod
+
+=head2 get_tasks
+
+Returns an iterator to iterate of the list of tasks of a Siebel Server given as argument.
+
+At each invocation of the iterator, a instance of L<Siebel::Srvrmgr::ListParser::Output::ListTasks::Task> is return, 
+or C<undef> in the case that there are no more tasks to return.
+
+Beware that depending on the type of output parsed, the returned instances will have more or less attributes with
+values.
+
+=cut
 
 sub get_tasks {
 
@@ -288,6 +313,10 @@ L<Siebel::Srvrmgr::ListParser::Output::Tabular>
 =item *
 
 L<Moose>
+
+=item *
+
+L<Siebel::Srvrmgr::ListParser::Output::ListTasks::Task>
 
 =back
 

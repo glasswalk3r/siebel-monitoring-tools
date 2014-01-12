@@ -5,20 +5,61 @@ use Test::Moose qw(has_attribute_ok);
 use parent 'Test::Siebel::Srvrmgr';
 use Siebel::Srvrmgr::ListParser::Output::Tabular::ListComp;
 
+# :TODO:11-01-2014:: refactor the method below because Tabular does the same (maybe a Role?)
+sub get_structure_type {
+
+    my $test = shift;
+
+    return $test->{structure_type};
+
+}
+
+# :TODO:11-01-2014:: refactor the method below because Tabular does the same (maybe a Role?)
+sub get_col_sep {
+
+    my $test = shift;
+    return $test->{col_sep};
+
+}
+
 sub _constructor : Tests(+2) {
 
     my $test = shift;
 
     #must parse the output
-    my $list_comp = Siebel::Srvrmgr::ListParser::Output::Tabular::ListComp->new(
-        {
-            data_type => 'list_comp',
-            raw_data  => $test->get_my_data(),
-            cmd_line  => 'list comp'
-        }
-    );
 
-    $test->{server} = $list_comp->get_server('foobar');
+    my $list_comp;
+
+# :TODO:11-01-2014:: refactor the method below because Tabular does the same (maybe a Role?)
+    if ( $test->get_col_sep() ) {
+
+        $list_comp =
+          Siebel::Srvrmgr::ListParser::Output::Tabular::ListComp->new(
+            {
+                data_type      => 'list_comp',
+                raw_data       => $test->get_my_data(),
+                cmd_line       => 'list comp',
+                structure_type => $test->get_structure_type,
+                col_sep        => $test->get_col_sep()
+            }
+          );
+
+    }
+    else {
+
+        $list_comp =
+          Siebel::Srvrmgr::ListParser::Output::Tabular::ListComp->new(
+            {
+                data_type      => 'list_comp',
+                raw_data       => $test->get_my_data(),
+                cmd_line       => 'list comp',
+                structure_type => $test->get_structure_type
+            }
+          );
+
+    }
+
+    $test->{server} = $list_comp->get_server('siebel1');
 
     ok( $test->{server}, 'the constructor should succeed' );
     isa_ok( $test->{server}, $test->class() );
@@ -47,19 +88,19 @@ sub class_methods : Tests(5) {
         qw(new get_data get_name load store get_comps get_comp get_comp_data) );
 
     is( $test->{server}->get_name(),
-        'foobar', 'get_name returns the correct value' );
+        'siebel1', 'get_name returns the correct value' );
 
     isa_ok(
-        $test->{server}->get_comp('ClientAdmin'),
+        $test->{server}->get_comp('ServerMgr'),
         'Siebel::Srvrmgr::ListParser::Output::ListComp::Comp',
-        'get_comp returns a Comp object'
+        'get_comp("ServerMgr") returns a Comp object'
     );
 
     isa_ok( $test->{server}->get_comps(),
         'ARRAY', 'get_comps returns an array reference' );
 
-    isa_ok( $test->{server}->get_comp_data('EIM'),
-        'HASH', 'get_comp_data returns an hash reference' );
+    isa_ok( $test->{server}->get_comp_data('SvrTaskPersist'),
+        'HASH', 'get_comp_data("SvrTaskPersist") returns an hash reference' );
 
 }
 

@@ -2,7 +2,7 @@
 <ns1:siebelMonitor xmlns:ns1="http://code.google.com/p/siebel-monitoring-tools/">
 	<ns1:connection>
 		<ns1:siebelServer>siebfoobar</ns1:siebelServer>
-		<ns1:srvrmgrPath>/usr/local/bin</ns1:srvrmgrPath>
+		<ns1:srvrmgrPath>perl5/perlbrew/perls/perl-5.18.1/bin</ns1:srvrmgrPath>
 		<ns1:srvrmgrExec>srvrmgr-mock.pl</ns1:srvrmgrExec>
 		<ns1:siebelEnterprise>foobar</ns1:siebelEnterprise>
 		<ns1:siebelGateway>siebelgw</ns1:siebelGateway>

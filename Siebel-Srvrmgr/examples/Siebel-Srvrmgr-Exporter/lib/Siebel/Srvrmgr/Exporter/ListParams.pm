@@ -37,7 +37,7 @@ override 'do_parsed' => sub {
     my $self = shift;
     my $obj  = shift;
 
-    if ( $obj->isa('Siebel::Srvrmgr::ListParser::Output::ListParams') ) {
+    if ( $obj->isa('Siebel::Srvrmgr::ListParser::Output::Tabular::ListParams') ) {
 
         my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
 
