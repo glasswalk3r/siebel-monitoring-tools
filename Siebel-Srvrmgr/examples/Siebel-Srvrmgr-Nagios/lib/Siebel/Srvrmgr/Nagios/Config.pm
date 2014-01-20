@@ -104,10 +104,12 @@ sub BUILD {
     foreach my $server ( @{ $self->servers() } ) {
 
         my %default_status;
+		my %default_task_status;
 
         foreach my $compGroup ( @{ $server->get_componentGroups() } ) {
 
             $default_status{ $compGroup->get_name() } = $compGroup->get_OKStatus();
+            $default_task_status{ $compGroup->get_name() } = $compGroup->get_taskOKStatus();
 
         }
 
@@ -121,6 +123,9 @@ sub BUILD {
 
                     $comp->_set_ok_status(
                         $default_status{ $comp->get_componentGroup() } );
+
+                    $comp->_set_task_status(
+                        $default_task_status{ $comp->get_componentGroup() } );
 
                 }
                 else {

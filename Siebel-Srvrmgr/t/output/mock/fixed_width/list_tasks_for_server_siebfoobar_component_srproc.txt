@@ -1,8 +1,7 @@
 
-SV_NAME     CC_ALIAS  TK_TASKID  TK_PID  TK_DISP_RUNSTATE  CC_RUNMODE   TK_START_TIME        TK_END_TIME          TK_STATUS  CG_ALIAS   TK_PARENT_TASKNUM  CC_INCARN_NO  TK_LABEL         TK_TASKTYPE  TK_PING_TIME  
-----------  --------  ---------  ------  ----------------  -----------  -------------------  -------------------  ---------  ---------  -----------------  ------------  ---------------  -----------  ------------  
-siebfoobar  SRProc    5242888    20503   Running           Interactive  2013-04-22 15:32:28  2000-00-00 00:00:00             SystemAux                     0                              Normal                     
-siebfoobar  SRProc    5242885    20503   Running           Interactive  2013-04-22 15:32:28  2000-00-00 00:00:00             SystemAux                     0             Forwarding Task  Worker                     
+SV_NAME  CC_ALIAS        TK_TASKID  TK_PID  TK_DISP_RUNSTATE   
+----------  --------------  ---------  ------  -----------------  
+siebfoobar  SRProc          5242887    3258    Running            
+siebfoobar  SRProc          5242885    3258    Running            
 
-2 rows returned.
-
+20 rows returned.

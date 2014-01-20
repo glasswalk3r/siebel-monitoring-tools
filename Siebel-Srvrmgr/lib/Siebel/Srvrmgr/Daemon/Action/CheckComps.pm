@@ -35,7 +35,7 @@ extends 'Siebel::Srvrmgr::Daemon::Action';
 
 =head1 DESCRIPTION
 
-This subclass of L<Siebel::Srvrmgr::Daemon::Action> will try to find a L<Siebel::Srvrmgr::ListParser::Output::ListComp> object in the given array reference
+This subclass of L<Siebel::Srvrmgr::Daemon::Action> will try to find a L<Siebel::Srvrmgr::ListParser::Output::Tabular::ListComp> object in the given array reference
 given as parameter to the C<do> method and compares the status of the components with the array reference given as parameter.
 
 The C<do> method of C<Siebel::Srvrmgr::Daemon::Action::CheckComps> uses L<Siebel::Srvrmgr::Daemon::ActionStash> to enable the program that created the object 
@@ -91,7 +91,7 @@ override '_build_exp_output' => sub {
 
 Expects a array reference as the buffer output from C<srvrmgr> program as a parameter.
 
-This method will check the output from C<srvrmgr> program parsed by L<Siebel::Srvrmgr::ListParser::Output::ListComp> object and compare each component recovered status
+This method will check the output from C<srvrmgr> program parsed by L<Siebel::Srvrmgr::ListParser::Output::Tabular::ListComp> object and compare each component recovered status
 with the status defined in the array reference given to C<params> method during object creation.
 
 It will return 1 if this operation was executed successfuly and request a instance of L<Siebel::Srvrmgr::Daemon::ActionStash>, calling it's method C<instance> and then
@@ -272,11 +272,11 @@ override 'do_parsed' => sub {
 
 =head1 SEE ALSO
 
-=over 4
+=over
 
 =item *
 
-L<Siebel::Srvrmgr::ListParser::Output::ListComp>
+L<Siebel::Srvrmgr::ListParser::Output::Tabular::ListComp>
 
 =item *
 
@@ -298,11 +298,11 @@ L<Nagios::Plugin>
 
 =head1 AUTHOR
 
-Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<E<gt>
+Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2012 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<E<gt>
+This software is copyright (c) 2012 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
 
 This file is part of Siebel Monitoring Tools.
 
@@ -317,7 +317,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with Siebel Monitoring Tools.  If not, see <http://www.gnu.org/licenses/>.
+along with Siebel Monitoring Tools.  If not, see L<http://www.gnu.org/licenses/>.
 
 =cut
 

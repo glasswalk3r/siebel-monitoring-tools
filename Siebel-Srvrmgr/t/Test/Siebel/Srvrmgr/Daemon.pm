@@ -61,14 +61,18 @@ sub _constructor : Tests(+12) {
             ]
         ];
 
-		my $error_regex = qr/This\sattribute\svalue\smust\sbe\sa\sdefined,\snon-empty\sstring/;
+        my $error_regex =
+          qr/This\sattribute\svalue\smust\sbe\sa\sdefined,\snon-empty\sstring/;
 
         foreach (qw(gateway enterprise user password bin)) {
 
-            dies_ok( sub { $test->class()->new( $test->bad_instance($_) ) },
-                "attribute '$_' cannot be an empty string" );
+            dies_ok(
+                sub { $test->class()->new( $test->bad_instance($_) ) },
+                "attribute '$_' cannot be an empty string"
+            );
 
-			like($@, $error_regex, 'got the correct error message from trying');
+            like( $@, $error_regex,
+                'got the correct error message from trying' );
 
         }
 
@@ -154,20 +158,26 @@ sub class_methods : Tests(22) {
     can_ok(
         $test->{daemon},
         (
-            'get_server',     'set_server',
-            'get_gateway',    'set_gateway',
-            'get_enterprise', 'set_enterprise',
-            'get_user',       'set_user',
-            'get_password',   'set_password',
-            'get_commands',   'set_commands',
-            'get_bin',        'set_bin',
-            'is_infinite',    '_setup_commands',
-            'run',            'DEMOLISH',
-            'shift_commands', 'use_perl',
-            'get_lang_id',    'set_lang_id',
-            'get_child_runs', '_set_child_runs',
-            'shift_commands', '_check_error',
-            '_check_cmd'
+            'get_server',       'set_server',
+            'get_gateway',      'set_gateway',
+            'get_enterprise',   'set_enterprise',
+            'get_user',         'set_user',
+            'get_password',     'set_password',
+            'get_commands',     'set_commands',
+            'get_bin',          'set_bin',
+            'is_infinite',      '_setup_commands',
+            'run',              'DEMOLISH',
+            'shift_commands',   'use_perl',
+            'get_lang_id',      'set_lang_id',
+            'get_child_runs',   '_set_child_runs',
+            'shift_commands',   '_check_error',
+            '_check_cmd',       'get_retries',
+            '_set_retries',     'clear_raw',
+            'set_clear_raw',    'get_max_retries',
+            '_set_max_retries', 'get_lang_id',
+            'set_lang_id',      'use_perl',
+            'set_alarm',        'get_alarm',
+            'get_field_del'
         )
     );
 
@@ -201,25 +211,49 @@ sub class_methods : Tests(22) {
 
 }
 
-sub class_attributes : Tests(11) {
+sub class_attributes : Tests(no_plan) {
 
-    my $test = shift;
+    my $test        = shift;
+    my $attribs_ref = shift;
 
     my @attribs = (
-        'server',   'gateway',  'enterprise', 'user',
-        'password', 'commands', 'bin',        'is_infinite',
-        'use_perl', 'lang_id',  'child_runs'
+        'server',          'gateway',
+        'enterprise',      'user',
+        'password',        'commands',
+        'bin',             'is_infinite',
+        'use_perl',        'lang_id',
+        'child_runs',      'alarm_timeout',
+        'maximum_retries', 'retries',
+        'clear_raw',       'field_delimiter'
     );
 
-    foreach my $attribute (@attribs) {
+    if (    ( defined($attribs_ref) )
+        and ( ref($attribs_ref) eq 'ARRAY' )
+        and ( scalar( @{$attribs_ref} ) > 0 ) )
+    {
 
-        has_attribute_ok( $test->{daemon}, $attribute );
+        $test->num_tests( scalar(@attribs) + scalar( @{$attribs_ref} ) );
+        foreach my $attribute ( @attribs, @{$attribs_ref} ) {
+
+            has_attribute_ok( $test->{daemon}, $attribute );
+
+        }
+
+    }
+    else {
+
+        $test->num_tests( scalar(@attribs) );
+        foreach my $attribute (@attribs) {
+
+            has_attribute_ok( $test->{daemon}, $attribute );
+
+        }
 
     }
 
 }
 
-sub runs : Test() {
+sub runs : Test(1) {
 
     my $test = shift;
 

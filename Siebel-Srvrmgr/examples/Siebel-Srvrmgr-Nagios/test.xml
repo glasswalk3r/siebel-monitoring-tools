@@ -45,14 +45,14 @@
 				<ns1:component alias="eCommunicationsObjMgr_ptb" description="eCommunications Object Manager (PTB)" ComponentGroup="Communications" criticality="4"/>
 			</ns1:components>
 			<ns1:componentsGroups>
-				<ns1:componentGroup name="ADM" defaultOKStatus="Online|Running"/>
-				<ns1:componentGroup name="EAI" defaultOKStatus="Online|Running"/>
-				<ns1:componentGroup name="Workflow" defaultOKStatus="Online|Running"/>
-				<ns1:componentGroup name="MktgSrv" defaultOKStatus="Online|Running"/>
-				<ns1:componentGroup name="System" defaultOKStatus="Online|Running"/>
-				<ns1:componentGroup name="SystemAux" defaultOKStatus="Online|Running"/>
-				<ns1:componentGroup name="TaskUI" defaultOKStatus="Online|Running"/>
-				<ns1:componentGroup name="Communications" defaultOKStatus="Online|Running"/>
+				<ns1:componentGroup name="ADM" defaultOKStatus="Online|Running" defaultTaskOKStatus="Running|Completed"/>
+				<ns1:componentGroup name="EAI" defaultOKStatus="Online|Running" defaultTaskOKStatus="Running|Completed"/>
+				<ns1:componentGroup name="Workflow" defaultOKStatus="Online|Running" defaultTaskOKStatus="Running|Completed"/>
+				<ns1:componentGroup name="MktgSrv" defaultOKStatus="Online|Running" defaultTaskOKStatus="Running|Completed"/>
+				<ns1:componentGroup name="System" defaultOKStatus="Online|Running" defaultTaskOKStatus="Running|Completed"/>
+				<ns1:componentGroup name="SystemAux" defaultOKStatus="Online|Running" defaultTaskOKStatus="Running|Completed"/>
+				<ns1:componentGroup name="TaskUI" defaultOKStatus="Online|Running" defaultTaskOKStatus="Running|Completed"/>
+				<ns1:componentGroup name="Communications" defaultOKStatus="Online|Running" defaultTaskOKStatus="Running|Completed"/>
 			</ns1:componentsGroups>
 		</ns1:server>
 	</ns1:servers>
