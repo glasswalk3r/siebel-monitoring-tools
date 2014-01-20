@@ -82,6 +82,8 @@ This attribute is read-only.
 
 =cut
 
+# :TODO:19-01-2014:: add a method to remove the params reference when desired to release memory
+
 has params => (
     isa     => 'ArrayRef',
     is      => 'ro',

@@ -119,7 +119,7 @@ status
 
 =back
 
-Depending on the type of output recovered from the C<srvrmgr>, not all attributes will be available but the required.
+Depending on the type of output recovered from the C<srvrmgr>, not all attributes will be available except the required.
 
 =cut
 

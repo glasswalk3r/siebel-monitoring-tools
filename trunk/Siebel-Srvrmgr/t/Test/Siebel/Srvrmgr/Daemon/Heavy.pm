@@ -35,11 +35,9 @@ sub class_methods : Test(+1) {
 
 }
 
-sub class_attributes : Tests(+12) {
+sub class_attributes : Tests(no_plan) {
 
     my $test = shift;
-
-    $test->SUPER::class_attributes();
 
     my @attribs = (
         'write_fh',        'read_fh',
@@ -50,11 +48,7 @@ sub class_attributes : Tests(+12) {
         'read_timeout',    'child_pid'
     );
 
-    foreach my $attribute (@attribs) {
-
-        has_attribute_ok( $test->{daemon}, $attribute );
-
-    }
+    $test->SUPER::class_attributes(\@attribs);
 
 }
 

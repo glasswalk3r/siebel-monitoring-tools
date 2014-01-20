@@ -30,6 +30,16 @@ have a explicit OKStatus defined in the XML configuration file.
 
 has_xpath_value 'OKStatus'       => './@defaultOKStatus', reader => 'get_OKStatus';
 
+
+=head2 defaultTaskOKStatus
+
+A string indicating the expected status for all components tasks that are part of this component group. This is used to setup task status of components that do not
+have a explicit TaskOKStatus defined in the XML configuration file.
+
+=cut
+
+has_xpath_value 'taskOKStatus'       => './@defaultTaskOKStatus', reader => 'get_taskOKStatus';
+
 finalize_class();
 __END__
 =head1 SEE ALSO

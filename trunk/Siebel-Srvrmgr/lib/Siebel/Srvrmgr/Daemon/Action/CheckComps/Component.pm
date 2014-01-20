@@ -66,9 +66,22 @@ The status that the component is expected to have. It may be one, several (conca
 has OKStatus => (
     isa      => 'NotNullStr',
     is       => 'ro',
-    required => 1,
     reader   => 'get_OKStatus',
     required => 1
+);
+
+=pod
+
+=head2 taskOKStatus
+
+The expected tasks status of the component. It may be one,  several (concatenated with a pipe character) or none.
+
+=cut
+
+has taskOKStatus => (
+    isa    => 'NotNullStr',
+    is     => 'ro',
+    reader => 'get_taskOKStatus',
 );
 
 =pod
@@ -82,7 +95,6 @@ A integer indicating how critical it is if the component does not have the expec
 has criticality => (
     isa      => 'Int',
     is       => 'ro',
-    required => 1,
     reader   => 'get_criticality',
     required => 1
 );
@@ -95,7 +107,7 @@ All attributes have their respective getter as C<get_><attribute name>.
 
 =head1 SEE ALSO
 
-=over 2
+=over
 
 =item *
 
@@ -109,11 +121,11 @@ L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Server>
 
 =head1 AUTHOR
 
-Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<E<gt>
+Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2012 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<E<gt>
+This software is copyright (c) 2012 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
 
 This file is part of Siebel Monitoring Tools.
 
@@ -128,7 +140,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with Siebel Monitoring Tools.  If not, see <http://www.gnu.org/licenses/>.
+along with Siebel Monitoring Tools.  If not, see L<http://www.gnu.org/licenses/>.
 
 =cut
 
