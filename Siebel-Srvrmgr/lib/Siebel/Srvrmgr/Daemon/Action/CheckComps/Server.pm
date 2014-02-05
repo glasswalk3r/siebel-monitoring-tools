@@ -1,5 +1,7 @@
 package Siebel::Srvrmgr::Daemon::Action::CheckComps::Server;
 
+
+
 use Moose::Role;
 use Siebel::Srvrmgr::Types;
 
@@ -13,6 +15,8 @@ Siebel::Srvrmgr::Daemon::Action::CheckComps::Server - role for classes that hold
 
 This package is a role, not a subclass of L<Siebel::Srvrmgr::Daemon::Action>. It is intended to be used by classes that provides information
 about which components are available in a Siebel server and which is their expected status.
+
+# :TODO:04-02-2014 18:55:38:: this class must be made generic (Check::Server instead of CheckComps::Server)
 
 =head1 ATTRIBUTES
 

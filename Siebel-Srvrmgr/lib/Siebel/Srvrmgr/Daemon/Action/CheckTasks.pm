@@ -70,7 +70,7 @@ sub BUILD {
 
     my $self = shift;
 
-    my $role = 'Siebel::Srvrmgr::Daemon::Action::CheckTasks::Server';
+    my $role = 'Siebel::Srvrmgr::Daemon::Action::CheckComps::Server';
 
     foreach my $object ( @{ $self->get_params() } ) {
 
@@ -83,7 +83,7 @@ sub BUILD {
 
 override '_build_exp_output' => sub {
 
-    return 'Siebel::Srvrmgr::ListParser::Output::Tabular::ListTask';
+    return 'Siebel::Srvrmgr::ListParser::Output::Tabular::ListTasks';
 
 };
 
@@ -177,7 +177,7 @@ override 'do_parsed' => sub {
                           my $valid_status ( @{ $exp_status{$comp_alias} } )
                         {
 
-                            if ( $valid_status eq $task->get_status() ) {
+                            if ( $valid_status eq $task->get_run_state ) {
 
                                 $is_ok = 1;
                                 last;
@@ -260,7 +260,7 @@ override 'do_parsed' => sub {
 
 =head1 SEE ALSO
 
-=over 4
+=over
 
 =item *
 
@@ -286,11 +286,11 @@ L<Nagios::Plugin>
 
 =head1 AUTHOR
 
-Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<E<gt>
+Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2012 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<E<gt>
+This software is copyright (c) 2012 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
 
 This file is part of Siebel Monitoring Tools.
 

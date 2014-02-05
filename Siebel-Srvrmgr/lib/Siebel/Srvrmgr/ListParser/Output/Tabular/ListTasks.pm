@@ -176,7 +176,7 @@ sub _val_tasks_server {
 
 =head2 get_tasks
 
-Returns an iterator to iterate of the list of tasks of a Siebel Server given as argument.
+Returns an iterator to iterate over the list of tasks of a Siebel Server given as argument.
 
 At each invocation of the iterator, a instance of L<Siebel::Srvrmgr::ListParser::Output::ListTasks::Task> is return, 
 or C<undef> in the case that there are no more tasks to return.
