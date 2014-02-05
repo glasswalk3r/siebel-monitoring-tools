@@ -1,9 +1,9 @@
 use strict;
 use warnings;
-use Test::More tests => 2;
+use Test::More tests => 3;
 use Config;
 use File::Spec;
-use File::Temp;
+use File::Temp qw(tempfile);
 
 BEGIN { use_ok('Siebel::Srvrmgr::Nagios') }
 
