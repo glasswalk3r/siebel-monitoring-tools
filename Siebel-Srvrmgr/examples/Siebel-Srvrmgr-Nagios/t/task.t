@@ -1,21 +1,33 @@
 use strict;
 use warnings;
-use Test::More tests => 2;
+use Test::More tests => 3;
 use File::Spec;
 use Config;
+use Test::Output;
+
 BEGIN { use_ok('Siebel::Srvrmgr::Nagios') }
 
+my $config = File::Spec->catfile( 't', 'test.xml' );
 $SIG{INT} = \&clean_up;
 
-my $config = File::Spec->catfile( 't', 'test.xml' );
-my @args = (
-    ( File::Spec->catfile( $Config{bin}, 'perl' ) ),
-    'task_mon.pl', '-w', '1', '-c', '3', '-f', $config
+stdout_is(
+    \&run_mock,
+    "STM CRITICAL - Components status is 4\n",
+    'Got the expected output'
 );
-system(@args);
 
 is( ( $? >> 8 ), 2, 'task_mon.pl returns a CRITICAL' )
   or diag( check_exec($?) );
+
+sub run_mock {
+
+    my @args = (
+        ( File::Spec->catfile( $Config{bin}, 'perl' ) ),
+        'task_mon.pl', '-w', '1', '-c', '3', '-f', $config
+    );
+    system(@args);
+
+}
 
 sub clean_up {
 

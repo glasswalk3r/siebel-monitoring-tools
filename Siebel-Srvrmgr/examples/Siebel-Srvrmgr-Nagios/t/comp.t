@@ -3,29 +3,27 @@ use warnings;
 use Test::More tests => 3;
 use Config;
 use File::Spec;
-use File::Temp qw(tempfile);
+use Test::Output;
 
 BEGIN { use_ok('Siebel::Srvrmgr::Nagios') }
 
-my ( $fh, $filename ) = tempfile( 'output-XXXX', UNLINK => 1 );
-my $config = File::Spec->catfile( 't', 'test.xml' );
-my @args = (
-    File::Spec->catfile( $Config{bin}, 'perl' ),
-    'comp_mon.pl', '-w', '1', '-c', '3', '-f', $config, '>', $filename
+stdout_is(
+    \&run_mock,
+    "SCM CRITICAL - Components status is 4\n",
+    'got the expected output'
 );
-system(@args);
 
 is( ( $? >> 8 ), 2, 'comp_mon.pl returns a CRITICAL' )
   or diag( check_exec($?) );
 
-TODO: {
+sub run_mock {
 
-    local $TODO = "must redirect output to a file and check the results";
-
-    my @data = <$fh>;
-    close($fh);
-
-    is( @data, 'WARNING', 'got the expected output' );
+    my $config = File::Spec->catfile( 't', 'test.xml' );
+    my @args = (
+        File::Spec->catfile( $Config{bin}, 'perl' ),
+        'comp_mon.pl', '-w', '1', '-c', '3', '-f', $config
+    );
+    system(@args);
 
 }
 
