@@ -1,8 +1,10 @@
 package Siebel::Srvrmgr::Nagios::Config;
 use XML::Rabbit::Root;
 use Carp;
+use Config;
 
-add_xpath_namespace 'ns1' => 'http://code.google.com/p/siebel-monitoring-tools/';
+add_xpath_namespace 'ns1' =>
+  'http://code.google.com/p/siebel-monitoring-tools/';
 
 =pod
 
@@ -52,8 +54,11 @@ The pathname to the srvrmgr executable.
 
 =cut
 
-has_xpath_value 'srvrmgrPath' =>
-  '/ns1:siebelMonitor/ns1:connection/ns1:srvrmgrPath';
+has_xpath_value(
+    'srvrmgrPath',
+    '/ns1:siebelMonitor/ns1:connection/ns1:srvrmgrPath',
+    (qw(reader srvrmgrPath writer _set_srvrmgrPath))
+);
 
 =head2 srvrmgrBin
 
@@ -70,7 +75,7 @@ The Siebel user login used for authentication.
 
 =cut
 
-has_xpath_value 'user'     => '/ns1:siebelMonitor/ns1:connection/ns1:user';
+has_xpath_value 'user' => '/ns1:siebelMonitor/ns1:connection/ns1:user';
 
 =head2 password
 
@@ -87,7 +92,8 @@ A list of L<Siebel::Srvrmgr::Nagios::Server> class instances.
 =cut
 
 has_xpath_object_list 'servers' =>
-  '/ns1:siebelMonitor/ns1:servers/ns1:server' => 'Siebel::Srvrmgr::Nagios::Server';
+  '/ns1:siebelMonitor/ns1:servers/ns1:server' =>
+  'Siebel::Srvrmgr::Nagios::Server';
 
 =head1 METHODS
 
@@ -101,15 +107,23 @@ sub BUILD {
 
     my $self = shift;
 
+    if ( $self->srvrmgrPath eq 'sitebin' ) {
+
+        $self->_set_srvrmgrPath( $Config{sitebin} );
+
+    }
+
     foreach my $server ( @{ $self->servers() } ) {
 
         my %default_status;
-		my %default_task_status;
+        my %default_task_status;
 
         foreach my $compGroup ( @{ $server->get_componentGroups() } ) {
 
-            $default_status{ $compGroup->get_name() } = $compGroup->get_OKStatus();
-            $default_task_status{ $compGroup->get_name() } = $compGroup->get_taskOKStatus();
+            $default_status{ $compGroup->get_name() } =
+              $compGroup->get_OKStatus();
+            $default_task_status{ $compGroup->get_name() } =
+              $compGroup->get_taskOKStatus();
 
         }
 
@@ -117,8 +131,15 @@ sub BUILD {
 
             if ( $comp->get_OKStatus() eq '' ) {
 
-                if ( ( exists( $default_status{ $comp->get_componentGroup() } ) )
-                    and defined( $default_status{ $comp->get_componentGroup() } ) )
+                if (
+                    (
+                        exists(
+                            $default_status{ $comp->get_componentGroup() }
+                        )
+                    )
+                    and
+                    defined( $default_status{ $comp->get_componentGroup() } )
+                  )
                 {
 
                     $comp->_set_ok_status(
@@ -132,7 +153,10 @@ sub BUILD {
 
                     confess 'Undefined value for '
                       . $comp->get_alias() . '->'
-                      . $comp->get_componentGroup() . ' in server ' . $server->get_name() . ' configuration';
+                      . $comp->get_componentGroup()
+                      . ' in server '
+                      . $server->get_name()
+                      . ' configuration';
 
                 }
 

@@ -18,7 +18,7 @@ is( ( $? >> 8 ), 2, 'comp_mon.pl returns a CRITICAL' )
 
 sub run_mock {
 
-    my $config = File::Spec->catfile( 't', 'test.xml' );
+    my $config = File::Spec->catfile( 't', 'data', 'test.xml' );
     my @args = (
         File::Spec->catfile( $Config{bin}, 'perl' ),
         'comp_mon.pl', '-w', '1', '-c', '3', '-f', $config
