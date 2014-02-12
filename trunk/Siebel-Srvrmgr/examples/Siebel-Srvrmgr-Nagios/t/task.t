@@ -7,7 +7,7 @@ use Test::Output;
 
 BEGIN { use_ok('Siebel::Srvrmgr::Nagios') }
 
-my $config = File::Spec->catfile( 't', 'test.xml' );
+my $config = File::Spec->catfile( 't', 'data', 'test.xml' );
 $SIG{INT} = \&clean_up;
 
 stdout_is(
