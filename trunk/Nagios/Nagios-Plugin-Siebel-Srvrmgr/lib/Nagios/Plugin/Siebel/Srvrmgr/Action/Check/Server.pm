@@ -3,7 +3,7 @@ use Moose;
 use namespace::autoclean;
 use MooseX::FollowPBP;
 
-with 'Siebel::Srvrmgr::Daemon::Action::CheckComps::Server';
+with 'Siebel::Srvrmgr::Daemon::Action::Check::Server';
 
 has 'name' => ( is => 'rw', isa => 'Str', required => 1 );
 
