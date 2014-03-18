@@ -44,9 +44,6 @@
                             <xs:complexType>
                               <xs:attribute name="name" type="xs:string" use="required" />
                               <xs:attribute name="defaultOKStatus" type="xs:string" use="required" />
-                            </xs:complexType>
-                            <xs:complexType>
-                              <xs:attribute name="name" type="xs:string" use="required" />
                               <xs:attribute name="defaultTaskOKStatus" type="xs:string" use="required" />
                             </xs:complexType>                            
                           </xs:element>
