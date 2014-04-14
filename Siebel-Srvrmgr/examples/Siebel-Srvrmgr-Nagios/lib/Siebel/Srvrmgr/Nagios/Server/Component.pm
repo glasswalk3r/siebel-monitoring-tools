@@ -47,14 +47,6 @@ A string representing the status that indicates that the component is working as
 
 has_xpath_value 'OKStatus' => './@OKStatus', reader => 'get_OKStatus';
 
-=head2 TaskOKStatus
-
-A string representing the tasks status of the component is the one expected.
-
-=cut
-
-has_xpath_value 'taskOKStatus' => './@taskOKStatus', reader => 'get_taskOKStatus';
-
 =head2 criticality
 
 An integer indicating how critical is for the Siebel Server if this component does not have the expected status.
@@ -79,17 +71,6 @@ sub _set_ok_status {
 
 }
 
-sub _set_task_status {
-
-    my $self  = shift;
-    my $value = shift;
-
-    my $meta = __PACKAGE__->meta();
-    my $attr = $meta->get_attribute('taskOKStatus');
-    $attr->set_value( $self, $value );
-
-}
-
 finalize_class();
 __END__
 =head1 AUTHOR
@@ -98,7 +79,7 @@ Alceu Rodrigues de Freitas Junior <arfreitas@cpan.org>.
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2013 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>.
+This software is copyright (c) 2013 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<E<gt>
 
 This file is part of Siebel Monitoring Tools.
 
@@ -113,6 +94,6 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with Siebel Monitoring Tools.  If not, see L<http://www.gnu.org/licenses/>.
+along with Siebel Monitoring Tools.  If not, see <http://www.gnu.org/licenses/>.
 
 =cut

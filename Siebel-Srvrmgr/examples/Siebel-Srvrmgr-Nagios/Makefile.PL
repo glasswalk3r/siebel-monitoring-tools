@@ -23,9 +23,8 @@ WriteMakefile(
     ),
     BUILD_REQUIRES => {
         'Test::Pod'           => 1.22,
-        'Test::Pod::Coverage' => 1.08,
-        'Test::Output'        => 1.03
+        'Test::Pod::Coverage' => 1.08
     },
-    EXE_FILES => [ 'comp_mon.pl', 'task_mon.pl' ],
+    EXE_FILES => ['comp_mon.pl'],
     NO_MYMETA => 1
 );

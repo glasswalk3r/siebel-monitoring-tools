@@ -3,7 +3,7 @@ package Test::Siebel::Srvrmgr::ListParser::Output;
 use Test::Most;
 use Test::Moose 'has_attribute_ok';
 use Hash::Util qw(lock_keys);
-use parent 'Test::Siebel::Srvrmgr';
+use base 'Test::Siebel::Srvrmgr';
 
 sub get_super {
 
@@ -60,24 +60,7 @@ sub set_output {
 # this predates the usage of setup and startup, but the first is expensive and the second cannot be used due parent class
 sub _constructor : Tests(3) {
 
-    my $test        = shift;
-    my $more_params = shift;
-
-    my $params_ref = {
-        data_type => $test->get_data_type(),
-        cmd_line  => $test->get_cmd_line(),
-        raw_data  => $test->get_my_data()
-    };
-
-    if ( ( defined($more_params) ) and ( ref($more_params) eq 'HASH' ) ) {
-
-        foreach my $key ( keys( %{$more_params} ) ) {
-
-            $params_ref->{$key} = $more_params->{$key};
-
-        }
-
-    }
+    my $test = shift;
 
   SKIP: {
 
@@ -85,8 +68,18 @@ sub _constructor : Tests(3) {
           . ' is an abstract class and cannot have an instance ', 2
           if ( $test->is_super() );
 
-        ok( $test->set_output( $test->class()->new($params_ref) ),
-            'the constructor should succeed' );
+        ok(
+            $test->set_output(
+                $test->class()->new(
+                    {
+                        data_type => $test->get_data_type(),
+                        cmd_line  => $test->get_cmd_line(),
+                        raw_data  => $test->get_my_data()
+                    }
+                )
+            ),
+            'the constructor should succeed'
+        );
 
         isa_ok( $test->get_output(), $test->class() );
 
@@ -100,7 +93,14 @@ sub _constructor : Tests(3) {
 
         dies_ok(
             sub {
-                $test->class()->new($params_ref);
+
+                $test->class()->new(
+                    {
+                        data_type => $test->get_data_type(),
+                        cmd_line  => $test->get_cmd_line(),
+                        raw_data  => $test->get_my_data()
+                    }
+                );
             },
             $test->get_super() . ' new() causes an exception'
         );
@@ -109,25 +109,14 @@ sub _constructor : Tests(3) {
 
 }
 
-sub class_attributes : Tests {
+sub class_attributes : Tests(8) {
 
-    my $test        = shift;
-    my $attribs_ref = shift;
+    my $test = shift;
 
-    my @attribs =
-      ( 'data_type', 'raw_data', 'data_parsed', 'cmd_line', 'clear_raw' );
-
-    if ( ( defined($attribs_ref) ) and ( ref($attribs_ref) eq 'ARRAY' ) ) {
-
-        foreach my $attrib ( @{$attribs_ref} ) {
-
-            push( @attribs, $attrib );
-
-        }
-
-    }
-
-    $test->num_tests( scalar(@attribs) );
+    my @attribs = (
+        'data_type',      'raw_data',     'data_parsed', 'cmd_line',
+        'fields_pattern', 'header_regex', 'col_sep',     'header_cols'
+    );
 
     foreach my $attrib (@attribs) {
 
@@ -158,36 +147,29 @@ sub get_test_item {
 
 }
 
-sub class_methods : Tests {
+sub class_methods : Tests(12) {
 
-    my $test        = shift;
-    my $methods_ref = shift;
+    my $test = shift;
 
     my @methods = (
-        'get_data_type',   'get_raw_data',
-        'set_raw_data',    'get_data_parsed',
-        'set_data_parsed', 'get_cmd_line',
-        'parse',           'BUILD',
-        'clear_raw',       'set_clear_raw'
+        'get_data_type',      'get_raw_data',
+        'set_raw_data',       'get_data_parsed',
+        'set_data_parsed',    'get_cmd_line',
+        'get_fields_pattern', '_set_fields_pattern',
+        'get_header_regex',   '_set_col_sep',
+        'get_col_sep',        '_set_header_regex',
+        'get_header_cols',    'set_header_cols',
+        'parse',              '_split_fields',
+        '_set_header',        '_parse_data',
+        '_set_header_regex',  'BUILD', 
+		'_define_pattern'
     );
-
-    if ( ( defined($methods_ref) ) and ( ref($methods_ref) eq 'ARRAY' ) ) {
-
-        foreach my $method ( @{$methods_ref} ) {
-
-            push( @methods, $method );
-
-        }
-
-    }
-
-    $test->num_tests( ( scalar(@methods) ) + 6 );
 
     can_ok( $test->get_test_item(), @methods );
 
   SKIP: {
 
-        skip $test->get_super() . ' does not have instance for those tests', 6
+        skip $test->get_super() . ' does not have instance for those tests', 11
           if ( $test->is_super() );
 
         is(
@@ -220,6 +202,19 @@ sub class_methods : Tests {
 
         is( $test->get_output()->get_cmd_line(),
             $test->get_cmd_line(), 'get_cmd_line returns the correct string' );
+
+        # simple tests
+        foreach my $method (
+            qw(get_fields_pattern get_header_regex get_col_sep get_header_cols)
+          )
+        {
+
+            ok( $test->get_output()->$method(), "$method() returns true" );
+
+        }
+
+# :TODO      :01/07/2013 14:06:16:: test returned values from methods above
+# :TODO      :01/07/2013 14:06:16:: test "hidden" methods _set_header and _split_fields
 
     }
 

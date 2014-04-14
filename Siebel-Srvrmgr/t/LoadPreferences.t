@@ -1,7 +1,4 @@
 use lib 't';
-use Test::Siebel::Srvrmgr::ListParser::Output::LoadPreferences;
+use Test::Siebel::Srvrmgr::Daemon::Action::LoadPreferences;
 
-my $test = Test::Siebel::Srvrmgr::ListParser::Output::LoadPreferences->new(
-    { output_file => [qw(t output load_preferences.txt)] } );
-
-Test::Class->runtests($test);
+Test::Class->runtests;

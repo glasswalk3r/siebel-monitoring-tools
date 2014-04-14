@@ -61,20 +61,6 @@ has name => ( isa => 'Str', is => 'ro', required => 1, reader => 'get_name' );
 
 =pod
 
-=head2 comp_attribs
-
-A array reference with the components attributes names
-
-=cut
-
-has 'comp_attribs' => (
-    is      => 'ro',
-    isa     => 'ArrayRef',
-    reader  => 'get_comp_attribs'
-);
-
-=pod
-
 =head1 METHODS
 
 =head2 get_data

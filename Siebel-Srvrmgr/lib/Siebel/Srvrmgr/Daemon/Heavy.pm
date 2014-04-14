@@ -79,6 +79,7 @@ use Siebel::Srvrmgr::IPC;
 use IO::Select;
 use Encode;
 use Carp qw(longmess);
+use Socket qw(:crlf);
 use Siebel::Srvrmgr;
 
 extends 'Siebel::Srvrmgr::Daemon';
@@ -443,26 +444,34 @@ sub run {
 
     my ( $read_h, $write_h, $error_h );
 
+# :WORKAROUND:31/07/2013 14:42:33:: must initialize the Log::Log4perl after forking the srvrmgr to avoid sharing filehandles
     unless ( $self->has_pid() ) {
 
-        confess( $self->get_bin()
-              . ' returned un unrecoverable error, aborting execution' )
-          unless ( $self->_create_child() );
+        $logger = $self->_create_child();
 
-# :WORKAROUND:31/07/2013 14:42:33:: must initialize the Log::Log4perl after forking the srvrmgr to avoid sharing filehandles
-        $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );
+        unless ( ( defined($logger) ) and ( ref($logger) ) ) {
+
+            die( $self->get_bin()
+                  . ' returned un unrecoverable error, aborting execution' )
+
+        }
+        else {
+
+            weaken($logger);
+
+        }
 
     }
     else {
 
         $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );
+        weaken($logger);
         $logger->info( 'Reusing PID ', $self->get_pid() )
           if ( $logger->is_debug() );
         $ignore_output = 1;
 
     }
 
-    weaken($logger);
     $logger->info('Starting run method');
 
 # :WARNING:28/06/2011 19:47:26:: reading the output is hanging without a dummy input
@@ -479,12 +488,12 @@ sub run {
         }
     );
 
-    my $parser   = $self->create_parser();
+    my $parser   = Siebel::Srvrmgr::ListParser->new();
     my $select   = IO::Select->new();
     my $data_ref = $self->_create_handle_buffer( $select, $logger );
 
     my $prompt_regex = qr/srvrmgr(\:\w+)?>\s(.*)?$/;
-    my $eol_regex    = qr/\015\012$/;
+    my $eol_regex    = qr/$CRLF$/;
 
     $logger->debug( 'sysread buffer size is ' . $self->get_buffer_size() )
       if ( $logger->is_debug() );
@@ -810,15 +819,15 @@ sub _create_handle_buffer {
 
       SWITCH: {
 
-            if ( $/ eq \015 ) {
+            if ( $/ eq CR ) {
                 $logger->debug( $assert . 'CR' );
                 last SWITCH;
             }
-            if ( $/ eq ( \015 . \012 ) ) {
+            if ( $/ eq CRLF ) {
                 $logger->debug( $assert . 'CRLF' );
                 last SWITCH;
             }
-            if ( $/ eq \012 ) {
+            if ( $/ eq LF ) {
                 $logger->debug( $assert . 'LF' );
                 last SWITCH;
             }
@@ -882,7 +891,7 @@ sub _create_child {
     else {
 
         $self->_set_child_runs(0);
-        return 1;
+        return $logger;
 
     }
 
@@ -1027,7 +1036,7 @@ sub _process_stdout {
 
             }
 
-            # no prompt detection, keep reading output from srvrmgr
+# no prompt detection, keep reading output from srvrmgr
             else { push( @{$buffer_ref}, $line ); }
 
         }
@@ -1145,7 +1154,7 @@ sub _my_cleanup {
 
         if ( $logger->is_info() ) {
 
-            $logger->info('No child process to terminate');
+            $logger->info( 'No child process to terminate' );
 
         }
 

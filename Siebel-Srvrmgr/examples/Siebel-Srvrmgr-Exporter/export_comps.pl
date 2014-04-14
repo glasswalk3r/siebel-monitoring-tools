@@ -27,7 +27,7 @@ use warnings;
 use strict;
 use Siebel::Srvrmgr::Daemon::Heavy;
 use Siebel::Srvrmgr::ListParser::Output::ListComp::Server;
-use Siebel::Srvrmgr::ListParser::Output::Tabular::ListParams;
+use Siebel::Srvrmgr::ListParser::Output::ListParams;
 use Siebel::Srvrmgr::Daemon::Command;
 use Siebel::Srvrmgr::Exporter::ListCompDef;
 use Siebel::Srvrmgr::Exporter::ListComp;
@@ -35,12 +35,13 @@ use Siebel::Srvrmgr::Exporter::ListCompTypes;
 use File::Spec;
 use Getopt::Std;
 use Term::Pulse;
-use Siebel::Srvrmgr::Exporter;
 
 $Getopt::Std::STANDARD_HELP_VERSION = 2;
 
 # for stopping Term::Pulse correctly
 $SIG{INT} = sub { die "Caught interrupt signal" };
+
+our $VERSION = 1;
 
 sub HELP_MESSAGE {
 
@@ -54,7 +55,7 @@ sub HELP_MESSAGE {
 
     print <<BLOCK;
 
-export_comps - version $Siebel::Srvrmgr::Exporter::VERSION
+export_comps - version $VERSION
 
 This program will connect to a Siebel server and exports all components configuration in the form of "create component" commands.
 Those commands can be used with srvrmgr program to recreate those components in another Siebel server. Think of it something like a "Siebel component dumper".
@@ -192,9 +193,7 @@ foreach my $comp_alias ( @{$server_comps} ) {
 
     my @params;
 
-    my @sorted = sort( keys( %{ $params->{data_parsed} } ) );
-
-    foreach my $param_alias (@sorted) {
+    foreach my $param_alias ( keys( %{ $params->{data_parsed} } ) ) {
 
         my $param = $params->{data_parsed}->{$param_alias};
 

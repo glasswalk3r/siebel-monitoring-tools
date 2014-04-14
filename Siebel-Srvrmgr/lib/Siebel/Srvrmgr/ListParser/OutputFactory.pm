@@ -12,7 +12,6 @@ use warnings;
 use strict;
 use MooseX::AbstractFactory;
 use Carp;
-use Hash::Util qw(lock_hash);
 
 =pod
 
@@ -40,18 +39,10 @@ C<Siebel::Srvrmgr::ListParser::OutputFactory::table_mapping> for the mapping bet
 
 =head1 METHODS
 
-All methods below are class methods.
-
-=head2 build
+=head2 create
 
 Returns the instance of the class defined by the type given as parameter. Expects two parameters: an string with the type
-of output and an hash reference with the parameters expected by the C<new> method of L<Siebel::Srvrmgr::ListParser::Output> subclasses.
-
-A third, optional parameter, is required if the desired instance is a subclass of L<Siebel::Srvrmgr::ListParser::Output::Tabular>: one must
-pass a single character as the field separator, if exists in the output to be parsed.
-
-Despite using L<MooseX::AbstractFactory> to implement the Abstract Factory pattern, this method must be invoked instead of C<create>
-so the class will be able to make additional checkings necessary to define defaults for subclasses of L<Siebel::Srvrmgr::ListParser::Output::Tabular>.
+of output and an hash reference with the parameters expected by the C<new> method of L<Siebel::Srvrmgr::ListParser::Output>.
 
 =head2 can_create
 
@@ -60,13 +51,9 @@ Expects a string as the output type.
 Returns true if there is a mapping between the given type and a subclass of L<Siebel::Srvrmgr::ListParser::Output>;
 otherwise it returns false;
 
-=head2 get_mapping
-
-Returns an hash reference with the mapping between the parsed types and subclasses of L<Siebel::Srvrmgr::ListParser::Ouput>.
-
 =head1 SEE ALSO
 
-=over
+=over 3
 
 =item *
 
@@ -84,26 +71,17 @@ L<Siebel::Srvrmgr::ListParser>
 
 =cut
 
-my %table_mapping = (
-    'list_comp'        => 'Tabular::ListComp',
-    'list_params'      => 'Tabular::ListParams',
-    'list_comp_def'    => 'Tabular::ListCompDef',
-    'greetings'        => 'Enterprise',
-    'list_comp_types'  => 'Tabular::ListCompTypes',
+ # :TODO      :01/07/2013 13:37:06:: create "static" method to return this data
+our %table_mapping = (
+    'list_comp'        => 'ListComp',
+    'list_params'      => 'ListParams',
+    'list_comp_def'    => 'ListCompDef',
+    'greetings'        => 'Greetings',
+    'list_comp_types'  => 'ListCompTypes',
     'load_preferences' => 'LoadPreferences',
-    'list_tasks'       => 'Tabular::ListTasks',
-    'list_servers'     => 'Tabular::ListServers'
+    'list_tasks'       => 'ListTasks',
+    'list_servers'     => 'ListServers'
 );
-
-lock_hash(%table_mapping);
-
-sub get_mapping {
-
-    my %copy = %table_mapping;
-
-    return \%copy;
-
-}
 
 sub can_create {
 
@@ -114,38 +92,10 @@ sub can_create {
 
 }
 
-sub build {
-
-	my $class = shift;
-    my $last_cmd_type = shift;
-    my $object_data   = shift;    # hash ref
-
-    confess 'object data is required' unless ( defined($object_data) );
-
-    if ( $table_mapping{$last_cmd_type} =~ /^Tabular/ ) {
-
-        my $field_del = shift;
-
-        if ( defined($field_del) ) {
-
-            $object_data->{col_sep}        = $field_del;
-            $object_data->{structure_type} = 'delimited';
-        }
-        else {
-
-            $object_data->{structure_type} = 'fixed';
-
-        }
-
-    }
-
-    $class->create( $last_cmd_type, $object_data );
-
-}
-
 implementation_class_via sub {
 
     my $last_cmd_type = shift;
+    my $object_data   = shift;    # hash ref
 
     if ( exists( $table_mapping{$last_cmd_type} ) ) {
 

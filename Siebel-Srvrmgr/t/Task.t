@@ -1,4 +1,4 @@
 use lib 't';
-use Test::Siebel::Srvrmgr::ListParser::Output::ListTasks::Task;
+use Test::Siebel::Srvrmgr::Task;
 
 Test::Class->runtests;

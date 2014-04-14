@@ -24,8 +24,6 @@ use Siebel::Srvrmgr::ListParser::FSA;
 use Socket qw(:crlf);
 use namespace::autoclean;
 use Carp;
-use Siebel::Srvrmgr::Types;
-use String::BOM qw(string_has_bom strip_bom_from_string);
 
 =pod
 
@@ -139,16 +137,10 @@ This object has some details about the enterprise connected. Check the related P
 
 has 'enterprise' => (
     is     => 'ro',
-    isa    => 'Siebel::Srvrmgr::ListParser::Output::Enterprise',
+    isa    => 'Siebel::Srvrmgr::ListParser::Output::Greetings',
     reader => 'get_enterprise',
     writer => '_set_enterprise'
 );
-
-=pod
-
-=head2 fsa
-
-=cut
 
 has 'fsa' => (
     is     => 'ro',
@@ -156,22 +148,6 @@ has 'fsa' => (
     reader => 'get_fsa',
     writer => '_set_fsa'
 );
-
-=pod
-
-=head2 clear_raw
-
-=cut
-
-has clear_raw => (
-    is      => 'rw',
-    isa     => 'Bool',
-    reader  => 'clear_raw',
-    writer  => 'set_clear_raw',
-    default => 1
-);
-
-has field_delimiter => ( is => 'ro', isa => 'Chr', reader => 'get_field_del' );
 
 =pod
 
@@ -228,7 +204,7 @@ sub _toggle_cmd_changed {
 
 =head2 BUILD
 
-Automatically defines the state machine object based on L<Siebel::Srvrmgr::ListParser::FSA>.
+Automaticallu defined the state machine object based on L<Siebel::Srvrmgr::ListParser::FSA>.
 
 =cut
 
@@ -244,7 +220,7 @@ sub BUILD {
 
 =head2 set_buffer
 
-Sets the buffer attribute, inserting new C<Siebel::Srvrmgr::ListParser::Buffer> objects into the array reference as necessary.
+Sets the buffer attribute,  inserting new C<Siebel::Srvrmgr::ListParser::Buffer> objects into the array reference as necessary.
 
 Expects an instance of a L<FSA::State> class as parameter (obligatory parameter).
 
@@ -449,17 +425,16 @@ sub append_output {
 
     if ( defined($buffer) ) {
 
-        my $output = Siebel::Srvrmgr::ListParser::OutputFactory->build(
+        my $output = Siebel::Srvrmgr::ListParser::OutputFactory->create(
             $buffer->get_type(),
             {
                 data_type => $buffer->get_type(),
                 raw_data  => $buffer->get_content(),
                 cmd_line  => $buffer->get_cmd_line()
-            },
-            $self->get_field_del()
+            }
         );
 
-        if ( $output->isa('Siebel::Srvrmgr::ListParser::Output::Enterprise') ) {
+        if ( $output->isa('Siebel::Srvrmgr::ListParser::Output::Greetings') ) {
 
             $self->_set_enterprise($output);
 
@@ -478,19 +453,17 @@ sub append_output {
 
         foreach my $buffer ( @{$buffer_ref} ) {
 
-            my $output = Siebel::Srvrmgr::ListParser::OutputFactory->build(
+            my $output = Siebel::Srvrmgr::ListParser::OutputFactory->create(
                 $buffer->get_type(),
                 {
                     data_type => $buffer->get_type(),
                     raw_data  => $buffer->get_content(),
                     cmd_line  => $buffer->get_cmd_line()
-                },
-                $self->get_field_del()
+                }
             );
 
             if (
-                $output->isa('Siebel::Srvrmgr::ListParser::Output::Enterprise')
-              )
+                $output->isa('Siebel::Srvrmgr::ListParser::Output::Greetings') )
             {
 
                 $self->_set_enterprise($output);
@@ -535,18 +508,10 @@ sub parse {
     my $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );
     weaken($logger);
 
-    $logger->logdie('Received an invalid buffer as parameter')
-      unless ( ( defined($data_ref) )
-        and ( ref($data_ref) eq 'ARRAY' )
-        and ( scalar( @{$data_ref} ) > 0 ) );
+    $logger->logdie( 'Received an invalid buffer as parameter' )
+      unless ( ( defined($data_ref) ) and ( ref($data_ref) eq 'ARRAY' ) and (scalar(@{$data_ref}) > 0) );
 
     weaken($data_ref);
-
-    if ( string_has_bom( $data_ref->[0] ) ) {
-
-        $data_ref->[0] = strip_bom_from_string( $data_ref->[0] );
-
-    }
 
     $self->get_fsa->notes( all_data => $data_ref );
     $self->get_fsa->notes( line_num => 0 );
@@ -561,7 +526,7 @@ sub parse {
         if ( defined($state) ) {
 
             my $curr_msg = $state->notes('line');
-            $found_prompt = $state->notes('found_prompt');
+			$found_prompt = $state->notes('found_prompt');
 
 # :TODO:03-10-2013:arfreitas: find a way to keep circular references between the two objects to avoid
 # checking state change everytime with is_cmd_changed
@@ -569,7 +534,7 @@ sub parse {
           SWITCH: {
 
 # :WORKAROUND:03-10-2013:arfreitas: command_submission defines is_cmd_changed but it is not a
-# Siebel::Srvrmgr::ListParser::Output subclass, so it's not worth to create a buffer object for it and discard later.
+# Siebel::Srvrmgr::ListParser::Output instance, so it's not worth to create a buffer object for it and discard later.
 # Anyway, is expected that after a command is submitted, the next message is the output from it and it needs
 # a buffer to be stored
                 if ( $self->get_fsa->prev_state()->name() eq

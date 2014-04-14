@@ -1,40 +1,10 @@
 package Test::Siebel::Srvrmgr;
 
 use Test::More;
-use File::Spec;
-use String::BOM qw(string_has_bom strip_bom_from_string);
-use parent qw(Test::Class Class::Data::Inheritable);
-use Carp;
+use base qw(Test::Class Class::Data::Inheritable);
 
 BEGIN {
     __PACKAGE__->mk_classdata('class');
-}
-
-sub new {
-
-    my $class      = shift;
-    my $params_ref = shift;
-    my $self;
-
-    if ( defined($params_ref) ) { # ones that use get_my_data
-
-        confess "must receive an hash reference as parameter"
-          unless ( ref($params_ref) eq 'HASH' );
-
-        $params_ref->{output_file} =
-          File::Spec->catfile( @{ $params_ref->{output_file} } );
-
-        $self = $class->SUPER::new( %{$params_ref} );
-
-    }
-    else {
-
-        $self = $class->SUPER::new();
-
-    }
-
-    return $self;
-
 }
 
 sub startup : Test( startup => 1 ) {
@@ -50,11 +20,11 @@ sub startup : Test( startup => 1 ) {
 
 }
 
-sub get_output_file {
+sub set_my_data {
 
-    my $test = shift;
+    my $self = shift;
 
-    return $test->{output_file};
+    $self->{data} = shift;
 
 }
 
@@ -62,32 +32,42 @@ sub get_my_data {
 
     my $test = shift;
 
-    my $file = $test->get_output_file();
+    if ( exists( $test->{data} ) ) {
 
-    confess "Don't have a defined file to read!" unless ( defined($file) );
-
-    open( my $in, '<', $file )
-      or die "cannot read $file: $!";
-
-    my @data;
-
-    while (<$in>) {
-
-        # input text files for testing are expected to have UNIX EOL character
-        s/\012$//;
-        push( @data, $_ );
+        return $test->{data};
 
     }
+    else {
 
-    close($in);
+        my $handle = ref($test) . '::DATA';
+        my @data;
 
-    if ( string_has_bom( $data[0] ) ) {
+        while (<$handle>) {
 
-        $data[0] = strip_bom_from_string( $data[0] );
+# :WORKAROUND:12/08/2013 12:27:24:: new implementation of Daemon removes new lines characters from srvrmgr output
+            chomp();
+            push( @data, $_ );
+
+        }
+
+        close($handle);
+
+        if (@data) {
+
+            $test->{data} = \@data;
+            return $test->{data};
+
+        }
+
+# :WORKAROUND:25/06/2013 16:51:19:: to avoid multiple inheritance, this will support subclasses that needs dummy data to be returned
+# as Test::Siebel::Srvrmgr::Action does
+        else {
+
+            return [qw(foo bar something)];
+
+        }
 
     }
-
-    return \@data;
 
 }
 

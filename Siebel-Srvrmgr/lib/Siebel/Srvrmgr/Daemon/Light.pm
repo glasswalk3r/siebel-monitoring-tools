@@ -137,7 +137,7 @@ sub run {
     weaken($logger);
     $logger->info('Starting run method');
 
-    my $parser = $self->create_parser();
+    my $parser = Siebel::Srvrmgr::ListParser->new();
 
     if ( $logger->is_debug() ) {
 
@@ -230,9 +230,9 @@ sub run {
 
 =head2 cmds_vs_tree
 
-This method compares the number of C<commands> defined in a instance of this class with the number of nodes passed as parameter.
-
 Expects the number of parsed nodes as parameter.
+
+This method compares the number of C<commands> defined in a instance of this class with the number of nodes passed as parameter.
 
 If their are equal, the number is returned. If their are different (and there is a problem with the parsed output of srvrmgr) this method
 returns C<undef>.

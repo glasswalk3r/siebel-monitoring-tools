@@ -27,133 +27,51 @@ An object that represents each task from a C<list tasks> command output from srv
 
 =head1 ATTRIBUTES
 
-The list of attributes, with their respective inner parenthesis:
+All attributes are required unless documented that is not.
 
-=over
+=head2 server_name
 
-=item *
+Name of the Siebel server where the task information was recovered.
 
-server_name: Server name (string)
+=head2 comp_alias
 
-=item *
+The component alias corresponding to the task.
 
-comp_alias: Component alias (string)
+=head2 id
 
-=item *
+The task id.
 
-id: Internal task id (integer)
+=head2 pid
 
-=item *
+The corresponding process identifier from the running OS of the task (in fact, the PID from the related component process).
 
-pid: Task process id (integer)
+=head2 status
 
-=item *
-
-run_state: Task run state (string)
-
-=item *
-
-run_mode: Task run mode (string)
-
-=item *
-
-start_time: Task start time (string)
-
-=item *
-
-end_time: Task end time (string)
-
-=item *
-
-status: Task-reported status (string)
-
-=item *
-
-group_alias: Component group alias (string)
-
-=item *
-
-parent_id: Parent task id (integer)
-
-=item *
-
-incarn_no: Incarnation Number (integer)
-
-=item *
-
-label: Task Label (string)
-
-=item *
-
-type: Task Type (string)
-
-=item *
-
-ping_time: Last ping time for task (string)
-
-=back
-
-The attributes that are required are:
-
-=over
-
-=item *
-
-server_name
-
-=item *
-
-comp_alias
-
-=item *
-
-id
-
-=item *
-
-pid
-
-=item *
-
-status
-
-=back
-
-Depending on the type of output recovered from the C<srvrmgr>, not all attributes will be available except the required.
+Task-reported status.
 
 =cut
 
-has 'server_name' => ( is => 'ro', isa => 'Str', required   => 1 );
-has 'comp_alias'  => ( is => 'ro', isa => 'Str', required   => 1 );
-has 'id'          => ( is => 'ro', isa => 'Int', required   => 1 );
-has 'pid'         => ( is => 'ro', isa => 'Int', required   => 1 );
-has 'run_state'   => ( is => 'ro', isa => 'Str', required   => 1 );
-has 'run_mode'    => ( is => 'ro', isa => 'Str', 'required' => 0 );
-has 'start_time'  => ( is => 'ro', isa => 'Str', 'required' => 0 );
-has 'end_time'    => ( is => 'ro', isa => 'Str', 'required' => 0 );
-has 'status'      => ( is => 'ro', isa => 'Str', 'required' => 0 );
-has 'group_alias' => ( is => 'ro', isa => 'Str', 'required' => 0 );
-has 'parent_id'   => ( is => 'ro', isa => 'Int', 'required' => 0 );
-has 'incarn_no'   => ( is => 'ro', isa => 'Int', 'required' => 0 );
-has 'label'       => ( is => 'ro', isa => 'Str', 'required' => 0 );
-has 'type'        => ( is => 'ro', isa => 'Str', 'required' => 0 );
-has 'ping_time'   => ( is => 'ro', isa => 'Str', 'required' => 0 );
+has 'server_name'    => ( is => 'ro', isa => 'Str', required => 1 );
+has 'comp_alias'     => ( is => 'ro', isa => 'Str', required => 1 );
+has 'id'             => ( is => 'ro', isa => 'Int', required => 1 );
+has 'pid'            => ( is => 'ro', isa => 'Int', required => 1 );
+has 'status'         => ( is => 'ro', isa => 'Str', required => 1 );
 
 =pod
 
 =head1 METHODS
 
-All attributes have a getter named C<get_E<lt>attribute nameE<gt>>.
+All attributes have a getter named "get_<attribute name>".
 
 Since all attributes are read-only there is no corresponding setter.
 
 =head1 SEE ALSO
 
-=over
+=over 3
 
 =item *
 
-L<Siebel::Srvrmgr::ListParser::Output::Tabular::ListTasks>
+L<Siebel::Srvrmgr::ListParser::Output::ListTasks>
 
 =item *
 
@@ -191,3 +109,4 @@ along with Siebel Monitoring Tools.  If not, see L<http://www.gnu.org/licenses/>
 =cut
 
 __PACKAGE__->meta->make_immutable;
+1;

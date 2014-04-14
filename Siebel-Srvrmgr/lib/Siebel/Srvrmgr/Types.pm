@@ -28,14 +28,6 @@ subtype 'NotNullStr', as 'Str',
   where { ( defined($_) ) and ( $_ ne '' ) },
   message { 'This attribute value must be a defined, non-empty string' };
 
-subtype 'Chr', as 'Str',
-  where { ( defined($_) ) and ( $_ ne '' ) and ( length($_) == 1 ) },
-  message { 'This attribute value must be a defined, non-empty string with a single character' };
-
-subtype 'OutputTabularType', as 'Str', 
-	where { ( ( defined($_) ) and ( ( $_ eq 'fixed' ) or ( $_ eq 'delimited' ) ) ) }, 
-	message { 'This attribute value must be a defined, non-empty string equal "fixed" or "delimited"' };
-
 role_type 'CheckCompsComp',
   { role => 'Siebel::Srvrmgr::Daemon::Action::CheckComps::Component' };
 
@@ -43,7 +35,7 @@ no Moose::Util::TypeConstraints;
 
 =head1 AUTHOR
 
-Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
+Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<E<gt>
 
 =head1 COPYRIGHT AND LICENSE
 

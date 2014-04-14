@@ -43,6 +43,7 @@ use Siebel::Srvrmgr;
 use Scalar::Util qw(weaken);
 use Config;
 use Carp qw(longmess);
+use Socket qw(:crlf);
 use Siebel::Srvrmgr::Types;
 
 our $SIG_INT   = 0;
@@ -71,7 +72,7 @@ to the Enterprise only, not specifying which Siebel Server to connect.
 =cut
 
 has server => (
-    isa      => 'NotNullStr',
+    isa      => 'Str',
     is       => 'rw',
     required => 0,
     reader   => 'get_server',
@@ -279,49 +280,9 @@ has retries => (
     default => 0
 );
 
-=head2 clear_raw
-
-A boolean attribute that defines if the raw data recovered from C<srvrmgr> should be kept or discarded as soon as possibly.
-
-Having a default value of true, it should help reducing memory usage or debugging, if set false.
-
-=cut
-
-has clear_raw => (
-    is      => 'rw',
-    isa     => 'Bool',
-    reader  => 'clear_raw',
-    writer  => 'set_clear_raw',
-    default => 1
-);
-
-=head2 field_delimiter
-
-This is a single character attribute. It tells the Daemon class to consider a field delimiter, if such options was
-set in the C<srvrmgr> program. If this option is used but this attribute is not set accordinly, parsing will probably
-fail.
-
-Since this attribute should be defined during Daemon object instance, it is read-only.
-
-=cut
-
-has field_delimiter => ( is => 'ro', isa => 'Chr', reader => 'get_field_del' );
-
 =pod
 
 =head1 METHODS
-
-=head2 get_field_del
-
-Getter for the C<field_delimiter> attribute.
-
-=head2 clear_raw
-
-Getter for the C<clear_raw> attribute.
-
-=head2 set_clear_raw
-
-Setter for the C<clear_raw> attribute.
 
 =head2 get_alarm
 
@@ -527,53 +488,20 @@ sub normalize_eol {
     confess 'data parameter must be an array or scalar reference'
       unless ( ( $ref_type eq 'ARRAY' ) or ( $ref_type eq 'SCALAR' ) );
 
-    my $c_regex = qr/\015?\012/;
-
     if ( $ref_type eq 'ARRAY' ) {
 
-        local $/ = \012;
+        local $/ = LF;
 
         foreach ( @{$data_ref} ) {
 
-            s/$c_regex/\n/g;
+            s/$CR?$LF/\n/og;
 
         }
 
     }
     else {
 
-        $$data_ref =~ s/$c_regex/\n/g;
-
-    }
-
-}
-
-=pod
-
-=head2 create_parser
-
-Returns an instance of a L<Siebel::Srvrmgr::ListParser> class.
-
-=cut
-
-sub create_parser {
-
-    my $self = shift;
-
-    if ( $self->get_field_del() ) {
-
-        return Siebel::Srvrmgr::ListParser->new(
-            {
-                clear_raw       => $self->clear_raw(),
-                field_delimiter => $self->get_field_del()
-            }
-        );
-
-    }
-    else {
-
-        return Siebel::Srvrmgr::ListParser->new(
-            { clear_raw => $self->clear_raw() } );
+        $$data_ref =~ s/$CR?$LF/\n/g;
 
     }
 
@@ -594,7 +522,8 @@ sub _define_params {
     );
 
     push( @params, '/s', $self->get_server() )
-      if ( defined( $self->get_server() ) );
+      if (  ( defined( $self->get_server() ) )
+        and ( $self->get_server() ne '' ) );
 
 # :WORKAROUND:06/08/2013 21:05:32:: if a perlscript will be executed (like for automated testing of this distribution)
 # then the perl interpreter must be part of the command path to avoid calling cmd.exe (in Microsoft Windows)

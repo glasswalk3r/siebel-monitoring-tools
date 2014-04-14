@@ -1,7 +1,4 @@
 use lib 't';
-use Test::Siebel::Srvrmgr::ListParser::Output::Enterprise;
+use Test::Siebel::Srvrmgr::ListParser::Output::Greetings;
 
-my $test = Test::Siebel::Srvrmgr::ListParser::Output::Enterprise->new(
-    { output_file => [qw(t output greetings.txt)] } );
-
-Test::Class->runtests($test);
+Test::Class->runtests;

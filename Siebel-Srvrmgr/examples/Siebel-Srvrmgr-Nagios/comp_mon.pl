@@ -1,4 +1,3 @@
-#!/usr/bin/perl
 use warnings;
 use strict;
 use Siebel::Srvrmgr::Daemon::Light;
@@ -7,7 +6,6 @@ use Nagios::Plugin;
 use Siebel::Srvrmgr::Daemon::ActionStash;
 use Siebel::Srvrmgr::Nagios::Config;
 use Siebel::Srvrmgr::Daemon::Command;
-use Siebel::Srvrmgr::Nagios;
 
 #    COPYRIGHT AND LICENCE
 #
@@ -31,7 +29,7 @@ use Siebel::Srvrmgr::Nagios;
 my $np = Nagios::Plugin->new(
     shortname => 'SCM',
     usage     => "Usage: %s -w -c -f",
-    version   => $Siebel::Srvrmgr::Nagios::VERSION
+    version   => '0.2'
 );
 
 $np->add_arg(

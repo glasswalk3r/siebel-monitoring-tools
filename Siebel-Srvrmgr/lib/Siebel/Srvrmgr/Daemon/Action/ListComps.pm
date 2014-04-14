@@ -50,7 +50,7 @@ override 'do_parsed' => sub {
     my $self = shift;
     my $obj  = shift;
 
-    if ( $obj->isa( $self->get_exp_output() ) ) {
+    if ( $obj->isa('Siebel::Srvrmgr::ListParser::Output::ListComp') ) {
 
         my $servers_ref = $obj->get_servers();
 
@@ -88,12 +88,6 @@ override 'do_parsed' => sub {
         return 0;
 
     }
-
-};
-
-override '_build_exp_output' => sub {
-
-    return 'Siebel::Srvrmgr::ListParser::Output::Tabular::ListComp';
 
 };
 

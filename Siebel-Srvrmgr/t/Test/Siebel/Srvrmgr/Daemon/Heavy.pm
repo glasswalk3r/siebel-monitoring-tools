@@ -6,7 +6,7 @@ use File::Spec;
 use Test::Moose 'has_attribute_ok';
 use Siebel::Srvrmgr::Daemon::Heavy;
 use Config;
-use parent 'Test::Siebel::Srvrmgr::Daemon';
+use base 'Test::Siebel::Srvrmgr::Daemon';
 use Siebel::Srvrmgr;
 
 sub class_methods : Test(+1) {
@@ -35,9 +35,11 @@ sub class_methods : Test(+1) {
 
 }
 
-sub class_attributes : Tests(no_plan) {
+sub class_attributes : Tests(+12) {
 
     my $test = shift;
+
+    $test->SUPER::class_attributes();
 
     my @attribs = (
         'write_fh',        'read_fh',
@@ -48,7 +50,11 @@ sub class_attributes : Tests(no_plan) {
         'read_timeout',    'child_pid'
     );
 
-    $test->SUPER::class_attributes(\@attribs);
+    foreach my $attribute (@attribs) {
+
+        has_attribute_ok( $test->{daemon}, $attribute );
+
+    }
 
 }
 

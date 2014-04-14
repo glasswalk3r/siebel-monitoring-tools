@@ -113,8 +113,6 @@ override 'parse' => sub {
     $self->set_data_parsed( \%parsed_lines );
     $self->set_raw_data( [] );
 
-	return 1;
-
 };
 
 =pod
