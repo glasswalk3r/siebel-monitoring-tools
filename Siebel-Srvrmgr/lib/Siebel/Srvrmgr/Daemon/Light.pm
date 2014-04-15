@@ -69,6 +69,7 @@ use Carp qw(longmess);
 use File::Temp;
 use Data::Dumper;
 use Siebel::Srvrmgr;
+use File::BOM qw(:all);
 
 extends 'Siebel::Srvrmgr::Daemon';
 
@@ -152,9 +153,16 @@ sub run {
 
     $self->_check_system( $logger, ${^CHILD_ERROR_NATIVE}, $ret_code, $? );
 
-    open( my $in, '<', $self->get_output_file() )
-      or
-      $logger->logdie( 'Cannot read ' . $self->get_output_file() . ': ' . $! );
+    my $in;
+
+    eval { open_bom( $in, $self->get_output_file(),':utf8' ) };
+
+    if ($@) {
+
+      $logger->logdie( 'Cannot read ' . $self->get_output_file() . ': ' . $@ );
+
+    }
+
     my @input_buffer = <$in>;
     close($in);
 

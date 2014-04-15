@@ -8,16 +8,16 @@ Siebel::Srvrmgr::Daemon::Action::CheckComps - subclass of Siebel::Srvrmgr::Daemo
 
 =head1 SYNOPSIS
 
-	use Siebel::Srvrmgr::Daemon::Action::CheckComps;
+    use Siebel::Srvrmgr::Daemon::Action::CheckComps;
 
     my $return_data = Siebel::Srvrmgr::Daemon::ActionStash->instance();
 
     my $comps = [ {name => 'SynchMgr', ok_status => 'Running'}, { name => 'WfProcMgr', ok_status => 'Running'} ];
 
-	my $action = Siebel::Srvrmgr::Daemon::Action::CheckComps->new({  parser => Siebel::Srvrmgr::ListParser->new(), 
-																	 params => [ $server1, $server2 ] });
+    my $action = Siebel::Srvrmgr::Daemon::Action::CheckComps->new({  parser => Siebel::Srvrmgr::ListParser->new(), 
+                                                                     params => [ $server1, $server2 ] });
 
-	$action->do();
+    $action->do();
 
     # do something with $return_data
 
@@ -43,22 +43,20 @@ instance to be able to fetch the information returned.
 
 This module was created to work close with Nagios concepts, especially regarding threshold levels (see C<new> method for more details).
 
+This class also has built-in logging features. See L<Siebel::Srvrmgr>.
+
 =head1 METHODS
 
 =head2 new
 
 The new method returns a instance of L<Siebel::Srvrmgr::Daemon::Action::CheckComps>. The parameter expected are the same ones of any subclass of 
 L<Siebel::Srvrmgr::Daemon::Action>, but the C<params> attribute has a important difference: it expects an array reference with instances of classes
-that have the role L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Server>. The way that the classes will get the 
-information about which component to check per server is not important as long as they keep the same methods defined by 
-the roles L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Server> and 
-L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Component>.
-that have the role L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Server>. The way that the classes will get the information about which component 
-information is available per server is not important as long as they keep the same methods defined by the roles 
-L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Server> for a Siebel server and L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Component> for a Siebel
-server component.
+that have the role L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Server>.
 
-See the examples directory of this distribution to check a XML file used for configuration for more details.
+The server instance itself will expect to have multiple instances of objects representing a Siebel Component and those instances must be of a class that has the 
+Moose role L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Component> applied.
+
+See the C<examples> directory of this distribution, uh, examples of implementation.
 
 =head2 BUILD
 
@@ -93,16 +91,16 @@ C<set_stash> with a hash reference as it's content. Otherwise, the method will r
 
 The hash reference stored in the ActionStash object will have the following structure:
 
-	$VAR1 = {
-			  'foobar_server' => {
-								   'CompAlias1' => 0,
-								   'CompAlias2' => 1
-								 },
-			  'foobar2_server' => {
-									'CompAlias1' => 1,
-									'CompAlias2' => 1
-								  }
-			};
+    $VAR1 = {
+        'foobar_server' => {
+            'CompAlias1' => 0,
+            'CompAlias2' => 1
+        },
+        'foobar2_server' => {
+            'CompAlias1' => 1,
+            'CompAlias2' => 1
+        }
+    };
 
 If the servername passed during the object creation (as C<params> attribute of C<new> method) cannot be found in the buffer parameter, the object will raise an
 exception.
@@ -263,7 +261,7 @@ override 'do_parsed' => sub {
 
 =head1 SEE ALSO
 
-=over 4
+=over
 
 =item *
 
@@ -283,17 +281,25 @@ L<Siebel::Srvrmgr::Daemon::Action::Stash>
 
 =item *
 
+L<Siebel::Srvrmgr::Daemon::CheckComps::Server>
+
+=item *
+
+L<Siebel::Srvrmgr::Daemon::CheckComps::Component>
+
+=item *
+
 L<Nagios::Plugin>
 
 =back
 
 =head1 AUTHOR
 
-Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<E<gt>
+Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2012 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<E<gt>
+This software is copyright (c) 2012 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
 
 This file is part of Siebel Monitoring Tools.
 
