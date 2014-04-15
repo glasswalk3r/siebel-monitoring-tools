@@ -8,7 +8,7 @@ use ExtUtils::MakeMaker;
 my %config = (
     NAME             => 'Siebel::Srvrmgr',
     VERSION_FROM     => 'lib/Siebel/Srvrmgr.pm',    # finds $VERSION
-    MIN_PERL_VERSION => 5.008009, 
+    MIN_PERL_VERSION => 5.008009,
     PREREQ_PM        => {
         'namespace::autoclean'         => 0.13,
         'Moose'                        => 2.0401,
@@ -20,6 +20,7 @@ my %config = (
         'MooseX::FollowPBP'            => 0.05,
         'Log::Log4perl'                => 1.41,
         'YAML::Syck'                   => 1.25,
+        'File::BOM'                    => 0.14
     },
     TEST_REQUIRES => {
         'Test::Most'               => 0.25,

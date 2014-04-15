@@ -79,6 +79,7 @@ sub new {
       qr/list\stasks(\sfor\sserver\s\w+\scomponent\sgroup?\s\w+)?/;
     my $ls_servers_regex   = qr/list\sserver(s)?.*/;
     my $ls_comp_defs_regex = qr/list\scomp\sdefs?(\s\w+)?/;
+    my $ls_comp_regex      = qr/^list\scomps?$/;
 
     my %params = (
         done => sub {
@@ -381,7 +382,7 @@ sub new {
 
                 }
 
-				$state->notes(found_prompt => 1);
+                $state->notes( found_prompt => 1 );
                 my $cmd = ( $state->notes('line') =~ SRVRMGR_PROMPT )[1];
 
                 if ( ( defined($cmd) ) and ( $cmd ne '' ) ) {
@@ -418,6 +419,7 @@ sub new {
 
                     my $state = shift;
 
+                    #if ( $state->notes('last_command') =~ $ls_comp_regex ) {
                     if ( $state->notes('last_command') eq 'list comp' ) {
 
                         return 1;
