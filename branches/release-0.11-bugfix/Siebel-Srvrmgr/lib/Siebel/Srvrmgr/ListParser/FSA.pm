@@ -419,8 +419,7 @@ sub new {
 
                     my $state = shift;
 
-                    #if ( $state->notes('last_command') =~ $ls_comp_regex ) {
-                    if ( $state->notes('last_command') eq 'list comp' ) {
+                    if ( $state->notes('last_command') =~ $ls_comp_regex ) {
 
                         return 1;
 

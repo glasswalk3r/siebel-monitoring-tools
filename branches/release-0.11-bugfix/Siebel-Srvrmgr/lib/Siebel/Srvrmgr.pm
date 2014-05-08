@@ -4,7 +4,7 @@ use strict;
 use Log::Log4perl;
 use Carp;
 
-our $VERSION = '0.11.1';
+our $VERSION = '0.11.2';
 
 =pod
 
