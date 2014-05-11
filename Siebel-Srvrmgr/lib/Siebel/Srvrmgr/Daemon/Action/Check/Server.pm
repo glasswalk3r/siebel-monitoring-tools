@@ -1,7 +1,5 @@
 package Siebel::Srvrmgr::Daemon::Action::Check::Server;
 
-
-
 use Moose::Role;
 use Siebel::Srvrmgr::Types;
 

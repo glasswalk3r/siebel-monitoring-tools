@@ -20,7 +20,8 @@ my %config = (
         'MooseX::FollowPBP'            => 0.05,
         'Log::Log4perl'                => 1.41,
         'YAML::Syck'                   => 1.25,
-        'String::BOM'                  => 0.3
+        'String::BOM'                  => 0.3,
+        'File::BOM'                    => 0.14
     },
     TEST_REQUIRES => {
         'Test::Most'               => 0.25,

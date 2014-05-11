@@ -1,9 +1,9 @@
 use lib 't';
-use Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Component;
+use Test::Siebel::Srvrmgr::Daemon::Action::Check::Component;
 use Test::Most tests => 8;
 use Test::Moose;
 
-my $comp = Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Component->new(
+my $comp = Test::Siebel::Srvrmgr::Daemon::Action::Check::Component->new(
     {
         alias          => 'SynchMgr',
         description    => 'foobar',
@@ -13,7 +13,7 @@ my $comp = Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Component->new(
     }
 );
 
-does_ok( $comp, 'Siebel::Srvrmgr::Daemon::Action::CheckComps::Component' );
+does_ok( $comp, 'Siebel::Srvrmgr::Daemon::Action::Check::Component' );
 
 foreach (qw(alias description componentGroup OKStatus criticality)) {
 
@@ -24,7 +24,7 @@ foreach (qw(alias description componentGroup OKStatus criticality)) {
 dies_ok(
     sub {
         my $comp =
-          Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Component->new();
+          Test::Siebel::Srvrmgr::Daemon::Action::Check::Component->new();
     },
     'constructor cannot accept missing attributes declaration'
 );
@@ -32,7 +32,7 @@ dies_ok(
 dies_ok(
     sub {
         my $comp =
-          Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Component->new(
+          Test::Siebel::Srvrmgr::Daemon::Action::Check::Component->new(
             {
                 alias          => '',
                 description    => 'foo',

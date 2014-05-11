@@ -1,4 +1,4 @@
-package Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Component;
+package Test::Siebel::Srvrmgr::Daemon::Action::Check::Component;
 
 use Moose;
 use namespace::autoclean;
