@@ -1,4 +1,4 @@
-package Siebel::Srvrmgr::Daemon::Action::CheckComps::Server;
+package Siebel::Srvrmgr::Daemon::Action::Check::Server;
 
 
 
@@ -9,14 +9,12 @@ use Siebel::Srvrmgr::Types;
 
 =head1 NAME
 
-Siebel::Srvrmgr::Daemon::Action::CheckComps::Server - role for classes that hold Siebel server components information
+Siebel::Srvrmgr::Daemon::Action::Check::Server - role for classes that hold Siebel server components information
 
 =head1 DESCRIPTION
 
 This package is a role, not a subclass of L<Siebel::Srvrmgr::Daemon::Action>. It is intended to be used by classes that provides information
 about which components are available in a Siebel server and which is their expected status.
-
-# :TODO:04-02-2014 18:55:38:: this class must be made generic (Check::Server instead of CheckComps::Server)
 
 =head1 ATTRIBUTES
 
@@ -37,7 +35,7 @@ has name => (
 
 =head2 components
 
-An array reference with instances of classes that have the L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Component> role applied.
+An array reference with instances of classes that have the L<Siebel::Srvrmgr::Daemon::Action::Check::Component> role applied.
 
 =cut
 
@@ -65,7 +63,7 @@ L<Siebel::Srvrmgr::Daemon::Action::CheckComps>
 
 =item *
 
-L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Component>
+L<Siebel::Srvrmgr::Daemon::Action::Check::Component>
 
 =back
 

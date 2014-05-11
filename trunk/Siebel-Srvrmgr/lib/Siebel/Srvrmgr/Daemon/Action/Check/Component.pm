@@ -1,4 +1,4 @@
-package Siebel::Srvrmgr::Daemon::Action::CheckComps::Component;
+package Siebel::Srvrmgr::Daemon::Action::Check::Component;
 
 use Moose::Role;
 use Siebel::Srvrmgr::Types;
@@ -7,11 +7,11 @@ use Siebel::Srvrmgr::Types;
 
 =head1 NAME
 
-Siebel::Srvrmgr::Daemon::Action::CheckComps::Component - role for classes that hold Siebel server components information
+Siebel::Srvrmgr::Daemon::Action::Check::Component - role for classes that hold Siebel server components information
 
 =head1 DESCRIPTION
 
-This class is a role, not a subclass of L<Siebel::Srvrmgr::Daemon::Action::CheckComps>. It is intended to be used by classes that provides information
+This class is intended to be used by classes that provides information
 about which components are available in a Siebel server and which is their expected status.
 
 =head1 ATTRIBUTES
@@ -115,7 +115,7 @@ L<Siebel::Srvrmgr::Daemon::Action::CheckComps>
 
 =item *
 
-L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Server>
+L<Siebel::Srvrmgr::Daemon::Action::Check::Server>
 
 =back
 

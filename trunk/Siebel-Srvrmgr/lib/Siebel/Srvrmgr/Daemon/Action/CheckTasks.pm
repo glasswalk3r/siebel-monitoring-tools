@@ -70,7 +70,7 @@ sub BUILD {
 
     my $self = shift;
 
-    my $role = 'Siebel::Srvrmgr::Daemon::Action::CheckComps::Server';
+    my $role = 'Siebel::Srvrmgr::Daemon::Action::Check::Server';
 
     foreach my $object ( @{ $self->get_params() } ) {
 
