@@ -37,7 +37,7 @@ subtype 'OutputTabularType', as 'Str',
 	message { 'This attribute value must be a defined, non-empty string equal "fixed" or "delimited"' };
 
 role_type 'CheckCompsComp',
-  { role => 'Siebel::Srvrmgr::Daemon::Action::CheckComps::Component' };
+  { role => 'Siebel::Srvrmgr::Daemon::Action::Check::Component' };
 
 no Moose::Util::TypeConstraints;
 

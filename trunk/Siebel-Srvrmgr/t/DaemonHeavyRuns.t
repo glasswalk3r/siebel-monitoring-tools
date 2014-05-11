@@ -8,8 +8,8 @@ use Cwd;
 use File::Spec;
 use Config::Tiny;
 use lib 't';
-use Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Component;
-use Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Server;
+use Test::Siebel::Srvrmgr::Daemon::Action::Check::Component;
+use Test::Siebel::Srvrmgr::Daemon::Action::Check::Server;
 
 my $daemon;
 my $server;
@@ -146,7 +146,7 @@ sub build_server {
 
             push(
                 @comps,
-                Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Component
+                Test::Siebel::Srvrmgr::Daemon::Action::Check::Component
                   ->new(
                     {
                         alias          => $_,
@@ -169,7 +169,7 @@ sub build_server {
 
             push(
                 @comps,
-                Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Component
+                Test::Siebel::Srvrmgr::Daemon::Action::Check::Component
                   ->new(
                     {
                         alias          => $_,
@@ -186,7 +186,7 @@ sub build_server {
 
     }
 
-    return Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Server->new(
+    return Test::Siebel::Srvrmgr::Daemon::Action::Check::Server->new(
         {
             name       => $server_name,
             components => \@comps

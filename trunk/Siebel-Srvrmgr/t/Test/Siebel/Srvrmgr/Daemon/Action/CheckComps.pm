@@ -5,8 +5,8 @@ use Test::Most;
 use Siebel::Srvrmgr::ListParser;
 use Siebel::Srvrmgr::Daemon::Action::CheckComps;
 use Siebel::Srvrmgr::ListParser::Output::ListComp::Server;
-use Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Server;
-use Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Component;
+use Test::Siebel::Srvrmgr::Daemon::Action::Check::Server;
+use Test::Siebel::Srvrmgr::Daemon::Action::Check::Component;
 
 sub set_action2 {
 
@@ -30,7 +30,7 @@ sub before : Test(setup) {
 
     # applying roles as expected by Siebel::Srvrmgr::Daemon::Action::CheckComps
     my $comp1 =
-      Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Component->new(
+      Test::Siebel::Srvrmgr::Daemon::Action::Check::Component->new(
         {
             alias          => 'SRBroker',
             description    => 'foobar',
@@ -40,7 +40,7 @@ sub before : Test(setup) {
         }
       );
     my $comp2 =
-      Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Component->new(
+      Test::Siebel::Srvrmgr::Daemon::Action::Check::Component->new(
         {
             alias          => 'SRProc',
             description    => 'foobar',
@@ -52,7 +52,7 @@ sub before : Test(setup) {
 
     $test->SUPER::before(
         [
-            Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Server->new(
+            Test::Siebel::Srvrmgr::Daemon::Action::Check::Server->new(
                 { name => 'siebel1', components => [ $comp1, $comp2 ] }
             )
         ]
@@ -63,7 +63,7 @@ sub before : Test(setup) {
             {
                 parser => $test->{parser},
                 params => [
-                    Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Server
+                    Test::Siebel::Srvrmgr::Daemon::Action::Check::Server
                       ->new(
                         { name => 'foobar', components => [ $comp1, $comp2 ] }
                       )

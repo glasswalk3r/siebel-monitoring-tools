@@ -1,10 +1,10 @@
 use lib 't';
-use Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Server;
-use Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Component;
+use Test::Siebel::Srvrmgr::Daemon::Action::Check::Server;
+use Test::Siebel::Srvrmgr::Daemon::Action::Check::Component;
 use Test::Most tests => 6;
 use Test::Moose;
 
-my $comp = Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Component->new(
+my $comp = Test::Siebel::Srvrmgr::Daemon::Action::Check::Component->new(
     {
         alias          => 'SynchMgr',
         description    => 'foobar',
@@ -14,10 +14,10 @@ my $comp = Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Component->new(
     }
 );
 
-my $server = Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Server->new(
+my $server = Test::Siebel::Srvrmgr::Daemon::Action::Check::Server->new(
     { name => 'foo', components => [$comp] } );
 
-does_ok( $server, 'Siebel::Srvrmgr::Daemon::Action::CheckComps::Server' );
+does_ok( $server, 'Siebel::Srvrmgr::Daemon::Action::Check::Server' );
 
 foreach (qw(name components)) {
 
@@ -28,7 +28,7 @@ foreach (qw(name components)) {
 dies_ok(
     sub {
         my $other_server =
-          Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Server->new();
+          Test::Siebel::Srvrmgr::Daemon::Action::Check::Server->new();
     },
     'constructor cannot accept missing attributes declaration'
 );
@@ -36,7 +36,7 @@ dies_ok(
 dies_ok(
     sub {
         my $other_server =
-          Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Server->new(
+          Test::Siebel::Srvrmgr::Daemon::Action::Check::Server->new(
             {
                 name       => '',
                 components => [$comp]
@@ -49,7 +49,7 @@ dies_ok(
 dies_ok(
     sub {
         my $other_server =
-          Test::Siebel::Srvrmgr::Daemon::Action::CheckComps::Server->new(
+          Test::Siebel::Srvrmgr::Daemon::Action::Check::Server->new(
             {
                 name       => 'foobar',
                 components => ['an string']
