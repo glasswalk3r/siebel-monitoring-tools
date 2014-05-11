@@ -49,20 +49,16 @@ This module was created to work close with Nagios concepts, especially regarding
 
 The new method returns a instance of L<Siebel::Srvrmgr::Daemon::Action::CheckComps>. The parameter expected are the same ones of any subclass of 
 L<Siebel::Srvrmgr::Daemon::Action>, but the C<params> attribute has a important difference: it expects an array reference with instances of classes
-that have the role L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Server>. The way that the classes will get the 
-information about which component to check per server is not important as long as they keep the same methods defined by 
-the roles L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Server> and 
-L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Component>.
-that have the role L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Server>. The way that the classes will get the information about which component 
-information is available per server is not important as long as they keep the same methods defined by the roles 
-L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Server> for a Siebel server and L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Component> for a Siebel
-server component.
+that have the role L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Server>.
 
-See the examples directory of this distribution to check a XML file used for configuration for more details.
+The server instance itself will expect to have multiple instances of objects representing a Siebel Component and those instances must be of a class that has the 
+Moose role L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Component> applied.
+
+See the C<examples> directory of this distribution, uh, examples of implementation.
 
 =head2 BUILD
 
-Validates if the params array reference have objects with the L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Server> role applied.
+Validates if the params array reference have objects with the L<Siebel::Srvrmgr::Daemon::Action::Check::Server> role applied.
 
 =cut
 
@@ -70,7 +66,7 @@ sub BUILD {
 
     my $self = shift;
 
-    my $role = 'Siebel::Srvrmgr::Daemon::Action::CheckComps::Server';
+    my $role = 'Siebel::Srvrmgr::Daemon::Action::Check::Server';
 
     foreach my $object ( @{ $self->get_params() } ) {
 
