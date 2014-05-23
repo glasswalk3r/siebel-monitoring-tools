@@ -25,9 +25,9 @@ Siebel::Srvrmgr::ListParser::FSA - the FSA::Rules class specification for Siebel
 
 =head1 DESCRIPTION
 
-Siebel::Srvrmgr::ListParser::FSA subclasses the state machine implemented by L<Siebel::Srvrmgr::ListParser> class.
+Siebel::Srvrmgr::ListParser::FSA subclasses the state machine implemented by L<FSA::Rules>, which is used by L<Siebel::Srvrmgr::ListParser> class.
 
-This class also have a L<Log::Log4perl> instance built in the L<FSA::Rules> instance returned by L<get_fsa> method.
+This class also have a L<Log::Log4perl> instance built in.
 
 =head1 EXPORTS
 
@@ -80,6 +80,7 @@ sub new {
     my $ls_servers_regex   = qr/list\sserver(s)?.*/;
     my $ls_comp_defs_regex = qr/list\scomp\sdefs?(\s\w+)?/;
     my $ls_comp_regex      = qr/^list\scomps?$/;
+	my $ls_sessions_regex = qr/^list\s(active|hung)?\s?sessions$/;
 
     my %params = (
         done => sub {
@@ -345,6 +346,30 @@ sub new {
             ],
             message => 'prompt found'
         },
+        list_sessions => {
+            label    => 'parses output from a list sessions command',
+            on_enter => sub {
+                my $state = shift;
+                $state->notes( is_cmd_changed => 0 );
+                $state->notes( is_data_wanted => 1 );
+            },
+            on_exit => sub {
+
+                my $state = shift;
+                $state->notes( is_data_wanted => 0 );
+
+            },
+            rules => [
+                command_submission => sub {
+
+                    my $state = shift;
+                    return ( $state->notes('line') =~ SRVRMGR_PROMPT );
+
+                },
+                list_sessions => sub { return 1; }
+            ],
+            message => 'prompt found'
+        },
         load_preferences => {
             label    => 'parses output from a load preferences command',
             on_enter => sub {
@@ -487,6 +512,22 @@ sub new {
                     my $state = shift;
 
                     if ( $state->notes('last_command') =~ $ls_servers_regex ) {
+
+                        return 1;
+
+                    }
+                    else {
+
+                        return 0;
+
+                    }
+
+                },
+                list_sessions => sub {
+
+                    my $state = shift;
+
+                    if ( $state->notes('last_command') =~ $ls_sessions_regex ) {
 
                         return 1;
 

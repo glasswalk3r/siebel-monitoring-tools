@@ -2,7 +2,7 @@ package Siebel::Srvrmgr::ListParser::Output::Tabular;
 
 use Moose;
 use namespace::autoclean;
-use Carp;
+use Carp qw(cluck);
 use Siebel::Srvrmgr::Regexes qw(ROWS_RETURNED);
 use Siebel::Srvrmgr::Types;
 use Siebel::Srvrmgr::ListParser::Output::Tabular::Struct::Fixed;

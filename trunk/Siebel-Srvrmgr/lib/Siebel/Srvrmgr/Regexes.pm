@@ -16,9 +16,9 @@ Siebel::Srvmrgr::Regexes - common regexes used by Siebel::Srvrmgr
 	use Siebel::Srvrmgr::Regexes qw(SRVRMGR_PROMPT);
 
 	if($line =~ /SRVRMGR_PROMPT/) {
-	
+
 		#do something
-	
+
 	}
 
 =head1 DESCRIPTION
@@ -129,7 +129,7 @@ sub SIEBEL_ERROR {
 
 =head1 AUTHOR
 
-Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<E<gt>
+Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
