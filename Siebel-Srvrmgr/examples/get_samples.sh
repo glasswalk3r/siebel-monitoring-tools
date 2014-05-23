@@ -11,7 +11,7 @@ function create_folder {
 
 function collect {
 
-        echo "Running $5 for $6"
+  echo "Running $5 for $6"
 
 	create_folder $6
 	srvrmgr /g $1 /e $2 /u $3 /p $4 /b /i $5 /o "$6.tmp"

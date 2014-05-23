@@ -13,3 +13,6 @@ list comp def SRProc
 list tasks
 list tasks for component SRProc
 list servers
+list sessions
+list active sessions
+list hung sessions

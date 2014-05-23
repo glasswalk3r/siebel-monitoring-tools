@@ -28,7 +28,7 @@ This class is still a working progress, which means it is not working as expecte
 This subclass of L<Siebel::Srvrmgr::ListParser::Output::Tabular> parses the output of the command C<list tasks>.
 
 It is expected that the C<srvrmgr> program has a proper configuration for the C<list tasks> command. The default configuration
-can see below:
+can be seen below:
 
 	srvrmgr> configure list tasks
         SV_NAME (31):  Server name

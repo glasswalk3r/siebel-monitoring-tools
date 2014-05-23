@@ -178,7 +178,7 @@ sub get_comp_data {
 
 =head1 SEE ALSO
 
-=over 4
+=over
 
 =item *
 
