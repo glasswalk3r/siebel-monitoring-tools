@@ -2,6 +2,7 @@ package Siebel::Srvrmgr::ListParser::Output::Tabular::ListSessions;
 
 use Moose;
 use namespace::autoclean;
+use Carp qw(cluck);
 use Siebel::Srvrmgr::Regexes qw(SIEBEL_SERVER);
 
 =pod
@@ -315,6 +316,41 @@ sub get_sessions {
       }
 }
 
+sub _add_alias_ses {
+
+    my $self        = shift;
+    my $server_name = shift;
+    my $alias       = shift;
+
+    my $aliases_ref = $self->get_alias_sessions;
+
+    if ( defined($aliases_ref) ) {
+
+        if ( exists( $aliases_ref->{$server_name} ) ) {
+
+            if ( exists( $aliases_ref->{$server_name}->{$alias} ) ) {
+
+                $aliases_ref->{$server_name}->{$alias}++;
+
+            }
+            else {
+
+                $aliases_ref->{$server_name}->{$alias} = 1;
+
+            }
+
+        }
+
+    }
+    else {
+
+        $aliases_ref->{$server_name}->{$alias} = 1;
+        $self->_set_alias_sessions($aliases_ref);
+
+    }
+
+}
+
 sub _consume_data {
 
     my $self       = shift;
@@ -334,20 +370,8 @@ sub _consume_data {
     if ( @{$fields_ref} ) {
 
         push( @{ $parsed_ref->{$server_name} }, $fields_ref );
+		$self->_add_alias_ses($server_name, $fields_ref->[0]);
 
-        # implementing alias sessions counter
-        if ( exists( $alias_sessions{$server_name}->{ $fields_ref->[0] } ) ) {
-
-            $alias_sessions{$server_name}->{ $fields_ref->[0] }++;
-
-        }
-        else {
-
-            $alias_sessions{$server_name}->{ $fields_ref->[0] } = 1;
-
-        }
-
-        $self->_set_alias_sessions( \%alias_sessions );
         return 1;
 
     }
