@@ -5,7 +5,7 @@ my $fixed_test =
   Test::Siebel::Srvrmgr::ListParser::Output::Tabular::ListSessions->new(
     {
         structure_type => 'fixed',
-        output_file    => [ 't', 'output', 'fixed', 'list_servers.txt' ]
+        output_file    => [ 't', 'output', 'fixed', 'list_sessions.txt' ]
     }
   );
 
@@ -14,7 +14,7 @@ my $delimited_test =
     {
         structure_type => 'delimited',
         col_sep        => '|',
-        output_file    => [ 't', 'output', 'delimited', 'list_servers.txt' ]
+        output_file    => [ 't', 'output', 'delimited', 'list_sessions.txt' ]
     }
   );
 
