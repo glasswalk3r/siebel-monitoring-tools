@@ -22,7 +22,21 @@ See L<Siebel::Srvrmgr::ListParser::Output::Tabular> for examples.
 
 This subclass of L<Siebel::Srvrmgr::ListParser::Output::Tabular> parses the output of the command C<list servers>.
 
-=FOOBAR: include the expected order of fields from list servers
+This class expectes the following order and configuration of fields from C<list servers> command:
+
+    srvrmgr> configure list servers
+        SBLSRVR_NAME (31):  Siebel Server name
+        SBLSRVR_GROUP_NAME (46):  Siebel server Group name
+        HOST_NAME (31):  Host name of server machine
+        INSTALL_DIR (256):  Server install directory name
+        SBLMGR_PID (16):  O/S process/thread ID of Siebel Server Manager
+        SV_DISP_STATE (61):  Server state (started,  stopped,  etc.)
+        SBLSRVR_STATE (31):  Server state internal (started,  stopped,  etc.)
+        START_TIME (21):  Time the server was started
+        END_TIME (21):  Time the server was stopped
+        SBLSRVR_STATUS (101):  Server status
+
+Anything different from that will generate exceptions when parsing
 
 =head1 ATTRIBUTES
 
