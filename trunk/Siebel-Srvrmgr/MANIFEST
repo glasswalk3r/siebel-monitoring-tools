@@ -36,7 +36,6 @@ examples/Siebel-Srvrmgr-Nagios/t/data/test.xml
 examples/Siebel-Srvrmgr-Nagios/t/pod-coverage.t
 examples/Siebel-Srvrmgr-Nagios/t/pod.t
 examples/Siebel-Srvrmgr-Nagios/t/task.t
-examples/Siebel-Srvrmgr-Nagios/t/Test/Config.pm
 examples/Siebel-Srvrmgr-Nagios/task_mon.pl
 gpl.txt
 lib/Siebel/Srvrmgr.pm
