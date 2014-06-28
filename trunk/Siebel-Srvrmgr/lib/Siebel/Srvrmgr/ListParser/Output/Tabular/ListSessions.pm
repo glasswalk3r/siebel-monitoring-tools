@@ -36,7 +36,7 @@ can be seen below:
 		TK_PID (11): Task process id
 		TK_DISP_RUNSTATE (61): Task run once
 		TK_IDLE_STATE (31): Task idle or not
-		TK_PING_TIME (11): Last ping time for task
+		TK_PING_TIME (13): Last ping time for task
 		TK_HUNG_STATE (31): Task hung state
 		DB_SESSION_ID (76): Database session Id
 		OM_LOGIN (76): Object Manager Login
@@ -44,6 +44,8 @@ can be seen below:
 		OM_VIEW (76): OM - View State
 		OM_APPLET (76): OM - Applet
 		OM_BUSCOMP (76): OM - Business Component
+
+Be sure to include this configuration when generating output, specially because the columns name width.
 
 The order of the fields is important too: everytime those fields are parsed, if they do not follow the order above an exception 
 will be raised.
@@ -403,6 +405,11 @@ sub _build_expected {
 }
 
 =pod
+
+=head1 CAVEATS
+
+Depending on the servers configurations, how output is being read, you might get truncated data from some fields if the
+fixed width output type is being used.
 
 =head1 SEE ALSO
 

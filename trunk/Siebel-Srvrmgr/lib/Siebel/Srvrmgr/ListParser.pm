@@ -329,6 +329,12 @@ sub _create_buffer {
     my $self = shift;
     my $type = shift;
 
+    my $log_cfg = Siebel::Srvrmgr->logging_cfg();
+    confess 'Could not start logging facilities'
+      unless ( Log::Log4perl->init_once( \$log_cfg ) );
+    my $logger = Log::Log4perl->get_logger('Siebel::Srvrmgr::ListParser');
+    weaken($logger);
+
     if ( Siebel::Srvrmgr::ListParser::OutputFactory->can_create($type) ) {
 
         my $buffer = Siebel::Srvrmgr::ListParser::Buffer->new(
@@ -339,6 +345,19 @@ sub _create_buffer {
         );
 
         push( @{ $self->get_buffer() }, $buffer );
+
+        if ( $logger->is_debug ) {
+
+            $logger->debug("Created buffer for $type output");
+
+        }
+
+    }
+    else {
+
+        $logger->fatal(
+"Siebel::Srvrmgr::ListParser::OutputFactory cannot create instances of $type type"
+        );
 
     }
 
