@@ -72,14 +72,13 @@ sub _consume_data {
 
 =head2 parse
 
-The method that actually does the parse of C<raw_data> attribute.
+The method that parses the content of C<raw_data> attribute.
 
-This method should be overrided by subclasses which output does not have a defined header, since this method expects to find a header
-in the data to be parsed.
+This method expects a header in the file, so all subclasses of this class.
 
 =cut
 
-sub parse {
+override 'parse' => sub {
 
     my $self = shift;
 
@@ -137,6 +136,8 @@ sub parse {
         }
 
     }
+
+	$DB::single = 1;
 
     my $header       = $struct->get_header_regex();
     my $header_regex = qr/$header/;
@@ -196,7 +197,7 @@ sub parse {
 
     return 1;
 
-}
+};
 
 =head1 CAVEATS
 

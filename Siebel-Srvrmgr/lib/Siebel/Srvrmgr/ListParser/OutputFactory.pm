@@ -92,7 +92,8 @@ my %table_mapping = (
     'list_comp_types'  => 'Tabular::ListCompTypes',
     'load_preferences' => 'LoadPreferences',
     'list_tasks'       => 'Tabular::ListTasks',
-    'list_servers'     => 'Tabular::ListServers'
+    'list_servers'     => 'Tabular::ListServers',
+    'list_sessions'    => 'Tabular::ListSessions'
 );
 
 lock_hash(%table_mapping);
@@ -116,7 +117,7 @@ sub can_create {
 
 sub build {
 
-	my $class = shift;
+    my $class         = shift;
     my $last_cmd_type = shift;
     my $object_data   = shift;    # hash ref
 
