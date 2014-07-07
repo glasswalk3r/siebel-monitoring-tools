@@ -77,9 +77,4 @@ sub get_data_type {
 
 }
 
-sub get_cmd_line {
-
-	return 'list comp';
-}
-
 1;

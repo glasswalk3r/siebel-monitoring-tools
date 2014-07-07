@@ -21,7 +21,6 @@ use Siebel::Srvrmgr;
 use Log::Log4perl;
 use Scalar::Util qw(weaken);
 use Siebel::Srvrmgr::ListParser::FSA;
-use Socket qw(:crlf);
 use namespace::autoclean;
 use Carp;
 use Siebel::Srvrmgr::Types;
@@ -236,7 +235,16 @@ sub BUILD {
 
     my $self = shift;
 
-    $self->_set_fsa( Siebel::Srvrmgr::ListParser::FSA->new() );
+    my $copy_ref = Siebel::Srvrmgr::ListParser::OutputFactory->get_mapping();
+
+    foreach my $cmd_alias ( keys( %{$copy_ref} ) ) {
+
+        my $regex = $copy_ref->{$cmd_alias}->[1];
+        $copy_ref->{$cmd_alias} = $regex;
+
+    }
+
+    $self->_set_fsa( Siebel::Srvrmgr::ListParser::FSA->new($copy_ref) );
 
 }
 

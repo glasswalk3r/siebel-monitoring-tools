@@ -137,8 +137,6 @@ override 'parse' => sub {
 
     }
 
-	$DB::single = 1;
-
     my $header       = $struct->get_header_regex();
     my $header_regex = qr/$header/;
     my %parsed_lines;

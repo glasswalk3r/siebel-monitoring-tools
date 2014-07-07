@@ -12,6 +12,7 @@ use warnings;
 use strict;
 use MooseX::AbstractFactory;
 use Carp;
+use Siebel::Srvrmgr::Regexes qw(CONN_GREET);
 use Hash::Util qw(lock_hash);
 
 =pod
@@ -64,6 +65,8 @@ otherwise it returns false;
 
 Returns an hash reference with the mapping between the parsed types and subclasses of L<Siebel::Srvrmgr::ListParser::Ouput>.
 
+The values are array references with the partial classes names and a compiled regular expression to validate the command.
+
 =head1 SEE ALSO
 
 =over
@@ -85,15 +88,15 @@ L<Siebel::Srvrmgr::ListParser>
 =cut
 
 my %table_mapping = (
-    'list_comp'        => 'Tabular::ListComp',
-    'list_params'      => 'Tabular::ListParams',
-    'list_comp_def'    => 'Tabular::ListCompDef',
-    'greetings'        => 'Enterprise',
-    'list_comp_types'  => 'Tabular::ListCompTypes',
-    'load_preferences' => 'LoadPreferences',
-    'list_tasks'       => 'Tabular::ListTasks',
-    'list_servers'     => 'Tabular::ListServers',
-    'list_sessions'    => 'Tabular::ListSessions'
+    'list_comp'        => ['Tabular::ListComp', qr/^list\scomps?$/],
+    'list_params'      => ['Tabular::ListParams', qr/list\sparam(eter)?s?(\s(\w+\s)?(for\sserver\s\w+)?(\sfor\s((comp(nent)?)|named\ssubsystem|task)\s\w+)?)?/],
+    'list_comp_def'    => ['Tabular::ListCompDef', qr/list\scomp\sdefs?(\s\w+)?/],
+    'greetings'        => ['Enterprise', CONN_GREET],
+    'list_comp_types'  => ['Tabular::ListCompTypes', qr/list\scomp(nent)?\stypes?$/],
+    'load_preferences' => ['LoadPreferences', qr/^load\spreferences$/],
+    'list_tasks'       => ['Tabular::ListTasks', qr/list\stasks(\sfor\sserver\s\w+\scomponent\sgroup?\s\w+)?/],
+    'list_servers'     => ['Tabular::ListServers', qr/list\sserver(s)?.*/],
+    'list_sessions'    => ['Tabular::ListSessions', qr/^list\s(active|hung)?\s?sessions$/]
 );
 
 lock_hash(%table_mapping);
@@ -123,7 +126,7 @@ sub build {
 
     confess 'object data is required' unless ( defined($object_data) );
 
-    if ( $table_mapping{$last_cmd_type} =~ /^Tabular/ ) {
+    if ( $table_mapping{$last_cmd_type}->[0] =~ /^Tabular/ ) {
 
         my $field_del = shift;
 
@@ -151,7 +154,7 @@ implementation_class_via sub {
     if ( exists( $table_mapping{$last_cmd_type} ) ) {
 
         return 'Siebel::Srvrmgr::ListParser::Output::'
-          . $table_mapping{$last_cmd_type};
+          . $table_mapping{$last_cmd_type}->[0];
 
     }
     else {

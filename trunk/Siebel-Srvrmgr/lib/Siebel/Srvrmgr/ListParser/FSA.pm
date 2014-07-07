@@ -3,7 +3,7 @@ use warnings;
 use strict;
 use Log::Log4perl;
 use Siebel::Srvrmgr;
-use Siebel::Srvrmgr::Regexes qw(SRVRMGR_PROMPT CONN_GREET);
+use Siebel::Srvrmgr::Regexes qw(SRVRMGR_PROMPT);
 use Scalar::Util qw(weaken);
 
 use parent 'FSA::Rules';
@@ -58,11 +58,15 @@ sub export_diagram {
 
 Returns the state machine object defined for usage with a L<Siebel::Srvrmgr::ListParser> instance.
 
+Expects as parameter a hash table reference containing all the commands alias as keys and their respective regular expressions to detect
+state change as values. See L<Siebel::Srvrmgr::ListParser::OutputFactory> C<get_mapping> method for details.
+
 =cut
 
 sub new {
 
-    my $class = shift;
+    my $class   = shift;
+    my $map_ref = shift;
 
     my $log_cfg = Siebel::Srvrmgr->logging_cfg();
 
@@ -73,14 +77,8 @@ sub new {
 
     weaken($logger);
 
-    my $ls_params_regex =
-      qr/list\sparams(\sfor\sserver\s\w+\sfor\scomponent\s\w+)?/;
-    my $ls_tasks_regex =
-      qr/list\stasks(\sfor\sserver\s\w+\scomponent\sgroup?\s\w+)?/;
-    my $ls_servers_regex   = qr/list\sserver(s)?.*/;
-    my $ls_comp_defs_regex = qr/list\scomp\sdefs?(\s\w+)?/;
-    my $ls_comp_regex      = qr/^list\scomps?$/;
-	my $ls_sessions_regex = qr/^list\s(active|hung)?\s?sessions$/;
+    $logger->logdie('the output type mapping reference received is not valid')
+      unless ( ( defined($map_ref) ) and ( ref($map_ref) eq 'HASH' ) );
 
     my %params = (
         done => sub {
@@ -135,7 +133,8 @@ sub new {
 
                     if ( defined( $state->notes('line') ) ) {
 
-                        return ( $state->notes('line') =~ CONN_GREET );
+                        return (
+                            $state->notes('line') =~ $map_ref->{greetings} );
 
                     }
                     else {
@@ -444,7 +443,9 @@ sub new {
 
                     my $state = shift;
 
-                    if ( $state->notes('last_command') =~ $ls_comp_regex ) {
+                    if (
+                        $state->notes('last_command') =~ $map_ref->{list_comp} )
+                    {
 
                         return 1;
 
@@ -460,9 +461,8 @@ sub new {
 
                     my $state = shift;
 
-                    if ( ( $state->notes('last_command') eq 'list comp types' )
-                        or
-                        ( $state->notes('last_command') eq 'list comp type' ) )
+                    if ( $state->notes('last_command') =~
+                        $map_ref->{list_comp_types} )
                     {
 
                         return 1;
@@ -479,7 +479,9 @@ sub new {
 
                     my $state = shift;
 
-                    if ( $state->notes('last_command') =~ $ls_params_regex ) {
+                    if ( $state->notes('last_command') =~
+                        $map_ref->{list_params} )
+                    {
 
                         return 1;
 
@@ -495,7 +497,9 @@ sub new {
 
                     my $state = shift;
 
-                    if ( $state->notes('last_command') =~ $ls_tasks_regex ) {
+                    if ( $state->notes('last_command') =~
+                        $map_ref->{list_tasks} )
+                    {
 
                         return 1;
 
@@ -511,7 +515,9 @@ sub new {
 
                     my $state = shift;
 
-                    if ( $state->notes('last_command') =~ $ls_servers_regex ) {
+                    if ( $state->notes('last_command') =~
+                        $map_ref->{list_servers} )
+                    {
 
                         return 1;
 
@@ -527,7 +533,9 @@ sub new {
 
                     my $state = shift;
 
-                    if ( $state->notes('last_command') =~ $ls_sessions_regex ) {
+                    if ( $state->notes('last_command') =~
+                        $map_ref->{list_sessions} )
+                    {
 
                         return 1;
 
@@ -543,7 +551,8 @@ sub new {
 
                     my $state = shift;
 
-                    if ( $state->notes('last_command') =~ $ls_comp_defs_regex )
+                    if ( $state->notes('last_command') =~
+                        $map_ref->{list_comp_def} )
                     {
 
                         return 1;
@@ -560,7 +569,9 @@ sub new {
 
                     my $state = shift;
 
-                    if ( $state->notes('last_command') eq 'load preferences' ) {
+                    if ( $state->notes('last_command') =~
+                        $map_ref->{load_preferences} )
+                    {
 
                         return 1;
 
@@ -590,8 +601,12 @@ sub new {
                 },
 
                 # add other possibilities here of list commands
-                command_submission =>
-                  sub { return 1; }    # this must be the last item
+                command_submission => sub {
+                    $logger->warn(
+"Possible invalid state due incapability to define the state change (output class)"
+                    );
+                    return 1;
+                  }    # this must be the last item
 
             ],
             message => 'command submitted'
