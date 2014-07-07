@@ -19,11 +19,11 @@ extends 'Siebel::Srvrmgr::ListParser::Output::Tabular';
 
 	use Siebel::Srvrmgr::ListParser::Output::Tabular::ListParams;
 
-	my $comp_params = Siebel::Srvrmgr::ListParser::Output::Tabular::ListParams->new({ data_type => 'list_comp_params', 
+	my $comp_params = Siebel::Srvrmgr::ListParser::Output::Tabular::ListParams->new({ data_type => 'list_params', 
 																			 raw_data => \@com_data, 
 															                 cmd_line => 'list params for server XXXX component YYYY'});
 
-	my $server_params = Siebel::Srvrmgr::ListParser::Output::Tabular::ListParams->new({ data_type => 'sometype', 
+	my $server_params = Siebel::Srvrmgr::ListParser::Output::Tabular::ListParams->new({ data_type => 'list_params', 
 																			   raw_data => \@server_data,
 															                   cmd_line => 'list params for server XXXX'});
 
@@ -55,7 +55,11 @@ The C<data_parsed> attribute will return the following data estructure:
 			'PA_NAME' => 'Private key file name',
 			'PA_DATATYPE' => 'String',
 			'PA_SCOPE' => 'Subsystem',
-			'PA_VALUE' => '',
+			'PA_VALUE' => '', 
+			'PA_1' => '',
+			'PA_2' => '',
+			'PA_3' => '',
+			'PA_4' => '',
 			'PA_ALIAS' => 'KeyFileName',
 			'PA_SETLEVEL' => 'SIS_NEVER_SET',
 			'PA_DISP_SETLEVEL' => 'SIS_NEVER_SET',
@@ -65,7 +69,11 @@ The C<data_parsed> attribute will return the following data estructure:
 			'PA_NAME' => 'Private key file name',
 			'PA_DATATYPE' => 'String',
 			'PA_SCOPE' => 'Subsystem',
-			'PA_VALUE' => '',
+			'PA_VALUE' => '', 
+			'PA_1' => '',
+			'PA_2' => '',
+			'PA_3' => '',
+			'PA_4' => '',
 			'PA_ALIAS' => 'KeyFileName',
 			'PA_SETLEVEL' => 'SIS_NEVER_SET',
 			'PA_DISP_SETLEVEL' => 'SIS_NEVER_SET',
@@ -74,13 +82,21 @@ The C<data_parsed> attribute will return the following data estructure:
 			# N parameters
 	}
 
-Until now there is no method implementation that would return a parameter name and it's properties, it's necessary to access the hashes directly.
+Beware that the fours fields named "PA" where renamed.
+
+For this release there is no method implementation that would return a parameter name and it's properties, it's necessary to access the hashes directly.
 
 =head1 ATTRIBUTES
 
+Additionally to the parent class, these attributes are all generated from the command line given to new, if available.
+
+Since they are set automatically, none is required. It is assumed that if a attribute is set to C<undef>, there are no corresponding options in the C<list parameter> command.
+
+All these attributes are read-only.
+
 =head2 server
 
-An string representing the server from where the parameter were got.
+An string representing the server from the command executed.
 
 =cut
 
@@ -91,8 +107,7 @@ has server =>
 
 =head2 comp_alias
 
-An string of the component alias respective to the command executed, if available (considering that the 
-parameter may be of the server, not a component).
+An string of the component alias respective to the command executed.
 
 =cut
 
@@ -103,70 +118,42 @@ has comp_alias => (
     reader => 'get_comp_alias'
 );
 
-=pod
+=head2 named_subsys
 
-=head2 _set_details
-
-A "private" method used to get the servername and component alias from the command line given as parameter 
-during object creation.
+A string representing the named subsystem used in the command.
 
 =cut
 
-sub _set_details {
+has named_subsys => (
+    isa    => 'Str',
+    is     => 'ro',
+    writer => '_set_named_subsys',
+    reader => 'get_named_subsys'
+);
 
-    my $self = shift;
+=head2 task
 
-    if ( defined( $self->get_cmd_line() ) ) {
+A integer representing the task number used in the executed command.
 
-      SWITCH: {
+=cut
 
-            if ( $self->get_cmd_line() eq 'list params' ) {
-                $self->_set_server('connected server');
-                $self->_set_comp_alias('N/A');
-                last SWITCH;
-            }
-            if (
-                $self->get_cmd_line() =~ /^list\sparams\sfor\scomponent\s\w+$/ )
-            {
-                $self->_set_server('connected server');
-                $self->_set_comp_alias(
-                    ( split( /\s/, $self->get_cmd_line() ) )[-1] );
-                last SWITCH;
-            }
-            if ( $self->get_cmd_line() =~ /^list\sparams\sfor\sserver\s\w+$/ ) {
-                $self->_set_server(
-                    ( split( /\s/, $self->get_cmd_line() ) )[-1] );
-                $self->_set_comp_alias('N/A');
-                last SWITCH;
-            }
-            if ( $self->get_cmd_line() =~
-                /^list\sparams\sfor\sserver\s\w+\scomponent\s\w+$/ )
-            {
+has task =>
+  ( isa => 'Int', is => 'ro', writer => '_set_task', reader => 'get_task' );
 
-                my @values = split( /\s/, $self->get_cmd_line() );
+=head2 param
 
-                $self->_set_server( $values[4] );
-                $self->_set_comp_alias( $values[6] );
-                last SWITCH;
+A string representing the specific parameter requested in the executed command.
 
-            }
-            else {
-                confess 'got strange list params command: ('
-                  . $self->get_cmd_line()
-                  . ') do not know what do with it';
-            }
+=cut
 
-        }
-
-    }
-
-}
+has param =>
+  ( isa => 'Str', is => 'ro', writer => '_set_param', reader => 'get_param' );
 
 =pod
 
 =head2 BUILD
 
-Execute the method C<_set_details> right after object creation.
+Set values for some class attributes depending on the command line used during object creation.
 
 =cut
 
@@ -174,11 +161,70 @@ sub BUILD {
 
     my $self = shift;
 
-    confess 'cmd_line attribute must have a string as a value, not ['
-      . $self->get_cmd_line() . ']'
-      unless ( $self->get_cmd_line() =~ /^\w+/ );
+    if ( defined( $self->get_cmd_line() ) ) {
 
-    $self->_set_details();
+        my @tokens      = split( /\s/, $self->get_cmd_line );
+        my $comp_regex  = qr/^comp(onent)?$/;
+        my $param_regex = qr/param(eter)?s?/;
+
+        while ( my $token = shift(@tokens) ) {
+
+          SWITCH: {
+
+                if ( $token =~ $comp_regex ) {
+
+                    $self->_set_comp_alias( shift(@tokens) );
+                    next;
+
+                }
+
+                if ( $token eq 'server' ) {
+
+                    $self->_set_server( shift(@tokens) );
+                    next;
+
+                }
+
+                if ( $token eq 'task' ) {
+
+                    $self->_set_task( shift(@tokens) );
+                    next;
+
+                }
+
+                if ( $token =~ $param_regex ) {
+
+                    my $next = shift(@tokens);
+
+                    next unless ( defined($next) );
+
+                    if ( $next eq 'for' ) {
+
+                        next;
+
+                    }
+                    else {
+
+                        $self->_set_param($next);
+                        next;
+
+                    }
+
+                }
+
+                if ( $token eq 'named' ) {
+
+                    shift(@tokens);    # remove the subsystem string
+                    $self->_set_named_subsys( shift(@tokens) );
+                    next;
+
+                }
+
+            }
+
+        }
+
+    }
 
 }
 
@@ -216,7 +262,8 @@ sub _consume_data {
     if ( @{$fields_ref} ) {
 
         my $pa_alias = $fields_ref->[0];
-        my $list_len = scalar( @{$fields_ref} );
+        my $list_len = scalar( @{$columns_ref} )
+          ; # safer to use the columns reference size if the output has some issue
 
         for ( my $i = 1 ; $i < $list_len ; $i++ )
         {    # starting from 1 to skip the field PA_ALIAS

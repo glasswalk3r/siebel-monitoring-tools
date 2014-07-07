@@ -6,7 +6,7 @@ my $fixed_test =
   Test::Siebel::Srvrmgr::ListParser::Output::Tabular::ListParams->new(
     {
         structure_type => 'fixed',
-        output_file    => [ 't', 'output', 'fixed', 'list_params.txt' ]
+        output_file    => [ 't', 'output', 'fixed', 'list_params_for_srproc.txt' ]
     }
   );
 
@@ -15,7 +15,7 @@ my $delimited_test =
     {
         structure_type => 'delimited',
         col_sep        => '|',
-        output_file    => [ 't', 'output', 'delimited', 'list_params.txt' ]
+        output_file    => [ 't', 'output', 'delimited', 'list_params_for_srproc.txt' ]
     }
   );
 

@@ -2,6 +2,7 @@ package Test::Siebel::Srvrmgr::ListParser::Output::Tabular;
 
 use base 'Test::Siebel::Srvrmgr::ListParser::Output';
 use Test::Most;
+use Siebel::Srvrmgr::Regexes qw(SRVRMGR_PROMPT);
 
 sub get_structure_type {
 
@@ -24,6 +25,15 @@ sub get_super {
 
 }
 
+# :WORKAROUND:06-07-2014 00:25:20:: cannot easily change default getter of Class::Data::Inheritable, so creating an alias
+sub get_cmd_line {
+
+    my $self = shift;
+    $self->get_my_data;
+    return __PACKAGE__->cmd_line;
+
+}
+
 # overriding parent's because the files will have the command itself followed by the output of it
 sub get_my_data {
 
@@ -31,8 +41,10 @@ sub get_my_data {
 
     my $data_ref = $test->SUPER::get_my_data();
 
-    shift( @{$data_ref} );    #command
-    shift( @{$data_ref} );    #new line
+    my $cmd_line = shift( @{$data_ref} );
+    $cmd_line =~ s/@{[SRVRMGR_PROMPT]}/$2/;  # removing the prompt from the data
+    __PACKAGE__->mk_classdata( cmd_line => $cmd_line );
+    shift( @{$data_ref} );                   # empty line before output
 
     return $data_ref;
 
@@ -75,7 +87,7 @@ sub _constructor : Test(+2) {
                 $test->class()->new(
                     {
                         data_type      => $test->get_data_type(),
-                        cmd_line       => $test->get_cmd_line(),
+                        cmd_line       => 'list foo',
                         raw_data       => $test->get_my_data(),
                         structure_type => $test->get_structure_type()
                     }

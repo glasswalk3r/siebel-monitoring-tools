@@ -65,8 +65,8 @@ sub _constructor : Tests(3) {
 
     my $params_ref = {
         data_type => $test->get_data_type(),
+        raw_data  => $test->get_my_data(),
         cmd_line  => $test->get_cmd_line(),
-        raw_data  => $test->get_my_data()
     };
 
     if ( ( defined($more_params) ) and ( ref($more_params) eq 'HASH' ) ) {
