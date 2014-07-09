@@ -208,3 +208,10 @@ t/Test/Siebel/Srvrmgr/ListParser/Output/Tabular/Struct.pm
 t/Test/Siebel/Srvrmgr/ListParser/Output/Tabular/Struct/Delimited.pm
 t/Test/Siebel/Srvrmgr/ListParser/Output/Tabular/Struct/Fixed.pm
 t/Test/Siebel/Srvrmgr/ListParser/OutputFactory.pm
+inc/Devel/AssertOS/HPUX.pm
+inc/Devel/AssertOS/Linux.pm
+inc/Devel/AssertOS/MSWin32.pm
+inc/Devel/AssertOS/Solaris.pm
+inc/Devel/CheckOS.pm
+inc/Devel/AssertOS.pm
+inc/Devel/AssertOS/AIX.pm

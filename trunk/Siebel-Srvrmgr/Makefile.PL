@@ -1,3 +1,5 @@
+use lib inc; use Devel::AssertOS qw(Linux AIX Solaris HPUX MSWin32);
+
 use lib 'inc';
 use Devel::AssertOS qw(Linux AIX Solaris HPUX MSWin32);
 use 5.008009;
