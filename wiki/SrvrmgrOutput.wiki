@@ -2,10 +2,7 @@
 
 = Introduction =
 
-The parsers available from the API were tested against the following versions of Siebel:
-
-  * 7.5.3.17, patch 16285
-  * 8.0.0.7, patch 20426
+The parsers available from the API were tested against the several versions of Siebel. To see all of them, check the output directory inside the test directory.
 
 The more different versions output that we have, the more reliable will be the parsers.
 
