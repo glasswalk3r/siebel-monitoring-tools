@@ -36,14 +36,14 @@ sub class_methods : Tests(+10) {
         'Default value',
         'LogFilePeriod PA_SETLEVEL is correct'
     );
-    is( $data_ref->{LogFilePeriod}->{PA_1},
-        'N', 'LogFilePeriod PA_1 is correct' );
-    is( $data_ref->{LogFilePeriod}->{PA_2},
-        'N', 'LogFilePeriod PA_2 is correct' );
-    is( $data_ref->{LogFilePeriod}->{PA_3},
-        'N', 'LogFilePeriod PA_3 is correct' );
-    is( $data_ref->{LogFilePeriod}->{PA_4},
-        'N', 'LogFilePeriod PA_4 is correct' );
+    is( $data_ref->{LogFilePeriod}->{PA_EFF_NEXT_TASK},
+        'N', 'LogFilePeriod PA_EFF_NEXT_TASK is correct' );
+    is( $data_ref->{LogFilePeriod}->{PA_EFF_CMP_RSTRT},
+        'N', 'LogFilePeriod PA_EFF_CMP_RSTRT is correct' );
+    is( $data_ref->{LogFilePeriod}->{PA_EFF_SRVR_RSTRT},
+        'N', 'LogFilePeriod PA_EFF_SRVR_RSTRT is correct' );
+    is( $data_ref->{LogFilePeriod}->{PA_REQ_COMP_RCFG},
+        'N', 'LogFilePeriod PA_REQ_COMP_RCFG is correct' );
     is(
         $data_ref->{LogFilePeriod}->{PA_NAME},
         'UsageTracking LogFile Period',
@@ -58,7 +58,7 @@ sub parse_cmd_line : Tests(11) {
     my $test = shift;
 
     my @data = (
-'PA_ALIAS               |PA_VALUE                                                                      |PA_DATATYPE|PA_SCOPE |PA_SUBSYSTEM               |PA_SETLEVEL     |PA_DISP_SETLEVEL              |PA|PA|PA|PA|PA_NAME                                       |',
+'PA_ALIAS               |PA_VALUE                                                                      |PA_DATATYPE|PA_SCOPE |PA_SUBSYSTEM               |PA_SETLEVEL     |PA_DISP_SETLEVEL              |PA_EFF_NEXT_TASK|PA_EFF_CMP_RSTRT|PA_EFF_SRVR_RSTRT|PA_REQ_COMP_RCFG|PA_NAME                                       |',
 '-----------------------  ------------------------------------------------------------------------------  -----------  ---------  ---------------------------  ----------------  ------------------------------  --  --  --  --  ----------------------------------------------  ',
 'CACertFileName         |                                                                              |String     |Subsystem|Networking                 |Never set       |Never set                     |N |N |Y |N |CA certificate file name                      |',
 'CertFileName           |                                                                              |String     |Subsystem|Networking                 |Never set       |Never set                     |N |N |Y |N |Certificate file name                         |'

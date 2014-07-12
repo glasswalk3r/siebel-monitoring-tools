@@ -1,6 +1,6 @@
 srvrmgr> list params for component SRProc
 
-PA_ALIAS               |PA_VALUE                                                                      |PA_DATATYPE|PA_SCOPE |PA_SUBSYSTEM               |PA_SETLEVEL     |PA_DISP_SETLEVEL              |PA|PA|PA|PA|PA_NAME                                       |
+PA_ALIAS               |PA_VALUE                                                                      |PA_DATATYPE|PA_SCOPE |PA_SUBSYSTEM               |PA_SETLEVEL     |PA_DISP_SETLEVEL              |PA_EFF_NEXT_TASK|PA_EFF_CMP_RSTRT|PA_EFF_SRVR_RSTRT|PA_REQ_COMP_RCFG|PA_NAME                                       |
 -----------------------  ------------------------------------------------------------------------------  -----------  ---------  ---------------------------  ----------------  ------------------------------  --  --  --  --  ----------------------------------------------  
 CACertFileName         |                                                                              |String     |Subsystem|Networking                 |Never set       |Never set                     |N |N |Y |N |CA certificate file name                      |
 CertFileName           |                                                                              |String     |Subsystem|Networking                 |Never set       |Never set                     |N |N |Y |N |Certificate file name                         |

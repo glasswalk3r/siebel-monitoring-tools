@@ -32,21 +32,37 @@ extends 'Siebel::Srvrmgr::ListParser::Output::Tabular';
 This module parses the output of the command C<list comp params>. Beware that those parameters may be of the server if a component alias is omitted from
 the command line.
 
-The parser expects to have the following configuration of fields for the respective command.
+This is most probably the default configuration of the output:
 
-	srvrmgr> configure list params
-		PA_ALIAS (31):  Parameter alias
-		PA_VALUE (101):  Parameter value
-		PA_DATATYPE (31):  Parameter value datatype
-		PA_SCOPE (31):  Parameter level
-		PA_SUBSYSTEM (31):  Parameter subsystem
-		PA_SETLEVEL (31):  Internal level at which value was set
-		PA_DISP_SETLEVEL (61):  Display level at which value was set (translatable)
-		PA:
-		PA:
-		PA:
-		PA:
-		PA_NAME (76):  Parameter name
+    srvrmgr> configure list params
+        PA_ALIAS (76):  Parameter alias
+        PA_VALUE (256):  Parameter value
+        PA_DATATYPE (31):  Parameter value datatype
+        PA_SCOPE (31):  Parameter level
+        PA_SUBSYSTEM (31):  Parameter subsystem
+        PA_SETLEVEL (31):  Internal level at which value was set
+        PA_DISP_SETLEVEL (61):  Display level at which value was set (translatable)
+        PA_EFF_NEXT_TASK (2):  Parameter effective at next task (bool)
+        PA_EFF_CMP_RSTRT (2):  Parameter effective at component restart (bool)
+        PA_EFF_SRVR_RSTRT (2):  Parameter effective at server restart (bool)
+        PA_REQ_COMP_RCFG (2):  Parameter requires component reconfiguration (bool)
+        PA_NAME (76):  Parameter name
+
+This is what the parser of this class will expected to find:
+
+srvrmgr> configure list params
+        PA_ALIAS (76):  Parameter alias
+        PA_VALUE (256):  Parameter value
+        PA_DATATYPE (31):  Parameter value datatype
+        PA_SCOPE (31):  Parameter level
+        PA_SUBSYSTEM (31):  Parameter subsystem
+        PA_SETLEVEL (31):  Internal level at which value was set
+        PA_DISP_SETLEVEL (61):  Display level at which value was set (translatable)
+        PA_EFF_NEXT_TASK (16):  Parameter effective at next task (bool)
+        PA_EFF_CMP_RSTRT (16):  Parameter effective at component restart (bool)
+        PA_EFF_SRVR_RSTRT (17):  Parameter effective at server restart (bool)
+        PA_REQ_COMP_RCFG (16):  Parameter requires component reconfiguration (bool)
+        PA_NAME (76):  Parameter name
 
 The C<data_parsed> attribute will return the following data estructure:
 
@@ -56,10 +72,10 @@ The C<data_parsed> attribute will return the following data estructure:
 			'PA_DATATYPE' => 'String',
 			'PA_SCOPE' => 'Subsystem',
 			'PA_VALUE' => '', 
-			'PA_1' => '',
-			'PA_2' => '',
-			'PA_3' => '',
-			'PA_4' => '',
+			'PA_EFF_NEXT_TASK' => '',
+			'PA_EFF_CMP_RSTRT' => '',
+			'PA_EFF_SRVR_RSTRT' => '',
+			'PA_REQ_COMP_RCFG' => '',
 			'PA_ALIAS' => 'KeyFileName',
 			'PA_SETLEVEL' => 'SIS_NEVER_SET',
 			'PA_DISP_SETLEVEL' => 'SIS_NEVER_SET',
@@ -70,10 +86,10 @@ The C<data_parsed> attribute will return the following data estructure:
 			'PA_DATATYPE' => 'String',
 			'PA_SCOPE' => 'Subsystem',
 			'PA_VALUE' => '', 
-			'PA_1' => '',
-			'PA_2' => '',
-			'PA_3' => '',
-			'PA_4' => '',
+			'PA_EFF_NEXT_TASK' => '',
+			'PA_EFF_CMP_RSTRT' => '',
+			'PA_EFF_SRVR_RSTRT' => '',
+			'PA_REQ_COMP_RCFG' => '',
 			'PA_ALIAS' => 'KeyFileName',
 			'PA_SETLEVEL' => 'SIS_NEVER_SET',
 			'PA_DISP_SETLEVEL' => 'SIS_NEVER_SET',
@@ -82,9 +98,7 @@ The C<data_parsed> attribute will return the following data estructure:
 			# N parameters
 	}
 
-Beware that the fours fields named "PA" where renamed.
-
-For this release there is no method implementation that would return a parameter name and it's properties, it's necessary to access the hashes directly.
+For this release there is no method implemented that would return a parameter name and it's properties, it's necessary to access the hashes directly.
 
 =head1 ATTRIBUTES
 
@@ -237,9 +251,9 @@ sub _build_expected {
             'PA_ALIAS',         'PA_VALUE',
             'PA_DATATYPE',      'PA_SCOPE',
             'PA_SUBSYSTEM',     'PA_SETLEVEL',
-            'PA_DISP_SETLEVEL', 'PA',
-            'PA',               'PA',
-            'PA',               'PA_NAME'
+            'PA_DISP_SETLEVEL', 'PA_EFF_NEXT_TASK',
+            'PA_EFF_CMP_RSTRT', 'PA_EFF_SRVR_RSTRT',
+            'PA_REQ_COMP_RCFG', 'PA_NAME'
         ]
     );
 
@@ -252,12 +266,6 @@ sub _consume_data {
     my $parsed_ref = shift;
 
     my $columns_ref = $self->get_expected_fields();
-
-# :WORKAROUND:05-01-2014:: must give different names since the default storage is an hash
-    $columns_ref->[7]  = 'PA_1';
-    $columns_ref->[8]  = 'PA_2';
-    $columns_ref->[9]  = 'PA_3';
-    $columns_ref->[10] = 'PA_4';
 
     if ( @{$fields_ref} ) {
 

@@ -16,7 +16,7 @@ sub new {
     my $params_ref = shift;
     my $self;
 
-    if ( defined($params_ref) ) { # ones that use get_my_data
+    if ( defined($params_ref) ) {    # ones that use get_my_data
 
         confess "must receive an hash reference as parameter"
           unless ( ref($params_ref) eq 'HASH' );
@@ -66,6 +66,7 @@ sub get_my_data {
 
     confess "Don't have a defined file to read!" unless ( defined($file) );
 
+    note("Reading file $file content to use it's data for testing");
     open( my $in, '<', $file )
       or die "cannot read $file: $!";
 
