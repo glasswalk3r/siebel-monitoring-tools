@@ -8,7 +8,7 @@ extends 'Siebel::Srvrmgr::ListParser::Output::Tabular::Struct';
 
 =head1 NAME
 
-Siebel::Srvrmgr::ListParser::Output::Tabular::Struct::Delimited- subclasses to parse delimited output from srvrmgr
+Siebel::Srvrmgr::ListParser::Output::Tabular::Struct::Delimited - subclasses to parse delimited output from srvrmgr
 
 =head1 DESCRIPTION
 

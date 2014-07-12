@@ -8,7 +8,7 @@ use Moose::Util::TypeConstraints;
 
 =head1 NAME
 
-Siebel::Srvmrgr::Types - definition of types restrictions for Siebel::Srvrmgr
+Siebel::Srvrmgr::Types - definition of types restrictions for Siebel::Srvrmgr
 
 =head1 SYNOPSIS
 
@@ -16,7 +16,7 @@ Siebel::Srvmrgr::Types - definition of types restrictions for Siebel::Srvrmgr
 
 =head1 DESCRIPTION
 
-This module defines types restrictions for L<Siebel::Srvrmgr> classes usage based on L<Moose::Util::TypeConstraints>;
+This module defines types restrictions for L<Siebel::Srvrmgr> classes usage based on L<Moose::Util::TypeConstraints>.
 
 =head1 EXPORTS
 
@@ -24,17 +24,41 @@ Nothing. Just use the module is enough to have types restrictions definitions.
 
 =cut
 
+=head2 NotNullStr
+
+A subtype of 'Str' but do not accept undefined or empty strings.
+
+=cut
+
 subtype 'NotNullStr', as 'Str',
   where { ( defined($_) ) and ( $_ ne '' ) },
   message { 'This attribute value must be a defined, non-empty string' };
+
+=head2 Chr
+
+A subtype of 'Str' but for a single character only.
+
+=cut
 
 subtype 'Chr', as 'Str',
   where { ( defined($_) ) and ( $_ ne '' ) and ( length($_) == 1 ) },
   message { 'This attribute value must be a defined, non-empty string with a single character' };
 
+=head2 OutputTabularType
+
+A subtype of 'Str' that must be defined and equal to "fixed" or "delimited".
+
+=cut
+
 subtype 'OutputTabularType', as 'Str', 
 	where { ( ( defined($_) ) and ( ( $_ eq 'fixed' ) or ( $_ eq 'delimited' ) ) ) }, 
 	message { 'This attribute value must be a defined, non-empty string equal "fixed" or "delimited"' };
+
+=head2 CheckCompsComp
+
+Definition of type for instances of L<Siebel::Srvrmgr::Daemon::Action::Check::Component> class.
+
+=cut
 
 role_type 'CheckCompsComp',
   { role => 'Siebel::Srvrmgr::Daemon::Action::Check::Component' };

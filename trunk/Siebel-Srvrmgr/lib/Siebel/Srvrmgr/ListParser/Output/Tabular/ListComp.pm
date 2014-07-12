@@ -4,7 +4,7 @@ package Siebel::Srvrmgr::ListParser::Output::Tabular::ListComp;
 
 =head1 NAME
 
-Siebel::Srvrmgr::ListParser::Output::Tabular::Listcomp - subclass that parses list comp commands output of srvrmgr.
+Siebel::Srvrmgr::ListParser::Output::Tabular::ListComp - subclass that parses list comp commands output of srvrmgr.
 
 =cut
 

@@ -9,7 +9,7 @@ use Siebel::Srvrmgr::Regexes qw(SIEBEL_SERVER);
 
 =head1 NAME
 
-Siebel::Srvrmgr::ListParser::Output::ListTasks - subclass to parse list tasks command
+Siebel::Srvrmgr::ListParser::Output::Tabular::ListTasks - subclass to parse list tasks command
 
 =cut
 

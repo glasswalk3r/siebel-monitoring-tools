@@ -9,17 +9,17 @@ our @EXPORT_OK =
 
 =head1 NAME
 
-Siebel::Srvmrgr::Regexes - common regexes used by Siebel::Srvrmgr
+Siebel::Srvrmgr::Regexes - common regular expressions to match things in srvrmgr output
 
 =head1 SYNOPSIS
 
-	use Siebel::Srvrmgr::Regexes qw(SRVRMGR_PROMPT);
+    use Siebel::Srvrmgr::Regexes qw(SRVRMGR_PROMPT);
 
-	if($line =~ /SRVRMGR_PROMPT/) {
+    if($line =~ /SRVRMGR_PROMPT/) {
 
-		#do something
+        #do something
 
-	}
+    }
 
 =head1 DESCRIPTION
 
@@ -79,7 +79,7 @@ sub LOAD_PREF_CMD { return qr/^(srvrmgr(\:[\w\_\-]+)?>)?\s?load preferences$/; }
 
 Regular expression to match the first line submitted by a Siebel enterprise when the C<srvrmgr> connects to it. It will look like something like this:
 
-	Siebel Enterprise Applications Siebel Server Manager, Version 8.0.0.7 [20426] LANG_INDEPENDENT
+    Siebel Enterprise Applications Siebel Server Manager, Version 8.0.0.7 [20426] LANG_INDEPENDENT
 
 It is a known issue that UTF-8 data with BOM character will cause this regular expression to B<not> match.
 
@@ -114,8 +114,8 @@ sub ROWS_RETURNED {
 
 This regular expression should match errors from Siebel like, for example:
 
-	SBL-SSM-00003: Error opening SISNAPI connection.
-	SBL-NET-01218: The connection was refused by server siebappdev.  No component is listening on port 49170.
+    SBL-SSM-00003: Error opening SISNAPI connection.
+    SBL-NET-01218: The connection was refused by server foobar. No component is listening on port 49170.
 
 The regular expression matches the default error code.
 

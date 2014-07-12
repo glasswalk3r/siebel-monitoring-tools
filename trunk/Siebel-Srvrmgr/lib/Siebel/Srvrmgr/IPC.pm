@@ -4,7 +4,7 @@ package Siebel::Srvrmgr::IPC;
 
 =head1 NAME
 
-Siebel::Srvrmgr::Daemon - IPC functionality for Siebel::Srvrmgr classes.
+Siebel::Srvrmgr::IPC - IPC functionality for Siebel::Srvrmgr classes.
 
 =head1 SYNOPSIS
 
