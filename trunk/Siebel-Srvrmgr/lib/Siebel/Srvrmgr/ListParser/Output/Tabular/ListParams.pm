@@ -17,15 +17,14 @@ extends 'Siebel::Srvrmgr::ListParser::Output::Tabular';
 
 =head1 SYNOPSIS
 
-	use Siebel::Srvrmgr::ListParser::Output::Tabular::ListParams;
+    use Siebel::Srvrmgr::ListParser::Output::Tabular::ListParams;
 
-	my $comp_params = Siebel::Srvrmgr::ListParser::Output::Tabular::ListParams->new({ data_type => 'list_params', 
-																			 raw_data => \@com_data, 
-															                 cmd_line => 'list params for server XXXX component YYYY'});
-
-	my $server_params = Siebel::Srvrmgr::ListParser::Output::Tabular::ListParams->new({ data_type => 'list_params', 
-																			   raw_data => \@server_data,
-															                   cmd_line => 'list params for server XXXX'});
+    my $comp_params = Siebel::Srvrmgr::ListParser::Output::Tabular::ListParams->new({ data_type => 'list_params', 
+                                                                                      raw_data => \@com_data, 
+                                                                                      cmd_line => 'list params for server XXXX component YYYY'});
+    my $server_params = Siebel::Srvrmgr::ListParser::Output::Tabular::ListParams->new({ data_type => 'list_params', 
+                                                                                        raw_data => \@server_data,
+                                                                                        cmd_line => 'list params for server XXXX'});
 
 =head1 DESCRIPTION
 
@@ -50,7 +49,7 @@ This is most probably the default configuration of the output:
 
 This is what the parser of this class will expected to find:
 
-srvrmgr> configure list params
+    srvrmgr> configure list params
         PA_ALIAS (76):  Parameter alias
         PA_VALUE (256):  Parameter value
         PA_DATATYPE (31):  Parameter value datatype
