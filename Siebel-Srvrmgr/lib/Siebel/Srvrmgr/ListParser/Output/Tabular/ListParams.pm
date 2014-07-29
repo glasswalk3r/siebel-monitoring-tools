@@ -295,9 +295,8 @@ sub _consume_data {
 
 =head1 CAVEATS
 
-On Win32 system the method C<load> inherited from the superclass is not recovering the related data of C<data_parsed> attribute, even when that data is saved with the C<store> method.
-
-Despite that, the L<Storable> C<retrieve> function is capable to recover such data (but not the class methods).
+This class is capable to parse the output from C<list advanced params> but during tests it was identified that configuring output from C<list params> will not provided the expected
+results. It was possible to parse the output without any configuration, but results may differ from version to version.
 
 =head1 SEE ALSO
 

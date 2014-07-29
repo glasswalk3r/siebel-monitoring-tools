@@ -115,31 +115,4 @@ sub runs_much_more : Tests(60) {
 
 }
 
-sub runs_blocked : Test() {
-
-    my $test = shift;
-
-  TODO: {
-
-        local $TODO = 'Usage of alarm must be reviewed';
-
-#        $test->{daemon}->set_commands(
-#            [
-#                Siebel::Srvrmgr::Daemon::Command->new(
-#                    command => 'list blockme',
-#                    action => 'Dummy'   # this one is to get the initial message
-#                ),
-#                Siebel::Srvrmgr::Daemon::Command->new(
-#                    command => 'list blockme',
-#                    action =>
-#                      'Dummy'    # this one is to get the "list blockme" message
-#                ),
-#            ]
-#        );
-#        dies_ok { $test->{daemon}->run() } 'run method fail due timeout';
-
-    }
-
-}
-
 1;

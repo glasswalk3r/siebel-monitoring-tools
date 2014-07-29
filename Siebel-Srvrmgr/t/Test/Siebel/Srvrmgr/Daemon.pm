@@ -232,7 +232,7 @@ sub class_attributes : Tests(no_plan) {
         and ( scalar( @{$attribs_ref} ) > 0 ) )
     {
 
-        $test->num_tests( scalar(@attribs) + scalar( @{$attribs_ref} ) );
+        $test->num_method_tests( 'class_attributes', scalar(@attribs) + scalar( @{$attribs_ref} ) );
         foreach my $attribute ( @attribs, @{$attribs_ref} ) {
 
             has_attribute_ok( $test->{daemon}, $attribute );
@@ -242,7 +242,7 @@ sub class_attributes : Tests(no_plan) {
     }
     else {
 
-        $test->num_tests( scalar(@attribs) );
+        $test->num_method_tests( 'class_attributes', scalar(@attribs) );
         foreach my $attribute (@attribs) {
 
             has_attribute_ok( $test->{daemon}, $attribute );
@@ -291,10 +291,11 @@ sub clean_up : Test(shutdown) {
     close(DIR);
 
     push( @files, $test->{log_cfg} );
+    push( @files, $test->{log_file} );
 
     foreach my $file (@files) {
 
-        unlink $file or warn "Cannot remove $file: $!\n";
+        unlink $file or warn "Cannot remove $file: $!\n" if (-e $file);
 
     }
 
