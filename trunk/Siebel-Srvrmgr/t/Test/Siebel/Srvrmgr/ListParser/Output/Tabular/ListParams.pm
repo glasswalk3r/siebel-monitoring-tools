@@ -53,7 +53,7 @@ sub class_methods : Tests(+10) {
 }
 
 # this method validates only the parsing of the command line, the data is never used
-sub parse_cmd_line : Tests(11) {
+sub parse_cmd_line : Tests(13) {
 
     my $test = shift;
 
@@ -93,6 +93,13 @@ sub parse_cmd_line : Tests(11) {
     is( $parser->get_named_subsys, undef, 'get_named_subsys is undef' );
     is( $parser->get_task,         undef, 'get_task is undef' );
     is( $parser->get_server,       undef, 'get_server is undef' );
+    $cmd = 'list advanced param foobar for component FooBar';
+    note("Using command '$cmd'");
+    $parser = $test->get_mock( \@data, $cmd );
+    is( $parser->get_comp_alias, 'FooBar',
+        'get_comp_alias returns the correct alias' );
+    is( $parser->get_param, 'foobar',
+        'get_param returns the correct parameter name' );
 
 }
 
