@@ -44,10 +44,11 @@ use Scalar::Util qw(weaken);
 use Config;
 use Carp qw(longmess);
 use Siebel::Srvrmgr::Types;
+use Fcntl ':flock';    # import LOCK_* constants
 
-our $SIG_INT   = 0;
-our $SIG_PIPE  = 0;
-our $SIG_ALARM = 0;
+my $SIG_INT   = 0;
+my $SIG_PIPE  = 0;
+my $SIG_ALARM = 0;
 
 $SIG{INT}  = sub { $SIG_INT   = 1 };
 $SIG{PIPE} = sub { $SIG_PIPE  = 1 };
@@ -307,6 +308,8 @@ Since this attribute should be defined during Daemon object instance, it is read
 
 has field_delimiter => ( is => 'ro', isa => 'Chr', reader => 'get_field_del' );
 
+has has_lock => ( is => 'ro', isa => 'Bool', default => 0 );
+
 =pod
 
 =head1 METHODS
@@ -493,15 +496,22 @@ sub shift_commands {
 
 =head2 run
 
-This is the method used to execute commands in srvrmgr program and must be overrided by subclasses of Siebel::Srvrmgr::Daemon or an exception will
-be generated.
+This is the method used to execute commands in srvrmgr program and must be overrided by subclasses of Siebel::Srvrmgr::Daemon.
+Subclasses should invoke L<Moose> C<super> to when doing override because this implementation will apply lock control when appropriate.
 
 =cut
 
 sub run {
 
-    confess
-      'This method must be overrided by subclasses of Siebel::Srvrmgr::Daemon';
+    my $self = shift;
+
+    if ( $self->has_lock ) {
+
+        my $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );
+        weaken($logger);
+        $self->create_lock($logger);
+
+    }
 
 }
 
@@ -596,8 +606,8 @@ sub _define_params {
     push( @params, '/s', $self->get_server() )
       if ( defined( $self->get_server() ) );
 
-# :WORKAROUND:06/08/2013 21:05:32:: if a perlscript will be executed (like for automated testing of this distribution)
-# then the perl interpreter must be part of the command path to avoid calling cmd.exe (in Microsoft Windows)
+# :WORKAROUND:06/08/2013 21:05:32:: if a perl script will be executed (like for automated testing of this distribution)
+# then the perl interpreter must be part of the command path to avoid calling cmd.exe in Microsoft Windows
     unshift( @params, $Config{perlpath} ) if ( $self->use_perl() );
 
     return \@params;
@@ -681,6 +691,12 @@ sub DEMOLISH {
 
     $self->_my_cleanup($logger);
 
+    if ( $self->has_lock ) {
+
+        $self->_del_lock($logger);
+
+    }
+
     $logger->info('Cleanup is finished');
 
     if ( $logger->is_warn() ) {
@@ -695,6 +711,60 @@ sub DEMOLISH {
     }
 
     $logger->info( ref($self) . ' says bye-bye' ) if ( $logger->is_info() );
+
+}
+
+sub _create_lock {
+
+    my $self      = shift;
+    my $logger    = shift;
+    my $lock_file = __PACKAGE__ . '.lock';
+
+    if ( -e $lock_file ) {
+
+        open( my $in, '<', $lock_file )
+          or $logger->log_die("Cannot read $lock_file: $!");
+        flock( $in, LOCK_EX | LOCK_NB )
+          or $logger->log_die("Could not get exclusive lock on $lock_file: $!");
+        local $/ = undef;
+        my $pid = <$in>;
+        close($in);
+
+        log_die(
+"Previous executing get.pl is still running (PID $pid), cannot execute"
+        );
+
+    }
+    else {
+
+        open( my $out, '>', $lock_file )
+          or $logger->log_die("Cannot create $lock_file: $!");
+        flock( $out, LOCK_EX | LOCK_NB )
+          or $logger->log_die("Could not get exclusive lock on $lock_file: $!");
+        print $out $$;
+        close($out);
+
+    }
+
+}
+
+sub _del_lock {
+
+    my $self      = shift;
+    my $logger    = shift;
+    my $lock_file = __PACKAGE__ . '.lock';
+
+    if ( -e $lock_file ) {
+
+        unlink($lock_file) or log_die("Could not remove $lock_file: $!");
+
+    }
+    else {
+
+        $logger->warn(
+            'Could not find lock file to remove before program termination');
+
+    }
 
 }
 
