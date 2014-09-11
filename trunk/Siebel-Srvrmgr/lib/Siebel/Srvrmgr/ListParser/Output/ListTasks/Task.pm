@@ -2,6 +2,10 @@ package Siebel::Srvrmgr::ListParser::Output::ListTasks::Task;
 use Moose;
 use MooseX::FollowPBP;
 use namespace::autoclean;
+use DateTime;
+use Siebel::Srvrmgr::Types;
+
+with 'Siebel::Srvrmgr::ListParser::Output::ToString';
 
 =pod
 
@@ -123,14 +127,21 @@ Depending on the type of output recovered from the C<srvrmgr>, not all attribute
 
 =cut
 
-has 'server_name' => ( is => 'ro', isa => 'Str', required   => 1 );
-has 'comp_alias'  => ( is => 'ro', isa => 'Str', required   => 1 );
-has 'id'          => ( is => 'ro', isa => 'Int', required   => 1 );
-has 'pid'         => ( is => 'ro', isa => 'Int', required   => 1 );
-has 'run_state'   => ( is => 'ro', isa => 'Str', required   => 1 );
-has 'run_mode'    => ( is => 'ro', isa => 'Str', 'required' => 0 );
-has 'start_time'  => ( is => 'ro', isa => 'Str', 'required' => 0 );
-has 'end_time'    => ( is => 'ro', isa => 'Str', 'required' => 0 );
+has 'server_name' => ( is => 'ro', isa => 'NotNullStr', required   => 1 );
+has 'comp_alias'  => ( is => 'ro', isa => 'NotNullStr', required   => 1 );
+has 'id'          => ( is => 'ro', isa => 'Int',        required   => 1 );
+has 'pid'         => ( is => 'ro', isa => 'Int',        required   => 1 );
+has 'run_state'   => ( is => 'ro', isa => 'NotNullStr', required   => 1 );
+has 'run_mode'    => ( is => 'ro', isa => 'Str',        'required' => 0 );
+has 'start_time'  => ( is => 'ro', isa => 'Str',        'required' => 0 );
+has 'curr_time'   => ( is => 'ro', isa => 'DateTime',   'required' => 1 );
+has 'end_time'    => (
+    is         => 'ro',
+    isa        => 'Str',
+    'required' => 0,
+    reader     => 'get_end_time',
+    writer     => '_set_end_time'
+);
 has 'status'      => ( is => 'ro', isa => 'Str', 'required' => 0 );
 has 'group_alias' => ( is => 'ro', isa => 'Str', 'required' => 0 );
 has 'parent_id'   => ( is => 'ro', isa => 'Int', 'required' => 0 );
@@ -138,6 +149,66 @@ has 'incarn_no'   => ( is => 'ro', isa => 'Int', 'required' => 0 );
 has 'label'       => ( is => 'ro', isa => 'Str', 'required' => 0 );
 has 'type'        => ( is => 'ro', isa => 'Str', 'required' => 0 );
 has 'ping_time'   => ( is => 'ro', isa => 'Str', 'required' => 0 );
+
+sub BUILD {
+
+    my $self = shift;
+    my $args = shift;
+
+    if ( $args->{end_time} eq '2000-00-00 00:00:00' ) {
+
+        $self->_set_end_time('');
+
+    }
+
+}
+
+sub _get_datetime {
+
+    my $self      = shift;
+    my $timestamp = shift;
+
+    my ( $date, $time ) = split( /\s/, $timestamp );
+    my @date = split( /\-/, $date );
+    my @time = split( /\:/, $time );
+
+    return DateTime->new(
+
+        year   => $date[0],
+        month  => $date[1],
+        day    => $date[2],
+        hour   => $time[0],
+        minute => $time[1],
+        second => $time[2]
+
+    );
+
+}
+
+sub get_duration {
+
+    my $self = shift;
+
+    my $end;
+
+    if ( $self->get_end_time ne '' ) {
+
+        $end = $self->_get_datetime( $self->get_end_time );
+
+    }
+    else {
+
+        $end = $self->get_curr_time;
+
+    }
+
+    my $duration =
+      $end->subtract_datetime_absolute(
+        $self->_get_datetime( $self->get_start_time ) );
+
+    return $duration->seconds;
+
+}
 
 =pod
 
@@ -147,9 +218,29 @@ All attributes have a getter named C<get_E<lt>attribute nameE<gt>>.
 
 Since all attributes are read-only there is no corresponding setter.
 
+=head2 methods implemented by role
+
+The methods below are part of the role L<Siebel::Srvrmgr::ListParser::Output::ToString>:
+
+=over
+
+=item *
+
+to_string
+
+=item *
+
+to_string_header
+
+=back
+
 =head1 SEE ALSO
 
 =over
+
+=item *
+
+L<Siebel::Srvrmgr::ListParser::Output::ToString>
 
 =item *
 

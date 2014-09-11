@@ -16,8 +16,7 @@ Siebel::Srvrmgr::Daemon - super class for sessions with Siebel srvrmgr program
 
 This is a super class, and alone it does not provide any functionaly to use srvrmgr to send commands and process returned data.
 
-The "private" method C<_setup_commands> must be overrided by subclasses of it or commands will not be sent to srvrmgr (the currently implementation C<warn>s 
-about that). 
+The "private" method C<_setup_commands> must be overrided by subclasses of it or commands will not be sent to C<srvrmgr>. 
 
 Logging of this class can be enabled by using L<Siebel::Srvrmgr> logging feature.
 
@@ -45,6 +44,8 @@ use Config;
 use Carp qw(longmess);
 use Siebel::Srvrmgr::Types;
 use Fcntl ':flock';    # import LOCK_* constants
+use Config;
+use File::Spec;
 
 my $SIG_INT   = 0;
 my $SIG_PIPE  = 0;
@@ -308,7 +309,52 @@ Since this attribute should be defined during Daemon object instance, it is read
 
 has field_delimiter => ( is => 'ro', isa => 'Chr', reader => 'get_field_del' );
 
+=head2 has_lock
+
+Optional parameter.
+
+This is a boolean attribute (in the sense of Perl) that identifies if the L<Daemon> needs to use a lock or not. Default is false.
+
+Using a lock is useful to avoid two instances of the same C<Daemon> running. See also C<lock_dir> attribute.
+
+=cut
+
 has has_lock => ( is => 'ro', isa => 'Bool', default => 0 );
+
+=head2 lock_dir
+
+Optional parameter.
+
+This parameter is used to determine the location in the filesystem to create the lock file.
+
+Expects a string as parameter. The directory must be readable and writable to the user running the C<Daemon>.
+
+It defaults to the "home" directory of the user. The sense of "home" is the following as defined by the platform:
+
+This attribute is lazy and defined by the C<_define_lock_dir> "private" method.
+
+=over
+
+=item *
+
+Microsoft Windows: C<$ENV{HOMEDIR}>
+
+=item *
+
+UNIX-like: C<$ENV{HOME}>
+
+=back
+
+=cut
+
+has lock_dir => (
+    is      => 'rw',
+    isa     => 'Str',
+    reader  => 'get_lock_dir',
+    writer  => 'set_lock_dir',
+    lazy    => 1,
+    builder => '_define_lock_dir'
+);
 
 =pod
 
@@ -438,8 +484,39 @@ sub reset_retries {
 
 }
 
-# for better security
-sub _check_cmd {
+=head2 check_cmd
+
+This methods expects as parameter a string representing a C<srvrmgr> command.
+
+The command will be checked and if considered insecure, an exception will be raised.
+
+Commands considered secure are:
+
+=over
+
+=item *
+
+load preferences
+
+=item *
+
+list <anything>
+
+=item *
+
+exit
+
+=item *
+
+set delimiter
+
+=back
+
+This method is also used internally through the C<_setup_commands> method.
+
+=cut
+
+sub check_cmd {
 
     my $self = shift;
     my $cmd  = shift;
@@ -451,6 +528,7 @@ sub _check_cmd {
     confess("Insecure command from command stack [$cmd]. Execution aborted")
       unless ( ( $cmd =~ /^load/ )
         or ( $cmd =~ /^list/ )
+        or ( $cmd =~ /^set\sdelimiter\s[[:graph:]]/ )
         or ( $cmd =~ /^exit/ ) );
 
     return 1;
@@ -507,9 +585,7 @@ sub run {
 
     if ( $self->has_lock ) {
 
-        my $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );
-        weaken($logger);
-        $self->create_lock($logger);
+        $self->_create_lock;
 
     }
 
@@ -611,6 +687,21 @@ sub _define_params {
     unshift( @params, $Config{perlpath} ) if ( $self->use_perl() );
 
     return \@params;
+
+}
+
+=head2 get_loc_file
+
+Returns the complete path to the lock file as a string.
+
+=cut
+
+sub get_lock_file {
+
+    my $self = shift;
+
+    return File::Spec->catfile( $self->get_lock_dir,
+        ( __PACKAGE__ . '.lock' ) );
 
 }
 
@@ -716,31 +807,34 @@ sub DEMOLISH {
 
 sub _create_lock {
 
-    my $self      = shift;
-    my $logger    = shift;
-    my $lock_file = __PACKAGE__ . '.lock';
+    my $self = shift;
+
+    my $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );
+    weaken($logger);
+
+    my $lock_file = $self->get_lock_file;
 
     if ( -e $lock_file ) {
 
         open( my $in, '<', $lock_file )
-          or $logger->log_die("Cannot read $lock_file: $!");
+          or $logger->logdie("Cannot read $lock_file: $!");
         flock( $in, LOCK_EX | LOCK_NB )
-          or $logger->log_die("Could not get exclusive lock on $lock_file: $!");
+          or $logger->logdie("Could not get exclusive lock on $lock_file: $!");
         local $/ = undef;
         my $pid = <$in>;
         close($in);
 
-        log_die(
+        $logger->logdie(
 "Previous executing get.pl is still running (PID $pid), cannot execute"
-        );
+        ) if ( $pid != $$ );
 
     }
     else {
 
         open( my $out, '>', $lock_file )
-          or $logger->log_die("Cannot create $lock_file: $!");
+          or $logger->logdie("Cannot create $lock_file: $!");
         flock( $out, LOCK_EX | LOCK_NB )
-          or $logger->log_die("Could not get exclusive lock on $lock_file: $!");
+          or $logger->logdie("Could not get exclusive lock on $lock_file: $!");
         print $out $$;
         close($out);
 
@@ -752,11 +846,12 @@ sub _del_lock {
 
     my $self      = shift;
     my $logger    = shift;
-    my $lock_file = __PACKAGE__ . '.lock';
+    my $lock_file = $self->get_lock_file;
 
     if ( -e $lock_file ) {
 
-        unlink($lock_file) or log_die("Could not remove $lock_file: $!");
+        unlink($lock_file)
+          or $logger->logdie("Could not remove $lock_file: $!");
 
     }
     else {
@@ -774,13 +869,54 @@ sub _my_cleanup {
 
 }
 
+sub _define_lock_dir {
+
+    if ( $Config{osname} =~ /^linux$/i ) {
+
+        return $ENV{HOME};
+
+    }
+
+    if ( $Config{osname} =~ /^aix$/i ) {
+
+        return $ENV{HOME};
+
+    }
+
+    if ( $Config{osname} =~ /^hpux$/i ) {
+
+        return $ENV{HOME};
+
+    }
+
+    if ( $Config{osname} =~ /^mswin32$/i ) {
+
+        return $ENV{HOMEDIR};
+
+    }
+
+    if ( $Config{osname} =~ /^solaris$/i ) {
+
+        return $ENV{HOME};
+
+    }
+    else {
+
+        confess "don't know what to do with $Config{osname}";
+
+    }
+
+}
+
 sub _setup_commands {
 
     my $self = shift;
 
-    confess(
-'_setup_commands from Siebel::Srvrmgr::Daemon must be overrided by subclass '
-          . ref($self) );
+    foreach my $cmd ( @{ $self->get_commands } ) {
+
+        $self->check_cmd( $cmd->get_command() );
+
+    }
 
 }
 
@@ -818,7 +954,7 @@ L<Siebel::Srvrmgr::Daemon::Command>
 
 =head1 AUTHOR
 
-Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<E<gt>
+Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
