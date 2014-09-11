@@ -123,13 +123,13 @@ sub class_attributes : Test(no_plan) {
 
 }
 
-sub class_methods : Test(+2) {
+sub class_methods : Test(+6) {
 
     my $test        = shift;
     my $methods_ref = shift;
 
     my @methods =
-      qw(_consume_data parse get_known_types get_type get_expected_fields found_header _set_found_header _build_expected);
+      qw(_consume_data parse get_known_types get_type get_expected_fields found_header _set_found_header _build_expected to_string);
 
     if ( ( defined($methods_ref) ) and ( ref($methods_ref) eq 'ARRAY' ) ) {
 
@@ -145,7 +145,7 @@ sub class_methods : Test(+2) {
 
   SKIP: {
 
-        skip $test->get_super() . ' does not have instance for those tests', 2
+        skip $test->get_super() . ' does not have instance for those tests', 6 
           if ( $test->is_super() );
 
         ok( $test->get_output()->set_raw_data( [] ), 'set_raw_data works' );

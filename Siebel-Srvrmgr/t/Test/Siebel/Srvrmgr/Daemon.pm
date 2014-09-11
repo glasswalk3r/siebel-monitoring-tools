@@ -85,6 +85,7 @@ sub _constructor : Tests(+12) {
                     user       => $test->{test_data}->[3]->[2],
                     password   => $test->{test_data}->[4]->[2],
                     bin        => $test->{test_data}->[5]->[2],
+                    has_lock   => 1,
                     use_perl   => 1
                     , # important to avoid calling another interpreter besides perl when invoked by IPC::Open3
                     commands => [
@@ -111,6 +112,42 @@ sub _constructor : Tests(+12) {
                 }
             ),
             '... and the constructor should succeed'
+        );
+
+        # used for testing locking
+        $test->{daemon2} = $test->class()->new(
+            {
+                server     => $test->{test_data}->[0]->[2],
+                gateway    => $test->{test_data}->[1]->[2],
+                enterprise => $test->{test_data}->[2]->[2],
+                user       => $test->{test_data}->[3]->[2],
+                password   => $test->{test_data}->[4]->[2],
+                bin        => $test->{test_data}->[5]->[2],
+                has_lock   => 1,
+                use_perl   => 1
+                , # important to avoid calling another interpreter besides perl when invoked by IPC::Open3
+                commands => [
+                    Siebel::Srvrmgr::Daemon::Command->new(
+                        command => 'load preferences',
+                        action  => 'LoadPreferences'
+                    ),
+                    Siebel::Srvrmgr::Daemon::Command->new(
+                        command => 'list comp type',
+                        action  => 'ListCompTypes',
+                        params  => ['dump1']
+                    ),
+                    Siebel::Srvrmgr::Daemon::Command->new(
+                        command => 'list comp',
+                        action  => 'ListComps',
+                        params  => ['dump2']
+                    ),
+                    Siebel::Srvrmgr::Daemon::Command->new(
+                        command => 'list comp def',
+                        action  => 'ListCompDef',
+                        params  => ['dump3']
+                    )
+                ]
+            }
         );
 
         isa_ok( $test->{daemon}, $test->class() );
@@ -151,7 +188,7 @@ sub bad_instance {
 
 }
 
-sub class_methods : Tests(22) {
+sub class_methods : Tests(24) {
 
     my $test = shift;
 
@@ -171,7 +208,7 @@ sub class_methods : Tests(22) {
             'get_lang_id',      'set_lang_id',
             'get_child_runs',   '_set_child_runs',
             'shift_commands',   '_check_error',
-            '_check_cmd',       'get_retries',
+            'check_cmd',        'get_retries',
             '_set_retries',     'clear_raw',
             'set_clear_raw',    'get_max_retries',
             '_set_max_retries', 'get_lang_id',
@@ -180,6 +217,11 @@ sub class_methods : Tests(22) {
             'get_field_del'
         )
     );
+
+    dies_ok { $test->{daemon}->check_cmd('shutdown comp foobar') }
+    'check_cmd raises an exception with shutdown command';
+    dies_ok { $test->{daemon}->check_cmd('change parameter foobar') }
+    'check_cmd raises an exception with change command';
 
   SKIP: {
 
@@ -232,7 +274,8 @@ sub class_attributes : Tests(no_plan) {
         and ( scalar( @{$attribs_ref} ) > 0 ) )
     {
 
-        $test->num_method_tests( 'class_attributes', scalar(@attribs) + scalar( @{$attribs_ref} ) );
+        $test->num_method_tests( 'class_attributes',
+            scalar(@attribs) + scalar( @{$attribs_ref} ) );
         foreach my $attribute ( @attribs, @{$attribs_ref} ) {
 
             has_attribute_ok( $test->{daemon}, $attribute );
@@ -248,6 +291,33 @@ sub class_attributes : Tests(no_plan) {
             has_attribute_ok( $test->{daemon}, $attribute );
 
         }
+
+    }
+
+}
+
+sub the_last_run : Test(1) {
+
+    my $test = shift;
+
+  SKIP: {
+
+        skip 'only subclasses are capable of calling run method', 1
+          unless ( ( exists( $test->{daemon2} ) )
+            and ( ref( $test->{daemon2} ) ne 'Siebel::Srvrmgr::Daemon' ) );
+        my $fake_pid = $$ * 2;
+
+        open( my $out, '>', $test->{lock_file} )
+          or die( 'Cannot change ' . $test->{lock_file} . $! );
+
+        print $out $fake_pid;
+
+        close($out);
+
+        dies_ok { $test->{daemon2}->run }
+        'a second instance cannot run while there is a lock available';
+
+        $test->{daemon2} = undef;
 
     }
 
@@ -295,7 +365,7 @@ sub clean_up : Test(shutdown) {
 
     foreach my $file (@files) {
 
-        unlink $file or warn "Cannot remove $file: $!\n" if (-e $file);
+        unlink $file or warn "Cannot remove $file: $!\n" if ( -e $file );
 
     }
 

@@ -33,11 +33,18 @@ sub class_attributes : Tests(+2) {
 
 }
 
-sub runs : Tests(9) {
+sub runs : Tests(+10) {
 
     my $test = shift;
+    $test->SUPER::runs;
 
     ok( $test->{daemon}->run(), 'run method executes successfuly' );
+
+    my $lock_file = $test->{daemon}->get_lock_file;
+    $test->{lock_file} = $lock_file;    # see run_locked
+
+    ok( -e $lock_file, 'lock file created succesfully' );
+
     is( $test->{daemon}->get_child_runs(),
         1, 'get_child_runs returns the expected number' );
 
@@ -45,6 +52,7 @@ sub runs : Tests(9) {
         undef, 'shift_command does not removes a load preferences command' );
 
     ok( $test->{daemon}->run(), 'run method executes successfuly (2)' );
+
     is( $test->{daemon}->get_child_runs(),
         2, 'get_child_runs returns the expected number' );
     ok( $test->{daemon}->run(), 'run method executes successfuly (3)' );

@@ -372,7 +372,10 @@ Returns the content of the attribute C<params_stack>.
 
 override '_setup_commands' => sub {
 
-    my $self     = shift;
+    my $self = shift;
+
+    super();
+
     my $cmds_ref = $self->get_commands();
 
     my @cmd;
@@ -463,10 +466,10 @@ sub run {
     my $select   = IO::Select->new();
     my $data_ref = $self->_create_handle_buffer( $select, $logger );
 
- # :WARNING:16-07-2014 11:35:13:: cannot using SRVRMGR_PROMPT regex because it is too restrictive
- # since we are reading a stream here. The regex is a copy of SRVRMGR_PROMPT without the "^" at the beginning
+# :WARNING:16-07-2014 11:35:13:: cannot using SRVRMGR_PROMPT regex because it is too restrictive
+# since we are reading a stream here. The regex is a copy of SRVRMGR_PROMPT without the "^" at the beginning
     my $prompt_regex = qr/srvrmgr(\:[\w\_\-]+)?>\s(.*)?$/;
-    my $eol_regex = qr/\015\012$/;
+    my $eol_regex    = qr/\015\012$/;
 
     $logger->debug( 'sysread buffer size is ' . $self->get_buffer_size() )
       if ( $logger->is_debug() );
@@ -1150,7 +1153,6 @@ sub _submit_cmd {
 
     }
 
-    $self->_check_cmd($cmd);
     my $bytes = syswrite $self->get_write(), "$cmd\n";
 
     if ( defined($bytes) ) {

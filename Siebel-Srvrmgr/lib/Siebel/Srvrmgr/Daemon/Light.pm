@@ -66,7 +66,7 @@ use POSIX;
 use Scalar::Util qw(weaken);
 use Config;
 use Carp qw(longmess);
-use File::Temp;
+use File::Temp qw(:POSIX);
 use Data::Dumper;
 use Siebel::Srvrmgr;
 use File::BOM qw(:all);
@@ -130,9 +130,11 @@ to execute L<Siebel::Srvrmgr::Daemon::Command> instances in parallel.
 
 =cut
 
-sub run {
+override 'run' => sub {
 
     my $self = shift;
+
+    super();
 
     my $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );
     weaken($logger);
@@ -232,7 +234,7 @@ sub run {
 
     return 1;
 
-}
+};
 
 =pod
 
@@ -326,12 +328,13 @@ override _setup_commands => sub {
 
     my $self = shift;
 
+    super();
+
 # :WORKAROUND:03/10/2013 03:06:41:: getting a "tmpnam redefined" warning in Perl 5.18
-    my ( $fh, $input_file ) = File::Temp::tmpnam();
+    my ( $fh, $input_file ) = tmpnam();
 
     foreach my $cmd ( @{ $self->get_commands() } ) {
 
-        $self->_check_cmd( $cmd->get_command() );
         print $fh $cmd->get_command(), "\n";
 
     }
