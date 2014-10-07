@@ -4,7 +4,7 @@ package Siebel::Srvrmgr::Daemon::Action::Dummy;
 
 =head1 NAME
 
-Siebel::Srvrmgr::Daemon::Action::Dumper - subclass for Siebel::Srvrmgr::Daemon::Action to do nothing with the buffer content
+Siebel::Srvrmgr::Daemon::Action::Dummy - subclass for Siebel::Srvrmgr::Daemon::Action to do nothing with the buffer content
 
 =head1 SYNOPSIS
 
@@ -13,8 +13,6 @@ See L<Siebel::Srvrmgr::Daemon::Action> for an example.
 =head1 DESCRIPTION
 
 This is a subclass of L<Siebel::Srvrmgr::Daemon::Action> that will do... nothing.
-
-This class uses L<Data::Dumper> them to print the buffer content to C<STDOUT>.
 
 =cut
 

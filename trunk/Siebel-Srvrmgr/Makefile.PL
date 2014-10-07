@@ -1,5 +1,3 @@
-use lib inc; use Devel::AssertOS qw(Linux AIX Solaris HPUX MSWin32);
-
 use lib 'inc';
 use Devel::AssertOS qw(Linux AIX Solaris HPUX MSWin32);
 use 5.008009;
@@ -23,7 +21,8 @@ my %config = (
         'Log::Log4perl'                => 1.41,
         'YAML::Syck'                   => 1.25,
         'String::BOM'                  => 0.3,
-        'File::BOM'                    => 0.14
+        'File::BOM'                    => 0.14,
+        'DateTime'                     => 1.12,
     },
     TEST_REQUIRES => {
         'Test::Most'               => 0.25,
@@ -32,7 +31,7 @@ my %config = (
         'Test::Class'              => 0.36,
         'Test::Moose'              => 2.0801,
         'Class::Data::Inheritable' => 0.08,
-        'Config::Tiny'             => 2.14,
+        'Config::IniFiles'         => 2.83
     },
     EXE_FILES  => ['srvrmgr-mock.pl'],
     META_MERGE => {

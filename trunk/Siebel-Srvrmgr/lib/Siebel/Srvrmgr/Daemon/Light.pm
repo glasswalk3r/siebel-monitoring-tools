@@ -62,7 +62,6 @@ use namespace::autoclean;
 use Siebel::Srvrmgr::Daemon::ActionFactory;
 use Siebel::Srvrmgr::ListParser;
 use Siebel::Srvrmgr::Daemon::Command;
-use POSIX;
 use Scalar::Util qw(weaken);
 use Config;
 use Carp qw(longmess);
@@ -70,6 +69,7 @@ use File::Temp qw(:POSIX);
 use Data::Dumper;
 use Siebel::Srvrmgr;
 use File::BOM qw(:all);
+use Siebel::Srvrmgr::IPC qw(check_system);
 
 extends 'Siebel::Srvrmgr::Daemon';
 
@@ -165,11 +165,13 @@ override 'run' => sub {
 
     }
 
+# :TODO:22-09-2014 01:32:45:: this might be dangerous if the output is too large
     my @input_buffer = <$in>;
     close($in);
 
     if ( scalar(@input_buffer) >= 1 ) {
 
+        $self->_check_error( \@input_buffer, $logger );
         $self->normalize_eol( \@input_buffer );
         chomp(@input_buffer);
 
@@ -330,7 +332,6 @@ override _setup_commands => sub {
 
     super();
 
-# :WORKAROUND:03/10/2013 03:06:41:: getting a "tmpnam redefined" warning in Perl 5.18
     my ( $fh, $input_file ) = tmpnam();
 
     foreach my $cmd ( @{ $self->get_commands() } ) {
@@ -380,8 +381,7 @@ override _define_params => sub {
 
     my $params_ref = super();
 
-# :TODO      :20/08/2013 12:31:36:: must define if the output files must be kept or removed
-    $self->_set_output_file( scalar( File::Temp::tmpnam() ) );
+    $self->_set_output_file( scalar( tmpnam() ) );
 
     push(
         @{$params_ref},
@@ -416,7 +416,6 @@ sub _manual_check {
 
 }
 
-# :TODO:18-10-2013:arfreitas: this should be done by IPC.pm module?
 sub _check_system {
 
     my $self   = shift;
@@ -426,52 +425,36 @@ sub _check_system {
     my $ret_code    = shift;
     my $error_code  = shift;
 
-    if ( $Config{osname} eq 'MSWin32' ) {
+    my ( $message, $is_error ) = check_system($child_error);
+
+    unless ( ( defined($message) ) and ( defined($is_error) ) ) {
 
         $self->_manual_check( $logger, $ret_code, $error_code );
 
     }
     else {
 
-      SWITCH: {
+        if ( defined($is_error) ) {
 
-            if ( WIFEXITED($child_error) ) {
+            if ($is_error) {
 
-                $logger->info(
-'Child process terminate with call to exit() with return code = '
-                      . WEXITSTATUS($child_error) );
-                last SWITCH;
-
-            }
-
-            if ( WIFSIGNALED($child_error) ) {
-
-                $logger->logdie( 'Child process terminated due signal: '
-                      . WTERMSIG($child_error) );
-                last SWITCH;
-
-            }
-
-            if ( WIFSTOPPED($child_error) ) {
-
-                $logger->logdie( 'Child process was stopped with '
-                      . WSTOPSIG($child_error) );
-                last SWITCH;
+                $logger->logdie($message);
 
             }
             else {
 
-                $self->_manual_check( $logger, $ret_code, $error_code );
+                $logger->info($message);
 
             }
 
         }
+        else {
 
-        $self->_manual_check( $logger, $ret_code, $error_code );
+            $logger->info( $message . "Error code is $error_code" );
+
+        }
 
     }
-
-    return 1;
 
 }
 

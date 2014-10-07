@@ -23,12 +23,13 @@ This module is based on L<IPC::Open3::Callback> from Lucas Theisen (see SEE ALSO
 
 require Exporter;
 our @ISA    = qw(Exporter);
-our @EXPORT = qw(safe_open3);
+our @EXPORT = qw(safe_open3 check_system);
 
 use IPC::Open3;
 use Symbol 'gensym';
 use IO::Socket;
 use Config;
+use POSIX qw(WIFEXITED WEXITSTATUS WIFSIGNALED WTERMSIG WIFSTOPPED);
 
 =pod
 
@@ -67,7 +68,7 @@ The error handle for the child process.
 
 sub safe_open3 {
 
-    return ( $^O =~ /MSWin32/ )
+    return ( $Config{osname} eq 'MSWin32' )
       ? Siebel::Srvrmgr::IPC::_mswin_open3( $_[0] )
       : Siebel::Srvrmgr::IPC::_default_open3( $_[0] );
 
@@ -96,15 +97,10 @@ sub _mswin_pipe {
     my ( $read, $write ) =
       IO::Socket->socketpair( AF_UNIX, SOCK_STREAM, PF_UNSPEC );
 
-# :WORKAROUND:14/08/2013 14:15:04:: shutdown the socket seems to disable the filehandle in Windows
-    unless ( $Config{osname} eq 'MSWin32' ) {
-
-        Siebel::Srvrmgr::IPC::_check_shutdown( 'read',
-            $read->shutdown(SHUT_WR) );    # No more writing for reader
-        Siebel::Srvrmgr::IPC::_check_shutdown( 'write',
-            $write->shutdown(SHUT_RD) );    # No more reading for writer
-
-    }
+    Siebel::Srvrmgr::IPC::_check_shutdown( 'read', $read->shutdown(SHUT_WR) )
+      ;    # No more writing for reader
+    Siebel::Srvrmgr::IPC::_check_shutdown( 'write', $write->shutdown(SHUT_RD) )
+      ;    # No more reading for writer
 
     return ( $read, $write );
 
@@ -138,6 +134,58 @@ sub _default_open3 {
         $errFh );
 }
 
+=head2 check_system
+
+For non-Windows systems, returns additional information about the child process created by a C<system> call as a string. Also, it returns a boolean (in Perl sense)
+indicating if this is a error (1) or not (0);
+
+Expects as parameter the environment variable C<${^CHILD_ERROR_NATIVE}> value, available right after the C<system> call.
+
+=cut
+
+# :TODO:22-09-2014 13:26:35:: should implement exceptions to this
+sub check_system {
+
+    my $child_error = shift;
+
+    unless ( $Config{osname} eq 'MSWin32' ) {
+
+        if ( WIFEXITED($child_error) ) {
+
+            return
+              'Child process terminate with call to exit() with return code = '
+              . WEXITSTATUS($child_error), 0;
+
+        }
+
+        if ( WIFSIGNALED($child_error) ) {
+
+            return 'Child process terminated due signal: '
+              . WTERMSIG($child_error), 1;
+
+        }
+
+        if ( WIFSTOPPED($child_error) ) {
+
+            return 'Child process was stopped with ' . WSTOPSIG($child_error),
+              1;
+
+        }
+        else {
+
+            return 'Not able to check child process information', undef;
+
+        }
+
+    }
+    else {
+
+        return undef, undef;
+
+    }
+
+}
+
 =pod
 
 =head1 SEE ALSO
@@ -160,7 +208,7 @@ L<IO::Socket>
 
 =head1 AUTHOR
 
-Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<E<gt>
+Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 

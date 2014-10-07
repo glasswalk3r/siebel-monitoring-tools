@@ -8,37 +8,29 @@ sub new {
 
     my $class = shift;
 
-    my $file = File::Spec->catfile( getcwd(), 'gladiator_output.txt' );
-
-    open( my $out, '>', $file ) or die "Cannot create $file: $!";
-
-    my $self = { counting => {}, out_h => $out };
+    my $self = { account => {} };
 
     return bless $self, $class;
 
 }
 
-sub DESTROY {
+sub show {
 
     my $self = shift;
 
-    close( $self->{out_h} ) or die $!;
+    my %data;
 
-}
+    foreach my $key ( sort( keys( %{ $self->{account} } ) ) ) {
 
-sub show_accounting {
+        my $last = scalar( @{ $self->{account}->{$key} } ) - 1;
 
-    my $self = shift;
-    my $out  = $self->{out_h};
-
-    foreach my $key ( sort( keys( %{ $self->{counting} } ) ) ) {
-
-        print $out $key, ' -> ', join( '|', @{ $self->{counting}->{$key} } ),
-          "\n"
-          if (
-            $self->{counting}->{$key}->[1] > $self->{counting}->{$key}->[0] );
+        $data{$key} = $self->{account}->{$key}
+          if ( $self->{account}->{$key}->[$last] >
+            $self->{account}->{$key}->[ $last - 1 ] );
 
     }
+
+    return \%data;
 
 }
 
@@ -48,13 +40,13 @@ sub count_leaks {
 
     my $total = 0;
 
-    foreach my $key ( keys( %{ $self->{counting} } ) ) {
+    foreach my $key ( keys( %{ $self->{account} } ) ) {
 
-        my $last = $#{ $self->{counting}->{$key} };
+        my $last = $#{ $self->{account}->{$key} };
 
         $total++
-          if ( $self->{counting}->{$key}->[$last] >
-            $self->{counting}->{$key}->[ $last - 1 ] );
+          if ( $self->{account}->{$key}->[$last] >
+            $self->{account}->{$key}->[ $last - 1 ] );
 
     }
 
@@ -68,17 +60,20 @@ sub increment_count {
     my $current = shift;
 
     weaken($current);
+    my $regex = qr/\:{2}/;
 
     foreach my $key ( keys( %{$current} ) ) {
 
-        if ( exists( $self->{counting}->{$key} ) ) {
+        next unless ( $key =~ $regex );
 
-            push( @{ $self->{counting}->{$key} }, $current->{$key} );
+        if ( exists( $self->{account}->{$key} ) ) {
+
+            push( @{ $self->{account}->{$key} }, $current->{$key} );
 
         }
         else {
 
-            $self->{counting}->{$key} = [ $current->{$key} ];
+            $self->{account}->{$key} = [ $current->{$key} ];
 
         }
 
@@ -96,13 +91,13 @@ use Cwd;
 use File::Spec;
 use Scalar::Util qw(weaken);
 
-my $repeat = 3;
+my $repeat = 6;
 
 plan tests => $repeat;
 
 SKIP: {
 
-    skip( 'Devel:Gladiator not installed on this system', $repeat )
+    skip( 'Devel::Gladiator not installed on this system', $repeat )
       unless do {
         eval "use Devel::Gladiator qw(arena_ref_counts)";
         $@ ? 0 : 1;
@@ -138,10 +133,9 @@ SKIP: {
         $daemon->run();
 
         $gladiator->increment_count( arena_ref_counts() );
-        is( $gladiator->count_leaks(), 0, 'gladiator gots zero leaks' );
+        is( $gladiator->count_leaks(), 0, 'gladiator has zero leaks' )
+          or explain( $gladiator->show );
 
     }
-
-    $gladiator->show_accounting();
 
 }

@@ -37,14 +37,13 @@ Implementation details are reserved to subclasses of Siebel::Srvrmgr::Daemon: be
 
 use Moose;
 use Siebel::Srvrmgr::Regexes qw(SIEBEL_ERROR);
-use POSIX;
 use Siebel::Srvrmgr;
 use Scalar::Util qw(weaken);
 use Config;
-use Carp qw(longmess);
 use Siebel::Srvrmgr::Types;
 use Fcntl ':flock';    # import LOCK_* constants
 use Config;
+use Carp;
 use File::Spec;
 
 my $SIG_INT   = 0;
@@ -358,7 +357,26 @@ has lock_dir => (
 
 =pod
 
+=head2 cmd_stack
+
+This is an array reference with the stack of commands to be executed. It is maintained automatically by the class, so the attribute is read-only.
+
+=cut
+
+has cmd_stack => (
+    isa    => 'ArrayRef',
+    is     => 'ro',
+    writer => '_set_cmd_stack',
+    reader => 'get_cmd_stack'
+);
+
+=pod
+
 =head1 METHODS
+
+=head2 get_cmd_stack
+
+Returns the content of the attribute C<cmd_stack>.
 
 =head2 get_field_del
 
@@ -690,7 +708,7 @@ sub _define_params {
 
 }
 
-=head2 get_loc_file
+=head2 get_lock_file
 
 Returns the complete path to the lock file as a string.
 
@@ -700,51 +718,79 @@ sub get_lock_file {
 
     my $self = shift;
 
-    return File::Spec->catfile( $self->get_lock_dir,
-        ( __PACKAGE__ . '.lock' ) );
+    my $filename = $self->blessed;
+    $filename =~ s/\:{2}/_/g;
+
+    return File::Spec->catfile( $self->get_lock_dir, ( $filename . '.lock' ) );
 
 }
 
+our $adm_60070    = qr/^SBL-ADM-60070.*/;
+our $adm_02043    = qr/^SBL-ADM-02043.*/;
+our $adm_02071    = qr/^SBL-ADM-02071.*/;
+our $adm_02049    = qr/^SBL-ADM-02049.*/;
+our $adm_02751    = qr/^SBL-ADM-02751.*/;
+our $siebel_error = SIEBEL_ERROR;
+
 sub _check_error {
 
-    my $self   = shift;
-    my $line   = shift;
-    my $logger = shift;
+    my $self    = shift;
+    my $content = shift;
+    my $logger  = shift;
 
     weaken($logger);
 
-    # caught an error, until now all they are fatal
-    $logger->warn( "Caught [$line]:" . longmess() );
+    if ( ref($content) eq 'ARRAY' ) {
 
-    if ( $line =~ SIEBEL_ERROR ) {
+        foreach my $line ( @{$content} ) {
 
-      SWITCH: {
+# :WORKAROUND:22-09-2014 14:02:27:: to avoid multiple methods calls, the verifications
+# were duplicated (copy an paste)
+            if ( $line =~ $siebel_error ) {
 
-            if ( $line =~ /^SBL-ADM-60070.*/ ) {
+              SWITCH: {
 
-                $logger->warn(
-                    'Trying to get additional information from next line')
-                  if ( $logger->is_warn() );
-                return 1;
-            }
+                    if ( $line =~ $adm_60070 ) {
 
-            if ( $line =~ /^SBL-ADM-02043.*/ ) {
-                $logger->logdie('Could not find the Siebel Server');
-            }
+                        $logger->warn(
+'Trying to get additional information from next line'
+                        ) if ( $logger->is_warn() );
+                        return 1;
+                    }
 
-            if ( $line =~ /^SBL-ADM-02071.*/ ) {
-                $logger->logdie('Could not find the Siebel Enterprise');
-            }
+                    if ( $line =~ $adm_02043 ) {
+                        $logger->logdie('Could not find the Siebel Server');
+                    }
 
-            if ( $line =~ /^SBL-ADM-02049.*/ ) {
-                $logger->logdie('Generic error');
-            }
+                    if ( $line =~ $adm_02071 ) {
+                        $logger->logdie('Could not find the Siebel Enterprise');
+                    }
 
-            if ( $line =~ /^SBL-ADM-02751.*/ ) {
-                $logger->logdie('Unable to open file');
+                    if ( $line =~ $adm_02049 ) {
+                        $logger->logdie('Generic error');
+                    }
+
+                    if ( $line =~ $adm_02751 ) {
+                        $logger->logdie('Unable to open file');
+                    }
+                    else {
+                        $logger->logdie(
+                            "Unknown error [$line], aborting execution");
+                    }
+
+                }
+
             }
             else {
-                $logger->logdie('Unknown error, aborting execution');
+
+                $logger->debug(
+"Got $line. Since it doesn't look like a Siebel error, I will try to keep running"
+                ) if ( $logger->is_debug );
+
+                $logger->warn($content);
+
+                return 1;
+
             }
 
         }
@@ -752,8 +798,52 @@ sub _check_error {
     }
     else {
 
-        $logger->warn(
-            'Since this is not a Siebel error, I will try to keep running');
+        if ( $content =~ $siebel_error ) {
+
+          SWITCH: {
+
+                if ( $content =~ $adm_60070 ) {
+
+                    $logger->warn(
+                        'Trying to get additional information from next line')
+                      if ( $logger->is_warn() );
+                    return 1;
+                }
+
+                if ( $content =~ $adm_02043 ) {
+                    $logger->logdie('Could not find the Siebel Server');
+                }
+
+                if ( $content =~ $adm_02071 ) {
+                    $logger->logdie('Could not find the Siebel Enterprise');
+                }
+
+                if ( $content =~ $adm_02049 ) {
+                    $logger->logdie('Generic error');
+                }
+
+                if ( $content =~ $adm_02751 ) {
+                    $logger->logdie('Unable to open file');
+                }
+                else {
+                    $logger->logdie(
+                        "Unknown error [$content], aborting execution");
+                }
+
+            }
+
+        }
+        else {
+
+            $logger->debug(
+"Got $content. Since it doesn't look like a Siebel error, I will try to keep running"
+            ) if ( $logger->debug );
+
+            $logger->warn($content);
+
+            return 1;
+
+        }
 
     }
 
@@ -805,6 +895,22 @@ sub DEMOLISH {
 
 }
 
+=head1 CONSTANTS
+
+The following constants are available in this class:
+
+=over
+
+=item LOCK_EX
+
+=item LOCK_NB
+
+=back
+
+All of them from the L<Fcntl> module.
+
+=cut
+
 sub _create_lock {
 
     my $self = shift;
@@ -825,8 +931,8 @@ sub _create_lock {
         close($in);
 
         $logger->logdie(
-"Previous executing get.pl is still running (PID $pid), cannot execute"
-        ) if ( $pid != $$ );
+            "Previous executing is still running (PID $pid), cannot execute")
+          if ( $pid != $$ );
 
     }
     else {
@@ -949,6 +1055,10 @@ L<POSIX>
 =item *
 
 L<Siebel::Srvrmgr::Daemon::Command>
+
+=item *
+
+L<Fcntl>
 
 =back
 

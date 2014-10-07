@@ -23,14 +23,12 @@ See L<Siebel::Srvrmgr::ListParser::Output::Tabular> for examples.
 
 =head1 DESCRIPTION
 
-This class is still a working progress, which means it is not working as expected. Please check CAVEATS for details.
-
 This subclass of L<Siebel::Srvrmgr::ListParser::Output::Tabular> parses the output of the command C<list tasks>.
 
 It is expected that the C<srvrmgr> program has a proper configuration for the C<list tasks> command. The default configuration
 can be seen below:
 
-	srvrmgr> configure list tasks
+    srvrmgr> configure list tasks
         SV_NAME (31):  Server name
         CC_ALIAS (31):  Component alias
         TK_TASKID (11):  Internal task id
@@ -58,22 +56,22 @@ If you want to use fixed width configuration from C<srvrmgr> this will be the ex
 
 If you want to use the field delimited output from C<srvrmgr> then this the expected configuration:
 
-	srvrmgr> configure list tasks
-		SV_NAME (31):  Server name
-		CC_ALIAS (31):  Component alias
-		TK_TASKID (11):  Internal task id
-		TK_PID (11):  Task process id
-		TK_DISP_RUNSTATE (61):  Task run state
-		CC_RUNMODE (31):  Task run mode
-		TK_START_TIME (21):  Task start time
-		TK_END_TIME (21):  Task end time
-		TK_STATUS (251):  Task-reported status
-		CG_ALIAS (31):  Component group alias
-		TK_PARENT_TASKNUM (18):  Parent task id
-		CC_INCARN_NO (23):  Incarnation Number
-		TK_LABEL (76):  Task Label
-		TK_TASKTYPE (31):  Task Type
-		TK_PING_TIME (12):  Last ping time for task
+    srvrmgr> configure list tasks
+        SV_NAME (31):  Server name
+        CC_ALIAS (31):  Component alias
+        TK_TASKID (11):  Internal task id
+        TK_PID (11):  Task process id
+        TK_DISP_RUNSTATE (61):  Task run state
+        CC_RUNMODE (31):  Task run mode
+        TK_START_TIME (21):  Task start time
+        TK_END_TIME (21):  Task end time
+        TK_STATUS (251):  Task-reported status
+        CG_ALIAS (31):  Component group alias
+        TK_PARENT_TASKNUM (18):  Parent task id
+        CC_INCARN_NO (23):  Incarnation Number
+        TK_LABEL (76):  Task Label
+        TK_TASKTYPE (31):  Task Type
+        TK_PING_TIME (12):  Last ping time for task
 
 The order of the fields is important too: everytime those fields are parsed, if they do not follow the order above an exception 
 will be raised.
@@ -163,7 +161,7 @@ sub _val_tasks_server {
     confess 'Siebel Server name parameter is required and must be valid'
       unless ( ( defined($server) ) and ( $server =~ SIEBEL_SERVER ) );
 
-    my $data_ref = $self->get_data_parsed();
+    my $data_ref = $self->get_data_parsed;
 
     confess "servername '$server' is not available in the output parsed"
       unless ( exists( $data_ref->{$server} ) );
@@ -183,6 +181,9 @@ or C<undef> in the case that there are no more tasks to return.
 
 Beware that depending on the type of output parsed, the returned instances will have more or less attributes with
 values.
+
+To be compatible with the role L<Siebel::Srvrmgr::ListParser::Output::Duration>, fixed output data will have a default
+value of '2000-00-00 00:00:00' for C<start_datetime> attribute, which is basically useless.
 
 =cut
 
@@ -209,11 +210,12 @@ sub get_tasks {
                 return Siebel::Srvrmgr::ListParser::Output::ListTasks::Task
                   ->new(
                     {
-                        server_name => $fields_ref->[0],
-                        comp_alias  => $fields_ref->[1],
-                        id          => $fields_ref->[2],
-                        pid         => $fields_ref->[3],
-                        run_state   => $fields_ref->[4]
+                        server_name    => $fields_ref->[0],
+                        comp_alias     => $fields_ref->[1],
+                        id             => $fields_ref->[2],
+                        pid            => $fields_ref->[3],
+                        run_state      => $fields_ref->[4],
+                        start_datetime => '2000-00-00 00:00:00'
                     }
                   );
 
@@ -221,19 +223,19 @@ sub get_tasks {
             else {
 
                 my %params = (
-                    server_name => $fields_ref->[0],
-                    comp_alias  => $fields_ref->[1],
-                    id          => $fields_ref->[2],
-                    pid         => $fields_ref->[3],
-                    run_state   => $fields_ref->[4],
-                    run_mode    => $fields_ref->[5],
-                    start_time  => $fields_ref->[6],
-                    end_time    => $fields_ref->[7],
-                    status      => $fields_ref->[8],
-                    group_alias => $fields_ref->[9],
-                    label       => $fields_ref->[12],
-                    type        => $fields_ref->[13],
-                    ping_time   => $fields_ref->[14]
+                    server_name    => $fields_ref->[0],
+                    comp_alias     => $fields_ref->[1],
+                    id             => $fields_ref->[2],
+                    pid            => $fields_ref->[3],
+                    run_state      => $fields_ref->[4],
+                    run_mode       => $fields_ref->[5],
+                    start_datetime => $fields_ref->[6],
+                    end_datetime   => $fields_ref->[7],
+                    status         => $fields_ref->[8],
+                    group_alias    => $fields_ref->[9],
+                    label          => $fields_ref->[12],
+                    type           => $fields_ref->[13],
+                    ping_time      => $fields_ref->[14]
                 );
 
                 $params{parent_id} = $fields_ref->[10]
@@ -242,7 +244,7 @@ sub get_tasks {
                   unless ( $fields_ref->[11] eq '' );
 
                 return Siebel::Srvrmgr::ListParser::Output::ListTasks::Task
-                  ->new(\%params);
+                  ->new( \%params );
 
             }
 
@@ -253,7 +255,7 @@ sub get_tasks {
 
         }
 
-      }
+      }    # end of sub block
 }
 
 sub _consume_data {
@@ -317,6 +319,14 @@ L<Moose>
 =item *
 
 L<Siebel::Srvrmgr::ListParser::Output::ListTasks::Task>
+
+=item *
+
+L<Siebel::Srvrmgr::ListParser::Output::ToString>
+
+=item *
+
+L<Siebel::Srvrmgr::ListParser::Output::Duration>
 
 =back
 

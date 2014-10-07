@@ -24,8 +24,8 @@ sub class_methods : Tests(no_plan) {
 
     my @fixed_attribs = qw(server_name comp_alias id pid status);
     my @del_attribs   = (
-        'run_mode',    'start_time', 'end_time',  'status',
-        'group_alias', 'parent_id',  'incarn_no', 'label',
+        'run_mode',    'start_datetime', 'end_datetime', 'status',
+        'group_alias', 'parent_id',      'incarn_no',    'label',
         'type',        'ping_time'
     );
 
@@ -123,11 +123,12 @@ sub class_methods : Tests(no_plan) {
                 'my_server' => [
                     Siebel::Srvrmgr::ListParser::Output::ListTasks::Task->new(
                         {
-                            'comp_alias'  => 'eChannelCMEObjMgr_ptb',
-                            'pid'         => '5364',
-                            'run_state'   => 'Completed',
-                            'id'          => '127926815',
-                            'server_name' => 'siebfoobar2'
+                            comp_alias     => 'eChannelCMEObjMgr_ptb',
+                            pid            => '5364',
+                            run_state      => 'Completed',
+                            id             => '127926815',
+                            server_name    => 'siebfoobar2',
+                            start_datetime => '2013-12-08 18:31:48'
                         }
                     )
                 ]

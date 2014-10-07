@@ -6,7 +6,7 @@ use Siebel::Srvrmgr::Daemon::Action::CheckComps;
 use Siebel::Srvrmgr::Daemon::ActionStash;
 use Cwd;
 use File::Spec;
-use Config::Tiny;
+use Config::IniFiles;
 use lib 't';
 use Test::Siebel::Srvrmgr::Daemon::Action::Check::Component;
 use Test::Siebel::Srvrmgr::Daemon::Action::Check::Server;
@@ -16,19 +16,19 @@ my $server;
 
 if ( $ENV{SIEBEL_SRVRMGR_DEVEL} and ( -e $ENV{SIEBEL_SRVRMGR_DEVEL} ) ) {
 
-    my $cfg = Config::Tiny->read( $ENV{SIEBEL_SRVRMGR_DEVEL} );
-    $server = build_server( $cfg->{_}->{server}, $cfg->{_}->{comp_list} );
+    my $cfg = Config::IniFiles->new( -file => $ENV{SIEBEL_SRVRMGR_DEVEL}, -fallback => 'GENERAL' );
+    $server = build_server( $cfg->val('GENERAL','server'), $cfg->val('GENERAL','comp_list') );
 
     $daemon = Siebel::Srvrmgr::Daemon::Heavy->new(
         {
-            gateway    => $cfg->{_}->{gateway},
-            enterprise => $cfg->{_}->{enterprise},
-            user       => $cfg->{_}->{user},
-            password   => $cfg->{_}->{password},
-            server     => $cfg->{_}->{server},
+            gateway    => $cfg->val('GENERAL','gateway'),
+            enterprise => $cfg->val('GENERAL','enterprise'),
+            user       => $cfg->val('GENERAL','user'),
+            password   => $cfg->val('GENERAL','password'),
+            server     => $cfg->val('GENERAL','server'),
             bin        => File::Spec->catfile(
-                $cfg->{_}->{srvrmgr_path},
-                $cfg->{_}->{srvrmgr_bin}
+                $cfg->val('GENERAL','srvrmgr_path'),
+                $cfg->val('GENERAL','srvrmgr_bin')
             ),
             use_perl     => 0,
             is_infinite  => 0,
@@ -109,6 +109,13 @@ for ( 1 .. $repeat ) {
 
 }
 
+END {
+
+    my $log_file = File::Spec->catfile( getcwd(), 'daemon.log' );
+    unlink $log_file or diag("could not remove $log_file");
+
+}
+
 sub set_log {
 
     my $log_file = File::Spec->catfile( getcwd(), 'daemon.log' );
@@ -146,8 +153,7 @@ sub build_server {
 
             push(
                 @comps,
-                Test::Siebel::Srvrmgr::Daemon::Action::Check::Component
-                  ->new(
+                Test::Siebel::Srvrmgr::Daemon::Action::Check::Component->new(
                     {
                         alias          => $_,
                         description    => 'whatever',
@@ -155,7 +161,7 @@ sub build_server {
                         OKStatus       => 'Running|Online',
                         criticality    => 5
                     }
-                  )
+                )
             );
 
         }
@@ -169,8 +175,7 @@ sub build_server {
 
             push(
                 @comps,
-                Test::Siebel::Srvrmgr::Daemon::Action::Check::Component
-                  ->new(
+                Test::Siebel::Srvrmgr::Daemon::Action::Check::Component->new(
                     {
                         alias          => $_,
                         description    => 'whatever',
@@ -178,7 +183,7 @@ sub build_server {
                         OKStatus       => 'Running|Online',
                         criticality    => 5
                     }
-                  )
+                )
             );
 
         }

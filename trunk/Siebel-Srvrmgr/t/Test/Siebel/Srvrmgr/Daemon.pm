@@ -38,7 +38,7 @@ BLOCK
 
 }
 
-sub _constructor : Tests(+12) {
+sub _constructor : Tests(12) {
 
     my $test = shift;
     $test->_set_log();
@@ -305,6 +305,8 @@ sub the_last_run : Test(1) {
         skip 'only subclasses are capable of calling run method', 1
           unless ( ( exists( $test->{daemon2} ) )
             and ( ref( $test->{daemon2} ) ne 'Siebel::Srvrmgr::Daemon' ) );
+
+        note('Testing lock control');
         my $fake_pid = $$ * 2;
 
         open( my $out, '>', $test->{lock_file} )

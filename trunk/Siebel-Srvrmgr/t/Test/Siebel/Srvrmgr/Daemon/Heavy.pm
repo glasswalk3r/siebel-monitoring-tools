@@ -59,6 +59,10 @@ sub runs : Tests(+10) {
     $test->SUPER::runs();
 
     ok( $test->{daemon}->run(), 'run method executes successfuly' );
+
+    my $lock_file = $test->{daemon}->get_lock_file;
+    $test->{lock_file} = $lock_file;    # see the_last_run
+
     is( $test->{daemon}->get_child_runs(),
         1, 'get_child_runs returns the expected number' );
 
@@ -114,7 +118,6 @@ sub runs_much_more : Tests(60) {
         for ( 1 .. 60 ) {
 
             ok( $test->{daemon}->run(), 'run method executes successfuly' );
-			sleep(5);
 
         }
 
@@ -185,7 +188,7 @@ sub _poke_child {
 
 }
 
-sub terminator : Tests(4) {
+sub the_termination : Tests(4) {
 
     my $test   = shift;
     my $logger = Siebel::Srvrmgr->gimme_logger( $test->class() );

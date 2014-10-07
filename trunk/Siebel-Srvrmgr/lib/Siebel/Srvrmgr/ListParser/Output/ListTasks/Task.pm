@@ -6,6 +6,7 @@ use DateTime;
 use Siebel::Srvrmgr::Types;
 
 with 'Siebel::Srvrmgr::ListParser::Output::ToString';
+with 'Siebel::Srvrmgr::ListParser::Output::Duration';
 
 =pod
 
@@ -28,6 +29,8 @@ Siebel::Srvrmgr::ListParser::Output::ListTasks::Task - class to represent a Sieb
 =head1 DESCRIPTION
 
 An object that represents each task from a C<list tasks> command output from srvrmgr program.
+
+This class use the roles L<Siebel::Srvrmgr::ListParser::Output::ToString> and L<Siebel::Srvrmgr::ListParser::Output::Duration>.
 
 =head1 ATTRIBUTES
 
@@ -58,14 +61,6 @@ run_state: Task run state (string)
 =item *
 
 run_mode: Task run mode (string)
-
-=item *
-
-start_time: Task start time (string)
-
-=item *
-
-end_time: Task end time (string)
 
 =item *
 
@@ -133,82 +128,14 @@ has 'id'          => ( is => 'ro', isa => 'Int',        required   => 1 );
 has 'pid'         => ( is => 'ro', isa => 'Int',        required   => 1 );
 has 'run_state'   => ( is => 'ro', isa => 'NotNullStr', required   => 1 );
 has 'run_mode'    => ( is => 'ro', isa => 'Str',        'required' => 0 );
-has 'start_time'  => ( is => 'ro', isa => 'Str',        'required' => 0 );
-has 'curr_time'   => ( is => 'ro', isa => 'DateTime',   'required' => 1 );
-has 'end_time'    => (
-    is         => 'ro',
-    isa        => 'Str',
-    'required' => 0,
-    reader     => 'get_end_time',
-    writer     => '_set_end_time'
-);
-has 'status'      => ( is => 'ro', isa => 'Str', 'required' => 0 );
-has 'group_alias' => ( is => 'ro', isa => 'Str', 'required' => 0 );
-has 'parent_id'   => ( is => 'ro', isa => 'Int', 'required' => 0 );
-has 'incarn_no'   => ( is => 'ro', isa => 'Int', 'required' => 0 );
-has 'label'       => ( is => 'ro', isa => 'Str', 'required' => 0 );
-has 'type'        => ( is => 'ro', isa => 'Str', 'required' => 0 );
-has 'ping_time'   => ( is => 'ro', isa => 'Str', 'required' => 0 );
+has 'status'      => ( is => 'ro', isa => 'Str',        'required' => 0 );
+has 'group_alias' => ( is => 'ro', isa => 'Str',        'required' => 0 );
+has 'parent_id'   => ( is => 'ro', isa => 'Int',        'required' => 0 );
+has 'incarn_no'   => ( is => 'ro', isa => 'Int',        'required' => 0 );
+has 'label'       => ( is => 'ro', isa => 'Str',        'required' => 0 );
+has 'type'        => ( is => 'ro', isa => 'Str',        'required' => 0 );
+has 'ping_time'   => ( is => 'ro', isa => 'Str',        'required' => 0 );
 
-sub BUILD {
-
-    my $self = shift;
-    my $args = shift;
-
-    if ( $args->{end_time} eq '2000-00-00 00:00:00' ) {
-
-        $self->_set_end_time('');
-
-    }
-
-}
-
-sub _get_datetime {
-
-    my $self      = shift;
-    my $timestamp = shift;
-
-    my ( $date, $time ) = split( /\s/, $timestamp );
-    my @date = split( /\-/, $date );
-    my @time = split( /\:/, $time );
-
-    return DateTime->new(
-
-        year   => $date[0],
-        month  => $date[1],
-        day    => $date[2],
-        hour   => $time[0],
-        minute => $time[1],
-        second => $time[2]
-
-    );
-
-}
-
-sub get_duration {
-
-    my $self = shift;
-
-    my $end;
-
-    if ( $self->get_end_time ne '' ) {
-
-        $end = $self->_get_datetime( $self->get_end_time );
-
-    }
-    else {
-
-        $end = $self->get_curr_time;
-
-    }
-
-    my $duration =
-      $end->subtract_datetime_absolute(
-        $self->_get_datetime( $self->get_start_time ) );
-
-    return $duration->seconds;
-
-}
 
 =pod
 
@@ -218,21 +145,20 @@ All attributes have a getter named C<get_E<lt>attribute nameE<gt>>.
 
 Since all attributes are read-only there is no corresponding setter.
 
-=head2 methods implemented by role
+See also the documentation of the use roles for more information.
 
-The methods below are part of the role L<Siebel::Srvrmgr::ListParser::Output::ToString>:
+=head2 BUILD
 
-=over
+This method includes validations in the values provided during object creation.
 
-=item *
+=cut
 
-to_string
+sub BUILD {
 
-=item *
+    my $self = shift;
+    $self->fix_endtime;
 
-to_string_header
-
-=back
+}
 
 =head1 SEE ALSO
 
@@ -241,6 +167,10 @@ to_string_header
 =item *
 
 L<Siebel::Srvrmgr::ListParser::Output::ToString>
+
+=item *
+
+L<Siebel::Srvrmgr::ListParser::Output::Duration>
 
 =item *
 

@@ -11,8 +11,8 @@ Siebel::Srvrmgr::Daemon::Action::Check::Component - role for classes that hold S
 
 =head1 DESCRIPTION
 
-This class is intended to be used by classes that provides information
-about which components are available in a Siebel server and which is their expected status.
+This Moose Role is intended to be used by classes that provides information about which components are available in 
+a Siebel server and which is their expected status.
 
 =head1 ATTRIBUTES
 
