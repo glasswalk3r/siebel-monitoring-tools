@@ -41,7 +41,7 @@ sub runs : Tests(+10) {
     ok( $test->{daemon}->run(), 'run method executes successfuly' );
 
     my $lock_file = $test->{daemon}->get_lock_file;
-    $test->{lock_file} = $lock_file;    # see run_locked
+    $test->{lock_file} = $lock_file;    # see the_last_run
 
     ok( -e $lock_file, 'lock file created succesfully' );
 

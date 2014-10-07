@@ -15,11 +15,11 @@ Siebel::Srvrmgr::Daemon::ActionStash - singleton to stash data returned by Siebe
     extends 'Siebel::Srvrmgr::Daemon::Action';
 
     my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
-	$stash->set_stash([{foobar => foobar}, [qw(one two three)]]);
+    $stash->set_stash([{foobar => foobar}, [qw(one two three)]]);
 
     package main;
 
-	my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
+    my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
 
     # do something with the get_stash method
 
@@ -79,7 +79,11 @@ Beware that such call will complete remove all other data stored in the stash. T
 
 =head2 push_stash
 
+Expects as parameter a reference.
+
 Pushes a new reference into the C<stash> attribute.
+
+If there is no member in the C<stash> attribute, the method C<set_stash> will be invoked to set the attribute.
 
 =cut
 
@@ -88,7 +92,18 @@ sub push_stash {
     my $self = shift;
     my $ref  = shift;
 
-    push( @{ $self->get_stash() }, $ref );
+    my $array_ref = $self->get_stash;
+
+    if ( scalar( @{$array_ref} ) > 0 ) {
+
+        push( @{$array_ref}, $ref );
+
+    }
+    else {
+
+        $self->set_stash( [$ref] );
+
+    }
 
     return 1;
 
@@ -112,7 +127,7 @@ sub shift_stash {
 
 =head1 SEE ALSO
 
-=over 2
+=over
 
 =item *
 

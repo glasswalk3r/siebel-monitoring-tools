@@ -8,16 +8,20 @@ Siebel::Srvrmgr::Daemon::Action::CheckComps - subclass of Siebel::Srvrmgr::Daemo
 
 =head1 SYNOPSIS
 
-	use Siebel::Srvrmgr::Daemon::Action::CheckComps;
+    use Siebel::Srvrmgr::Daemon::Action::CheckComps;
 
     my $return_data = Siebel::Srvrmgr::Daemon::ActionStash->instance();
 
     my $comps = [ {name => 'SynchMgr', ok_status => 'Running'}, { name => 'WfProcMgr', ok_status => 'Running'} ];
 
-	my $action = Siebel::Srvrmgr::Daemon::Action::CheckComps->new({  parser => Siebel::Srvrmgr::ListParser->new(), 
-																	 params => [ $server1, $server2 ] });
+    my $action = Siebel::Srvrmgr::Daemon::Action::CheckComps->new(
+                                                                     {  
+                                                                         parser => Siebel::Srvrmgr::ListParser->new(), 
+                                                                         params => [ $server1, $server2 ]
+                                                                     }
+                                                                 );
 
-	$action->do();
+    $action->do();
 
     # do something with $return_data
 
@@ -95,16 +99,16 @@ C<set_stash> with a hash reference as it's content. Otherwise, the method will r
 
 The hash reference stored in the ActionStash object will have the following structure:
 
-	$VAR1 = {
-			  'foobar_server' => {
-								   'CompAlias1' => 0,
-								   'CompAlias2' => 1
-								 },
-			  'foobar2_server' => {
-									'CompAlias1' => 1,
-									'CompAlias2' => 1
-								  }
-			};
+    $VAR1 = {
+              'foobar_server' => {
+                                   'CompAlias1' => 0,
+                                   'CompAlias2' => 1
+                                 },
+              'foobar2_server' => {
+                                    'CompAlias1' => 1,
+                                    'CompAlias2' => 1
+                                  }
+            };
 
 If the servername passed during the object creation (as C<params> attribute of C<new> method) cannot be found in the buffer parameter, the object will raise an
 exception.

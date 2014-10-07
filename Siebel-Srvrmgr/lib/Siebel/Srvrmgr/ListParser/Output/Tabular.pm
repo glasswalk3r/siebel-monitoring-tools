@@ -10,6 +10,8 @@ use Siebel::Srvrmgr::ListParser::Output::Tabular::Struct::Delimited;
 
 extends 'Siebel::Srvrmgr::ListParser::Output';
 
+with 'Siebel::Srvrmgr::ListParser::Output::ToString';
+
 has structure_type => (
     is       => 'ro',
     isa      => 'OutputTabularType',

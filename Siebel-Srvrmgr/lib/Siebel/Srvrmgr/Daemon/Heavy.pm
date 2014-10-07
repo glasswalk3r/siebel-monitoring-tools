@@ -19,8 +19,8 @@ Siebel::Srvrmgr::Daemon::Heavy - "heavier' implementation of Siebel::Srvrmgr::Da
             password    => 'password',
             bin         => 'c:\\siebel\\client\\bin\\srvrmgr.exe',
             is_infinite => 1,
-			commands    => [
-			        Siebel::Srvrmgr::Daemon::Command->new(
+            commands    => [
+                    Siebel::Srvrmgr::Daemon::Command->new(
                         command => 'load preferences',
                         action  => 'LoadPreferences'
                     ),
@@ -142,7 +142,7 @@ has error_fh => (
 
 =head2 read_timeout
 
-The timeout for trying to read from child process handlers in seconds. It defaults to 3 seconds.
+The timeout for trying to read from child process handlers in seconds. It defaults to 1 second.
 
 Changing this value may help improving performance, but should be used with care.
 
@@ -153,7 +153,7 @@ has read_timeout => (
     is      => 'rw',
     writer  => 'set_read_timeout',
     reader  => 'get_read_timeout',
-    default => 3
+    default => 1 
 );
 
 =pod
@@ -175,6 +175,82 @@ has child_pid => (
     predicate => 'has_pid',
     trigger   => \&_add_retry
 );
+
+=head2 last_exec_cmd
+
+This is a string representing the last command submitted to the C<srvrmgr> program. The default value for it is an
+empty string (meaning that no command was submitted yet).
+
+=cut
+
+has last_exec_cmd => (
+    isa     => 'Str',
+    is      => 'ro',
+    default => '',
+    reader  => 'get_last_cmd',
+    writer  => '_set_last_cmd'
+);
+
+=pod
+
+=head2 params_stack
+
+This is an array reference with the stack of params passed to the respective class. It is maintained automatically by the class so the attribute is read-only.
+
+=cut
+
+has params_stack => (
+    isa    => 'ArrayRef',
+    is     => 'ro',
+    writer => '_set_params_stack',
+    reader => 'get_params_stack'
+);
+
+=pod
+
+=head2 action_stack
+
+This is an array reference with the stack of actions to be taken. It is maintained automatically by the class, so the attribute is read-only.
+
+=cut
+
+has action_stack => (
+    isa    => 'ArrayRef',
+    is     => 'ro',
+    writer => '_set_action_stack',
+    reader => 'get_action_stack'
+);
+
+=head2 ipc_buffer_size
+
+A integer describing the size of the buffer used to read output from srvrmgr program by using IPC.
+
+It defaults to 16681 bytes, but it can be adjusted to improve performance (lowering CPU usage by increasing memory utilization).
+
+Increase of this attribute should be considered experimental.
+
+=cut
+
+has ipc_buffer_size => (
+    isa     => 'Int',
+    is      => 'rw',
+    reader  => 'get_buffer_size',
+    writer  => 'set_buffer_size',
+    default => 16681
+);
+
+=head2 srvrmgr_prompt
+
+An string representing the prompt recovered from srvrmgr program. The value of this attribute is set automatically during srvrmgr execution.
+
+=cut
+
+has srvrmgr_prompt =>
+  ( isa => 'Str', is => 'ro', reader => 'get_prompt', writer => '_set_prompt' );
+
+=head1 METHODS
+
+=cut
 
 sub _add_retry {
 
@@ -221,96 +297,6 @@ sub BUILD {
 
 =pod
 
-=head2 last_exec_cmd
-
-This is a string representing the last command submitted to the C<srvrmgr> program. The default value for it is an
-empty string (meaning that no command was submitted yet).
-
-=cut
-
-has last_exec_cmd => (
-    isa     => 'Str',
-    is      => 'ro',
-    default => '',
-    reader  => 'get_last_cmd',
-    writer  => '_set_last_cmd'
-);
-
-=pod
-
-=head2 cmd_stack
-
-This is an array reference with the stack of commands to be executed. It is maintained automatically by the class, so the attribute is read-only.
-
-=cut
-
-has cmd_stack => (
-    isa    => 'ArrayRef',
-    is     => 'ro',
-    writer => '_set_cmd_stack',
-    reader => 'get_cmd_stack'
-);
-
-=pod
-
-=head2 params_stack
-
-This is an array reference with the stack of params passed to the respective class. It is maintained automatically by the class so the attribute is read-only.
-
-=cut
-
-has params_stack => (
-    isa    => 'ArrayRef',
-    is     => 'ro',
-    writer => '_set_params_stack',
-    reader => 'get_params_stack'
-);
-
-=pod
-
-=head2 action_stack
-
-This is an array reference with the stack of actions to be taken. It is maintained automatically by the class, so the attribute is read-only.
-
-=cut
-
-has action_stack => (
-    isa    => 'ArrayRef',
-    is     => 'ro',
-    writer => '_set_action_stack',
-    reader => 'get_action_stack'
-);
-
-=head2 ipc_buffer_size
-
-A integer describing the size of the buffer used to read output from srvrmgr program by using IPC.
-
-It defaults to 5120 bytes, but it can be adjusted to improve performance (lowering CPU usage by increasing memory utilization).
-
-Increase of this attribute should be considered experimental.
-
-=cut
-
-has ipc_buffer_size => (
-    isa     => 'Int',
-    is      => 'rw',
-    reader  => 'get_buffer_size',
-    writer  => 'set_buffer_size',
-    default => 5120
-);
-
-=head2 srvrmgr_prompt
-
-An string representing the prompt recovered from srvrmgr program. The value of this attribute is set automatically during srvrmgr execution.
-
-=cut
-
-has srvrmgr_prompt =>
-  ( isa => 'Str', is => 'ro', reader => 'get_prompt', writer => '_set_prompt' );
-
-=pod
-
-=head1 METHODS
 
 =head2 clear_pid
 
@@ -359,10 +345,6 @@ Returns the content of the attribute C<is_infinite>, returning true or false dep
 =head2 get_last_cmd
 
 Returns the content of the attribute C<last_cmd> as a string.
-
-=head2 get_cmd_stack
-
-Returns the content of the attribute C<cmd_stack>.
 
 =head2 get_params_stack
 
@@ -416,9 +398,11 @@ to execute L<Siebel::Srvrmgr::Daemon::Command> instances in parallel.
 # :WORKAROUND:10/05/2013 15:23:52:: using a state machine with FSA::Rules is difficult here because it is necessary to loop over output from
 # srvrmgr but the program will hang if there is no output left to be read from srvrmgr.
 
-sub run {
+override 'run' => sub {
 
     my $self = shift;
+
+    super();
 
     my $logger;
     my $temp;
@@ -448,10 +432,8 @@ sub run {
     weaken($logger);
     $logger->info('Starting run method');
 
-# :WARNING:28/06/2011 19:47:26:: reading the output is hanging without a dummy input
-#syswrite $self->get_write(), "\n";
-
     my @input_buffer;
+    my $timeout = $self->get_read_timeout;   # avoid multiple method invocations
 
 # :TODO      :06/08/2013 19:13:47:: create condition as a hidden attribute of this class
     my $condition = Siebel::Srvrmgr::Daemon::Condition->new(
@@ -479,7 +461,7 @@ sub run {
         exit if ($SIG_INT);
 
 # :TODO:18-10-2013:arfreitas: move all code inside the while block to a different method to help and clean up lexicals
-        while ( my @ready = $select->can_read( $self->get_read_timeout() ) ) {
+        while ( my @ready = $select->can_read($timeout) ) {
 
             foreach my $fh (@ready) {
 
@@ -739,7 +721,7 @@ sub run {
 
     return 1;
 
-}
+};
 
 sub _create_handle_buffer {
 
@@ -886,10 +868,6 @@ sub _process_stderr {
 
             exit if ($SIG_INT);
 
-# :WORKAROUND:09/08/2013 19:12:55:: in MS Windows OS, srvrmgr returns single CR characters without LF
-# like "CRCRLFCRCRLF" for two empty lines.
-#            $line =~ s/\r$//;
-
             $self->_check_error( $line, $logger );
 
         }
@@ -941,14 +919,9 @@ sub _process_stdout {
 
         }
 
+        $self->_check_error( $line, $logger );
+
       SWITCH: {
-
-            if ( $line =~ SIEBEL_ERROR ) {
-
-                $self->_check_error( $line, $logger );
-                last SWITCH;
-
-            }
 
 # :TRICKY:29/06/2011 21:23:11:: bufferization in srvrmgr.exe ruins the day: the prompt will never come out unless a little push is given
 # :TODO      :03/09/2013 12:11:27:: check if a print with an empty line is not required here
