@@ -59,7 +59,9 @@ has componentGroup => (
 
 =head2 OKStatus
 
-The status that the component is expected to have. It may be one, several (concatenated with a pipe character) or none.
+The status that the component is expected to have. It may be one or several (concatenated with a pipe character).
+
+This attribute is required during object creation.
 
 =cut
 
@@ -74,7 +76,9 @@ has OKStatus => (
 
 =head2 taskOKStatus
 
-The expected tasks status of the component. It may be one,  several (concatenated with a pipe character) or none.
+The expected tasks status of the component. It may be one or several (concatenated with a pipe character).
+
+This attribute is required during object creation.
 
 =cut
 
@@ -82,13 +86,15 @@ has taskOKStatus => (
     isa    => 'NotNullStr',
     is     => 'ro',
     reader => 'get_taskOKStatus',
+    required => 1
 );
 
 =pod
 
 =head2 criticality
 
-A integer indicating how critical it is if the component does not have the expected status: the largest the number, the more critical it is.
+A integer indicating how critical it is if the component does not have the expected status: the largest the number, 
+the more critical it is.
 
 =cut
 
@@ -108,10 +114,6 @@ All attributes have their respective getter as C<get_><attribute name>.
 =head1 SEE ALSO
 
 =over
-
-=item *
-
-L<Siebel::Srvrmgr::Daemon::Action::CheckComps>
 
 =item *
 

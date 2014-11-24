@@ -11,8 +11,8 @@ Siebel::Srvrmgr::Daemon::Action::Check::Server - role for classes that hold Sieb
 
 =head1 DESCRIPTION
 
-This package is a role, not a subclass of L<Siebel::Srvrmgr::Daemon::Action>. It is intended to be used by classes that provides information
-about which components are available in a Siebel server and which is their expected status.
+This package is a role, not a subclass of L<Siebel::Srvrmgr::Daemon::Action>. It is intended to be used by classes 
+that provides information about components available in a Siebel server and which is their expected status.
 
 =head1 ATTRIBUTES
 
@@ -33,7 +33,8 @@ has name => (
 
 =head2 components
 
-An array reference with instances of classes that have the L<Siebel::Srvrmgr::Daemon::Action::Check::Component> role applied.
+An array reference with instances of classes that have the L<Siebel::Srvrmgr::Daemon::Action::Check::Component> 
+role applied.
 
 =cut
 
@@ -54,10 +55,6 @@ Each attribute has it's respective getter named as C<get_><attribute name>.
 =head1 SEE ALSO
 
 =over
-
-=item *
-
-L<Siebel::Srvrmgr::Daemon::Action::CheckComps>
 
 =item *
 
