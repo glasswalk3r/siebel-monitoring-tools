@@ -14,8 +14,12 @@ Siebel::Srvrmgr::Daemon::Action::CheckTasks - subclass of Siebel::Srvrmgr::Daemo
 
     my $comps = [ {name => 'SynchMgr', ok_status => 'Running'}, { name => 'WfProcMgr', ok_status => 'Running'} ];
 
-	my $action = Siebel::Srvrmgr::Daemon::Action::CheckTasks->new({  parser => Siebel::Srvrmgr::ListParser->new(), 
-																	 params => [ $server1, $server2 ] });
+	my $action = Siebel::Srvrmgr::Daemon::Action::CheckTasks->new(
+	    {
+           parser => Siebel::Srvrmgr::ListParser->new(), 
+           params => [ $server1, $server2 ]
+        }
+    );
 
 	$action->do();
 
@@ -49,20 +53,14 @@ This module was created to work close with Nagios plug-in concepts, especially r
 
 The new method returns a instance of L<Siebel::Srvrmgr::Daemon::Action::CheckTasks>. The parameter expected are the same ones of any subclass of 
 L<Siebel::Srvrmgr::Daemon::Action>, but the C<params> attribute has a important difference: it expects an array reference with instances of classes
-that have the role L<Siebel::Srvrmgr::Daemon::Action::CheckTasks::Server>. The way that the classes will get the 
-information about which component to check per server is not important as long as they keep the same methods defined by 
-the roles L<Siebel::Srvrmgr::Daemon::Action::CheckTasks::Server> and 
-L<Siebel::Srvrmgr::Daemon::Action::CheckTasks::Component>.
-that have the role L<Siebel::Srvrmgr::Daemon::Action::CheckTasks::Server>. The way that the classes will get the information about which component 
-information is available per server is not important as long as they keep the same methods defined by the roles 
-L<Siebel::Srvrmgr::Daemon::Action::CheckTasks::Server> for a Siebel server and L<Siebel::Srvrmgr::Daemon::Action::CheckComps::Component> for a Siebel
-server component.
+that have the role L<Siebel::Srvrmgr::Daemon::Action::Check::Server>.
 
 See the examples directory of this distribution to check a XML file used for configuration for more details.
 
 =head2 BUILD
 
-Validates if the params array reference have objects with the L<Siebel::Srvrmgr::Daemon::Action::CheckTasks::Server> role applied.
+Validates if the C<params> attribute has objects with the L<Siebel::Srvrmgr::Daemon::Action::Check::Server> role 
+applied.
 
 =cut
 
@@ -89,13 +87,18 @@ override '_build_exp_output' => sub {
 
 =head2 do_parsed
 
-Expects a array reference as the buffer output from C<srvrmgr> program as a parameter.
+Expects as parameter a instance of L<Siebel::Srvrmgr::ListParser::Output::Tabular::ListTasks> class, otherwise
+this method will raise an exception.
 
-This method will check the output from C<srvrmgr> program parsed by L<Siebel::Srvrmgr::ListParser::Output::Tabular::ListTask> object and compare each tasks recovered status
-with the status defined in the array reference given to C<params> method during object creation.
+It will check the output from C<srvrmgr> program parsed by 
+L<Siebel::Srvrmgr::ListParser::Output::Tabular::ListTask> object and compare each task recovered status
+with the C<taskOKStatus> attribute of each instance of L<Siebel::Srvrmgr::Daemon::Action::Check::Component>
+available in C<params> attribute during object creation.
 
-It will return 1 if this operation was executed successfuly and request a instance of L<Siebel::Srvrmgr::Daemon::ActionStash>, calling it's method C<instance> and then
-C<set_stash> with a hash reference as it's content. Otherwise, the method will return 0 and no data will be set to the ActionStash object.
+It will return 1 if this operation was executed successfuly and request a instance of 
+L<Siebel::Srvrmgr::Daemon::ActionStash>, calling it's method C<instance> and then
+C<set_stash> with a hash reference as it's content. Otherwise, the method will return 0 and no data will be 
+set to the ActionStash object.
 
 The hash reference stored in the ActionStash object will have the following structure:
 
@@ -110,11 +113,11 @@ The hash reference stored in the ActionStash object will have the following stru
 								  }
 			};
 
-If the servername passed during the object creation (as C<params> attribute of C<new> method) cannot be found in the buffer parameter, the object will raise an
-exception.
+If the servername passed during the object creation (as C<params> attribute of C<new> method) cannot be found in the 
+the object passed as parameter to this method, the methodreturned by will raise an exception.
 
-Beware that this Action subclass can deal with multiple servers, as long as the buffer output is from a C<list tasks>, dealing with all server tasks that
-are part of the Siebel Enterprise.
+Beware that this Action subclass can deal with multiple servers, as long as the buffer output is from a 
+C<list tasks>, dealing with all server tasks that are part of the Siebel Enterprise.
 
 =cut
 
