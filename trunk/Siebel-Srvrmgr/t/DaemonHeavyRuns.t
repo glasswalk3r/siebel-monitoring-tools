@@ -16,19 +16,25 @@ my $server;
 
 if ( $ENV{SIEBEL_SRVRMGR_DEVEL} and ( -e $ENV{SIEBEL_SRVRMGR_DEVEL} ) ) {
 
-    my $cfg = Config::IniFiles->new( -file => $ENV{SIEBEL_SRVRMGR_DEVEL}, -fallback => 'GENERAL' );
-    $server = build_server( $cfg->val('GENERAL','server'), $cfg->val('GENERAL','comp_list') );
+    my $cfg = Config::IniFiles->new(
+        -file     => $ENV{SIEBEL_SRVRMGR_DEVEL},
+        -fallback => 'GENERAL'
+    );
+    $server = build_server(
+        $cfg->val( 'GENERAL', 'server' ),
+        $cfg->val( 'GENERAL', 'comp_list' )
+    );
 
     $daemon = Siebel::Srvrmgr::Daemon::Heavy->new(
         {
-            gateway    => $cfg->val('GENERAL','gateway'),
-            enterprise => $cfg->val('GENERAL','enterprise'),
-            user       => $cfg->val('GENERAL','user'),
-            password   => $cfg->val('GENERAL','password'),
-            server     => $cfg->val('GENERAL','server'),
+            gateway    => $cfg->val( 'GENERAL', 'gateway' ),
+            enterprise => $cfg->val( 'GENERAL', 'enterprise' ),
+            user       => $cfg->val( 'GENERAL', 'user' ),
+            password   => $cfg->val( 'GENERAL', 'password' ),
+            server     => $cfg->val( 'GENERAL', 'server' ),
             bin        => File::Spec->catfile(
-                $cfg->val('GENERAL','srvrmgr_path'),
-                $cfg->val('GENERAL','srvrmgr_bin')
+                $cfg->val( 'GENERAL', 'srvrmgr_path' ),
+                $cfg->val( 'GENERAL', 'srvrmgr_bin' )
             ),
             use_perl     => 0,
             is_infinite  => 0,
@@ -159,6 +165,7 @@ sub build_server {
                         description    => 'whatever',
                         componentGroup => 'whatever',
                         OKStatus       => 'Running|Online',
+                        taskOKStatus   => 'Running|Online',
                         criticality    => 5
                     }
                 )
@@ -181,6 +188,7 @@ sub build_server {
                         description    => 'whatever',
                         componentGroup => 'whatever',
                         OKStatus       => 'Running|Online',
+                        taskOKStatus   => 'Running|Online',
                         criticality    => 5
                     }
                 )

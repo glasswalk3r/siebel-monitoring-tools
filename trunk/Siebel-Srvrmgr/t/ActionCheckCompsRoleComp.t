@@ -9,6 +9,7 @@ my $comp = Test::Siebel::Srvrmgr::Daemon::Action::Check::Component->new(
         description    => 'foobar',
         componentGroup => 'foobar',
         OKStatus       => 'Running',
+        taskOKStatus   => 'Running',
         criticality    => 5
     }
 );
@@ -38,6 +39,7 @@ dies_ok(
                 description    => 'foo',
                 componentGroup => 'foo',
                 OKStatus       => 'foo',
+                taskOKStatus   => 'foo',
                 criticality    => '1'
             }
           );

@@ -29,26 +29,26 @@ sub before : Test(setup) {
     my $test = shift;
 
     # applying roles as expected by Siebel::Srvrmgr::Daemon::Action::CheckComps
-    my $comp1 =
-      Test::Siebel::Srvrmgr::Daemon::Action::Check::Component->new(
+    my $comp1 = Test::Siebel::Srvrmgr::Daemon::Action::Check::Component->new(
         {
             alias          => 'SRBroker',
             description    => 'foobar',
             componentGroup => 'foobar',
             OKStatus       => 'Running',
-            criticality    => 5
+            criticality    => 5,
+            taskOKStatus   => 'Running'
         }
-      );
-    my $comp2 =
-      Test::Siebel::Srvrmgr::Daemon::Action::Check::Component->new(
+    );
+    my $comp2 = Test::Siebel::Srvrmgr::Daemon::Action::Check::Component->new(
         {
             alias          => 'SRProc',
             description    => 'foobar',
             componentGroup => 'foobar',
             OKStatus       => 'Running',
-            criticality    => 5
+            criticality    => 5, 
+            taskOKStatus   => 'Running'
         }
-      );
+    );
 
     $test->SUPER::before(
         [
@@ -63,10 +63,9 @@ sub before : Test(setup) {
             {
                 parser => $test->{parser},
                 params => [
-                    Test::Siebel::Srvrmgr::Daemon::Action::Check::Server
-                      ->new(
+                    Test::Siebel::Srvrmgr::Daemon::Action::Check::Server->new(
                         { name => 'foobar', components => [ $comp1, $comp2 ] }
-                      )
+                    )
                 ]
             }
         )

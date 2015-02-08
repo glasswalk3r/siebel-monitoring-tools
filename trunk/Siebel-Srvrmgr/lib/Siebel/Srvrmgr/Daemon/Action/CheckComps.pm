@@ -178,7 +178,7 @@ override 'do_parsed' => sub {
                             foreach my $valid_status (@valid_status) {
 
                                 if ( $valid_status eq
-                                    $comp->cp_disp_run_state() )
+                                    $comp->get_disp_run_state() )
                                 {
 
                                     $is_ok = 1;
@@ -201,7 +201,7 @@ override 'do_parsed' => sub {
 
                                 $logger->warn( 'invalid status got for '
                                       . $exp_comp->get_alias() . ' "'
-                                      . $comp->cp_disp_run_state()
+                                      . $comp->get_disp_run_state()
                                       . '" instead of "'
                                       . $exp_comp->get_OKStatus()
                                       . '"' )
