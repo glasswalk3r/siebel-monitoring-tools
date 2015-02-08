@@ -74,9 +74,29 @@ sub _constructor : Tests(2) {
 
     my $alias = 'SRProc';
 
+    my $data_ref = $server->get_data->{$alias};
+
     ok(
         $test->{comp} = $test->class()->new(
-            { data => $server->get_data()->{$alias}, cc_alias => $alias }
+            {
+                alias          => $alias,
+                name           => $data_ref->{CC_NAME},
+                ct_alias       => $data_ref->{CT_ALIAS},
+                cg_alias       => $data_ref->{CG_ALIAS},
+                run_mode       => $data_ref->{CC_RUNMODE},
+                disp_run_state => $data_ref->{CP_DISP_RUN_STATE},
+                num_run_tasks  => $data_ref->{CP_NUM_RUN_TASKS},
+                max_tasks      => $data_ref->{CP_MAX_TASKS},
+                actv_mts_procs => $data_ref->{CP_ACTV_MTS_PROCS},
+                max_mts_procs  => $data_ref->{CP_MAX_MTS_PROCS},
+                start_datetime => $data_ref->{CP_START_TIME},
+                end_datetime   => $data_ref->{CP_END_TIME},
+                status         => $data_ref->{CP_STATUS},
+                incarn_no      => $data_ref->{CC_INCARN_NO} || 0,
+                desc_text      => $data_ref->{CC_DESC_TEXT}
+
+            }
+
         ),
         'the constructor should succeed'
     );
@@ -86,20 +106,19 @@ sub _constructor : Tests(2) {
 
 }
 
-sub class_attributes : Tests(17) {
+sub class_attributes : Tests(16) {
 
     my $test = shift;
 
     my @attribs = (
-        'data',              'cc_alias',
-        'cc_name',           'ct_alias',
-        'ct_name',           'cg_alias',
-        'cc_runmode',        'cp_disp_run_state',
-        'cp_num_run_tasks',  'cp_max_tasks',
-        'cp_actv_mts_procs', 'cp_max_mts_procs',
-        'cp_start_time',     'cp_end_time',
-        'cp_status',         'cc_incarn_no',
-        'cc_desc_text'
+        'alias',          'name',
+        'ct_alias',       'cg_alias',
+        'run_mode',       'disp_run_state',
+        'num_run_tasks',  'max_tasks',
+        'actv_mts_procs', 'max_mts_procs',
+        'start_datetime', 'end_datetime',
+        'status',         'incarn_no',
+        'desc_text'
     );
 
     foreach my $attrib (@attribs) {
@@ -114,43 +133,42 @@ sub class_methods : Tests(15) {
     my $test = shift;
 
     can_ok( $test->{comp},
-        qw(get_data cc_alias cc_name ct_alias ct_name cg_alias cc_runmode cp_disp_run_state cp_num_run_tasks cp_max_tasks cp_actv_mts_procs cp_max_mts_procs cp_start_time cp_end_time cp_status cc_incarn_no cc_desc_text)
+        qw(get_current get_alias get_name get_ct_alias get_cg_alias get_run_mode get_disp_run_state get_num_run_tasks get_max_tasks get_actv_mts_procs get_max_mts_procs get_start get_end get_status get_incarn_no get_desc_text)
     );
 
-    is( $test->{comp}->cp_num_run_tasks(),
-        2, 'cp_num_run_tasks returns the correct value' );
-    is( $test->{comp}->cc_incarn_no(),
-        0, 'cc_incarn_no returns the correct value' );
+    is( $test->{comp}->get_num_run_tasks(),
+        2, 'get_num_run_tasks returns the correct value' );
+    is( $test->{comp}->get_incarn_no(),
+        0, 'get_incarn_no returns the correct value' );
     is(
-        $test->{comp}->cc_name(),
+        $test->{comp}->get_name(),
         'Server Request Processor',
-        'ccn_name returns the correct value'
+        'get_name returns the correct value'
     );
-    is( $test->{comp}->ct_alias(),
-        'SRProc', 'ct_alias returns the correct value' );
-    is( $test->{comp}->cg_alias(),
-        'SystemAux', 'cg_alias returns the correct value' );
-    is( $test->{comp}->cc_runmode(),
-        'Interactive', 'cc_runmode returns the correct value' );
-    is( $test->{comp}->cp_disp_run_state(),
-        'Running', 'cp_disp_run_state returns the correct value' );
-    is( $test->{comp}->cp_max_tasks(),
-        20, 'cp_max_tasks returns the correct value' );
-    is( $test->{comp}->cp_actv_mts_procs(),
-        1, 'cp_actv_mts_procs returns the correct value' );
-    is( $test->{comp}->cp_max_mts_procs(),
-        1, 'cp_max_mts_procs returns the correct value' );
+    is( $test->{comp}->get_ct_alias(),
+        'SRProc', 'get_ct_alias returns the correct value' );
+    is( $test->{comp}->get_cg_alias(),
+        'SystemAux', 'get_cg_alias returns the correct value' );
+    is( $test->{comp}->get_run_mode(),
+        'Interactive', 'get_run_mode returns the correct value' );
+    is( $test->{comp}->get_disp_run_state(),
+        'Running', 'get_disp_run_state returns the correct value' );
+    is( $test->{comp}->get_max_tasks(),
+        20, 'get_max_tasks returns the correct value' );
+    is( $test->{comp}->get_actv_mts_procs(),
+        1, 'get_actv_mts_procs returns the correct value' );
+    is( $test->{comp}->get_max_mts_procs(),
+        1, 'get_max_mts_procs returns the correct value' );
     is(
-        $test->{comp}->cp_start_time(),
+        $test->{comp}->get_start(),
         '2014-01-06 18:22:00',
-        'cp_start_time returns the correct value'
+        'get_start returns the correct value'
     );
-    is( $test->{comp}->cp_end_time(),
-        '', 'cp_end_time returns the correct value' );
-    is( $test->{comp}->cp_status(),
-        'Enabled', 'cp_status returns the correct value' );
-    is( $test->{comp}->cc_desc_text(),
-        '', 'cc_desc_text returns the correct value' );
+    is( $test->{comp}->get_end, '', 'get_end returns the correct value' );
+    is( $test->{comp}->get_status(),
+        'Enabled', 'get_status returns the correct value' );
+    is( $test->{comp}->get_desc_text(),
+        '', 'get_desc_text returns the correct value' );
 
 }
 

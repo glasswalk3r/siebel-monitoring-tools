@@ -1,0 +1,2 @@
+- Find the root cause of memory leak with Siebel::Srvrmgr::Daemon::Heavy
+- Create a state machine for Siebel::Srvrmgr::Daemon::Heavy to read srvrmgr output since the current code is complex and difficult to receive modifications

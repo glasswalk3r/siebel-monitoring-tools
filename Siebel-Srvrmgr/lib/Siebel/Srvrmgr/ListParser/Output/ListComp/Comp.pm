@@ -9,54 +9,52 @@ Siebel::Srvrmgr::ListParser::Output::ListComp::Comp - class that represents a Si
 =cut
 
 use Moose;
+use MooseX::FollowPBP;
 use namespace::autoclean;
+
+with 'Siebel::Srvrmgr::ListParser::Output::Duration';
+with 'Siebel::Srvrmgr::ListParser::Output::ToString';
 
 =pod
 
 =head1 SYNOPSIS
 
-	use Siebel::Srvrmgr::ListParser::Output::ListComp::Comp;
+    use Siebel::Srvrmgr::ListParser::Output::ListComp::Comp;
 
-	my $comp = Siebel::Srvrmgr::ListParser::Output::ListComp::Comp->new({ data => \%data,  cc_alias => 'MyComp' });
+    # see Siebel::Srvrmgr::ListParser::Output::ListComp::Server for more details
+    my $comp = Siebel::Srvrmgr::ListParser::Output::ListComp::Comp->new( {
+                alias          => $data_ref->{CC_ALIAS},
+                ct_alias       => $data_ref->{CT_ALIAS},
+                cg_alias       => $data_ref->{CG_ALIAS},
+                run_mode       => $data_ref->{CC_RUNMODE},
+                disp_run_state => $data_ref->{CP_DISP_RUN_STATE},
+                num_run_tasks  => $data_ref->{CP_NUM_RUN_TASKS},
+                max_tasks      => $data_ref->{CP_MAX_TASKS},
+                actv_mts_procs => $data_ref->{CP_ACTV_MTS_PROCS},
+                max_mts_procs  => $data_ref->{CP_MAX_MTS_PROCS},
+                start_datetime => $data_ref->{CP_START_TIME},
+                end_datetime   => $data_ref->{CP_END_TIME},
+                status         => $data_ref->{CP_STATUS},
+                incarn_no      => $data_ref->{CC_INCARN_NO},
+                desc_text      => $data_ref->{CC_DESC_TEXT}
 
-	print 'NAME = ', $comp->cc_name(), "\n";
+    } );
 
-	foreach my $param(@{$comp->get_params()}) {
-
-		print $comp->get_param_val($param), "\n";
-		
-	}
+    print 'NAME = ', $comp->get_name(), "\n";
 
 =head1 DESCRIPTION
 
-This class is meant to be used together with L<Siebel::Srvrmgr::ListParser::Output::Server> since a component is always associated with a Siebel server. It make it easy to
-access and modify components as desired (for example, to export all components from one server to another changing some of their parameters).
+This class is meant to be used together with L<Siebel::Srvrmgr::ListParser::Output::Server> since a component is always associated with a Siebel server. This class is intended to make it 
+easier to access and modify components as desired (for example, to export all components from one server to another changing some of their parameters).
+
+This class uses the roles L<Siebel::Srvrmgr::ListParser::Output::Duration> and L<Siebel::Srvrmgr::ListParser::Output::ToString>.
 
 =head1 ATTRIBUTES
 
-Beware that some of the attributes of the component may reflect only the current state when the component data was recovered and are, by nature, dinamic. Some example are
+Beware that some of the attributes of the component may reflect only the current state when the component data was recovered and are, by nature, dynamic. Some example are
 the number of running tasks and state of the component.
 
-=head2 data
-
-A hash reference with the data of the component. The expected structure of the hash reference is the same one provided by the method C<get_comp> of the class
-L<Siebel::Srvrmgr::ListParser::Output::Server>.
-
-This is a required attribute during object creation.
-
-=cut
-
-has data => (
-    isa      => 'HashRef',
-    is       => 'ro',
-    required => 1,
-    reader   => 'get_data',
-    writer   => '_set_data'
-);
-
-=pod
-
-=head2 cc_alias
+=head2 alias
 
 A string of the alias of the component.
 
@@ -64,17 +62,17 @@ This is a required attribute during object creation.
 
 =cut
 
-has cc_alias => ( isa => 'Str', is => 'rw', required => 1 );
+has alias => ( isa => 'Str', is => 'rw', required => 1 );
 
 =pod
 
-=head2 cc_name
+=head2 name
 
 A string of the name of the component.
 
 =cut
 
-has cc_name => ( isa => 'Str', is => 'rw' );
+has name => ( isa => 'Str', is => 'rw', required => 1 );
 
 =pod
 
@@ -84,17 +82,7 @@ A string of the component type alias.
 
 =cut
 
-has ct_alias => ( isa => 'Str', is => 'rw' );
-
-=pod
-
-=head2 ct_name
-
-A string of the component type name.
-
-=cut
-
-has ct_name => ( isa => 'Str', is => 'rw' );
+has ct_alias => ( isa => 'Str', is => 'rw', required => 1 );
 
 =pod
 
@@ -104,21 +92,21 @@ A string of the component group alias.
 
 =cut
 
-has cg_alias => ( isa => 'Str', is => 'rw' );
+has cg_alias => ( isa => 'Str', is => 'rw', required => 1 );
 
 =pod
 
-=head2 cc_runmode
+=head2 run_mode
 
 A string of the component run mode.
 
 =cut
 
-has cc_runmode => ( isa => 'Str', is => 'rw' );
+has run_mode => ( isa => 'Str', is => 'rw', required => 1 );
 
 =pod
 
-=head2 cp_disp_run_state
+=head2 disp_run_state
 
 A string of the component display run state.
 
@@ -126,12 +114,11 @@ This attribute is read-only.
 
 =cut
 
-has cp_disp_run_state =>
-  ( isa => 'Str', is => 'ro', writer => '_set_cp_disp_run_state' );
+has disp_run_state => ( isa => 'Str', is => 'ro', required => 1 );
 
 =pod
 
-=head2 cp_num_run_tasks
+=head2 num_run_tasks
 
 An integer with the number of running tasks of the component.
 
@@ -139,22 +126,21 @@ This attribute is read-only.
 
 =cut
 
-has cp_num_run_tasks =>
-  ( isa => 'Int', is => 'ro', writer => '_set_cp_num_run_tasks' );
+has num_run_tasks => ( isa => 'Int', is => 'ro', required => 1 );
 
 =pod
 
-=head2 cp_max_tasks
+=head2 max_tasks
 
 An integer with the maximum number of tasks the component will execute before restart itself.
 
 =cut
 
-has cp_max_tasks => ( isa => 'Int', is => 'rw' );
+has max_tasks => ( isa => 'Int', is => 'rw', required => 1 );
 
 =pod
 
-=head2 cp_actv_mts_procs
+=head2 actv_mts_procs
 
 An integer wit the active MTS processes running for the component.
 
@@ -162,47 +148,21 @@ This attribute is read-only.
 
 =cut
 
-has cp_actv_mts_procs =>
-  ( isa => 'Int', is => 'ro', writer => '_set_cp_actv_mts_procs' );
+has actv_mts_procs => ( isa => 'Int', is => 'ro', required => 1 );
 
 =pod
 
-=head2 cp_max_mts_procs
+=head2 max_mts_procs
 
 An integer with the maximum number of MTS process that will run for the component.
 
 =cut
 
-has cp_max_mts_procs => ( isa => 'Int', is => 'rw' );
+has max_mts_procs => ( isa => 'Int', is => 'rw', required => 1 );
 
 =pod
 
-=head2 cp_start_time
-
-An string representing the start time of the component.
-
-This attribute is read-only.
-
-=cut
-
-has cp_start_time =>
-  ( isa => 'Str', is => 'ro', writer => '_set_cp_start_time' );
-
-=pod
-
-=head2 cp_end_time
-
-An string representing the end time of the component.
-
-This attribute is read-only.
-
-=cut
-
-has cp_end_time => ( isa => 'Str', is => 'ro', writer => '_set_cp_end_time' );
-
-=pod
-
-=head2 cp_status
+=head2 status
 
 A string representing the status of the component.
 
@@ -210,11 +170,11 @@ This attribute is read-only.
 
 =cut
 
-has cp_status => ( isa => 'Str', is => 'ro', writer => '_set_cp_status' );
+has status => ( isa => 'Str', is => 'ro', required => 1 );
 
 =pod
 
-=head2 cc_incarn_no
+=head2 incarn_no
 
 An integer with representing the component incarnation number.
 
@@ -222,21 +182,21 @@ This attribute is read-only.
 
 =cut
 
-has cc_incarn_no => (
-    isa    => 'Int',
-    is     => 'ro',
-    writer => '_set_cc_incarn_no'
+has incarn_no => (
+    isa      => 'Int',
+    is       => 'ro',
+    required => 1
 );
 
 =pod
 
-=head2 cc_desc_text
+=head2 desc_text
 
 A string representing the description of the component.
 
 =cut
 
-has cc_desc_text => ( isa => 'Str', is => 'rw' );
+has desc_text => ( isa => 'Str', is => 'rw', required => 1 );
 
 =pod
 
@@ -255,85 +215,7 @@ Once this operation is finished, the C<data> attribute is set to an empty hash r
 sub BUILD {
 
     my $self = shift;
-
-    my @rw = qw(cc_name ct_alias cg_alias cc_runmode cp_max_tasks cc_desc_text);
-
-    foreach my $attrib (@rw) {
-
-        my $key = uc($attrib);
-
-        $self->$attrib( $self->get_data()->{$key} )
-          if ( exists( $self->get_data()->{$key} ) );
-
-    }
-
-    my @ro_str = qw(cp_disp_run_state cp_start_time cp_end_time cp_status);
-
-    foreach my $attrib (@ro_str) {
-
-        my $key = uc($attrib);
-
-        my $method = "_set_$attrib";
-
-        $self->$method( $self->get_data()->{$key} )
-          if ( exists( $self->get_data()->{$key} ) );
-
-    }
-
-    my $key = uc('cp_max_mts_procs');
-
-    if ( exists( $self->get_data()->{$key} ) ) {
-
-        ( $self->get_data()->{$key} eq '' )
-          ? $self->cp_max_mts_procs(0)
-          : $self->cp_max_mts_procs( $self->get_data()->{$key} );
-
-    }
-    else {
-
-        die "Cannot find $key in data attribute";
-
-    }
-
-    my @ro_int = qw(cp_num_run_tasks cp_actv_mts_procs cc_incarn_no);
-
-    foreach my $attrib (@ro_int) {
-
-        my $key = uc($attrib);
-
-        my $method = "_set_$attrib";
-
-        if ( exists( $self->get_data()->{$key} ) ) {
-
-            ( $self->get_data()->{$key} eq '' )
-              ? $self->$method(0)
-              : $self->$method( $self->get_data()->{$key} );
-
-        }
-        else {
-
-            die "Cannot find $key in data attribute";
-
-        }
-    }
-
-    $self->_set_data( {} );
-
-}
-
-=pod
-
-=head2 get_attribs
-
-Returns an array reference with all the parameters names associated of the component object.
-
-=cut
-
-sub get_attribs {
-
-    my $self = shift;
-
-    return [ keys( %{ $self->get_data() } ) ];
+    $self->fix_endtime;
 
 }
 
@@ -341,7 +223,7 @@ sub get_attribs {
 
 =head1 SEE ALSO
 
-=over 2
+=over
 
 =item *
 
@@ -350,6 +232,14 @@ L<Moose>
 =item *
 
 L<namespace::autoclean>
+
+=item *
+
+L<Siebel::Srvrmgr::ListParser::Output::Duration>
+
+=item *
+
+L<Siebel::Srvrmgr::ListParser::Output::ToString>
 
 =back
 

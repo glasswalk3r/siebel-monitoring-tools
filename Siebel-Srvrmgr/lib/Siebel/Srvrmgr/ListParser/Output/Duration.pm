@@ -16,7 +16,7 @@ Siebel::Srvrmgr::ListParser::Output::Duration - Moose role to deal with start an
 
 =head1 DESCRIPTION
 
-This L<Moose> role enables a class to deal with start and end time of each, including calculating the duration
+This L<Moose> role enables a class to deal with start and end time of it's instances, including calculating the duration
 of the object life inside the Siebel Server.
 
 =head1 ATTRIBUTES
