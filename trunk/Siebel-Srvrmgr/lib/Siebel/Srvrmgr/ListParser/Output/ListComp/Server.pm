@@ -20,12 +20,12 @@ use Carp;
 
     use Siebel::Srvrmgr::ListParser::Output::ListComp::Server;
 
-	Siebel::Srvrmgr::ListParser::Output::ListComp::Server->new(
-		{
-			name => $servername,
-			data => $list_comp_data->{$servername}
-		}
-	);
+    Siebel::Srvrmgr::ListParser::Output::ListComp::Server->new(
+        {
+            name => $servername,
+            data => $list_comp_data->{$servername}
+        }
+    );
 
 =head1 DESCRIPTION
 
@@ -68,9 +68,9 @@ A array reference with the components attributes names
 =cut
 
 has 'comp_attribs' => (
-    is      => 'ro',
-    isa     => 'ArrayRef',
-    reader  => 'get_comp_attribs'
+    is     => 'ro',
+    isa    => 'ArrayRef',
+    reader => 'get_comp_attribs'
 );
 
 =pod
@@ -128,42 +128,29 @@ sub get_comp {
 
     if ( exists( $self->get_data()->{$alias} ) ) {
 
+        my $data_ref = $self->get_data->{$alias};
         return Siebel::Srvrmgr::ListParser::Output::ListComp::Comp->new(
-            { data => $self->get_data()->{$alias}, cc_alias => $alias } );
+            {
+                alias          => $alias,
+                name           => $data_ref->{CC_NAME},
+                ct_alias       => $data_ref->{CT_ALIAS},
+                cg_alias       => $data_ref->{CG_ALIAS},
+                run_mode       => $data_ref->{CC_RUNMODE},
+                disp_run_state => $data_ref->{CP_DISP_RUN_STATE},
+                num_run_tasks  => $data_ref->{CP_NUM_RUN_TASKS},
+                max_tasks      => $data_ref->{CP_MAX_TASKS},
+                actv_mts_procs => $data_ref->{CP_ACTV_MTS_PROCS},
+                max_mts_procs  => $data_ref->{CP_MAX_MTS_PROCS},
+                start_datetime => $data_ref->{CP_START_TIME},
+                end_datetime   => $data_ref->{CP_END_TIME},
+                status         => $data_ref->{CP_STATUS},
 
-    }
-    else {
+# :WORKAROUND:03-02-2015 03:32:57:: in most cases the value from Server Manager is undefined
+                incarn_no => $data_ref->{CC_INCARN_NO} || 0,
+                desc_text => $data_ref->{CC_DESC_TEXT}
 
-        return undef;
-
-    }
-
-}
-
-=pod
-
-=head2 get_comp_data
-
-Expects a string of component alias.
-
-Returns a component data as a hash reference if the alias exists or C<undef> otherwise.
-
-=cut
-
-sub get_comp_data {
-
-    my $self  = shift;
-    my $alias = shift;
-
-    confess 'Must give a valid value to alias parameter'
-      unless ( defined($alias) );
-
-    if ( exists( $self->get_data()->{$alias} ) ) {
-
-        my $comp_ref = $self->get_data()->{$alias};
-        $comp_ref->{CC_ALIAS} = $alias;
-
-        return $comp_ref;
+            }
+        );
 
     }
     else {

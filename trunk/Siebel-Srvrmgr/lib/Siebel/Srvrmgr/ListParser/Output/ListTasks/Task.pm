@@ -30,7 +30,7 @@ Siebel::Srvrmgr::ListParser::Output::ListTasks::Task - class to represent a Sieb
 
 An object that represents each task from a C<list tasks> command output from srvrmgr program.
 
-This class use the roles L<Siebel::Srvrmgr::ListParser::Output::ToString> and L<Siebel::Srvrmgr::ListParser::Output::Duration>.
+This class uses the roles L<Siebel::Srvrmgr::ListParser::Output::ToString> and L<Siebel::Srvrmgr::ListParser::Output::Duration>.
 
 =head1 ATTRIBUTES
 
@@ -135,7 +135,6 @@ has 'incarn_no'   => ( is => 'ro', isa => 'Int',        'required' => 0 );
 has 'label'       => ( is => 'ro', isa => 'Str',        'required' => 0 );
 has 'type'        => ( is => 'ro', isa => 'Str',        'required' => 0 );
 has 'ping_time'   => ( is => 'ro', isa => 'Str',        'required' => 0 );
-
 
 =pod
 

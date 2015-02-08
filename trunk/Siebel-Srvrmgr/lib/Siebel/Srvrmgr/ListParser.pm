@@ -47,6 +47,48 @@ of L<Siebel::Srvrmgr::ListParser::Output> to see which classes/types are availab
 
 Logging of this class can be enabled by using L<Siebel::Srvrmgr> logging feature.
 
+=head2 Features
+
+Currently, this class can parse the output of the following Siebel Server Manager commands:
+
+=over
+
+=item *
+
+load preferences
+
+=item *
+
+list comp
+
+=item *
+
+list compdef
+
+=item *
+
+list comp type
+
+=item *
+
+list params
+
+=item *
+
+list server
+
+=item *
+
+list session
+
+=item *
+
+list task
+
+=back
+
+Also the initial text after connecting to Server Manager can be parsed.
+
 =head1 ATTRIBUTES
 
 =head2 parsed_tree
