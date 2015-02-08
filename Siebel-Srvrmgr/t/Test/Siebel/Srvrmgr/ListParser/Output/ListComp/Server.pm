@@ -80,12 +80,12 @@ sub get_my_data {
 
 }
 
-sub class_methods : Tests(5) {
+sub class_methods : Tests(4) {
 
     my $test = shift;
 
     can_ok( $test->{server},
-        qw(new get_data get_name load store get_comps get_comp get_comp_data) );
+        qw(new get_data get_name load store get_comps get_comp) );
 
     is( $test->{server}->get_name(),
         'siebel1', 'get_name returns the correct value' );
@@ -98,9 +98,6 @@ sub class_methods : Tests(5) {
 
     isa_ok( $test->{server}->get_comps(),
         'ARRAY', 'get_comps returns an array reference' );
-
-    isa_ok( $test->{server}->get_comp_data('SvrTaskPersist'),
-        'HASH', 'get_comp_data("SvrTaskPersist") returns an hash reference' );
 
 }
 

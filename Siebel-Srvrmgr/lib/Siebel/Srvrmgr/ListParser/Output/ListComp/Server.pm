@@ -139,15 +139,15 @@ sub get_comp {
                 disp_run_state => $data_ref->{CP_DISP_RUN_STATE},
                 num_run_tasks  => $data_ref->{CP_NUM_RUN_TASKS},
                 max_tasks      => $data_ref->{CP_MAX_TASKS},
-                actv_mts_procs => $data_ref->{CP_ACTV_MTS_PROCS},
-                max_mts_procs  => $data_ref->{CP_MAX_MTS_PROCS},
+                desc_text      => $data_ref->{CC_DESC_TEXT},
                 start_datetime => $data_ref->{CP_START_TIME},
                 end_datetime   => $data_ref->{CP_END_TIME},
                 status         => $data_ref->{CP_STATUS},
 
 # :WORKAROUND:03-02-2015 03:32:57:: in most cases the value from Server Manager is undefined
-                incarn_no => $data_ref->{CC_INCARN_NO} || 0,
-                desc_text => $data_ref->{CC_DESC_TEXT}
+                actv_mts_procs => $data_ref->{CP_ACTV_MTS_PROCS} || 0,
+                incarn_no      => $data_ref->{CC_INCARN_NO}      || 0,
+                max_mts_procs  => $data_ref->{CP_MAX_MTS_PROCS}  || 0,
 
             }
         );
