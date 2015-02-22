@@ -67,7 +67,6 @@ use Moose;
 use namespace::autoclean;
 use Siebel::Srvrmgr::Daemon::Condition;
 use Siebel::Srvrmgr::Daemon::ActionFactory;
-use Siebel::Srvrmgr::ListParser;
 use Siebel::Srvrmgr::Regexes
   qw(SRVRMGR_PROMPT LOAD_PREF_RESP SIEBEL_ERROR ROWS_RETURNED);
 use Siebel::Srvrmgr::Daemon::Command;
@@ -389,9 +388,6 @@ connection to submit the commands and respective actions defined during object c
 method will issue an warning message and immediatly returns false.
 
 Those operations will be executed in a loop as long the C<check> method from the class L<Siebel::Srvrmgr::Daemon::Condition> returns true.
-
-Beware that Siebel::Srvrmgr::Daemon uses a B<single instance> of a L<Siebel::Srvrmgr::ListParser> class to process the parsing requests, so it is not possible
-to execute L<Siebel::Srvrmgr::Daemon::Command> instances in parallel.
 
 =cut
 
@@ -1350,10 +1346,6 @@ L<Siebel::Srvrmgr::Daemon::Command>
 =item *
 
 L<Siebel::Srvrmgr::Daemon::ActionFactory>
-
-=item *
-
-L<Siebel::Srvrmgr::ListParser>
 
 =item *
 

@@ -383,7 +383,6 @@ sub _create_buffer {
     confess 'Could not start logging facilities'
       unless ( Log::Log4perl->init_once( \$log_cfg ) );
     my $logger = Log::Log4perl->get_logger('Siebel::Srvrmgr::ListParser');
-    weaken($logger);
 
     if ( Siebel::Srvrmgr::ListParser::OutputFactory->can_create($type) ) {
 
@@ -714,10 +713,12 @@ sub DEMOLISH {
 
     my $self = shift;
 
-    $self->get_fsa->free_refs();
+    #$self->get_fsa->free_refs();
     $self->{fsa} = undef;
     $self->clear_buffer();
     $self->clear_parsed_tree();
+$| =1;
+print "bye parser\n";
 
 }
 

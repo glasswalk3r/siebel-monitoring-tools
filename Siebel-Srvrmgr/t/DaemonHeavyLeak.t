@@ -91,7 +91,7 @@ use Cwd;
 use File::Spec;
 use Scalar::Util qw(weaken);
 
-my $repeat = 6;
+my $repeat = 3;
 
 plan tests => $repeat;
 
