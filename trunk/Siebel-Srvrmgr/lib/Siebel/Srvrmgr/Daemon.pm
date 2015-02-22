@@ -37,6 +37,7 @@ Implementation details are reserved to subclasses of Siebel::Srvrmgr::Daemon: be
 
 use Moose;
 use Siebel::Srvrmgr::Regexes qw(SIEBEL_ERROR);
+use Siebel::Srvrmgr::ListParser;
 use Siebel::Srvrmgr;
 use Scalar::Util qw(weaken);
 use Config;

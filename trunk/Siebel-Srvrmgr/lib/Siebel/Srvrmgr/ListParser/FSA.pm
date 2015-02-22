@@ -75,8 +75,6 @@ sub new {
 
     my $logger = Log::Log4perl->get_logger('Siebel::Srvrmgr::ListParser');
 
-    weaken($logger);
-
     $logger->logdie('the output type mapping reference received is not valid')
       unless ( ( defined($map_ref) ) and ( ref($map_ref) eq 'HASH' ) );
 
@@ -105,7 +103,7 @@ sub new {
                 }
 
             }
-            else {
+            else { # no more lines to process
 
                 return 1;
 
@@ -118,6 +116,9 @@ sub new {
         \%params,
         no_data => {
             do => sub {
+
+                my $logger =
+                  Log::Log4perl->get_logger('Siebel::Srvrmgr::ListParser');
 
                 if ( $logger->is_debug() ) {
 
@@ -193,11 +194,17 @@ sub new {
             message => 'prompt found'
         },
         end => {
-            do    => sub { $logger->debug('Enterprise says bye-bye') },
+            do => sub {
+
+                my $logger =
+                  Log::Log4perl->get_logger('Siebel::Srvrmgr::ListParser');
+                $logger->debug('Enterprise says bye-bye');
+
+            },
             rules => [
                 no_data => sub {
                     return 1;
-                  }
+                }
             ],
             message => 'EOF'
         },
@@ -422,6 +429,8 @@ sub new {
 
                 my $state = shift;
 
+                my $logger =
+                  Log::Log4perl->get_logger('Siebel::Srvrmgr::ListParser');
                 if ( $logger->is_debug() ) {
 
                     $logger->debug( 'command_submission got ['
@@ -467,8 +476,8 @@ sub new {
 
                     my $state = shift;
 
-                    if (
-                        $state->notes('last_command') =~ $map_ref->{set_delimiter} )
+                    if ( $state->notes('last_command') =~
+                        $map_ref->{set_delimiter} )
                     {
 
                         return 1;
@@ -644,11 +653,13 @@ sub new {
 
                 # add other possibilities here of list commands
                 command_submission => sub {
+                    my $logger =
+                      Log::Log4perl->get_logger('Siebel::Srvrmgr::ListParser');
                     $logger->warn(
 "Possible invalid state due incapability to define the state change (output class)"
                     );
                     return 1;
-                  }    # this must be the last item
+                }    # this must be the last item
 
             ],
             message => 'command submitted'
@@ -671,38 +682,38 @@ to release memory by calling the related C<DESTROY> methods of L<FSA::Rules> and
 
 =cut
 
-sub free_refs {
-
-    my $self = shift;
-
-    my $machines = \%FSA::Rules::machines;
-
-    foreach my $state ( keys %{ $machines->{$self}->{table} } ) {
-
-        $machines->{$self}->{table}->{$state} = undef;
-        delete $machines->{$self}->{table}->{$state};
-
-    }
-
-    $self->{done} = undef;
-    $machines->{$self}->{self} = undef;
-
-    my $all_states = \%FSA::Rules::states;
-
-    foreach my $state ( @{ $self->states } ) {
-
-        $all_states->{$state}->{machine} = undef;
-        delete $all_states->{$state}->{machine};
-
-        for ( my $i = 0 ; $i <= $#{ $all_states->{$state}->{rules} } ; $i++ ) {
-
-            $all_states->{$state}->{rules}->[$i]->{state} = undef;
-
-        }
-
-    }
-
-}
+#sub free_refs {
+#
+#    my $self = shift;
+#
+#    my $machines = \%FSA::Rules::machines;
+#
+#    foreach my $state ( keys %{ $machines->{$self}->{table} } ) {
+#
+#        $machines->{$self}->{table}->{$state} = undef;
+#        delete $machines->{$self}->{table}->{$state};
+#
+#    }
+#
+#    $self->{done} = undef;
+#    $machines->{$self}->{self} = undef;
+#
+#    my $all_states = \%FSA::Rules::states;
+#
+#    foreach my $state ( @{ $self->states } ) {
+#
+#        $all_states->{$state}->{machine} = undef;
+#        delete $all_states->{$state}->{machine};
+#
+#        for ( my $i = 0 ; $i <= $#{ $all_states->{$state}->{rules} } ; $i++ ) {
+#
+#            $all_states->{$state}->{rules}->[$i]->{state} = undef;
+#
+#        }
+#
+#    }
+#
+#}
 
 1;
 
