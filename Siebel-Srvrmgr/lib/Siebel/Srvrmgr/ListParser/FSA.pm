@@ -84,6 +84,7 @@ sub new {
             my $self = shift;
 
             my $curr_line = shift( @{ $self->notes('all_data') } );
+ # :TODO:22-02-2015 18:22:29:: add a new method to do that
             $self->notes( 'line_num' => ( $self->notes('line_num') + 1 ) );
 
             if ( defined($curr_line) ) {
@@ -161,7 +162,7 @@ sub new {
                     }
 
                 },
-                no_data => sub { return 1 }
+#                no_data => sub { return 1 }
             ],
             message => 'Line read'
 
@@ -189,7 +190,7 @@ sub new {
                     return ( $state->notes('line') =~ SRVRMGR_PROMPT );
 
                 },
-                greetings => sub { return 1 }
+#                greetings => sub { return 1 }
             ],
             message => 'prompt found'
         },
@@ -228,7 +229,7 @@ sub new {
                     return ( $state->notes('line') =~ SRVRMGR_PROMPT );
 
                 },
-                list_comp => sub { return 1; }
+#                list_comp => sub { return 1; }
             ],
             message => 'prompt found'
         },
@@ -252,7 +253,7 @@ sub new {
                     return ( $state->notes('line') =~ SRVRMGR_PROMPT );
 
                 },
-                list_comp_types => sub { return 1; }
+#                list_comp_types => sub { return 1; }
             ],
             message => 'prompt found'
         },
@@ -276,7 +277,7 @@ sub new {
                     return ( $state->notes('line') =~ SRVRMGR_PROMPT );
 
                 },
-                list_params => sub { return 1; }
+#                list_params => sub { return 1; }
             ],
             message => 'prompt found'
         },
@@ -300,7 +301,7 @@ sub new {
                     return ( $state->notes('line') =~ SRVRMGR_PROMPT );
 
                 },
-                list_comp_def => sub { return 1; }
+#                list_comp_def => sub { return 1; }
             ],
             message => 'prompt found'
         },
@@ -324,7 +325,7 @@ sub new {
                     return ( $state->notes('line') =~ SRVRMGR_PROMPT );
 
                 },
-                list_tasks => sub { return 1; }
+#                list_tasks => sub { return 1; }
             ],
             message => 'prompt found'
         },
@@ -348,7 +349,7 @@ sub new {
                     return ( $state->notes('line') =~ SRVRMGR_PROMPT );
 
                 },
-                list_servers => sub { return 1; }
+#                list_servers => sub { return 1; }
             ],
             message => 'prompt found'
         },
@@ -372,7 +373,7 @@ sub new {
                     return ( $state->notes('line') =~ SRVRMGR_PROMPT );
 
                 },
-                list_sessions => sub { return 1; }
+#                list_sessions => sub { return 1; }
             ],
             message => 'prompt found'
         },
@@ -396,7 +397,7 @@ sub new {
                     return ( $state->notes('line') =~ SRVRMGR_PROMPT );
 
                 },
-                set_delimiter => sub { return 1; }
+#                set_delimiter => sub { return 1; }
             ],
             message => 'prompt found'
         },
@@ -420,7 +421,7 @@ sub new {
                     return ( $state->notes('line') =~ SRVRMGR_PROMPT );
 
                 },
-                load_preferences => sub { return 1; }
+#                load_preferences => sub { return 1; }
             ],
             message => 'prompt found'
         },
@@ -650,16 +651,15 @@ sub new {
                     }
 
                 },
-
-                # add other possibilities here of list commands
-                command_submission => sub {
-                    my $logger =
-                      Log::Log4perl->get_logger('Siebel::Srvrmgr::ListParser');
-                    $logger->warn(
-"Possible invalid state due incapability to define the state change (output class)"
-                    );
-                    return 1;
-                }    # this must be the last item
+#                # add other possibilities here of list commands
+#                command_submission => sub {
+#                    my $logger =
+#                      Log::Log4perl->get_logger('Siebel::Srvrmgr::ListParser');
+#                    $logger->warn(
+#"Possible invalid state due incapability to define the state change (output class)"
+#                    );
+#                    return 1;
+#                }    # this must be the last item
 
             ],
             message => 'command submitted'
