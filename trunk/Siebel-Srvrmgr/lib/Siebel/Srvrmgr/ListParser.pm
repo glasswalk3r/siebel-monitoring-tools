@@ -19,7 +19,6 @@ use Siebel::Srvrmgr::ListParser::OutputFactory;
 use Siebel::Srvrmgr::ListParser::Buffer;
 use Siebel::Srvrmgr;
 use Log::Log4perl;
-use Scalar::Util qw(weaken);
 use Siebel::Srvrmgr::ListParser::FSA;
 use namespace::autoclean;
 use Carp;
@@ -195,7 +194,7 @@ has 'fsa' => (
     is     => 'ro',
     isa    => 'Siebel::Srvrmgr::ListParser::FSA',
     reader => 'get_fsa',
-    writer => '_set_fsa'
+    writer => '_set_fsa',
 );
 
 =pod
@@ -310,7 +309,6 @@ sub set_buffer {
     confess 'Could not start logging facilities'
       unless ( Log::Log4perl->init_once( \$log_cfg ) );
     my $logger = Log::Log4perl->get_logger('Siebel::Srvrmgr::ListParser');
-    weaken($logger);
 
     if ( defined($line) ) {
 
@@ -599,16 +597,12 @@ sub parse {
     my $self     = shift;
     my $data_ref = shift;
 
-# :TODO:03-10-2013:arfreitas: evaluate if having a logger attribute does not have better performance instead doing this logger instantiation everytime
     my $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );
-    weaken($logger);
 
     $logger->logdie('Received an invalid buffer as parameter')
       unless ( ( defined($data_ref) )
         and ( ref($data_ref) eq 'ARRAY' )
         and ( scalar( @{$data_ref} ) > 0 ) );
-
-    weaken($data_ref);
 
     if ( string_has_bom( $data_ref->[0] ) ) {
 
@@ -619,15 +613,18 @@ sub parse {
     $self->get_fsa->notes( all_data => $data_ref );
     $self->get_fsa->notes( line_num => 0 );
     $self->get_fsa->start() unless ( $self->get_fsa()->curr_state() );
+    $data_ref = undef;
 
     my $found_prompt = 0;
+    my $prev_state_name;
 
     do {
 
-        my $state = $self->get_fsa->switch();
+        my $state = $self->get_fsa->try_switch();
 
         if ( defined($state) ) {
 
+            $prev_state_name = $state->name;
             my $curr_msg = $state->notes('line');
             $found_prompt = $state->notes('found_prompt');
 
@@ -683,6 +680,12 @@ sub parse {
             }
 
         }
+        else { # state hasn't changed, but let's keep getting other lines
+
+            $self->set_buffer( $prev_state_name,
+                $self->get_fsa->notes('line') );
+
+        }
 
     } until ( $self->get_fsa->done() );
 
@@ -713,12 +716,12 @@ sub DEMOLISH {
 
     my $self = shift;
 
-    #$self->get_fsa->free_refs();
+    #    $self->get_fsa->free_refs();
     $self->{fsa} = undef;
     $self->clear_buffer();
     $self->clear_parsed_tree();
-$| =1;
-print "bye parser\n";
+    $| = 1;
+    print "bye parser\n";
 
 }
 
