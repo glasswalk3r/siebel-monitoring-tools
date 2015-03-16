@@ -7,7 +7,7 @@ The goal of this project is to make possible to monitor Siebel servers through S
 
 The object that are being considered to be monitored are: components status, resource consumption and tasks information. 
 
-This distribution was created to enable facilities like:
+This distribution was created to provide the following features:
 
 - execute the srvrmgr program and read it's output without depending on batch mode and reconnecting for each command.
 - parse output of commands from srvrmgr as a general purpouse tools.
@@ -26,6 +26,8 @@ To install this module type the following:
 To be able to use Siebel::Srvrmgr::Daemon::Heavy it will be necessary to apply the patch patch-FSA-Rules to the FSA-Rules distribution Rules.pm file.
 If the patch is not applied, this distribution will suffer from a memory leak everytime the run() method from Siebel::Srvrmgr::Daemon::Heavy is 
 invoked.
+
+The script "srvrmgr-mock.pl" is installed to your PATH to enable advance tests, but you can remove it safely.
 
 DEPENDENCIES
 
