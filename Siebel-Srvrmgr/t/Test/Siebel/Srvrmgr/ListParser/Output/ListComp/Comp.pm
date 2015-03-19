@@ -128,7 +128,7 @@ sub class_attributes : Tests(16) {
     }
 }
 
-sub class_methods : Tests(15) {
+sub class_methods : Tests(16) {
 
     my $test = shift;
 
@@ -169,6 +169,8 @@ sub class_methods : Tests(15) {
         'Enabled', 'get_status returns the correct value' );
     is( $test->{comp}->get_desc_text(),
         '', 'get_desc_text returns the correct value' );
+    like( $test->{comp}->get_duration,
+        qr/\d+/, 'get_duration returns a number' );
 
 }
 
