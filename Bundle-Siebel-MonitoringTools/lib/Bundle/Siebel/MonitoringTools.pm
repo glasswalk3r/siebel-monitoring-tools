@@ -54,6 +54,9 @@ None by default.
     Test::Pod [1.22]
     Test::Pod::Coverage [1.08]
 	Test::Moose [2.0801]
+	DateTime [1.12]
+	File::BOM [0.14]
+	String::BOM [0.3]
 
 =head1 SEE ALSO
 

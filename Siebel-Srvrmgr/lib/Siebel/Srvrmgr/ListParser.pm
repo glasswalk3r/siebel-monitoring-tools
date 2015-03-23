@@ -715,13 +715,9 @@ data.
 sub DEMOLISH {
 
     my $self = shift;
-
-    #    $self->get_fsa->free_refs();
     $self->{fsa} = undef;
     $self->clear_buffer();
     $self->clear_parsed_tree();
-    $| = 1;
-    print "bye parser\n";
 
 }
 

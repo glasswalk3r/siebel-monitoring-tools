@@ -6,7 +6,17 @@ use DateTime;
 
 my $start = DateTime->now();
 my $end   = $start->clone;
-$end->set_minute( $start->minute + 10 );
+
+my $elapsed  = $start->minute + 10;
+my $interval = 0;
+
+ # :WORKAROUND:23-03-2015 03:03:37:: cannot set minute > 59
+if ( $elapsed > 59 ) {
+
+    $interval = $elapsed * 60;
+    $end->set_minute($elapsed);
+
+}
 
 my $comp = Siebel::Srvrmgr::ListParser::Output::ListComp::Comp->new(
     {
@@ -30,4 +40,4 @@ my $comp = Siebel::Srvrmgr::ListParser::Output::ListComp::Comp->new(
 
 );
 
-is($comp->get_duration, 600, 'component executed for 10 minutes');
+is( $comp->get_duration, $interval, "component executed for $elapsed minutes" );

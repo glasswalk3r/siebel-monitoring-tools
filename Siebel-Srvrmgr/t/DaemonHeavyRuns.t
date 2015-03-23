@@ -6,7 +6,6 @@ use Siebel::Srvrmgr::Daemon::Action::CheckComps;
 use Siebel::Srvrmgr::Daemon::ActionStash;
 use Cwd;
 use File::Spec;
-use Config::IniFiles;
 use lib 't';
 use Test::Siebel::Srvrmgr::Daemon::Action::Check::Component;
 use Test::Siebel::Srvrmgr::Daemon::Action::Check::Server;
@@ -14,7 +13,16 @@ use Test::Siebel::Srvrmgr::Daemon::Action::Check::Server;
 my $daemon;
 my $server;
 
-if ( $ENV{SIEBEL_SRVRMGR_DEVEL} and ( -e $ENV{SIEBEL_SRVRMGR_DEVEL} ) ) {
+# setting a INI file with configuration to connect to a real Siebel Enterprise will
+# enable the tests below
+if (    ( exists( $ENV{SIEBEL_SRVRMGR_DEVEL} ) )
+    and ( -e $ENV{SIEBEL_SRVRMGR_DEVEL} ) )
+{
+
+    note('Running with configuration file');
+
+    eval { use Config::IniFiles };
+    BAIL_OUT('Missing Config::IniFiles') if ($@);
 
     my $cfg = Config::IniFiles->new(
         -file     => $ENV{SIEBEL_SRVRMGR_DEVEL},
@@ -56,6 +64,8 @@ if ( $ENV{SIEBEL_SRVRMGR_DEVEL} and ( -e $ENV{SIEBEL_SRVRMGR_DEVEL} ) ) {
 
 }
 else {
+
+    note('Running with hardcoded values');
 
     $server = build_server('siebfoobar');
 

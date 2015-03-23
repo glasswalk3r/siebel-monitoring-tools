@@ -169,7 +169,8 @@ has limits_callback => (
 
 =head2 get_procs
 
-Searches through C</proc> and returns an hash reference with the pids as keys and the following values for each key:
+Searches through C</proc> and the Siebel Enterprise log file and returns an hash reference with the pids as keys and hashes references as values.
+For those hash references, the following keys will be available:
 
 =over
 
@@ -193,10 +194,13 @@ rss
 
 vsz
 
+=item *
+
+comp_alias
+
 =back
 
-The only process informations will be those match C<cmd_regex> and that have C<fname> equal
-one of the following values:
+The only process informations will be those match C<cmd_regex> and that have C<fname> equal one of the following values:
 
 =over 
 
@@ -264,12 +268,17 @@ sub get_procs {
           unless ( exists( $valid_proc_name{ $process->fname } )
             and ( $process->cmndline =~ $cmd_regex ) );
 
+        # :WORKAROUND:22-03-2015 20:54:51:: forcing convertion to number
+        my $pctcpu = $process->pctcpu;
+        $pctcpu =~ s/\s//;
+        $pctcpu += 0;
+
         $procs{ $process->pid } = {
             fname  => $process->fname,
-            pctcpu => $process->pctcpu,
-            pctmem => $process->pctmem,
-            rss    => $process->rss,
-            vsz    => $process->size
+            pctcpu => $pctcpu,
+            pctmem => ( $process->pctmem + 0 ),
+            rss    => ( $process->rss + 0 ),
+            vsz    => ( $process->size + 0 )
         };
 
         if ( $self->get_mem_limit > 0 ) {
@@ -315,21 +324,16 @@ sub get_procs {
 
     }
 
+    $self->_find_pid( \%procs );
+
     return \%procs;
 
 }
 
-=head2 find_pid
+sub _find_pid {
 
-Searchs the Siebel enterprise log file defined in the C<enterprise_log> attribute.
-
-Returns a hash reference, being the components alias the keys and the values an array reference with all pids information found.
-
-=cut
-
-sub find_pid {
-
-    my $self = shift;
+    my $self      = shift;
+    my $procs_ref = shift;
     my %comps;
 
     my $create_regex;
@@ -348,15 +352,16 @@ sub find_pid {
 
     while ( my $line = <$in> ) {
 
+        chomp($line);
+
         if ( $line =~ $create_regex ) {
 
-            chomp($line);
             my @parts = split( /\t/, $line );
             $parts[7] =~ s/\s(\w)+\s//;
             $parts[7] =~ tr/)//d;
 
-            # component alias => pid
-            $comps{ $parts[7] } = $parts[6];
+            # pid => component alias
+			$comps{$parts[6]} = $parts[7];
 
         }
 
@@ -364,7 +369,15 @@ sub find_pid {
 
     close($in);
 
-    return \%comps;
+    foreach my $proc_pid ( keys( %{$procs_ref} ) ) {
+
+        if ( exists( $comps{$proc_pid} ) ) {
+
+            $procs_ref->{$proc_pid}->{comp_alias} = $comps{$proc_pid};
+
+        }
+
+    }
 
 }
 
