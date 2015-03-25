@@ -30,77 +30,73 @@ plan tests => scalar(@attribs) + 9;
 
 SKIP: {
 
- # :REMARK:23-03-2015 02:23:56:: perl 5.8.9 does not allow the change of fname in /proc by changing $0
-    eval q{use Proc::Daemon; die_if_os_isnt('Unix'); die "This test is not supported at this version of perl ($])" unless $] > 5.012_005};
+# :REMARK:23-03-2015 02:23:56:: perl 5.8.9 does not allow the change of fname in /proc by changing $0
+    eval q{use Proc::Background; die_if_os_isnt('Unix')};
 
     skip "Cannot run this test because of \"$@\"", 8, if $@;
 
-    my $daemon = Proc::Daemon->new();
+    my $proc_path = "$cwd/$proc_name";
 
-    my $kid = $daemon->init();
+    open( my $script, '>', $proc_path ) or die "Cannot create $$proc_path: $!";
 
-    unless ($kid) {
+my $code = q{#!/usr/bin/perl
+#let's put child to do something
+while (1) {
 
-        local $0 = $proc_name;
+    my $a = 0;
+    my $b = 1;
+    my $n = 2000;
 
-        #let's put child to do something
-        while (1) {
-
-            my $a = 0;
-            my $b = 1;
-            my $n = 2000;
-
-            for ( 0 .. ( $n - 1 ) ) {
-                my $sum = $a + $b;
-                $a = $b;
-                $b = $sum;
-            }
-
-            sleep 1;
-
-        }
-
+    for ( 0 .. ( $n - 1 ) ) {
+        my $sum = $a + $b;
+        $a = $b;
+        $b = $sum;
     }
-    else {
 
-        # giving some time to get data into /proc
-        sleep 3;
+    sleep 1;
 
-        create_ent_log( $kid, $enterprise_log );
-        my $procs = Siebel::Srvrmgr::OS::Unix->new(
-            {
-                enterprise_log => $enterprise_log,
-                cmd_regex      => "^$proc_name",
-                parent_regex =>
+}};
+
+    print $script $code;
+    close($script);
+	chmod 0700, $proc_path;
+    my $siebel_proc = Proc::Background->new( $proc_path );
+
+    # giving some time to get data into /proc
+    sleep 3;
+
+    create_ent_log( $siebel_proc->pid, $enterprise_log );
+    my $procs = Siebel::Srvrmgr::OS::Unix->new(
+        {
+            enterprise_log => $enterprise_log,
+            cmd_regex      => $cwd, 
+            parent_regex =>
 'Created\s(multithreaded\s)?server\sprocess\s\(OS\spid\s\=\s+\d+\s+\)\sfor\s\w+'
-            }
-        );
+        }
+    );
 
-        my $procs_ref = $procs->get_procs;
-        is( ref($procs_ref), 'HASH', 'get_procs returns a hash reference' );
-        is( scalar( keys( %{$procs_ref} ) ),
-            1, 'get_procs returns a single process' );
-        my $pid = ( keys( %{$procs_ref} ) )[0];
-        is( $procs_ref->{$pid}->{comp_alias},
-            'EAIObjMgr_enu',
-            'process has the correct component alias associated' );
-        is( $procs_ref->{$pid}->{fname},
-            'siebmtshmw', 'process has the correct process name' );
+    my $procs_ref = $procs->get_procs;
+    is( ref($procs_ref), 'HASH', 'get_procs returns a hash reference' );
+    is( scalar( keys( %{$procs_ref} ) ),
+        1, 'get_procs returns a single process' );
+    my $pid = ( keys( %{$procs_ref} ) )[0];
+    is( $procs_ref->{$pid}->{comp_alias},
+        'EAIObjMgr_enu', 'process has the correct component alias associated' );
+    is( $procs_ref->{$pid}->{fname},
+        'siebmtshmw', 'process has the correct process name' );
 
-        my $float   = qr/\d+(\.\d+)?/;
-        my $integer = qr/\d+/;
+    my $float   = qr/\d+(\.\d+)?/;
+    my $integer = qr/\d+/;
 
-        like( $procs_ref->{$pid}->{pctcpu}, $float, 'process %CPU is a float' );
-        like( $procs_ref->{$pid}->{pctmem},
-            $float, 'process %memory is a float' );
-        like( $procs_ref->{$pid}->{rss}, $integer, 'process RSS is a integer' );
-        like( $procs_ref->{$pid}->{vsz}, $integer, 'process VSZ is a integer' );
+    like( $procs_ref->{$pid}->{pctcpu}, $float, 'process %CPU is a float' );
+    like( $procs_ref->{$pid}->{pctmem}, $float, 'process %memory is a float' );
+    like( $procs_ref->{$pid}->{rss}, $integer, 'process RSS is a integer' );
+    like( $procs_ref->{$pid}->{vsz}, $integer, 'process VSZ is a integer' );
 
-        $daemon->Kill_Daemon($kid);
+    $siebel_proc->die;
 
-        unlink $enterprise_log or warn "Failed to remove $enterprise_log: $!";
-
-    }
+    unlink $enterprise_log or warn "Failed to remove $enterprise_log: $!";
+    unlink $proc_path      or warn "Failed to remove $proc_path: $!";
 
 }
 

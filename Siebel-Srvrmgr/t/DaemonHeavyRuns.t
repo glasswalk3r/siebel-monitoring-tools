@@ -21,7 +21,7 @@ if (    ( exists( $ENV{SIEBEL_SRVRMGR_DEVEL} ) )
 
     note('Running with configuration file');
 
-    eval { use Config::IniFiles };
+    eval "use Config::IniFiles";
     BAIL_OUT('Missing Config::IniFiles') if ($@);
 
     my $cfg = Config::IniFiles->new(

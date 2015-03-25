@@ -224,7 +224,7 @@ has action_stack => (
 
 A integer describing the size of the buffer used to read output from srvrmgr program by using IPC.
 
-It defaults to 16681 bytes, but it can be adjusted to improve performance (lowering CPU usage by increasing memory utilization).
+It defaults to 32768 bytes, but it can be adjusted to improve performance (lowering CPU usage by increasing memory utilization).
 
 Increase of this attribute should be considered experimental.
 
@@ -235,7 +235,7 @@ has ipc_buffer_size => (
     is      => 'rw',
     reader  => 'get_buffer_size',
     writer  => 'set_buffer_size',
-    default => 16681
+    default => 32768 
 );
 
 =head2 srvrmgr_prompt

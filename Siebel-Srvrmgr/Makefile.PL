@@ -31,7 +31,9 @@ my %config = (
         'Test::Class'              => 0.36,
         'Test::Moose'              => 2.0801,
         'Class::Data::Inheritable' => 0.08,
-        'Config::IniFiles'         => 2.83
+        'Config::IniFiles'         => 2.83,
+        'Proc::Background'         => 1.10,
+        'Proc::Daemon'             => 0.19
     },
     EXE_FILES  => ['srvrmgr-mock.pl'],
     META_MERGE => {
