@@ -114,7 +114,7 @@ sub get_fields {
     }
     else {
 
-        confess 'cannot procede without fields_pattern being defined first';
+        confess 'cannot procede without being able to define the fields pattern for parsing: check if command output configuration is as expected by the parsing class';
 
     }
 

@@ -13,10 +13,20 @@ Siebel::Srvrmgr::OS::Unix - module to recover information from OS processes of S
 =head1 SYNOPSIS
 
     use Siebel::Srvrmgr::OS::Unix;
-    my $procs = Siebel::Srvrmgr::OS::Unix->new({ enterprise_log => '/somepath/server/filename.log', 
-                                                 cmd_regex => '', 
-                                                 parent_regex => ''
-    });
+    my $procs = Siebel::Srvrmgr::OS::Unix->new(
+        {
+            enterprise_log => $enterprise_log,
+            cmd_regex      => "^$path_to_siebel_dir",
+            parent_regex =>
+'Created\s(multithreaded\s)?server\sprocess\s\(OS\spid\s\=\s+\d+\s+\)\sfor\s\w+'
+        }
+    );
+	my $procs_ref = $procs->get_procs;
+	foreach my $comp_pid(keys(%{$procs_ref})) {
+
+		print 'Component ', $procs_ref->{$comp_pid}->{comp_alias}, ' is using ', $procs_ref->{$comp_pid}->{pctcpu}, "% of CPU now\n";
+
+	}
 
 =head1 DESCRIPTION
 
@@ -72,6 +82,7 @@ has parent_regex => (
 Required attribute.
 
 A string of the regular expression to match the command executed by the Siebel user from the C<cmdline> file in C</proc>.
+This usually is the path included in the binary when you check with C<ps -aux> command.
 
 This attribute is a string, not a compiled regular expression with C<qr>.
 
@@ -176,27 +187,27 @@ For those hash references, the following keys will be available:
 
 =item *
 
-fname
+fname: name of the process
 
 =item *
 
-pctcpu
+pctcpu: % of server total CPU
 
 =item *
 
-pctmem
+pctmem: % of server total memory
 
 =item *
 
-rss
+rss: RSS
 
 =item *
 
-vsz
+vsz: VSZ
 
 =item *
 
-comp_alias
+comp_alias: alias of the Siebel Component
 
 =back
 
