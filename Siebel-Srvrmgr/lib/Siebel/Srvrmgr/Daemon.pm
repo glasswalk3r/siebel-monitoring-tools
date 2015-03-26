@@ -978,40 +978,64 @@ sub _my_cleanup {
 
 sub _define_lock_dir {
 
-    if ( $Config{osname} =~ /^linux$/i ) {
+	my $lock_dir = undef;
+	
+	CASE: {
 
-        return $ENV{HOME};
+		if ( $Config{osname} =~ /^linux$/i ) {
 
-    }
+			$lock_dir = $ENV{HOME};
+			last CASE;
 
-    if ( $Config{osname} =~ /^aix$/i ) {
+		}
 
-        return $ENV{HOME};
+		if ( $Config{osname} =~ /^aix$/i ) {
 
-    }
+			$lock_dir = $ENV{HOME};
+			last CASE;
 
-    if ( $Config{osname} =~ /^hpux$/i ) {
+		}
 
-        return $ENV{HOME};
+		if ( $Config{osname} =~ /^hpux$/i ) {
 
-    }
+			$lock_dir = $ENV{HOME};
+			last CASE;
 
-    if ( $Config{osname} =~ /^mswin32$/i ) {
+		}
 
-        return $ENV{HOMEDIR};
+		if ( $Config{osname} =~ /^mswin32$/i ) {
 
-    }
+			if (defined( $ENV{HOMEDIR} ) ) {
+			
+				$lock_dir = $ENV{HOMEDIR};
+			
+			} else {
+			
+				$lock_dir = $ENV{USERPROFILE};
+			
+			}
+			
+			last CASE;
 
-    if ( $Config{osname} =~ /^solaris$/i ) {
+		}
 
-        return $ENV{HOME};
+		if ( $Config{osname} =~ /^solaris$/i ) {
 
-    }
-    else {
+			$lock_dir = $ENV{HOME};
+			last CASE;
 
-        confess "don't know what to do with $Config{osname}";
+		}
+		else {
 
-    }
+			confess "don't know what to do with $Config{osname}";
+
+		}
+	
+	}
+	
+	confess "could not defined a lock_dir for $Config{osname}" unless(defined($lock_dir));
+	
+	return $lock_dir;
 
 }
 

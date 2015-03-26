@@ -1,11 +1,10 @@
 use warnings;
 use strict;
-use Siebel::Srvrmgr::OS::Unix;
 use Test::More;
 use Test::Moose qw(has_attribute_ok);
 use Cwd;
-use lib 'inc';
-use Devel::CheckOS qw(:fatal);
+eval "use Siebel::Srvrmgr::OS::Unix";
+plan skip_all => "Siebel::Srvrmgr::OS::Unix is required for running these tests" if $@;
 
 my $cwd            = getcwd();
 my $enterprise_log = $cwd . '/foobar.foobar666.log';
@@ -31,7 +30,7 @@ plan tests => scalar(@attribs) + 9;
 SKIP: {
 
  # :REMARK:23-03-2015 02:23:56:: perl 5.8.9 does not allow the change of fname in /proc by changing $0
-    eval q{use Proc::Daemon; die_if_os_isnt('Unix'); die "This test is not supported at this version of perl ($])" unless $] > 5.012_005};
+    eval q{use Proc::Daemon;  die "This test is not supported at this version of perl ($])" unless $] > 5.012_005};
 
     skip "Cannot run this test because of \"$@\"", 8, if $@;
 
