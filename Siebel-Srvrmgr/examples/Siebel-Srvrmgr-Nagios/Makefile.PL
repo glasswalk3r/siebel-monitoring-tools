@@ -9,7 +9,7 @@ WriteMakefile(
     PREREQ_PM    => {
         'Nagios::Plugin'  => 0.36,
         'XML::Rabbit'     => 0.30,
-        'Siebel::Srvrmgr' => 0.09
+        'Siebel::Srvrmgr' => 0.15
     },
     (
         $] >= 5.005

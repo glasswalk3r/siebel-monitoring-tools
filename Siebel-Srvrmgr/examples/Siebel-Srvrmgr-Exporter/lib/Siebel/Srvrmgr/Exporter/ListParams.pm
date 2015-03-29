@@ -55,7 +55,7 @@ override 'do_parsed' => sub {
 
 =head1 SEE ALSO
 
-=over 2
+=over
 
 =item *
 

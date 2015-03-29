@@ -99,7 +99,7 @@ Expects as a parameter a string the filename (or complete path).
 
 =head2 get_comps
 
-Returns an array reference with all components alias available in the server.
+Returns an array reference with all components aliases available in the server.
 
 =cut
 

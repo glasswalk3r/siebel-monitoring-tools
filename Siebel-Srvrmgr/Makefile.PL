@@ -38,12 +38,13 @@ my %config = (
     EXE_FILES  => ['srvrmgr-mock.pl'],
     META_MERGE => {
         resources => {
-            license  => 'http://www.gnu.org/licenses/gpl.txt',
-            homepage => 'http://code.google.com/p/siebel-monitoring-tools/',
+            license => 'http://www.gnu.org/licenses/gpl.txt',
+            homepage =>
+              'https://github.com/glasswalk3r/siebel-monitoring-tools',
             bugtracker =>
-              'http://code.google.com/p/siebel-monitoring-tools/issues/list',
+              'https://github.com/glasswalk3r/siebel-monitoring-tools/issues',
             repository =>
-              'http://code.google.com/p/siebel-monitoring-tools/source/browse/'
+              'https://github.com/glasswalk3r/siebel-monitoring-tools'
         },
     },
     dist => { SUFFIX => '.gz', COMPRESS => 'gzip --best' },

@@ -24,6 +24,7 @@ with 'Siebel::Srvrmgr::ListParser::Output::ToString';
     # see Siebel::Srvrmgr::ListParser::Output::ListComp::Server for more details
     my $comp = Siebel::Srvrmgr::ListParser::Output::ListComp::Comp->new( {
                 alias          => $data_ref->{CC_ALIAS},
+				name           => $data_ref->{CC_NAME}, 
                 ct_alias       => $data_ref->{CT_ALIAS},
                 cg_alias       => $data_ref->{CG_ALIAS},
                 run_mode       => $data_ref->{CC_RUNMODE},

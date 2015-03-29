@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 #    COPYRIGHT AND LICENCE
 #
@@ -34,12 +34,11 @@ use Siebel::Srvrmgr::Exporter::ListComp;
 use Siebel::Srvrmgr::Exporter::ListCompTypes;
 use File::Spec;
 use Getopt::Std;
-use Term::Pulse;
+use Siebel::Srvrmgr::Exporter::TermPulse;
 use Siebel::Srvrmgr::Exporter;
 
 $Getopt::Std::STANDARD_HELP_VERSION = 2;
 
-# for stopping Term::Pulse correctly
 $SIG{INT} = sub { die "Caught interrupt signal" };
 
 sub HELP_MESSAGE {
@@ -95,11 +94,14 @@ foreach my $option (qw(s g e u p b r)) {
 
 }
 
-pulse_start(
+my $child = pulse_start(
     name   => 'Connecting to Siebel and getting initial data...',
     rotate => 1,
     time   => 1
 ) unless ( $opts{q} );
+
+# :TODO:25-03-2015 02:51:56:: to use with verbose output
+#print "$child\n";
 
 my $daemon = Siebel::Srvrmgr::Daemon::Heavy->new(
     {
@@ -131,7 +133,7 @@ my $daemon = Siebel::Srvrmgr::Daemon::Heavy->new(
     }
 );
 
-# "globals"
+# these variables are global caches for component definitions and component types respectively
 my ( $DEFS_REF, $TYPES_REF );
 
 my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
@@ -144,6 +146,13 @@ my $server_comps = $sieb_srv->get_comps();
 my $comp_regex = qr/$opts{r}/;
 
 pulse_stop() unless ( $opts{q} );
+
+# :TODO:25-03-2015 02:51:56:: to use with verbose output
+#if (kill 'SIGZERO', $child) {
+#
+#warn "we got a problem";
+#
+#}
 
 my $out;
 
@@ -161,6 +170,7 @@ foreach my $comp_alias ( @{$server_comps} ) {
     next unless ( $comp_alias =~ $comp_regex );
 
     $no_match = 0;
+    print "found definitions for component $comp_alias\n" unless ( $opts{q} );
 
     my $command =
         'list params for server '
@@ -184,14 +194,23 @@ foreach my $comp_alias ( @{$server_comps} ) {
 
     my $comp = $sieb_srv->get_comp($comp_alias);
 
-# check if the attribute is not already set since the behaviour below was from Siebel 7.5.3 only
-    $comp->ct_name( $comp->cc_name(), $daemon, $stash )
-      unless ( $comp->ct_name() );
-    $comp->ct_alias( $comp->ct_name(), $daemon, $stash )
-      unless ( $comp->ct_alias() );
+# check if the attribute is not already set since the behavior below was from Siebel 7.5.3 only
+    unless ( $comp->get_ct_alias ) {
+
+        my $type_name = find_comp_type_name( $comp->get_name, $daemon, $stash );
+
+        if ($type_name) {
+
+            my $type_alias =
+              find_comp_type_alias( $type_name, $daemon, $stash );
+
+            $comp->set_ct_alias() if ( defined($type_alias) );
+
+        }
+
+    }
 
     my @params;
-
     my @sorted = sort( keys( %{ $params->{data_parsed} } ) );
 
     foreach my $param_alias (@sorted) {
@@ -209,25 +228,27 @@ foreach my $comp_alias ( @{$server_comps} ) {
 
     }
 
+    print "------------ GENERATING OUTPUT -------------\n" unless ( $opts{q} );
+
     if ( defined( $opts{o} ) ) {
 
-        print $out 'create component definition ', $comp->cc_alias(),
-          ' for component type ', $comp->ct_alias(),
-          ' component group ', $comp->cg_alias(), ' run mode ',
-          $comp->cc_runmode(),
-          ' full name "', $comp->cc_name(), '" description "',
-          $comp->cc_desc_text(), '" with parameter ', join( ',', @params ),
+        print $out 'create component definition ', $comp->get_alias(),
+          ' for component type ', $comp->get_ct_alias,
+          ' component group ', $comp->get_cg_alias, ' run mode ',
+          $comp->get_run_mode,
+          ' full name "', $comp->get_name, '" description "',
+          $comp->get_desc_text(), '" with parameter ', join( ',', @params ),
           ";\n";
 
     }
     else {
 
-        print "\n", 'create component definition ', $comp->cc_alias(),
-          ' for component type ', $comp->ct_alias(),
-          ' component group ', $comp->cg_alias(), ' run mode ',
-          $comp->cc_runmode(),
-          ' full name "', $comp->cc_name(), '" description "',
-          $comp->cc_desc_text(), '" with parameter ', join( ',', @params ),
+        print "\n", 'create component definition ', $comp->get_alias(),
+          ' for component type ', $comp->get_ct_alias(),
+          ' component group ', $comp->get_cg_alias(), ' run mode ',
+          $comp->get_run_mode(),
+          ' full name "', $comp->get_name(), '" description "',
+          $comp->get_desc_text(), '" with parameter ', join( ',', @params ),
           ";\n\n";
 
     }
@@ -244,7 +265,11 @@ if ($no_match) {
 
 }
 
-sub get_comp_type_alias {
+###########################
+# SUBS
+# the functions below are a "hack" when the component type alias is not available in the "list comp" output
+
+sub find_comp_type_alias {
 
     my $comp_type_name = shift;
     my $daemon         = shift;
@@ -272,7 +297,7 @@ sub get_comp_type_alias {
 
 }
 
-sub get_comp_type_name {
+sub find_comp_type_name {
 
     my $comp_name = shift;
     my $daemon    = shift;
@@ -296,6 +321,17 @@ sub get_comp_type_name {
 
     }
 
-    return $DEFS_REF->{$comp_name}->{CT_NAME};
+    if ( exists( $DEFS_REF->{$comp_name} ) ) {
+
+        return $DEFS_REF->{$comp_name}->{CT_NAME};
+
+    }
+    else {
+
+        warn
+"could not find the Component Type Name for component alias $comp_name";
+        return undef;
+
+    }
 
 }
