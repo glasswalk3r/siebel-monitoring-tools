@@ -31,16 +31,19 @@ my %config = (
         'Test::Class'              => 0.36,
         'Test::Moose'              => 2.0801,
         'Class::Data::Inheritable' => 0.08,
-        'Config::IniFiles'         => 2.83,
-        'Proc::Background'         => 1.10,
-        'Proc::Daemon'             => 0.19
+        'Config::IniFiles'         => 2.83
     },
     EXE_FILES  => ['srvrmgr-mock.pl'],
     META_MERGE => {
         resources => {
+<<<<<<< HEAD
             license => 'http://www.gnu.org/licenses/gpl.txt',
             homepage =>
               'https://github.com/glasswalk3r/siebel-monitoring-tools',
+=======
+            license  => 'http://www.gnu.org/licenses/gpl.txt',
+            homepage => 'https://github.com/glasswalk3r/siebel-monitoring-tools',
+>>>>>>> 54c0aafb79528b3bb40a16504edca0ccf8ddec7d
             bugtracker =>
               'https://github.com/glasswalk3r/siebel-monitoring-tools/issues',
             repository =>
