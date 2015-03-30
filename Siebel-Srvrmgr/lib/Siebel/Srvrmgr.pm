@@ -4,7 +4,7 @@ use strict;
 use Log::Log4perl;
 use Carp;
 
-our $VERSION = '0.14';
+our $VERSION = '0.15';
 
 =pod
 
@@ -21,7 +21,7 @@ set of more generic functionality, thus making sense to be published at CPAN.
 
 This package used to be only Pod, but since release 0.09 it has a logging feature. See logging_cfg for details.
 
-Since release 0.13, this distribution breaks API compabitility with previous releases. Consider yourself warned.
+B<Since release 0.15, this distribution breaks API compabitility with previous releases. Consider yourself warned.>
 
 =head1 CLASS METHODS
 

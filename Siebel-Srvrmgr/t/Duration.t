@@ -5,18 +5,13 @@ use Siebel::Srvrmgr::ListParser::Output::ListComp::Comp;
 use DateTime;
 
 my $start = DateTime->now();
-my $end   = $start->clone;
-
-my $elapsed  = $start->minute + 10;
-my $interval = 0;
-
- # :WORKAROUND:23-03-2015 03:03:37:: cannot set minute > 59
-if ( $elapsed > 59 ) {
-
-    $interval = $elapsed * 60;
-    $end->set_minute($elapsed);
-
-}
+note( 'Now is ' . $start );
+my $end           = $start->clone;
+my $interval      = 10;
+my $interval_secs = $interval * 60;
+note("Considering that component finished after $interval minutes");
+$end->add( minutes => $interval );
+note( 'End time will be ' . $end );
 
 my $comp = Siebel::Srvrmgr::ListParser::Output::ListComp::Comp->new(
     {
@@ -40,4 +35,5 @@ my $comp = Siebel::Srvrmgr::ListParser::Output::ListComp::Comp->new(
 
 );
 
-is( $comp->get_duration, $interval, "component executed for $elapsed minutes" );
+is( $comp->get_duration, $interval_secs,
+    "component executed for $interval_secs seconds" );

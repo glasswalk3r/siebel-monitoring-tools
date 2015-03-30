@@ -86,7 +86,6 @@ lib/Siebel/Srvrmgr/Regexes.pm
 lib/Siebel/Srvrmgr/Types.pm
 Makefile.PL
 MANIFEST			This list of files
-patch-FSA-Rules
 README
 srvrmgr-mock.pl
 t/ActionCheckComps.t

@@ -3,16 +3,10 @@
 #
 #         FILE: store_data.pl
 #
-#  DESCRIPTION: this small program is to help adding YAML serialized data into srvrmgr.pl program in the DATA handler
+#  DESCRIPTION: this small program is to help adding YAML serialized data into srvrmgr_mock program in the DATA handler
 #
-#        FILES: ---
-#         BUGS: ---
-#        NOTES: ---
 #       AUTHOR: arfreitas@cpan.org, 
-# ORGANIZATION: 
-#      VERSION: 1.0
 #      CREATED: 11/07/2013 17:17:37
-#     REVISION: ---
 #===============================================================================
 use warnings;
 use strict;

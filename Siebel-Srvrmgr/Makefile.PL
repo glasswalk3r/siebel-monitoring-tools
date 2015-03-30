@@ -36,6 +36,9 @@ my %config = (
     EXE_FILES  => ['srvrmgr-mock.pl'],
     META_MERGE => {
         resources => {
+            license => 'http://www.gnu.org/licenses/gpl.txt',
+            homepage =>
+              'https://github.com/glasswalk3r/siebel-monitoring-tools',
             license  => 'http://www.gnu.org/licenses/gpl.txt',
             homepage => 'https://github.com/glasswalk3r/siebel-monitoring-tools',
             bugtracker =>
