@@ -48,11 +48,11 @@ This is a read-only attribute.
 =cut
 
 has 'curr_datetime' => (
-    is         => 'ro',
-    isa        => 'DateTime',
-    'required' => 0,
-    builder    => '_get_now',
-    reader     => 'get_current'
+    is       => 'ro',
+    isa      => 'DateTime',
+    required => 0,
+    builder  => '_get_now',
+    reader   => 'get_current'
 );
 
 =head2 end_datetime
@@ -135,7 +135,7 @@ sub get_datetime {
     return DateTime->new(
 
         year   => $date[0],
-        month  => $date[1] * 1,
+        month  => $date[1] * 1, #forcing to be stored as a number
         day    => $date[2] * 1,
         hour   => $time[0] * 1,
         minute => $time[1] * 1,

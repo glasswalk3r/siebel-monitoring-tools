@@ -162,7 +162,6 @@ sub new {
                     }
 
                 },
-#                no_data => sub { return 1 }
             ],
             message => 'Line read'
 
@@ -190,7 +189,6 @@ sub new {
                     return ( $state->notes('line') =~ SRVRMGR_PROMPT );
 
                 },
-#                greetings => sub { return 1 }
             ],
             message => 'prompt found'
         },
@@ -229,7 +227,6 @@ sub new {
                     return ( $state->notes('line') =~ SRVRMGR_PROMPT );
 
                 },
-#                list_comp => sub { return 1; }
             ],
             message => 'prompt found'
         },
@@ -253,7 +250,6 @@ sub new {
                     return ( $state->notes('line') =~ SRVRMGR_PROMPT );
 
                 },
-#                list_comp_types => sub { return 1; }
             ],
             message => 'prompt found'
         },
@@ -277,7 +273,6 @@ sub new {
                     return ( $state->notes('line') =~ SRVRMGR_PROMPT );
 
                 },
-#                list_params => sub { return 1; }
             ],
             message => 'prompt found'
         },
@@ -301,7 +296,6 @@ sub new {
                     return ( $state->notes('line') =~ SRVRMGR_PROMPT );
 
                 },
-#                list_comp_def => sub { return 1; }
             ],
             message => 'prompt found'
         },
@@ -325,7 +319,6 @@ sub new {
                     return ( $state->notes('line') =~ SRVRMGR_PROMPT );
 
                 },
-#                list_tasks => sub { return 1; }
             ],
             message => 'prompt found'
         },
@@ -349,7 +342,6 @@ sub new {
                     return ( $state->notes('line') =~ SRVRMGR_PROMPT );
 
                 },
-#                list_servers => sub { return 1; }
             ],
             message => 'prompt found'
         },
@@ -373,7 +365,6 @@ sub new {
                     return ( $state->notes('line') =~ SRVRMGR_PROMPT );
 
                 },
-#                list_sessions => sub { return 1; }
             ],
             message => 'prompt found'
         },
@@ -397,7 +388,6 @@ sub new {
                     return ( $state->notes('line') =~ SRVRMGR_PROMPT );
 
                 },
-#                set_delimiter => sub { return 1; }
             ],
             message => 'prompt found'
         },
@@ -421,7 +411,6 @@ sub new {
                     return ( $state->notes('line') =~ SRVRMGR_PROMPT );
 
                 },
-#                load_preferences => sub { return 1; }
             ],
             message => 'prompt found'
         },
@@ -651,16 +640,7 @@ sub new {
                     }
 
                 },
-#                # add other possibilities here of list commands
-#                command_submission => sub {
-#                    my $logger =
-#                      Log::Log4perl->get_logger('Siebel::Srvrmgr::ListParser');
-#                    $logger->warn(
-#"Possible invalid state due incapability to define the state change (output class)"
-#                    );
-#                    return 1;
-#                }    # this must be the last item
-
+                # add other possibilities here of list commands
             ],
             message => 'command submitted'
         }
@@ -669,51 +649,6 @@ sub new {
     return $self;
 
 }
-
-=pod
-
-=head2 free_refs
-
-This methods eliminates all circular references that version 0.31 of L<FSA::Rules> has, which makes it impossible to call the C<DESTROY>
-before the program termination.
-
-It should be invoked before program termination, possibly also in C<DESTROY> and C<DEMOLISH> methods of objects to give to the Perl interpreter a change
-to release memory by calling the related C<DESTROY> methods of L<FSA::Rules> and L<FSA::State> instances.
-
-=cut
-
-#sub free_refs {
-#
-#    my $self = shift;
-#
-#    my $machines = \%FSA::Rules::machines;
-#
-#    foreach my $state ( keys %{ $machines->{$self}->{table} } ) {
-#
-#        $machines->{$self}->{table}->{$state} = undef;
-#        delete $machines->{$self}->{table}->{$state};
-#
-#    }
-#
-#    $self->{done} = undef;
-#    $machines->{$self}->{self} = undef;
-#
-#    my $all_states = \%FSA::Rules::states;
-#
-#    foreach my $state ( @{ $self->states } ) {
-#
-#        $all_states->{$state}->{machine} = undef;
-#        delete $all_states->{$state}->{machine};
-#
-#        for ( my $i = 0 ; $i <= $#{ $all_states->{$state}->{rules} } ; $i++ ) {
-#
-#            $all_states->{$state}->{rules}->[$i]->{state} = undef;
-#
-#        }
-#
-#    }
-#
-#}
 
 1;
 

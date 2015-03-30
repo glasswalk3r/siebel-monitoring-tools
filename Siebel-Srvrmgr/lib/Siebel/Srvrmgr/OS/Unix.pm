@@ -17,8 +17,7 @@ Siebel::Srvrmgr::OS::Unix - module to recover information from OS processes of S
         {
             enterprise_log => $enterprise_log,
             cmd_regex      => "^$path_to_siebel_dir",
-            parent_regex =>
-'Created\s(multithreaded\s)?server\sprocess\s\(OS\spid\s\=\s+\d+\s+\)\sfor\s\w+'
+            parent_regex => 'Created\s(multithreaded\s)?server\sprocess\s\(OS\spid\s\=\s+\d+\s+\)\sfor\s\w+'
         }
     );
 	my $procs_ref = $procs->get_procs;
@@ -35,8 +34,7 @@ This module is a L<Moose> class.
 It is responsible to recover information from a UNIX-like operation system to be able to merge with information
 regarding Siebel components.
 
-Any instance of this class must represent the processes of a single Siebel Server and will recover processes 
-information from C</proc> directory.
+This class represents the processes of a single Siebel Server and will recover processes information from C</proc> directory.
 
 Additionally, this class has a method to search the Siebel enterprise log file for processes information as well.
 
@@ -45,7 +43,8 @@ Additionally, this class has a method to search the Siebel enterprise log file f
 =head2 enterprise_log
 
 Required attribute.
-A string of the complete pathname to the Siebel enterprise log file.
+
+A string of the complete path name to the Siebel enterprise log file.
 
 =cut
 
