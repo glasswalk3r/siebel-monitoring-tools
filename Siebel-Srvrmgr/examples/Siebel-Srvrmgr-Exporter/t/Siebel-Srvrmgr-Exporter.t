@@ -17,7 +17,7 @@ my $expected_digest;
 # the differences below are due the line end character differences
 if ( $Config{osname} eq 'MSWin32' ) {
 
-    $expected_digest = 'e1d662b1be600d49af4cf92d40cd7fe0';
+    $expected_digest = 'c6a7031cb1edafbe090a98b0e181befe';
 
 }
 else {    # else is for UNIX-line OS
