@@ -6,7 +6,7 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     NAME         => 'Siebel::Srvrmgr::Exporter',
     VERSION_FROM => 'lib/Siebel/Srvrmgr/Exporter.pm',    # finds $VERSION
-    PREREQ_PM => { 'Siebel::Srvrmgr' => 0.11, 'Term::Pulse' => 0.04 },
+    PREREQ_PM => { 'Siebel::Srvrmgr' => 0.15 },
     (
         $] >= 5.005
         ?    ## Add these new keywords supported since 5.005
@@ -17,7 +17,7 @@ WriteMakefile(
           )
         : ()
     ),
-    BUILD_REQUIRES => {
+    TEST_REQUIRES => {
         'Test::Pod'           => 1.22,
         'Test::Pod::Coverage' => 1.08
     },

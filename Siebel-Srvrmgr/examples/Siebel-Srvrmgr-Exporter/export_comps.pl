@@ -34,7 +34,7 @@ use Siebel::Srvrmgr::Exporter::ListComp;
 use Siebel::Srvrmgr::Exporter::ListCompTypes;
 use File::Spec;
 use Getopt::Std;
-use Term::Pulse;
+use Siebel::Srvrmgr::Exporter::TermPulse;
 use Siebel::Srvrmgr::Exporter;
 
 $Getopt::Std::STANDARD_HELP_VERSION = 2;
