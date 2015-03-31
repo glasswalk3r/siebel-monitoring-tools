@@ -23,6 +23,7 @@ my %config = (
         'String::BOM'                  => 0.3,
         'File::BOM'                    => 0.14,
         'DateTime'                     => 1.12,
+        'Proc::ProcessTable'           => 0.51
     },
     TEST_REQUIRES => {
         'Test::Most'               => 0.25,
@@ -31,7 +32,11 @@ my %config = (
         'Test::Class'              => 0.36,
         'Test::Moose'              => 2.0801,
         'Class::Data::Inheritable' => 0.08,
-        'Config::IniFiles'         => 2.83
+        'Config::IniFiles'         => 2.83,
+        'Proc::Daemon'             => 0.18,
+        'Proc::Background'         => 1.10,
+        'Devel::Gladiator'         => 0.07
+
     },
     EXE_FILES  => ['srvrmgr-mock.pl'],
     META_MERGE => {
@@ -39,8 +44,9 @@ my %config = (
             license => 'http://www.gnu.org/licenses/gpl.txt',
             homepage =>
               'https://github.com/glasswalk3r/siebel-monitoring-tools',
-            license  => 'http://www.gnu.org/licenses/gpl.txt',
-            homepage => 'https://github.com/glasswalk3r/siebel-monitoring-tools',
+            license => 'http://www.gnu.org/licenses/gpl.txt',
+            homepage =>
+              'https://github.com/glasswalk3r/siebel-monitoring-tools',
             bugtracker =>
               'https://github.com/glasswalk3r/siebel-monitoring-tools/issues',
             repository =>

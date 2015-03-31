@@ -28,7 +28,7 @@ None by default.
 
     namespace::autoclean [0.13]
     Moose [2.0401]
-    FSA::Rules [0.32]
+    FSA::Rules [0.34]
     MooseX::Storage [0.33]
     Moose::Util::TypeConstraints [2.0402]
     MooseX::Params::Validate [0.15]
@@ -38,18 +38,14 @@ None by default.
     Log::Log4perl [1.41]
     YAML::Syck [1.27]
     Config::Tiny [2.14]
-    DBD::ODBC [1.43]
-    DBI [1.623]
     Nagios::Plugin [0.36]
     Config::Tiny [2.14]
     DBD::ODBC [1.43]
     DBI [1.623]
-    Term::Pulse [0.05]
     XML::Rabbit [0.3]
     Devel::CheckOS [1.71]
     Class::Data::Inheritable [0.08]
     Test::Class [0.36]
-    Test::Memory::Cycle [1.04]
     Test::Most [0.25]
     Test::Pod [1.22]
     Test::Pod::Coverage [1.08]
@@ -57,6 +53,10 @@ None by default.
 	DateTime [1.12]
 	File::BOM [0.14]
 	String::BOM [0.3]
+	Devel::Gladiator [0.07]
+	Proc::Background [1.10]
+	Proc::Daemon [0.18]
+	Proc::ProcessTable [0.51]
 
 =head1 SEE ALSO
 
@@ -74,11 +74,11 @@ L<CPAN>
 
 =head1 AUTHOR
 
-Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<E<gt>
+Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2013 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<E<gt>
+This software is copyright (c) 2013 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
 
 This file is part of Siebel Monitoring Tools.
 
