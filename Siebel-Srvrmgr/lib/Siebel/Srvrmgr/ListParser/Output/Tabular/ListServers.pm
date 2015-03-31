@@ -1,7 +1,6 @@
 package Siebel::Srvrmgr::ListParser::Output::Tabular::ListServers;
 use Moose;
 use namespace::autoclean;
-use Siebel::Srvrmgr::ListParser::Output::ListServers::Server;
 
 =pod
 
@@ -47,20 +46,18 @@ All from parent class.
 
 All methods from superclass plus some additional ones described below.
 
-=head2 get_data_parsed
-
 The hash reference returned by C<get_data_parsed> will look like that:
 
 	siebfoobar' => HASH
-	  'END_TIME' => ''
-	  'HOST_NAME' => 'siebfoobar'
-	  'INSTALL_DIR' => '/app/siebel/siebsrvr'
-	  'SBLMGR_PID' => 20452
-	  'SBLSRVR_GROUP_NAME' => ''
-	  'SBLSRVR_STATE' => 'Running'
-	  'SBLSRVR_STATUS' => '8.1.1.7 [21238] LANG_INDEPENDENT'
-	  'START_TIME' => '2013-04-22 15:32:25'
-	  'SV_DISP_STATE' => 'Running'
+	  'end_time' => ''
+	  'host_name' => 'siebfoobar'
+	  'install_dir' => '/app/siebel/siebsrvr'
+	  'sblmgr_pid' => 20452
+	  'sblsrvr_group_name' => ''
+	  'sblsrvr_state' => 'Running'
+	  'sblsrvr_status' => '8.1.1.7 [21238] LANG_INDEPENDENT'
+	  'start_time' => '2013-04-22 15:32:25'
+	  'sv_disp_state' => 'Running'
 
 where the keys are the Siebel servers names, each one holding a reference to another hash with the keys shown above.
 
@@ -82,53 +79,27 @@ sub _build_expected {
 
 }
 
-sub get_servers {
+=pod
 
-    my $self    = shift;
-    my $counter = 0;
+=head2 get_lc_fields
 
-    my $servers_ref = $self->get_data_parsed;
+Returns an array reference with all the expected fields names in lowercase.
 
-    my @servers = sort( keys( %{$server_ref} ) );
-    my $total   = scalar(@servers) - 1;
+=cut
 
-    return sub {
+sub get_lc_fields {
 
-        if ( $counter <= $total ) {
+    my $self = shift;
+    my @names;
 
-            my $server_ref = $servers_ref->{ $servers[$counter] };
-            $counter++;
+    foreach ( @{ $self->get_expected_fields() } ) {
 
-            my %attribs = (
-                name           => $server_ref->{SBLSRVR_NAME},
-                group          => $server_ref->{SBLSRVR_GROUP_NAME},
-                host           => $server_ref->{HOST_NAME},
-                install_dir    => $server_ref->{INSTALL_DIR},
-                disp_state     => $server_ref->{SV_DISP_STATE},
-                state          => $server_ref->{SBLSRVR_STATE},
-                start_datetime => $server_ref->{START_TIME},
-                end_datetime   => $server_ref->{END_TIME},
-                status         => $server_ref->{SBLSRVR_STATUS}
-            );
+        push( @names, lc($_) );
 
-            # the server can be stopped, so no PID associated with it
-            if ( defined( $server_ref->{SBLMGR_PID} ) ) {
+    }
 
-                $attribs{pid} = $server_ref->{SBLMGR_PID};
+    return \@names;
 
-            }
-
-            return Siebel::Srvrmgr::ListParser::Output::ListServers::Server
-              ->new( \%attribs );
-
-        }
-        else {
-
-            return undef;
-
-        }
-
-      }    # end of sub block
 }
 
 sub _consume_data {
@@ -140,7 +111,7 @@ sub _consume_data {
     my $list_len    = scalar( @{$fields_ref} );
     my $server_name = $fields_ref->[0];
 
-    my $columns_ref = $self->get_expected_fields;
+    my $columns_ref = $self->get_lc_fields();
 
     if ( @{$fields_ref} ) {
 

@@ -10,6 +10,7 @@ examples/Siebel-Srvrmgr-Exporter/lib/Siebel/Srvrmgr/Exporter/ListComp.pm
 examples/Siebel-Srvrmgr-Exporter/lib/Siebel/Srvrmgr/Exporter/ListCompDef.pm
 examples/Siebel-Srvrmgr-Exporter/lib/Siebel/Srvrmgr/Exporter/ListCompTypes.pm
 examples/Siebel-Srvrmgr-Exporter/lib/Siebel/Srvrmgr/Exporter/ListParams.pm
+examples/Siebel-Srvrmgr-Exporter/lib/Siebel/Srvrmgr/Exporter/TermPulse.pm
 examples/Siebel-Srvrmgr-Exporter/Makefile.PL
 examples/Siebel-Srvrmgr-Exporter/MANIFEST
 examples/Siebel-Srvrmgr-Exporter/README
@@ -39,6 +40,13 @@ examples/Siebel-Srvrmgr-Nagios/t/pod.t
 examples/Siebel-Srvrmgr-Nagios/t/task.t
 examples/Siebel-Srvrmgr-Nagios/task_mon.pl
 gpl.txt
+inc/Devel/AssertOS.pm
+inc/Devel/AssertOS/AIX.pm
+inc/Devel/AssertOS/HPUX.pm
+inc/Devel/AssertOS/Linux.pm
+inc/Devel/AssertOS/MSWin32.pm
+inc/Devel/AssertOS/Solaris.pm
+inc/Devel/CheckOS.pm
 lib/Siebel/Srvrmgr.pm
 lib/Siebel/Srvrmgr/Daemon.pm
 lib/Siebel/Srvrmgr/Daemon/Action.pm
@@ -52,6 +60,7 @@ lib/Siebel/Srvrmgr/Daemon/Action/ListCompDef.pm
 lib/Siebel/Srvrmgr/Daemon/Action/ListComps.pm
 lib/Siebel/Srvrmgr/Daemon/Action/ListCompTypes.pm
 lib/Siebel/Srvrmgr/Daemon/Action/ListParams.pm
+lib/Siebel/Srvrmgr/Daemon/Action/ListSessions.pm
 lib/Siebel/Srvrmgr/Daemon/Action/LoadPreferences.pm
 lib/Siebel/Srvrmgr/Daemon/Action/Serializable.pm
 lib/Siebel/Srvrmgr/Daemon/ActionFactory.pm
@@ -65,11 +74,13 @@ lib/Siebel/Srvrmgr/ListParser.pm
 lib/Siebel/Srvrmgr/ListParser/Buffer.pm
 lib/Siebel/Srvrmgr/ListParser/FSA.pm
 lib/Siebel/Srvrmgr/ListParser/Output.pm
+lib/Siebel/Srvrmgr/ListParser/Output/Duration.pm
 lib/Siebel/Srvrmgr/ListParser/Output/Enterprise.pm
 lib/Siebel/Srvrmgr/ListParser/Output/ListComp/Comp.pm
 lib/Siebel/Srvrmgr/ListParser/Output/ListComp/Server.pm
 lib/Siebel/Srvrmgr/ListParser/Output/ListTasks/Task.pm
 lib/Siebel/Srvrmgr/ListParser/Output/LoadPreferences.pm
+lib/Siebel/Srvrmgr/ListParser/Output/Set.pm
 lib/Siebel/Srvrmgr/ListParser/Output/Tabular.pm
 lib/Siebel/Srvrmgr/ListParser/Output/Tabular/ListComp.pm
 lib/Siebel/Srvrmgr/ListParser/Output/Tabular/ListCompDef.pm
@@ -81,7 +92,9 @@ lib/Siebel/Srvrmgr/ListParser/Output/Tabular/ListTasks.pm
 lib/Siebel/Srvrmgr/ListParser/Output/Tabular/Struct.pm
 lib/Siebel/Srvrmgr/ListParser/Output/Tabular/Struct/Delimited.pm
 lib/Siebel/Srvrmgr/ListParser/Output/Tabular/Struct/Fixed.pm
+lib/Siebel/Srvrmgr/ListParser/Output/ToString.pm
 lib/Siebel/Srvrmgr/ListParser/OutputFactory.pm
+lib/Siebel/Srvrmgr/OS/Unix.pm
 lib/Siebel/Srvrmgr/Regexes.pm
 lib/Siebel/Srvrmgr/Types.pm
 Makefile.PL
@@ -108,6 +121,7 @@ t/DaemonHeavy.t
 t/DaemonHeavyLeak.t
 t/DaemonHeavyRuns.t
 t/DaemonLight.t
+t/Duration.t
 t/Greetings.t
 t/ListComp.t
 t/ListCompDef.t
@@ -118,6 +132,8 @@ t/ListServers.t
 t/ListSessions.t
 t/ListTasks.t
 t/LoadPreferences.t
+t/OSUnix.t
+t/OSUnix_simple.t
 t/output/delimited/8.0.0.2_20412.txt
 t/output/delimited/8.1.1.7_21238.txt
 t/output/delimited/list_comp.txt
@@ -207,10 +223,4 @@ t/Test/Siebel/Srvrmgr/ListParser/Output/Tabular/Struct.pm
 t/Test/Siebel/Srvrmgr/ListParser/Output/Tabular/Struct/Delimited.pm
 t/Test/Siebel/Srvrmgr/ListParser/Output/Tabular/Struct/Fixed.pm
 t/Test/Siebel/Srvrmgr/ListParser/OutputFactory.pm
-inc/Devel/AssertOS/HPUX.pm
-inc/Devel/AssertOS/Linux.pm
-inc/Devel/AssertOS/MSWin32.pm
-inc/Devel/AssertOS/Solaris.pm
-inc/Devel/CheckOS.pm
-inc/Devel/AssertOS.pm
-inc/Devel/AssertOS/AIX.pm
+TODO
