@@ -182,8 +182,9 @@ or C<undef> in the case that there are no more tasks to return.
 Beware that depending on the type of output parsed, the returned instances will have more or less attributes with
 values.
 
-To be compatible with the role L<Siebel::Srvrmgr::ListParser::Output::Duration>, fixed output data will have a default
-value of '2000-00-00 00:00:00' for C<start_datetime> attribute, which is basically useless.
+To be compatible with the role L<Siebel::Srvrmgr::ListParser::Output::Duration>, fixed width output data will have a default
+value of '2000-00-00 00:00:00' for C<start_datetime> attribute, which is basically useless if you that kind of information.
+You should use delimited data for that.
 
 =cut
 

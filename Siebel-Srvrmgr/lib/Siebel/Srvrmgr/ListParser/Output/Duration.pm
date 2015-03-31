@@ -90,10 +90,10 @@ Returns C<end_datetime> attribute value.
 
 =head2 fix_endtime
 
+This method will check the value of C<end_time> attribute for inconsistences and set a sane value to it.
+
 Any class using this role B<must> execute this method inside it's BUILD method. If there isn't one, you will
 need to a create one to do that.
-
-This method will check the value of C<end_time> attribute for inconsistences and set a sane value to it.
 
 =cut
 
@@ -106,6 +106,22 @@ sub fix_endtime {
         $self->_set_end('');
 
     }
+
+}
+
+=head2 is_running
+
+This method checks if the object is still (supposely) running by the time it's data was recovered from C<srvrmgr>.
+
+If returns true (1) or false (0);
+
+=cut
+
+sub is_running {
+
+    my $self = shift;
+
+    return ( $self->get_end eq '' ) ? 1 : 0;
 
 }
 
@@ -135,7 +151,7 @@ sub get_datetime {
     return DateTime->new(
 
         year   => $date[0],
-        month  => $date[1] * 1, #forcing to be stored as a number
+        month  => $date[1] * 1,    #forcing to be stored as a number
         day    => $date[2] * 1,
         hour   => $time[0] * 1,
         minute => $time[1] * 1,
