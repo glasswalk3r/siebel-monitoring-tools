@@ -82,6 +82,15 @@ sub _build_expected {
 
 }
 
+=head2 get_servers
+
+Returns a iterator in a form of a sub reference.
+
+Which dereference of anonymous sub reference will return a L<Siebel::Srvrmgr::ListParser::Output::ListServers::Server> object
+until the list of servers is exausted. In this case the sub reference will return C<undef>.
+
+=cut
+
 sub get_servers {
 
     my $self    = shift;
@@ -167,6 +176,10 @@ sub _consume_data {
 =head1 SEE ALSO
 
 =over
+
+=item *
+
+L<Siebel::Srvrmgr::ListParser::Output::ListServers::Server>
 
 =item *
 
