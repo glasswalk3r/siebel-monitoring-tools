@@ -4,7 +4,7 @@ package Siebel::Srvrmgr::ListParser::Output::Set;
 
 =head1 NAME
 
-Siebel::Srvrmgr::ListParser::Output::LoadPreferences - subclass to parse load preferences command.
+Siebel::Srvrmgr::ListParser::Output::Set - subclass to parse set command.
 
 =cut
 
@@ -23,7 +23,10 @@ See L<Siebel::Srvrmgr::ListParser::Output> for example.
 =head1 DESCRIPTION
 
 This class is a subclass of L<Siebel::Srvrmgr::ListParser::Output>. In truth, this is not a parser for a C<list> command, but since the usage of
-C<load preferences> is strongly recommended, this subclasses was added to enable usage in L<Siebel::Srvrmgr::Daemon::Action> subclasses.
+C<load preferences> is strongly recommended but not always possible, this subclasse was added to enable usage of the command C<set> of C<srvrmgr>
+in L<Siebel::Srvrmgr::Daemon::Action> subclasses, more specifically the C<set delimiter> command.
+
+In some cases one might not be able to define a delimiter during compile time. That's a good use for this class.
 
 =head1 ATTRIBUTES
 
@@ -39,7 +42,7 @@ Set the C<location> attribute. Expects and string as parameter.
 
 =head2 parse
 
-Parses the C<load preferences> output stored in the C<raw_data> attribute, setting the C<data_parsed> attribute.
+Parses the C<set> output stored in the C<raw_data> attribute, setting the C<data_parsed> attribute.
 
 The C<raw_data> attribute will be set to an reference to an empty array.
 
@@ -49,7 +52,6 @@ override 'parse' => sub {
 
     my $self = shift;
 
-   # $self->set_data_parsed( \%parsed_lines );
     $self->set_raw_data( [] );
 
     return 1;
@@ -58,9 +60,18 @@ override 'parse' => sub {
 
 =pod
 
+=head1 CAVEATS
+
+This class will parse C<set> commands, but L<Siebel::Srvrmgr::ListParser::OutputFactory> is currently configured only to accept
+C<set delimiter> commands, anything else will not be recognized.
+
 =head1 SEE ALSO
 
-=over 2
+=over
+
+=item *
+
+L<Siebel::Srvrmgr::ListParser::OutputFactory>
 
 =item *
 

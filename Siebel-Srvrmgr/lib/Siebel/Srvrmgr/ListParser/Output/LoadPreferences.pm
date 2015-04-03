@@ -24,7 +24,7 @@ See L<Siebel::Srvrmgr::ListParser::Output> for example.
 =head1 DESCRIPTION
 
 This class is a subclass of L<Siebel::Srvrmgr::ListParser::Output>. In truth, this is not a parser for a C<list> command, but since the usage of
-C<load preferences> is strongly recommended, this subclasses was added to enable usage in L<Siebel::Srvrmgr::Daemon::Action> subclasses.
+C<load preferences> is strongly recommended, this subclass was added to enable usage in L<Siebel::Srvrmgr::Daemon::Action> subclasses.
 
 =head1 ATTRIBUTES
 
