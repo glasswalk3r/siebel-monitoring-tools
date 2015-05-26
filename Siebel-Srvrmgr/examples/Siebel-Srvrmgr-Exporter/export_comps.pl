@@ -25,6 +25,30 @@
 
 use warnings;
 use strict;
+use Config;
+
+my $yap;
+
+BEGIN {
+
+	my %params = ( name   => 'Connecting to Siebel and getting initial data... ',
+					rotatable => 1,
+					time => 1 );
+
+	if ($Config{useithreads}) {
+
+		require Term::YAP::iThread;
+		$yap = Term::YAP::iThread->new( \%params );
+		
+	} else {
+	
+		require require Term::YAP::Process;
+		$yap = Term::YAP::Process->new( \%params );
+		
+	}
+
+}
+
 use Siebel::Srvrmgr::Daemon::Heavy;
 use Siebel::Srvrmgr::ListParser::Output::ListComp::Server;
 use Siebel::Srvrmgr::ListParser::Output::Tabular::ListParams;
@@ -34,12 +58,9 @@ use Siebel::Srvrmgr::Exporter::ListComp;
 use Siebel::Srvrmgr::Exporter::ListCompTypes;
 use File::Spec;
 use Getopt::Std;
-use Siebel::Srvrmgr::Exporter::TermPulse;
 use Siebel::Srvrmgr::Exporter;
 
 $Getopt::Std::STANDARD_HELP_VERSION = 2;
-
-$SIG{INT} = sub { die "Caught interrupt signal" };
 
 sub HELP_MESSAGE {
 
@@ -71,10 +92,11 @@ The parameters below are obligatory:
 
 The parameters below are optional:
 
+	-h: prints this help message and exits
 	-x: exclude mode. If present, the program will exclude component parameters with empty values from the generated 'created component' command
 	-q: quiet mode. If present, the program will not put print anything to STDOUT but the "create component" output (see also -o)
 	-o: output mode. If present, expects a filename as parameter to print the output to this file instead of STDOUT (default)
-	-h: prints this help message and exists
+	-d: delimiter. A single character that will used as delimiter to parse srvrmgr output. Be sure to include "set delimiter <character>" in the srvrmgr preferences file.
 
 BLOCK
 
@@ -84,7 +106,7 @@ BLOCK
 
 our %opts;
 
-getopts( 's:g:e:u:p:b:r:o:xhq', \%opts );
+getopts( 's:g:e:u:p:b:r:o:d:xhq', \%opts );
 
 HELP_MESSAGE() if ( exists( $opts{h} ) );
 
@@ -94,44 +116,49 @@ foreach my $option (qw(s g e u p b r)) {
 
 }
 
-my $child = pulse_start(
-    name   => 'Connecting to Siebel and getting initial data...',
-    rotate => 1,
-    time   => 1
-) unless ( $opts{q} );
+if ( ( $Config{osname} eq 'MSWin32' ) and ( not( $Config{useithreads} ) ) and ( not( exists( $opts{q} ) ) ) ) {
 
-# :TODO:25-03-2015 02:51:56:: to use with verbose output
-#print "$child\n";
+	die 'Sorry, your perl does not support ithreads and you are in a Microsoft Windows OS: this program will not work correctly unless you select the "-q" option';
 
-my $daemon = Siebel::Srvrmgr::Daemon::Heavy->new(
-    {
-        server       => $opts{s},
-        gateway      => $opts{g},
-        enterprise   => $opts{e},
-        user         => $opts{u},
-        password     => $opts{p},
-        bin          => $opts{b},
-        is_infinite  => 0,
-        read_timeout => 5,
-        commands     => [
-            Siebel::Srvrmgr::Daemon::Command->new(
-                {
-                    command => 'load preferences',
-                    action  => 'LoadPreferences',
-                }
-            ),
+}
 
+my %daemon_options = (
+	server       => $opts{s},
+	gateway      => $opts{g},
+	enterprise   => $opts{e},
+	user         => $opts{u},
+	password     => $opts{p},
+	bin          => $opts{b},
+	is_infinite  => 0,
+	read_timeout => 5,
+	commands     => [
+		Siebel::Srvrmgr::Daemon::Command->new(
+			{
+				command => 'load preferences',
+				action  => 'LoadPreferences',
+			}
+		),
 # LoadPreferences does not add anything into ActionStash, so it's ok use a second action here
-            Siebel::Srvrmgr::Daemon::Command->new(
-                {
-                    command => 'list comp',
-                    action  => 'Siebel::Srvrmgr::Exporter::ListComp'
-                }
-              )
+		Siebel::Srvrmgr::Daemon::Command->new(
+			{
+				command => 'list comp',
+				action  => 'Siebel::Srvrmgr::Exporter::ListComp'
+			}
+		  )
 
-        ]
-    }
+	]
 );
+
+if (exists($opts{d})) {
+
+	$daemon_options{field_delimiter} = $opts{d};
+	print "Using field delimiter '$opts{d}'" unless ( $opts{q} );
+
+}
+
+$yap->start() unless ( $opts{q} );
+
+my $daemon = Siebel::Srvrmgr::Daemon::Heavy->new(\%daemon_options);
 
 # these variables are global caches for component definitions and component types respectively
 my ( $DEFS_REF, $TYPES_REF );
@@ -145,14 +172,7 @@ my $server_comps = $sieb_srv->get_comps();
 
 my $comp_regex = qr/$opts{r}/;
 
-pulse_stop() unless ( $opts{q} );
-
-# :TODO:25-03-2015 02:51:56:: to use with verbose output
-#if (kill 'SIGZERO', $child) {
-#
-#warn "we got a problem";
-#
-#}
+$yap->stop() unless ( $opts{q} );
 
 my $out;
 
@@ -194,7 +214,7 @@ foreach my $comp_alias ( @{$server_comps} ) {
 
     my $comp = $sieb_srv->get_comp($comp_alias);
 
-# check if the attribute is not already set since the behavior below was from Siebel 7.5.3 only
+# check if the attribute is not already set since the behaviour below was from Siebel 7.5.3 only
     unless ( $comp->get_ct_alias ) {
 
         my $type_name = find_comp_type_name( $comp->get_name, $daemon, $stash );
@@ -217,8 +237,8 @@ foreach my $comp_alias ( @{$server_comps} ) {
 
         my $param = $params->{data_parsed}->{$param_alias};
 
-        unless ( ( $param->{PA_SETLEVEL} eq 'SIS_DEFAULT_SET' )
-            or ( $param->{PA_SETLEVEL} eq 'SIS_NEVER_SET' ) )
+        unless ( ( $param->{PA_SETLEVEL} eq 'Default value' )
+            or ( $param->{PA_SETLEVEL} eq 'Never set' ) )
         {
 
             push( @params, $param_alias . '=' . $param->{PA_VALUE} )

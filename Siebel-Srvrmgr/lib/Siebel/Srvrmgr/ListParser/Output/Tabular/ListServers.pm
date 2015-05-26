@@ -98,7 +98,7 @@ sub get_servers {
 
     my $servers_ref = $self->get_data_parsed;
 
-    my @servers = sort( keys( %{$server_ref} ) );
+    my @servers = sort( keys( %{$servers_ref} ) );
     my $total   = scalar(@servers) - 1;
 
     return sub {

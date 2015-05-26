@@ -51,10 +51,6 @@ my $SIG_INT   = 0;
 my $SIG_PIPE  = 0;
 my $SIG_ALARM = 0;
 
-$SIG{INT}  = sub { $SIG_INT   = 1 };
-$SIG{PIPE} = sub { $SIG_PIPE  = 1 };
-$SIG{ALRM} = sub { $SIG_ALARM = 1 };
-
 # :TODO      :19/08/2013 16:19:19:: enable Taint Mode
 
 =pod
@@ -487,6 +483,36 @@ Returns the content of C<pid> attribute as an integer.
 
 Returns the content of the attribute C<is_infinite>, returning true or false depending on this value.
 
+=head2 BUILD
+
+L<Moose> BUILD method is used by this class to install signal handlers for the following signals:
+
+=over
+
+=item *
+
+INT
+
+=item *
+
+PIPE
+
+=item *
+
+ALRM
+
+=back
+
+=cut
+
+sub BUILD {
+
+	$SIG{INT}  = sub { $SIG_INT   = 1 };
+	$SIG{PIPE} = sub { $SIG_PIPE  = 1 };
+	$SIG{ALRM} = sub { $SIG_ALARM = 1 };
+
+}
+
 =head2 reset_retries
 
 Reset the retries of creating a new process of srvrmgr program, setting the attribute C<retries> to zero.
@@ -733,30 +759,36 @@ our $adm_02049    = qr/^SBL-ADM-02049.*/;
 our $adm_02751    = qr/^SBL-ADM-02751.*/;
 our $siebel_error = SIEBEL_ERROR;
 
+# this method will check for errors and warnings, specially if read from STDERR.
+# the first parameter is the data to be check, which can be an array reference or scalar, both will be checked the same way
+# the seconds parameter tells if the data was read from STDERR or not. If read from STDERR, data will be logged as warnings
+# if no critical error was detected
 sub _check_error {
 
     my $self    = shift;
     my $content = shift;
-    my $logger  = shift;
+	my $is_error = shift; #boolean
 
-    weaken($logger);
+	my $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );
 
     if ( ref($content) eq 'ARRAY' ) {
 
         foreach my $line ( @{$content} ) {
 
 # :WORKAROUND:22-09-2014 14:02:27:: to avoid multiple methods calls, the verifications
-# were duplicated (copy an paste)
+# were duplicated (copy an paste). Ugly.
             if ( $line =~ $siebel_error ) {
 
               SWITCH: {
 
                     if ( $line =~ $adm_60070 ) {
 
-                        $logger->warn(
-'Trying to get additional information from next line'
-                        ) if ( $logger->is_warn() );
-                        return 1;
+						if ( $logger->is_warn() ) {
+						
+							$logger->warn("Found [$line]. Trying to get additional information from next line");
+							return 1;
+							
+						}
                     }
 
                     if ( $line =~ $adm_02043 ) {
@@ -787,8 +819,8 @@ sub _check_error {
                 $logger->debug(
 "Got $line. Since it doesn't look like a Siebel error, I will try to keep running"
                 ) if ( $logger->is_debug );
-
-                $logger->warn($content);
+				
+				$logger->warn($line) if ( $logger->is_warn() and $is_error );
 
                 return 1;
 
@@ -805,10 +837,13 @@ sub _check_error {
 
                 if ( $content =~ $adm_60070 ) {
 
-                    $logger->warn(
-                        'Trying to get additional information from next line')
-                      if ( $logger->is_warn() );
-                    return 1;
+					if ( $logger->is_warn() ) {
+					
+						$logger->warn("Found [$content]. Trying to get additional information from next line");
+						return 1;
+						
+					}
+						
                 }
 
                 if ( $content =~ $adm_02043 ) {
@@ -839,8 +874,8 @@ sub _check_error {
             $logger->debug(
 "Got $content. Since it doesn't look like a Siebel error, I will try to keep running"
             ) if ( $logger->debug );
-
-            $logger->warn($content);
+			
+			$logger->warn($content) if ($logger->is_warn());
 
             return 1;
 
@@ -867,15 +902,14 @@ sub DEMOLISH {
     my $self = shift;
 
     my $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );
-    weaken($logger);
 
     $logger->info('Terminating daemon: preparing cleanup');
 
-    $self->_my_cleanup($logger);
+    $self->_my_cleanup();
 
-    if ( $self->has_lock ) {
+    if ( $self->has_lock() ) {
 
-        $self->_del_lock($logger);
+        $self->_del_lock();
 
     }
 
@@ -893,6 +927,8 @@ sub DEMOLISH {
     }
 
     $logger->info( ref($self) . ' says bye-bye' ) if ( $logger->is_info() );
+	
+	Log::Log4perl->remove_logger($logger);
 
 }
 
@@ -952,8 +988,9 @@ sub _create_lock {
 sub _del_lock {
 
     my $self      = shift;
-    my $logger    = shift;
     my $lock_file = $self->get_lock_file;
+	
+    my $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );
 
     if ( -e $lock_file ) {
 

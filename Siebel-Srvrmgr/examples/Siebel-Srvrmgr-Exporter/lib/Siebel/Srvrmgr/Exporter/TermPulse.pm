@@ -9,7 +9,7 @@ Siebel::Srvrmgr::Exporter::TermPulse - show pulsed progress bar in terminal
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = "0.02";
 our @ISA     = qw(Exporter);
 our @EXPORT  = qw(pulse_start pulse_stop);
 
@@ -71,7 +71,7 @@ Set the pulse size. The default value is 16.
 
 =cut
 
-my $pid;
+my $pid = undef;
 my $global_name;
 my $global_start_time;
 my @mark = qw(- \ | / - \ | /);
@@ -80,22 +80,26 @@ $| = 1;
 sub pulse_start {
 
     my %args   = @_;
-    my $name   = defined $args{name} ? $args{name} : 'Working';
-    my $rotate = defined $args{rotate} ? $args{rotate} : 0;
-    my $size   = defined $args{size} ? $args{size} : 16;
-    my $time   = defined $args{time} ? $args{time} : 0;
-    my $start  = time;
+    my $name   = defined($args{name}) ? $args{name} : 'Working';
+    my $rotate = defined($args{rotate}) ? $args{rotate} : 0;
+    my $size   = defined($args{size}) ? $args{size} : 16;
+    my $time   = defined($args{time}) ? $args{time} : 0;
+    my $start  = time();
 
     $global_start_time = $start;
     $global_name       = $name;
-    $pid               = fork;
+    $pid               = fork();
 
     if ($pid) {    # parent
-
+	
+		$SIG{INT} = \&pulse_stop;
+		$SIG{__DIE__} = \&pulse_stop;
         return $pid;
 
     }
     else {
+
+		my $stop = 0;
 
         while (1) {
 
@@ -118,8 +122,10 @@ sub pulse_start {
                 printf "\r";
                 usleep 200000;
             }
+			
+			last if($stop);
+			
         }
-
     }
 }
 
@@ -141,16 +147,16 @@ sub pulse_stop {
             waitpid $pid, 0;
             $count = kill 'SIGZERO', $pid;
 
-#            if ($count) {
-#
-#                warn "$pid is no more";
-#
-#            }
-#            else {
-#
-#                warn "child $pid is still running";
-#
-#            }
+            if ($count) {
+
+                warn "$pid is no more";
+
+            }
+            else {
+
+                warn "child $pid is still running";
+
+            }
 
             my $length = length($global_name);
             printf "$global_name%sDone%s\n", q{.} x ( 35 - $length ), q{ } x 43;
@@ -163,8 +169,6 @@ sub pulse_stop {
     }
 
 }
-
-$SIG{__DIE__} = sub { pulse_stop() };
 
 =head1 KNOWN PROBLEMS
 
@@ -182,13 +186,13 @@ L<Term::Pulse>
 
 =head1 AUTHOR
 
-Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<E<gt>
+Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
 
-L<Term::Pulse> was originally created by Yen-Liang Chen, C<< <alec at cpan.com> >>
+L<Term::Pulse> was originally created by Yen-Liang Chen, E<lt>alec at cpan.comE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2012 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<E<gt>
+This software is copyright (c) 2012 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
 
 This file is part of Siebel Monitoring Tools.
 

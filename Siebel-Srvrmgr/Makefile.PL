@@ -4,38 +4,39 @@ use 5.008009;
 use warnings;
 use strict;
 use ExtUtils::MakeMaker;
+use Config;
 
 my %config = (
     NAME             => 'Siebel::Srvrmgr',
     VERSION_FROM     => 'lib/Siebel/Srvrmgr.pm',    # finds $VERSION
-    MIN_PERL_VERSION => 5.008009,
+    MIN_PERL_VERSION => "5.008009",
     PREREQ_PM        => {
-        'namespace::autoclean'         => 0.13,
-        'Moose'                        => 2.0401,
-        'FSA::Rules'                   => 0.34,
-        'MooseX::Storage'              => 0.33,
-        'Moose::Util::TypeConstraints' => 2.0402,
-        'MooseX::AbstractFactory'      => 0.004000,
-        'MooseX::Singleton'            => 0.27,
-        'MooseX::FollowPBP'            => 0.05,
-        'Log::Log4perl'                => 1.41,
-        'YAML::Syck'                   => 1.25,
-        'String::BOM'                  => 0.3,
-        'File::BOM'                    => 0.14,
-        'DateTime'                     => 1.12,
-        'Proc::ProcessTable'           => 0.51
+        'namespace::autoclean'         => "0.13",
+        'Moose'                        => "2.0401",
+        'FSA::Rules'                   => "0.34",
+        'MooseX::Storage'              => "0.33",
+        'Moose::Util::TypeConstraints' => "2.0402",
+        'MooseX::AbstractFactory'      => "0.004000",
+        'MooseX::Singleton'            => "0.27",
+        'MooseX::FollowPBP'            => "0.05",
+        'Log::Log4perl'                => "1.41",
+        'YAML::Syck'                   => "1.25",
+        'String::BOM'                  => "0.3",
+        'File::BOM'                    => "0.14",
+        'DateTime'                     => "1.12",
+        ( $Config{osname} !~ /win32/i ) ? ('Proc::ProcessTable' => "0.51") : () 
     },
     TEST_REQUIRES => {
-        'Test::Most'               => 0.25,
-        'Test::Pod'                => 1.22,
-        'Test::Pod::Coverage'      => 1.08,
-        'Test::Class'              => 0.36,
-        'Test::Moose'              => 2.0801,
-        'Class::Data::Inheritable' => 0.08,
-        'Config::IniFiles'         => 2.83,
-        'Proc::Daemon'             => 0.18,
-        'Proc::Background'         => 1.10,
-        'Devel::Gladiator'         => 0.07
+        'Test::Most'               => "0.25",
+        'Test::Pod'                => "1.22",
+        'Test::Pod::Coverage'      => "1.08",
+        'Test::Class'              => "0.36",
+        'Test::Moose'              => "2.0801",
+        'Class::Data::Inheritable' => "0.08",
+        'Config::IniFiles'         => "2.83",
+        'Proc::Daemon'             => "0.18",
+        'Proc::Background'         => "1.10",
+        'Devel::Gladiator'         => "0.07"
 
     },
     EXE_FILES  => ['srvrmgr-mock.pl'],

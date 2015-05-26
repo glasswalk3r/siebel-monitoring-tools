@@ -29,7 +29,7 @@ sub class_methods : Test(+1) {
             '_process_stdout', '_check_error',
             '_check_child',    '_submit_cmd',
             'close_child',     'has_pid',
-            'clear_pid'
+            'clear_pid', '_manage_handlers'
         )
     );
 
@@ -139,7 +139,7 @@ sub runs_with_stderr : Test(4) {
     );
 
     ok( $test->{daemon}->run(), 'run executes OK' );
-    ok( $test->_search_log_msg(qr/WARN.*oh\sgod\,\snot\stoday/),
+    ok( $test->_search_log_msg(qr/oh\sgod\,\snot\stoday/),
         'can find warn message in the log file' );
 
     $test->{daemon}->set_commands(

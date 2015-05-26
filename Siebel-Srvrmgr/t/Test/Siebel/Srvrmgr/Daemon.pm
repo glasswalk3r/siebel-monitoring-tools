@@ -9,6 +9,7 @@ use Siebel::Srvrmgr::Daemon::Command;
 use Log::Log4perl;
 use parent 'Test::Siebel::Srvrmgr';
 use Siebel::Srvrmgr;
+use Carp qw(cluck);
 
 $SIG{INT} = \&clean_up;
 
@@ -19,7 +20,10 @@ sub _set_log {
     my $log_file = File::Spec->catfile( getcwd(), 'daemon.log' );
     $test->{log_cfg} = File::Spec->catfile( getcwd(), 'log4perl.cfg' );
 
-    my $config = <<BLOCK;
+    open( my $out, '>', $test->{log_cfg} )
+      or die 'Cannot create ' . $test->{log_cfg} . ": $!\n";
+
+	print $out  <<BLOCK;
 log4perl.logger.Siebel.Srvrmgr.Daemon = WARN, LOG1
 log4perl.appender.LOG1 = Log::Log4perl::Appender::File
 log4perl.appender.LOG1.filename  = $log_file
@@ -28,9 +32,6 @@ log4perl.appender.LOG1.layout = Log::Log4perl::Layout::PatternLayout
 log4perl.appender.LOG1.layout.ConversionPattern = %d %p> %F{1}:%L %M - %m%n
 BLOCK
 
-    open( my $out, '>', $test->{log_cfg} )
-      or die 'Cannot create ' . $test->{log_cfg} . ": $!\n";
-    print $out $config;
     close($out) or die 'Could not close ' . $test->{log_cfg} . ": $!\n";
 
     $ENV{SIEBEL_SRVRMGR_DEBUG} = $test->{log_cfg};
@@ -344,6 +345,19 @@ sub clean_up : Test(shutdown) {
 
     my $test = shift;
 
+	foreach my $key(keys(%{$test})) {
+	
+		if ( ( $key eq 'daemon' ) or ( $key eq 'daemon2' ) ) {
+		
+			delete($test->{$key});
+			diag("removed $key");
+		
+		}
+	
+	}
+	
+	sleep 10;
+
     # removes the dump files
     my $dir = getcwd();
     my @files;
@@ -367,7 +381,11 @@ sub clean_up : Test(shutdown) {
 
     foreach my $file (@files) {
 
-        unlink $file or warn "Cannot remove $file: $!\n" if ( -e $file );
+        if ( -e $file ) {
+		
+			unlink $file or warn( "Cannot remove $file: $!" )
+		
+		}
 
     }
 

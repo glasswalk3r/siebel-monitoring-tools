@@ -171,7 +171,9 @@ override 'run' => sub {
 
     if ( scalar(@input_buffer) >= 1 ) {
 
-        $self->_check_error( \@input_buffer, $logger );
+		# since everything is read from a file, there is not way to identify if is a error from the file handler,
+		# so we will "turn off" warning checking
+        $self->_check_error( \@input_buffer, 0 );
         $self->normalize_eol( \@input_buffer );
         chomp(@input_buffer);
 
