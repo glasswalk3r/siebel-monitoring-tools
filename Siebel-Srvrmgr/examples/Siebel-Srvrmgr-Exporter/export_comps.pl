@@ -237,6 +237,8 @@ foreach my $comp_alias ( @{$server_comps} ) {
 
         my $param = $params->{data_parsed}->{$param_alias};
 
+		# as spotted out by yaroslav.shabalin@gmail.com, old values here
+		# were being used only by Siebel 7.5.3 (rest in peace old one!)
         unless ( ( $param->{PA_SETLEVEL} eq 'Default value' )
             or ( $param->{PA_SETLEVEL} eq 'Never set' ) )
         {

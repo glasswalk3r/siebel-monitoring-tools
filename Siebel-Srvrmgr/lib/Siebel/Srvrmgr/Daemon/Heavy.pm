@@ -447,7 +447,7 @@ override 'run' => sub {
 # since we are reading a stream here. The regex is a copy of SRVRMGR_PROMPT without the "^" at the beginning
     my $prompt_regex = qr/srvrmgr(\:[\w\_\-]+)?>\s(.*)?$/;
     my $eol_regex    = qr/\015\012$/;
-	my $buffer_size = $self->get_buffer_size()
+	my $buffer_size = $self->get_buffer_size();
 
     if ( $logger->is_debug() ) {
 	
@@ -455,7 +455,7 @@ override 'run' => sub {
               . $timeout
               . ' seconds for read srvrmgr output time out' );
 			  
-		$logger->debug( "sysread buffer size is $buffer_size" )			  
+		$logger->debug( "sysread buffer size is $buffer_size" );
 
         my $assert = 'Input record separator is ';
 
@@ -489,7 +489,7 @@ override 'run' => sub {
         while ( my @ready = $select->can_read($timeout) ) {
 
             foreach my $fh (@ready) {
-
+			
                 my $fh_name  = fileno($fh);
 
                 $logger->debug( "Reading filehandle $fh_name" )
@@ -500,7 +500,7 @@ override 'run' => sub {
                 {
 
                     $data_ref->{$fh_name}->{bytes} =
-                      sysread( $fh, $data_ref->{$fh_name},
+                      sysread( $fh, $data_ref->{$fh_name}->{data},
                         $buffer_size );
 
                 }
@@ -530,12 +530,8 @@ override 'run' => sub {
                 unless ( defined( $data_ref->{$fh_name}->{bytes} ) ) {
 
                     $logger->fatal( 'sysread returned an error: ' . $! );
-
                     $self->_check_child();
-
-                    $logger->logdie( 'sysreading from '
-                          . $fh_name
-                          . ' returned an unrecoverable error' );
+                    $logger->logdie( 'sysreading from ' . $data_ref->{$fh_name}->{type} . " returned an unrecoverable error: $!" );
 
                 }
                 else {
@@ -545,13 +541,13 @@ override 'run' => sub {
                         $logger->debug( 'Read '
                               . $data_ref->{$fh_name}->{bytes}
                               . ' bytes from '
-                              . $fh_name );
+                              . $data_ref->{$fh_name}->{type} );
 
                     }
 
                     if ( $data_ref->{$fh_name}->{bytes} == 0 ) {
 
-                        $logger->warn( "got EOF from $fh_name ?" );
+                        $logger->warn( 'got EOF from ' . $data_ref->{$fh_name}->{type} );
                         $select->remove($fh);
                         next;
 
@@ -566,42 +562,45 @@ override 'run' => sub {
                               . 'Buffer is ['
                               . $data_ref->{$fh_name}->{data}
                               . ']' ) if ($logger->is_debug());
-                        next;
 
-                    }
+                    } else {
 
-                    $self->normalize_eol( \$data_ref->{$fh_name}->{data} );
+						# data is ready to go
+						
 
-                    if ( $data_ref->{$fh_name}->{type} eq 'STDOUT' ) {
+						$self->normalize_eol( \$data_ref->{$fh_name}->{data} );
 
-# :WORKAROUND:14/08/2013 18:40:46:: necessary to empty the stdout for possible (useless) information hanging in the buffer, but
-# this information must be discarded since is from the previous processed command submitted
-# :TODO      :14/08/2013 18:41:43:: check why such information is not being recovered in the previous execution
-                        $self->_process_stdout( $data_ref->{$fh_name}->{data},
-                            \@input_buffer, $condition )
-                          unless ($ignore_output);
 
-                    }
-                    elsif ( $data_ref->{$fh_name}->{type} eq 'STDERR' ) {
+						if ( $data_ref->{$fh_name}->{type} eq 'STDOUT' ) {
+						
+							# :WORKAROUND:14/08/2013 18:40:46:: necessary to empty the stdout for possible (useless) information hanging in the buffer, but
+							# this information must be discarded since is from the previous processed command submitted
+							# :TODO      :14/08/2013 18:41:43:: check why such information is not being recovered in the previous execution
+							$self->_process_stdout( \$data_ref->{$fh_name}->{data},
+								\@input_buffer, $condition )
+							  unless ($ignore_output);
 
-                        $self->_process_stderr( $data_ref->{$fh_name}->{data} );
+						}
+						elsif ( $data_ref->{$fh_name}->{type} eq 'STDERR' ) {
 
-                    }
-                    else {
-                        $logger->logdie(
-                            'Somehow got a filehandle I dont know about!: Type is'. $data_ref->{$fh_name}->{type});
-                    }
+							$self->_process_stderr( \$data_ref->{$fh_name}->{data} );
 
-					$data_ref->{$fh_name}->{data}  = undef;
-					$data_ref->{$fh_name}->{bytes} = 0;
+						}
+						else {
+							$logger->logdie(
+								'Somehow got a filehandle I dont know about!: Type is'. $data_ref->{$fh_name}->{type});
+						}
+
+						$data_ref->{$fh_name}->{bytes} = 0;
+						$data_ref->{$fh_name}->{data} = undef;
+					
+					}
 					
                 }
 
             }    # end of foreach block
 
         }    # end of while block
-
-        $data_ref = undef;
 
         # below is the place for a Action object
         if ( scalar(@input_buffer) >= 1 ) {
@@ -762,8 +761,8 @@ sub _manage_handlers {
         my $fh_name  = fileno($fh);
 
         $data{$fh_name}  = { type => $handlers_order[$counter],
-							 data => undef,
-							 bytes => 0
+							 bytes => 0,
+							 data => undef
 						   };							
 							
         $select->add($fh);

@@ -771,117 +771,68 @@ sub _check_error {
 
 	my $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );
 
-    if ( ref($content) eq 'ARRAY' ) {
+	# :WORKAROUND: to enable the code to process both scalar and array reference data
+	# without duplicating code
+	
+	unless ( ref( $content ) eq 'ARRAY' ) {
 
-        foreach my $line ( @{$content} ) {
+		my $temp = $content;
+		$content = [ $temp ];
 
-# :WORKAROUND:22-09-2014 14:02:27:: to avoid multiple methods calls, the verifications
-# were duplicated (copy an paste). Ugly.
-            if ( $line =~ $siebel_error ) {
+	}
 
-              SWITCH: {
+	foreach my $line ( @{$content} ) {
 
-                    if ( $line =~ $adm_60070 ) {
+		if ( $line =~ $siebel_error ) {
 
-						if ( $logger->is_warn() ) {
-						
-							$logger->warn("Found [$line]. Trying to get additional information from next line");
-							return 1;
-							
-						}
-                    }
+		  SWITCH: {
 
-                    if ( $line =~ $adm_02043 ) {
-                        $logger->logdie('Could not find the Siebel Server');
-                    }
-
-                    if ( $line =~ $adm_02071 ) {
-                        $logger->logdie('Could not find the Siebel Enterprise');
-                    }
-
-                    if ( $line =~ $adm_02049 ) {
-                        $logger->logdie('Generic error');
-                    }
-
-                    if ( $line =~ $adm_02751 ) {
-                        $logger->logdie('Unable to open file');
-                    }
-                    else {
-                        $logger->logdie(
-                            "Unknown error [$line], aborting execution");
-                    }
-
-                }
-
-            }
-            else {
-
-                $logger->debug(
-"Got $line. Since it doesn't look like a Siebel error, I will try to keep running"
-                ) if ( $logger->is_debug );
-				
-				$logger->warn($line) if ( $logger->is_warn() and $is_error );
-
-                return 1;
-
-            }
-
-        }
-
-    }
-    else {
-
-        if ( $content =~ $siebel_error ) {
-
-          SWITCH: {
-
-                if ( $content =~ $adm_60070 ) {
+				if ( $line =~ $adm_60070 ) {
 
 					if ( $logger->is_warn() ) {
 					
-						$logger->warn("Found [$content]. Trying to get additional information from next line");
+						$logger->warn("Found [$line]. Trying to get additional information from next line");
 						return 1;
 						
 					}
-						
-                }
+				}
 
-                if ( $content =~ $adm_02043 ) {
-                    $logger->logdie('Could not find the Siebel Server');
-                }
+				if ( $line =~ $adm_02043 ) {
+					$logger->logdie('Could not find the Siebel Server');
+				}
 
-                if ( $content =~ $adm_02071 ) {
-                    $logger->logdie('Could not find the Siebel Enterprise');
-                }
+				if ( $line =~ $adm_02071 ) {
+					$logger->logdie('Could not find the Siebel Enterprise');
+				}
 
-                if ( $content =~ $adm_02049 ) {
-                    $logger->logdie('Generic error');
-                }
+				if ( $line =~ $adm_02049 ) {
+					$logger->logdie('Generic error');
+				}
 
-                if ( $content =~ $adm_02751 ) {
-                    $logger->logdie('Unable to open file');
-                }
-                else {
-                    $logger->logdie(
-                        "Unknown error [$content], aborting execution");
-                }
+				if ( $line =~ $adm_02751 ) {
+					$logger->logdie('Unable to open file');
+				}
+				else {
+					$logger->logdie(
+						"Unknown error [$line], aborting execution");
+				}
 
-            }
+			}
 
-        }
-        else {
+		}
+		else {
 
-            $logger->debug(
-"Got $content. Since it doesn't look like a Siebel error, I will try to keep running"
-            ) if ( $logger->debug );
+			$logger->debug(
+"Got $line. Since it doesn't look like a Siebel error, I will try to keep running"
+			) if ( $logger->is_debug );
 			
-			$logger->warn($content) if ($logger->is_warn());
+			$logger->warn($line) if ( $logger->is_warn() and $is_error );
 
-            return 1;
+			return 1;
 
-        }
+		}
 
-    }
+	}
 
 }
 

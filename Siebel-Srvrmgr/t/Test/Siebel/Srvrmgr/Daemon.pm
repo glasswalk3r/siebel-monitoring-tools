@@ -355,8 +355,6 @@ sub clean_up : Test(shutdown) {
 		}
 	
 	}
-	
-	sleep 10;
 
     # removes the dump files
     my $dir = getcwd();
@@ -383,7 +381,7 @@ sub clean_up : Test(shutdown) {
 
         if ( -e $file ) {
 		
-			unlink $file or warn( "Cannot remove $file: $!" )
+			unlink $file or diag( "Cannot remove $file: $!" )
 		
 		}
 
