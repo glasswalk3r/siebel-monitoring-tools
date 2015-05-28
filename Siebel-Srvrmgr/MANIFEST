@@ -10,7 +10,6 @@ examples/Siebel-Srvrmgr-Exporter/lib/Siebel/Srvrmgr/Exporter/ListComp.pm
 examples/Siebel-Srvrmgr-Exporter/lib/Siebel/Srvrmgr/Exporter/ListCompDef.pm
 examples/Siebel-Srvrmgr-Exporter/lib/Siebel/Srvrmgr/Exporter/ListCompTypes.pm
 examples/Siebel-Srvrmgr-Exporter/lib/Siebel/Srvrmgr/Exporter/ListParams.pm
-examples/Siebel-Srvrmgr-Exporter/lib/Siebel/Srvrmgr/Exporter/TermPulse.pm
 examples/Siebel-Srvrmgr-Exporter/Makefile.PL
 examples/Siebel-Srvrmgr-Exporter/MANIFEST
 examples/Siebel-Srvrmgr-Exporter/README
@@ -78,6 +77,7 @@ lib/Siebel/Srvrmgr/ListParser/Output/Duration.pm
 lib/Siebel/Srvrmgr/ListParser/Output/Enterprise.pm
 lib/Siebel/Srvrmgr/ListParser/Output/ListComp/Comp.pm
 lib/Siebel/Srvrmgr/ListParser/Output/ListComp/Server.pm
+lib/Siebel/Srvrmgr/ListParser/Output/ListServers/Server.pm
 lib/Siebel/Srvrmgr/ListParser/Output/ListTasks/Task.pm
 lib/Siebel/Srvrmgr/ListParser/Output/LoadPreferences.pm
 lib/Siebel/Srvrmgr/ListParser/Output/Set.pm
