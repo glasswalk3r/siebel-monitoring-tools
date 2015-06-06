@@ -18,18 +18,18 @@ sub class_methods : Test(+1) {
     can_ok(
         $test->{daemon},
         (
-            'get_commands',    'set_commands',
-            'get_bin',         'set_bin',
-            'get_write',       'get_read',
-            'is_infinite',     'get_last_cmd',
-            'get_cmd_stack',   'get_params_stack',
-            'get_buffer_size', 'set_buffer_size',
-            'get_prompt',      '_set_prompt',
-            '_create_child',   '_process_stderr',
-            '_process_stdout', '_check_error',
-            '_check_child',    '_submit_cmd',
-            'close_child',     'has_pid',
-            'clear_pid', '_manage_handlers'
+            'get_commands',     'set_commands',
+            'get_bin',          'set_bin',
+            'get_write',        'get_read',
+            'get_last_cmd',     'get_cmd_stack',
+            'get_params_stack', 'get_buffer_size',
+            'set_buffer_size',  'get_prompt',
+            '_set_prompt',      '_create_child',
+            '_process_stderr',  '_process_stdout',
+            '_check_error',     '_check_child',
+            '_submit_cmd',      'close_child',
+            'has_pid',          'clear_pid',
+            '_manage_handlers'
         )
     );
 
@@ -40,15 +40,15 @@ sub class_attributes : Tests(no_plan) {
     my $test = shift;
 
     my @attribs = (
-        'write_fh',        'read_fh',
-        'child_pid',       'is_infinite',
-        'last_exec_cmd',   'cmd_stack',
-        'params_stack',    'action_stack',
-        'ipc_buffer_size', 'srvrmgr_prompt',
-        'read_timeout',    'child_pid'
+        'write_fh',       'read_fh',
+        'child_pid',      'last_exec_cmd',
+        'cmd_stack',      'params_stack',
+        'action_stack',   'ipc_buffer_size',
+        'srvrmgr_prompt', 'read_timeout',
+        'child_pid'
     );
 
-    $test->SUPER::class_attributes(\@attribs);
+    $test->SUPER::class_attributes( \@attribs );
 
 }
 
@@ -139,8 +139,10 @@ sub runs_with_stderr : Test(4) {
     );
 
     ok( $test->{daemon}->run(), 'run executes OK' );
-    ok( $test->_search_log_msg(qr/oh\sgod\,\snot\stoday/),
-        'can find warn message in the log file' );
+    ok(
+        $test->_search_log_msg(qr/oh\sgod\,\snot\stoday/),
+        'can find warn message in the log file'
+    );
 
     $test->{daemon}->set_commands(
         [

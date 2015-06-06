@@ -24,8 +24,6 @@
 ./lib/Siebel/Srvrmgr/ListParser.pm:# :TODO:03-10-2013:arfreitas: find a way to keep circular references between the two objects to avoid
 ./lib/Siebel/Srvrmgr/Daemon.pm:# :TODO      :19/08/2013 16:19:19:: enable Taint Mode
 ./examples/Siebel-Srvrmgr-Exporter/lib/Siebel/Srvrmgr/Exporter/ListCompTypes.pm:# :TODO:11-10-2013:arfreitas: all those subclasses of Action does the same thing in do_parsed, refactor
-./t/Test/Siebel/Srvrmgr/Daemon/Action/ListParams.pm:  TODO: {
-./t/Test/Siebel/Srvrmgr/Daemon/Action/ListParams.pm:        local $TODO =
 ./t/Test/Siebel/Srvrmgr/Daemon/Action/Serializable.pm:# :TODO      :25/06/2013 16:42:54:: should check if there is a correction for the MooseX related module
 ./t/Test/Siebel/Srvrmgr/Daemon/Action.pm:# :TODO      :08/07/2013 12:50:22:: change for a proper interface instead hoping for data structure be the expected
 ./t/Test/Siebel/Srvrmgr/ListParser/Output/ListComp/Comp.pm:# :TODO:11-01-2014:: should refactor this because behaviour is the same for other classes (maybe a Role?)

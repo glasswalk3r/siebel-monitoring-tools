@@ -10,7 +10,6 @@ Siebel::Srvrmgr::Daemon::Condition - object that checks which conditions should 
 
     my $condition = Siebel::Srvrmgr::Daemon::Condition->new(
         {
-            is_infinite    => 1, 
 			total_commands => 10
         }
     );
@@ -35,18 +34,6 @@ There are more status that this class will keep, please check the attributes and
 
 =head1 ATTRIBUTES
 
-=head2 is_infinite
-
-This is a boolean attribute and it is required during object creation. It tells if the object should always return true from the method C<check> or not.
-
-If it's true, C<check> method will always return true (1), otherwise it will return false (0).
-
-=cut
-
-has is_infinite => ( isa => 'Bool', is => 'ro', required => 1 );
-
-=pod
-
 =head2 max_cmd_idx
 
 Maximum command index. This is an integer attribute that identifies the last command from the commands stack (of L<Siebel::Srvrmgr::Daemon>).
@@ -63,8 +50,7 @@ has max_cmd_idx =>
 =head2 total_commands
 
 This is an integer that tells the total amount of commands available for execution. This class will keep track of the executed commands and the result
-of it will be part of the definition of the result returned from the method C<check> (unless C<is_infinite> attribute is set to true) and restart, if necessary, 
-the stack of commands to be executed.
+of it will be part of the definition of the result returned from the method C<check> and restart, if necessary, the stack of commands to be executed.
 
 This attribute is required during object creation.
 
@@ -174,10 +160,6 @@ Sets the attribute C<cmd_sent>. Expects true (1) or false (0) as value.
 
 Returns an integer based on the content of C<max_cmd_idx> attribute.
 
-=head2 is_infinite
-
-Returns a true or false based on the content of C<is_infinite> attribute.
-
 =head2 reduce_total_cmd
 
 This method subtracts one from the C<total_cmd> attribute.
@@ -239,32 +221,7 @@ sub check {
 
     my $self = shift;
 
-    if ( $self->is_infinite() ) {
-
-        if ( $self->total_commands() > 1 ) {
-
-            if ( ( $self->get_cmd_counter() + 1 ) <= $self->max_cmd_idx() ) {
-
-                $self->add_cmd_counter();
-                return 1;
-
-            }
-            else {
-
-                $self->reset_cmd_counter();
-                return 1;
-
-            }
-
-        }
-        else {
-
-            return 1;
-
-        }
-
-    }
-    elsif ( ( $self->get_cmd_counter() == $self->max_cmd_idx() )
+    if ( ( $self->get_cmd_counter() == $self->max_cmd_idx() )
         and $self->is_output_used() )
     {
 

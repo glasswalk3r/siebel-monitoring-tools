@@ -18,7 +18,6 @@ Siebel::Srvrmgr::Daemon::Heavy - "heavier' implementation of Siebel::Srvrmgr::Da
             user        => 'user',
             password    => 'password',
             bin         => 'c:\\siebel\\client\\bin\\srvrmgr.exe',
-            is_infinite => 1,
             commands    => [
                     Siebel::Srvrmgr::Daemon::Command->new(
                         command => 'load preferences',
@@ -152,7 +151,7 @@ has read_timeout => (
     is      => 'rw',
     writer  => 'set_read_timeout',
     reader  => 'get_read_timeout',
-    default => 1 
+    default => 1
 );
 
 =pod
@@ -235,7 +234,7 @@ has ipc_buffer_size => (
     is      => 'rw',
     reader  => 'get_buffer_size',
     writer  => 'set_buffer_size',
-    default => 32768 
+    default => 32768
 );
 
 =head2 srvrmgr_prompt
@@ -337,10 +336,6 @@ Returns the file handle of STDERR from the process executing the srvrmgr program
 
 Returns the content of C<pid> attribute as an integer.
 
-=head2 is_infinite
-
-Returns the content of the attribute C<is_infinite>, returning true or false depending on this value.
-
 =head2 get_last_cmd
 
 Returns the content of the attribute C<last_cmd> as a string.
@@ -413,12 +408,12 @@ override 'run' => sub {
           unless ( $self->_create_child() );
 
 # :WORKAROUND:31/07/2013 14:42:33:: must initialize the Log::Log4perl after forking the srvrmgr to avoid sharing filehandles
-        $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );
+        $logger = Siebel::Srvrmgr->gimme_logger( $self->blessed(), );
 
     }
     else {
 
-        $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );
+        $logger = Siebel::Srvrmgr->gimme_logger( $self->blessed(), );
         $logger->info( 'Reusing PID ', $self->get_pid() )
           if ( $logger->is_debug() );
         $ignore_output = 1;
@@ -433,7 +428,6 @@ override 'run' => sub {
 # :TODO      :06/08/2013 19:13:47:: create condition as a hidden attribute of this class
     my $condition = Siebel::Srvrmgr::Daemon::Condition->new(
         {
-            is_infinite    => $self->is_infinite(),
             total_commands => scalar( @{ $self->get_commands() } ),
             cmd_sent       => 0
         }
@@ -441,21 +435,21 @@ override 'run' => sub {
 
     my $parser   = $self->create_parser();
     my $select   = IO::Select->new();
-    my $data_ref = $self->_manage_handlers( $select );
+    my $data_ref = $self->_manage_handlers($select);
 
 # :WARNING:16-07-2014 11:35:13:: cannot using SRVRMGR_PROMPT regex because it is too restrictive
 # since we are reading a stream here. The regex is a copy of SRVRMGR_PROMPT without the "^" at the beginning
     my $prompt_regex = qr/srvrmgr(\:[\w\_\-]+)?>\s(.*)?$/;
     my $eol_regex    = qr/\015\012$/;
-	my $buffer_size = $self->get_buffer_size();
+    my $buffer_size  = $self->get_buffer_size();
 
     if ( $logger->is_debug() ) {
-	
+
         $logger->debug( 'Setting '
               . $timeout
               . ' seconds for read srvrmgr output time out' );
-			  
-		$logger->debug( "sysread buffer size is $buffer_size" );
+
+        $logger->debug("sysread buffer size is $buffer_size");
 
         my $assert = 'Input record separator is ';
 
@@ -479,7 +473,7 @@ override 'run' => sub {
 
         }
 
-    }	
+    }
 
     do {
 
@@ -489,10 +483,10 @@ override 'run' => sub {
         while ( my @ready = $select->can_read($timeout) ) {
 
             foreach my $fh (@ready) {
-			
-                my $fh_name  = fileno($fh);
 
-                $logger->debug( "Reading filehandle $fh_name" )
+                my $fh_name = fileno($fh);
+
+                $logger->debug("Reading filehandle $fh_name")
                   if ( $logger->is_debug() );
 
                 unless (( defined( $data_ref->{$fh_name}->{bytes} ) )
@@ -516,7 +510,8 @@ override 'run' => sub {
               # "length(Encode::encode_utf8(EXPR))" (you'll have to "use Encode"
               # first). See Encode and perlunicode.
                     my $offset =
-                      length( Encode::encode_utf8( $data_ref->{$fh_name}->{data} ) );
+                      length(
+                        Encode::encode_utf8( $data_ref->{$fh_name}->{data} ) );
 
                     $logger->debug("Offset is $offset")
                       if ( $logger->is_debug() );
@@ -531,7 +526,9 @@ override 'run' => sub {
 
                     $logger->fatal( 'sysread returned an error: ' . $! );
                     $self->_check_child();
-                    $logger->logdie( 'sysreading from ' . $data_ref->{$fh_name}->{type} . " returned an unrecoverable error: $!" );
+                    $logger->logdie( 'sysreading from '
+                          . $data_ref->{$fh_name}->{type}
+                          . " returned an unrecoverable error: $!" );
 
                 }
                 else {
@@ -547,7 +544,8 @@ override 'run' => sub {
 
                     if ( $data_ref->{$fh_name}->{bytes} == 0 ) {
 
-                        $logger->warn( 'got EOF from ' . $data_ref->{$fh_name}->{type} );
+                        $logger->warn(
+                            'got EOF from ' . $data_ref->{$fh_name}->{type} );
                         $select->remove($fh);
                         next;
 
@@ -561,41 +559,44 @@ override 'run' => sub {
 "Buffer data does not ends with CRLF or prompt, needs to read more from handle.\n"
                               . 'Buffer is ['
                               . $data_ref->{$fh_name}->{data}
-                              . ']' ) if ($logger->is_debug());
+                              . ']' )
+                          if ( $logger->is_debug() );
 
-                    } else {
+                    }
+                    else {
 
-						# data is ready to go
-						
+                        # data is ready to go
 
-						$self->normalize_eol( \$data_ref->{$fh_name}->{data} );
+                        $self->normalize_eol( \$data_ref->{$fh_name}->{data} );
 
+                        if ( $data_ref->{$fh_name}->{type} eq 'STDOUT' ) {
 
-						if ( $data_ref->{$fh_name}->{type} eq 'STDOUT' ) {
-						
-							# :WORKAROUND:14/08/2013 18:40:46:: necessary to empty the stdout for possible (useless) information hanging in the buffer, but
-							# this information must be discarded since is from the previous processed command submitted
-							# :TODO      :14/08/2013 18:41:43:: check why such information is not being recovered in the previous execution
-							$self->_process_stdout( \$data_ref->{$fh_name}->{data},
-								\@input_buffer, $condition )
-							  unless ($ignore_output);
+# :WORKAROUND:14/08/2013 18:40:46:: necessary to empty the stdout for possible (useless) information hanging in the buffer, but
+# this information must be discarded since is from the previous processed command submitted
+# :TODO      :14/08/2013 18:41:43:: check why such information is not being recovered in the previous execution
+                            $self->_process_stdout(
+                                \$data_ref->{$fh_name}->{data},
+                                \@input_buffer, $condition )
+                              unless ($ignore_output);
 
-						}
-						elsif ( $data_ref->{$fh_name}->{type} eq 'STDERR' ) {
+                        }
+                        elsif ( $data_ref->{$fh_name}->{type} eq 'STDERR' ) {
 
-							$self->_process_stderr( \$data_ref->{$fh_name}->{data} );
+                            $self->_process_stderr(
+                                \$data_ref->{$fh_name}->{data} );
 
-						}
-						else {
-							$logger->logdie(
-								'Somehow got a filehandle I dont know about!: Type is'. $data_ref->{$fh_name}->{type});
-						}
+                        }
+                        else {
+                            $logger->logdie(
+'Somehow got a filehandle I dont know about!: Type is'
+                                  . $data_ref->{$fh_name}->{type} );
+                        }
 
-						$data_ref->{$fh_name}->{bytes} = 0;
-						$data_ref->{$fh_name}->{data} = undef;
-					
-					}
-					
+                        $data_ref->{$fh_name}->{bytes} = 0;
+                        $data_ref->{$fh_name}->{data}  = undef;
+
+                    }
+
                 }
 
             }    # end of foreach block
@@ -747,44 +748,49 @@ sub _manage_handlers {
 
     my $self   = shift;
     my $select = shift;    # IO::Select object
-	
-	my $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );	
+
+    my $logger = Siebel::Srvrmgr->gimme_logger( $self->blessed() );
 
     # to keep data from both handles while looping over them
     my %data;
-	
-	my @handlers_order = (qw(STDOUT STDERR));
-	my $counter = 0;
+
+    my @handlers_order = (qw(STDOUT STDERR));
+    my $counter        = 0;
 
     foreach my $fh ( $self->get_read(), $self->get_error() ) {
 
-        my $fh_name  = fileno($fh);
+        my $fh_name = fileno($fh);
 
-        $data{$fh_name}  = { type => $handlers_order[$counter],
-							 bytes => 0,
-							 data => undef
-						   };							
-							
+        $data{$fh_name} = {
+            type  => $handlers_order[$counter],
+            bytes => 0,
+            data  => undef
+        };
+
         $select->add($fh);
-		
-		if ( $logger->is_debug() ) {
 
-			if ( openhandle( $fh ) ) {
+        if ( $logger->is_debug() ) {
 
-				$logger->debug( "file handler for $counter is available, with fileno = $fh_name ");
+            if ( openhandle($fh) ) {
 
-			}
-			else {
+                $logger->debug(
+"file handler for $counter is available, with fileno = $fh_name "
+                );
 
-				$logger->debug( "file handler for $counter is NOT available, with fileno = $fh_name ");
+            }
+            else {
 
-			}
+                $logger->debug(
+"file handler for $counter is NOT available, with fileno = $fh_name "
+                );
 
-		}
-		
-		$counter++;
+            }
 
-	}
+        }
+
+        $counter++;
+
+    }
 
     return \%data;
 
@@ -794,7 +800,8 @@ sub _create_child {
 
     my $self = shift;
 
-	my $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );
+    my $logger =
+      Siebel::Srvrmgr->gimme_logger( $self->blessed() );
 
     if ( $self->get_retries() >= $self->get_max_retries() ) {
 
@@ -849,8 +856,8 @@ sub _process_stderr {
     my $self     = shift;
     my $data_ref = shift;
 
-	my $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );	
-	
+    my $logger = Siebel::Srvrmgr->gimme_logger( $self->blessed() );
+
     if ( defined($$data_ref) ) {
 
         foreach my $line ( split( "\n", $$data_ref ) ) {
@@ -880,7 +887,7 @@ sub _process_stdout {
     my $buffer_ref = shift;
     my $condition  = shift;
 
-	my $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );	
+    my $logger = Siebel::Srvrmgr->gimme_logger( $self->blessed() );
 
 # :TODO      :09/08/2013 19:35:30:: review and remove assigning the compiled regexes to scalar (probably unecessary)
     my $prompt_regex    = SRVRMGR_PROMPT;
@@ -983,9 +990,9 @@ sub _process_stdout {
 
 sub _check_child {
 
-    my $self   = shift;
+    my $self = shift;
 
-    my $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );
+    my $logger = Siebel::Srvrmgr->gimme_logger( $self->blessed() );
 
     if ( $self->has_pid() ) {
 
@@ -1076,9 +1083,9 @@ sub _check_child {
 
 sub _my_cleanup {
 
-    my $self   = shift;
+    my $self = shift;
 
-    my $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );	
+    my $logger = Siebel::Srvrmgr->gimme_logger( $self->blessed() );
 
     if ( $self->has_pid() and ( $self->get_pid() =~ /\d+/ ) ) {
 
@@ -1168,7 +1175,7 @@ Accepts as an optional parameter an instance of a L<Log::Log4perl> for logging m
 sub close_child {
 
     my $self   = shift;
-    my $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );
+    my $logger = Siebel::Srvrmgr->gimme_logger( $self->blessed() );
 
     if ( $self->has_pid() ) {
 
@@ -1265,7 +1272,8 @@ sub close_child {
                     if ( $logger->is_warn() ) {
 
                         $logger->warn(
-                            "Could not kill the child process, child status = $?, child error = " . ${^CHILD_ERROR_NATIVE} );
+"Could not kill the child process, child status = $?, child error = "
+                              . ${^CHILD_ERROR_NATIVE} );
 
                     }
 

@@ -4,7 +4,7 @@ use 5.008009;
 use strict;
 use warnings;
 
-our $VERSION = 0.03;
+our $VERSION = 0.04;
 
 1;
 __END__
@@ -57,6 +57,7 @@ None by default.
 	Proc::Background [1.10]
 	Proc::Daemon [0.18]
 	Proc::ProcessTable [0.51]
+	Term::YAP [0.03]
 
 =head1 SEE ALSO
 

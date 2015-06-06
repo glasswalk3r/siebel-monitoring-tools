@@ -5,13 +5,13 @@ use Siebel::Srvrmgr::ListParser;
 use Test::Moose 'has_attribute_ok';
 use base 'Test::Siebel::Srvrmgr';
 
-sub constructor : Tests(24) {
+sub constructor : Tests(22) {
 
     my $test  = shift;
     my $class = $test->class;
 
     can_ok( $class,
-        qw(new get_cmd_counter is_infinite max_cmd_idx total_commands is_output_used set_output_used is_cmd_sent set_cmd_sent can_increment is_last_cmd reduce_total_cmd check add_cmd_counter reset_cmd_counter)
+        qw(new get_cmd_counter max_cmd_idx total_commands is_output_used set_output_used is_cmd_sent set_cmd_sent can_increment is_last_cmd reduce_total_cmd check add_cmd_counter reset_cmd_counter)
     );
 
     my $condition;
@@ -19,7 +19,6 @@ sub constructor : Tests(24) {
     ok(
         $condition = $class->new(
             {
-                is_infinite    => 0,
                 total_commands => 5
             }
         ),
@@ -27,8 +26,8 @@ sub constructor : Tests(24) {
     );
 
     my @attribs = (
-        'is_infinite', 'max_cmd_idx', 'total_commands', 'cmd_counter',
-        'output_used', 'cmd_sent'
+        'max_cmd_idx', 'total_commands', 'cmd_counter', 'output_used',
+        'cmd_sent'
     );
 
     foreach my $attrib (@attribs) {
@@ -74,7 +73,6 @@ sub constructor : Tests(24) {
 
     my $condition2 = $class->new(
         {
-            is_infinite    => 1,
             total_commands => 5
         }
     );
@@ -84,12 +82,6 @@ sub constructor : Tests(24) {
         $condition2->add_cmd_counter();
 
     }
-
-    ok( $condition2->check(), 'check must return true if is_infinite is true' );
-
-    is( $condition2->get_cmd_counter(), 0,
-'get_cmd_counter must return zero because of automatic reset from check method when is_infinite is true'
-    );
 
 }
 

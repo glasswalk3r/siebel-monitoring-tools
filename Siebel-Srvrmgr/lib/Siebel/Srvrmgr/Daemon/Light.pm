@@ -62,7 +62,6 @@ use namespace::autoclean;
 use Siebel::Srvrmgr::Daemon::ActionFactory;
 use Siebel::Srvrmgr::ListParser;
 use Siebel::Srvrmgr::Daemon::Command;
-use Scalar::Util qw(weaken);
 use Config;
 use Carp qw(longmess);
 use File::Temp qw(:POSIX);
@@ -136,8 +135,7 @@ override 'run' => sub {
 
     super();
 
-    my $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );
-    weaken($logger);
+    my $logger = Siebel::Srvrmgr->gimme_logger( $self->blessed() );
     $logger->info('Starting run method');
 
     my $parser = $self->create_parser();
@@ -153,7 +151,7 @@ override 'run' => sub {
 
     my $ret_code = system( @{ $self->_define_params() } );
 
-    $self->_check_system( $logger, ${^CHILD_ERROR_NATIVE}, $ret_code, $? );
+    $self->_check_system( ${^CHILD_ERROR_NATIVE}, $ret_code, $? );
 
     my $in;
     eval { open_bom( $in, $self->get_output_file(), ':utf8' ) };
@@ -171,8 +169,8 @@ override 'run' => sub {
 
     if ( scalar(@input_buffer) >= 1 ) {
 
-		# since everything is read from a file, there is not way to identify if is a error from the file handler,
-		# so we will "turn off" warning checking
+# since everything is read from a file, there is not way to identify if is a error from the file handler,
+# so we will "turn off" warning checking
         $self->_check_error( \@input_buffer, 0 );
         $self->normalize_eol( \@input_buffer );
         chomp(@input_buffer);
@@ -398,11 +396,10 @@ override _define_params => sub {
 # :TODO:18-10-2013:arfreitas: this should be done by IPC.pm module?
 sub _manual_check {
 
-    my $self   = shift;
-    my $logger = shift;
-    weaken($logger);
+    my $self       = shift;
     my $ret_code   = shift;
     my $error_code = shift;
+    my $logger     = Siebel::Srvrmgr->gimme_logger( $self->blessed() );
 
     if ( $ret_code == 0 ) {
 
@@ -420,18 +417,19 @@ sub _manual_check {
 
 sub _check_system {
 
-    my $self   = shift;
-    my $logger = shift;
-    weaken($logger);
+    my $self        = shift;
     my $child_error = shift;
     my $ret_code    = shift;
     my $error_code  = shift;
+
+    my $logger =
+      Siebel::Srvrmgr->gimme_logger( $self->blessed() );
 
     my ( $message, $is_error ) = check_system($child_error);
 
     unless ( ( defined($message) ) and ( defined($is_error) ) ) {
 
-        $self->_manual_check( $logger, $ret_code, $error_code );
+        $self->_manual_check( $ret_code, $error_code );
 
     }
     else {

@@ -4,7 +4,7 @@ use strict;
 use Log::Log4perl;
 use Carp;
 
-our $VERSION = "0.17";
+our $VERSION = "0.18";
 
 =pod
 
@@ -85,6 +85,18 @@ sub logging_cfg {
 
 This method returns a L<Log::Log4perl::Logger> object as defined by the C<logging_cfg> method.
 
+It expects as parameters the following items:
+
+=over
+
+=item *
+
+package: string with the name of the package that wants a logger. This is a required parameter.
+
+=back
+
+The configuration will B<not> be read again after initialization.
+
 =cut
 
 sub gimme_logger {
@@ -92,11 +104,17 @@ sub gimme_logger {
     my $class   = shift;
     my $package = shift;
 
-    confess 'package parameter must be defined' unless ( defined($package) );
-    my $cfg = Siebel::Srvrmgr->logging_cfg();
+    if ( Log::Log4perl->initialized() ) {
+
+        return Log::Log4perl->get_logger($package);
+
+    }
+
+    confess 'package parameter must be defined'
+      unless ( ( defined($package) ) and ( $package =~ /^[\w\:]+$/ ) );
 
     confess "Could not start logging facilities"
-      unless ( Log::Log4perl->init_once( \$cfg ) );
+      unless ( Log::Log4perl->init_once( \$class->logging_cfg() ) );
 
     return Log::Log4perl->get_logger($package);
 

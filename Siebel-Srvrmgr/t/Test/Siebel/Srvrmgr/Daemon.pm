@@ -23,7 +23,7 @@ sub _set_log {
     open( my $out, '>', $test->{log_cfg} )
       or die 'Cannot create ' . $test->{log_cfg} . ": $!\n";
 
-	print $out  <<BLOCK;
+    print $out <<BLOCK;
 log4perl.logger.Siebel.Srvrmgr.Daemon = WARN, LOG1
 log4perl.appender.LOG1 = Log::Log4perl::Appender::File
 log4perl.appender.LOG1.filename  = $log_file
@@ -115,42 +115,6 @@ sub _constructor : Tests(12) {
             '... and the constructor should succeed'
         );
 
-        # used for testing locking
-        $test->{daemon2} = $test->class()->new(
-            {
-                server     => $test->{test_data}->[0]->[2],
-                gateway    => $test->{test_data}->[1]->[2],
-                enterprise => $test->{test_data}->[2]->[2],
-                user       => $test->{test_data}->[3]->[2],
-                password   => $test->{test_data}->[4]->[2],
-                bin        => $test->{test_data}->[5]->[2],
-                has_lock   => 1,
-                use_perl   => 1
-                , # important to avoid calling another interpreter besides perl when invoked by IPC::Open3
-                commands => [
-                    Siebel::Srvrmgr::Daemon::Command->new(
-                        command => 'load preferences',
-                        action  => 'LoadPreferences'
-                    ),
-                    Siebel::Srvrmgr::Daemon::Command->new(
-                        command => 'list comp type',
-                        action  => 'ListCompTypes',
-                        params  => ['dump1']
-                    ),
-                    Siebel::Srvrmgr::Daemon::Command->new(
-                        command => 'list comp',
-                        action  => 'ListComps',
-                        params  => ['dump2']
-                    ),
-                    Siebel::Srvrmgr::Daemon::Command->new(
-                        command => 'list comp def',
-                        action  => 'ListCompDef',
-                        params  => ['dump3']
-                    )
-                ]
-            }
-        );
-
         isa_ok( $test->{daemon}, $test->class() );
 
     }    # end of SKIP
@@ -196,26 +160,25 @@ sub class_methods : Tests(24) {
     can_ok(
         $test->{daemon},
         (
-            'get_server',       'set_server',
-            'get_gateway',      'set_gateway',
-            'get_enterprise',   'set_enterprise',
-            'get_user',         'set_user',
-            'get_password',     'set_password',
-            'get_commands',     'set_commands',
-            'get_bin',          'set_bin',
-            'is_infinite',      '_setup_commands',
-            'run',              'DEMOLISH',
-            'shift_commands',   'use_perl',
-            'get_lang_id',      'set_lang_id',
-            'get_child_runs',   '_set_child_runs',
-            'shift_commands',   '_check_error',
-            'check_cmd',        'get_retries',
-            '_set_retries',     'clear_raw',
-            'set_clear_raw',    'get_max_retries',
-            '_set_max_retries', 'get_lang_id',
-            'set_lang_id',      'use_perl',
-            'set_alarm',        'get_alarm',
-            'get_field_del'
+            'get_server',      'set_server',
+            'get_gateway',     'set_gateway',
+            'get_enterprise',  'set_enterprise',
+            'get_user',        'set_user',
+            'get_password',    'set_password',
+            'get_commands',    'set_commands',
+            'get_bin',         'set_bin',
+            '_setup_commands', 'run',
+            'DEMOLISH',        'shift_commands',
+            'use_perl',        'get_lang_id',
+            'set_lang_id',     'get_child_runs',
+            '_set_child_runs', 'shift_commands',
+            '_check_error',    'check_cmd',
+            'get_retries',     '_set_retries',
+            'clear_raw',       'set_clear_raw',
+            'get_max_retries', '_set_max_retries',
+            'get_lang_id',     'set_lang_id',
+            'use_perl',        'set_alarm',
+            'get_alarm',       'get_field_del'
         )
     );
 
@@ -230,9 +193,6 @@ sub class_methods : Tests(24) {
           if ( $test->class() eq 'Siebel::Srvrmgr::Daemon' );
 
         ok( $test->{daemon}->_setup_commands(), '_setup_commands works' );
-
-        is( $test->{daemon}->is_infinite(), 0,
-            'is_infinite must return false' );
 
         foreach my $attrib ( @{ $test->{test_data} } ) {
 
@@ -260,14 +220,14 @@ sub class_attributes : Tests(no_plan) {
     my $attribs_ref = shift;
 
     my @attribs = (
-        'server',          'gateway',
-        'enterprise',      'user',
-        'password',        'commands',
-        'bin',             'is_infinite',
-        'use_perl',        'lang_id',
-        'child_runs',      'alarm_timeout',
-        'maximum_retries', 'retries',
-        'clear_raw',       'field_delimiter'
+        'server',        'gateway',
+        'enterprise',    'user',
+        'password',      'commands',
+        'bin',           'use_perl',
+        'lang_id',       'child_runs',
+        'alarm_timeout', 'maximum_retries',
+        'retries',       'clear_raw',
+        'field_delimiter'
     );
 
     if (    ( defined($attribs_ref) )
@@ -303,9 +263,48 @@ sub the_last_run : Test(1) {
 
   SKIP: {
 
+# :WORKAROUND:06-06-2015 16:05:20:: modified to execute only in development since there are smokers running tests
+# in parallel and the locking will cause exception because of that
+        skip 'Not a developer machine', 1
+          unless ( $ENV{SIEBEL_SRVRMGR_DEVEL} );
+
         skip 'only subclasses are capable of calling run method', 1
-          unless ( ( exists( $test->{daemon2} ) )
-            and ( ref( $test->{daemon2} ) ne 'Siebel::Srvrmgr::Daemon' ) );
+          unless ( $test->class() ne 'Siebel::Srvrmgr::Daemon' );
+
+        my $daemon2 = $test->class()->new(
+            {
+                server     => $test->{test_data}->[0]->[2],
+                gateway    => $test->{test_data}->[1]->[2],
+                enterprise => $test->{test_data}->[2]->[2],
+                user       => $test->{test_data}->[3]->[2],
+                password   => $test->{test_data}->[4]->[2],
+                bin        => $test->{test_data}->[5]->[2],
+                has_lock   => 1,
+                use_perl   => 1
+                , # important to avoid calling another interpreter besides perl when invoked by IPC::Open3
+                commands => [
+                    Siebel::Srvrmgr::Daemon::Command->new(
+                        command => 'load preferences',
+                        action  => 'LoadPreferences'
+                    ),
+                    Siebel::Srvrmgr::Daemon::Command->new(
+                        command => 'list comp type',
+                        action  => 'ListCompTypes',
+                        params  => ['dump1']
+                    ),
+                    Siebel::Srvrmgr::Daemon::Command->new(
+                        command => 'list comp',
+                        action  => 'ListComps',
+                        params  => ['dump2']
+                    ),
+                    Siebel::Srvrmgr::Daemon::Command->new(
+                        command => 'list comp def',
+                        action  => 'ListCompDef',
+                        params  => ['dump3']
+                    )
+                ]
+            }
+        );
 
         note('Testing lock control');
         my $fake_pid = $$ * 2;
@@ -317,10 +316,8 @@ sub the_last_run : Test(1) {
 
         close($out);
 
-        dies_ok { $test->{daemon2}->run }
+        dies_ok { $daemon2->run() }
         'a second instance cannot run while there is a lock available';
-
-        $test->{daemon2} = undef;
 
     }
 
@@ -345,16 +342,15 @@ sub clean_up : Test(shutdown) {
 
     my $test = shift;
 
-	foreach my $key(keys(%{$test})) {
-	
-		if ( ( $key eq 'daemon' ) or ( $key eq 'daemon2' ) ) {
-		
-			delete($test->{$key});
-			diag("removed $key");
-		
-		}
-	
-	}
+    # attempt to force log4perl to close the log file on Win32
+    if ( exists( $test->{daemon} ) ) {
+
+        delete( $test->{daemon} );
+        note("removed daemon reference");
+
+    }
+
+    sleep 5;
 
     # removes the dump files
     my $dir = getcwd();
@@ -380,10 +376,10 @@ sub clean_up : Test(shutdown) {
     foreach my $file (@files) {
 
         if ( -e $file ) {
-		
-			unlink $file or diag( "Cannot remove $file: $!" )
-		
-		}
+
+            unlink $file or diag("Cannot remove $file: $!")
+
+        }
 
     }
 
@@ -392,3 +388,4 @@ sub clean_up : Test(shutdown) {
 }
 
 1;
+
