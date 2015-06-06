@@ -175,6 +175,7 @@ t/Serial-ActionListCompDef.t
 t/Serial-ActionListCompTypes.t
 t/Serial-ActionListParams.t
 t/Server.t
+t/SiebelSrvrmgr.t
 t/store_data.pl
 t/StructDelimited.t
 t/StructFixed.t
