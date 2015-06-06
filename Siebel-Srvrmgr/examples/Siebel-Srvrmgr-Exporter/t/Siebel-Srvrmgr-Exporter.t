@@ -22,7 +22,7 @@ if ( $Config{osname} eq 'MSWin32' ) {
 }
 else {    # else is for UNIX-line OS
 
-    $expected_digest = '304772202cd96622032689da6b179a69';
+    $expected_digest = 'a64debe4934a962da1310048637e3a9e';
 
 }
 

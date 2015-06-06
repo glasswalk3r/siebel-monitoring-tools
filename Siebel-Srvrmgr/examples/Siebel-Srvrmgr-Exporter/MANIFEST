@@ -1,4 +1,3 @@
-ChangeLog
 export_comps.pl
 lib/Siebel/Srvrmgr/Exporter.pm
 lib/Siebel/Srvrmgr/Exporter/ListComp.pm
