@@ -731,7 +731,7 @@ sub get_lock_file {
 
     my $self = shift;
 
-    my $filename = $self->blessed;
+    my $filename = $self->blessed();
     $filename =~ s/\:{2}/_/g;
 
     return File::Spec->catfile( $self->get_lock_dir, ( $filename . '.lock' ) );

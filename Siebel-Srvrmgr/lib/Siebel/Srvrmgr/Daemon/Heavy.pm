@@ -78,6 +78,7 @@ use IO::Select;
 use Encode;
 use Carp qw(longmess);
 use Siebel::Srvrmgr;
+use Fcntl qw(F_GETFL F_SETFL O_NONBLOCK);
 
 extends 'Siebel::Srvrmgr::Daemon';
 
@@ -606,6 +607,8 @@ override 'run' => sub {
         # below is the place for a Action object
         if ( scalar(@input_buffer) >= 1 ) {
 
+            $self->_check_error( \@input_buffer, 0 );
+
 # :TRICKY:5/1/2012 17:43:58:: copy params to avoid operations that erases the parameters due passing an array reference and messing with it
             my @params;
 
@@ -800,8 +803,7 @@ sub _create_child {
 
     my $self = shift;
 
-    my $logger =
-      Siebel::Srvrmgr->gimme_logger( $self->blessed() );
+    my $logger = Siebel::Srvrmgr->gimme_logger( $self->blessed() );
 
     if ( $self->get_retries() >= $self->get_max_retries() ) {
 
@@ -820,6 +822,12 @@ sub _create_child {
     my $params_ref = $self->_define_params();
 
     my ( $pid, $write_h, $read_h, $error_h ) = safe_open3($params_ref);
+
+    my $flags = fcntl( $read_h, F_GETFL, 0 )
+      or die "Couldn't get flags for HANDLE : $!\n";
+    fcntl( $read_h, F_SETFL, $flags | O_NONBLOCK )
+      or die "Couldn't set flags for HANDLE: $!\n";
+
     $self->_set_pid($pid);
     $self->_set_write($write_h);
     $self->_set_read($read_h);
@@ -914,7 +922,7 @@ sub _process_stdout {
 
         }
 
-        $self->_check_error( $line, 0 );
+        #$self->_check_error( $line, 0 );
 
       SWITCH: {
 

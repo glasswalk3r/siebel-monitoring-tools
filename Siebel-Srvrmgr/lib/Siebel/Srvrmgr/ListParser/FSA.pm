@@ -68,12 +68,7 @@ sub new {
     my $class   = shift;
     my $map_ref = shift;
 
-    my $log_cfg = Siebel::Srvrmgr->logging_cfg();
-
-    die 'Could not start logging facilities'
-      unless ( Log::Log4perl->init_once( \$log_cfg ) );
-
-    my $logger = Log::Log4perl->get_logger('Siebel::Srvrmgr::ListParser');
+    my $logger = Siebel::Srvrmgr->gimme_logger('Siebel::Srvrmgr::ListParser');
 
     $logger->logdie('the output type mapping reference received is not valid')
       unless ( ( defined($map_ref) ) and ( ref($map_ref) eq 'HASH' ) );
@@ -84,7 +79,8 @@ sub new {
             my $self = shift;
 
             my $curr_line = shift( @{ $self->notes('all_data') } );
- # :TODO:22-02-2015 18:22:29:: add a new method to do that
+
+            # :TODO:22-02-2015 18:22:29:: add a new method to do that
             $self->notes( 'line_num' => ( $self->notes('line_num') + 1 ) );
 
             if ( defined($curr_line) ) {
@@ -104,7 +100,7 @@ sub new {
                 }
 
             }
-            else { # no more lines to process
+            else {    # no more lines to process
 
                 return 1;
 
@@ -119,7 +115,7 @@ sub new {
             do => sub {
 
                 my $logger =
-                  Log::Log4perl->get_logger('Siebel::Srvrmgr::ListParser');
+                  Siebel::Srvrmgr->gimme_logger('Siebel::Srvrmgr::ListParser');
 
                 if ( $logger->is_debug() ) {
 
@@ -196,7 +192,7 @@ sub new {
             do => sub {
 
                 my $logger =
-                  Log::Log4perl->get_logger('Siebel::Srvrmgr::ListParser');
+                  Siebel::Srvrmgr->gimme_logger('Siebel::Srvrmgr::ListParser');
                 $logger->debug('Enterprise says bye-bye');
 
             },
@@ -420,7 +416,7 @@ sub new {
                 my $state = shift;
 
                 my $logger =
-                  Log::Log4perl->get_logger('Siebel::Srvrmgr::ListParser');
+                  Siebel::Srvrmgr->gimme_logger('Siebel::Srvrmgr::ListParser');
                 if ( $logger->is_debug() ) {
 
                     $logger->debug( 'command_submission got ['
@@ -640,6 +636,7 @@ sub new {
                     }
 
                 },
+
                 # add other possibilities here of list commands
             ],
             message => 'command submitted'

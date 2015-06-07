@@ -305,10 +305,7 @@ sub set_buffer {
     my $type = shift;
     my $line = shift;
 
-    my $log_cfg = Siebel::Srvrmgr->logging_cfg();
-    confess 'Could not start logging facilities'
-      unless ( Log::Log4perl->init_once( \$log_cfg ) );
-    my $logger = Log::Log4perl->get_logger('Siebel::Srvrmgr::ListParser');
+    my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
 
     if ( defined($line) ) {
 
@@ -377,10 +374,7 @@ sub _create_buffer {
     my $self = shift;
     my $type = shift;
 
-    my $log_cfg = Siebel::Srvrmgr->logging_cfg();
-    confess 'Could not start logging facilities'
-      unless ( Log::Log4perl->init_once( \$log_cfg ) );
-    my $logger = Log::Log4perl->get_logger('Siebel::Srvrmgr::ListParser');
+    my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
 
     if ( Siebel::Srvrmgr::ListParser::OutputFactory->can_create($type) ) {
 
@@ -597,7 +591,7 @@ sub parse {
     my $self     = shift;
     my $data_ref = shift;
 
-    my $logger = Siebel::Srvrmgr->gimme_logger( ref($self) );
+    my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
 
     $logger->logdie('Received an invalid buffer as parameter')
       unless ( ( defined($data_ref) )
@@ -680,7 +674,7 @@ sub parse {
             }
 
         }
-        else { # state hasn't changed, but let's keep getting other lines
+        else {    # state hasn't changed, but let's keep getting other lines
 
             $self->set_buffer( $prev_state_name,
                 $self->get_fsa->notes('line') );
