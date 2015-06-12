@@ -24,9 +24,13 @@ my %config = (
         'String::BOM'                  => "0.3",
         'File::BOM'                    => "0.14",
         'DateTime'                     => "1.12",
-		'Term::YAP'                    => "0.03",
-		# as spotted by yaroslav.shabalin@gmail.com
-        ( $Config{osname} !~ /win32/i ) ? ('Proc::ProcessTable' => "0.51") : () 
+        'Term::YAP'                    => "0.03",
+        'Set::Tiny'                    => "0.02",
+
+        # as spotted by yaroslav.shabalin@gmail.com
+        ( $Config{osname} !~ /win32/i )
+        ? ( 'Proc::ProcessTable' => "0.51" )
+        : ()
     },
     TEST_REQUIRES => {
         'Test::Most'               => "0.25",

@@ -3,6 +3,7 @@ package Siebel::Srvrmgr::OS::Unix;
 use Moose;
 use Proc::ProcessTable;
 use namespace::autoclean;
+use Set::Tiny;
 
 =pod
 
@@ -20,12 +21,12 @@ Siebel::Srvrmgr::OS::Unix - module to recover information from OS processes of S
             parent_regex => 'Created\s(multithreaded\s)?server\sprocess\s\(OS\spid\s\=\s+\d+\s+\)\sfor\s\w+'
         }
     );
-	my $procs_ref = $procs->get_procs;
-	foreach my $comp_pid(keys(%{$procs_ref})) {
+    my $procs_ref = $procs->get_procs;
+    foreach my $comp_pid( keys( %{$procs_ref} ) ) {
 
-		print 'Component ', $procs_ref->{$comp_pid}->{comp_alias}, ' is using ', $procs_ref->{$comp_pid}->{pctcpu}, "% of CPU now\n";
+        print 'Component ', $procs_ref->{$comp_pid}->{comp_alias}, ' is using ', $procs_ref->{$comp_pid}->{pctcpu}, "% of CPU now\n";
 
-	}
+    }
 
 =head1 DESCRIPTION
 
@@ -60,7 +61,7 @@ has enterprise_log => (
 
 Required attribute.
 
-A string of the regular expression to match if the process recovered from the enterprise log file has children or not.
+A string of the regular expression to match the components PID logged in the Siebel Enterprise log file.
 
 Since the enterprise may contain different language settings, this parameter is required and will depend on the language set.
 
@@ -84,6 +85,9 @@ A string of the regular expression to match the command executed by the Siebel u
 This usually is the path included in the binary when you check with C<ps -aux> command.
 
 This attribute is a string, not a compiled regular expression with C<qr>.
+
+The amount of processes returned will depend on the regular expression used: one can match anything execute by the Siebel 
+OS user or only the processes related to the Siebel components.
 
 =cut
 
@@ -206,7 +210,8 @@ vsz: VSZ
 
 =item *
 
-comp_alias: alias of the Siebel Component
+comp_alias: alias of the Siebel Component. If the PID is not related to a Siebel component process (for example, the process of the Siebel Gateway)
+this key value will be "N/A" by default.
 
 =back
 
@@ -258,14 +263,9 @@ sub get_procs {
 
     }
 
-    my %valid_proc_name = (
-        siebmtsh   => 0,
-        siebmtshmw => 0,
-        siebproc   => 0,
-        siebprocmw => 0,
-        siebsess   => 0,
-        siebsh     => 0,
-        siebshmw   => 0
+    my $server_procs = Set::Tiny->new(
+        'siebmtsh', 'siebmtshmw', 'siebproc', 'siebprocmw',
+        'siebsess', 'siebsh',     'siebshmw'
     );
 
     my $t = Proc::ProcessTable->new( enable_ttys => 0 );
@@ -274,9 +274,7 @@ sub get_procs {
 
     for my $process ( @{ $t->table } ) {
 
-        next
-          unless ( exists( $valid_proc_name{ $process->fname } )
-            and ( $process->cmndline =~ $cmd_regex ) );
+        next unless ( $process->cmndline =~ $cmd_regex );
 
         # :WORKAROUND:22-03-2015 20:54:51:: forcing convertion to number
         my $pctcpu = $process->pctcpu;
@@ -290,6 +288,17 @@ sub get_procs {
             rss    => ( $process->rss + 0 ),
             vsz    => ( $process->size + 0 )
         };
+
+        if ( $server_procs->has( $process->fname ) ) {
+
+            $procs{ $process->pid }->{comp_alias} = 'unknown';
+
+        }
+        else {
+
+            $procs{ $process->pid }->{comp_alias} = 'N/A';
+
+        }
 
         if ( $self->get_mem_limit > 0 ) {
 
@@ -371,7 +380,7 @@ sub _find_pid {
             $parts[7] =~ tr/)//d;
 
             # pid => component alias
-			$comps{$parts[6]} = $parts[7];
+            $comps{ $parts[6] } = $parts[7];
 
         }
 
