@@ -87,7 +87,8 @@ sub _constructor : Tests(12) {
                     password   => $test->{test_data}->[4]->[2],
                     bin        => $test->{test_data}->[5]->[2],
                     has_lock   => 1,
-                    use_perl   => 1
+                    use_perl   => 1, 
+					time_zone => 'America/Sao_Paulo', 
                     , # important to avoid calling another interpreter besides perl when invoked by IPC::Open3
                     commands => [
                         Siebel::Srvrmgr::Daemon::Command->new(
@@ -137,7 +138,8 @@ sub bad_instance {
         user       => $test->{test_data}->[3]->[2],
         password   => $test->{test_data}->[4]->[2],
         bin        => $test->{test_data}->[5]->[2],
-        use_perl   => 1
+        use_perl   => 1, 
+		time_zone => 'America/Sao_Paulo', 
         , # important to avoid calling another interpreter besides perl when invoked by IPC::Open3
         commands => [
             Siebel::Srvrmgr::Daemon::Command->new(
@@ -178,7 +180,8 @@ sub class_methods : Tests(24) {
             'get_max_retries', '_set_max_retries',
             'get_lang_id',     'set_lang_id',
             'use_perl',        'set_alarm',
-            'get_alarm',       'get_field_del'
+            'get_alarm',       'get_field_del',
+            'get_time_zone'
         )
     );
 
@@ -220,14 +223,14 @@ sub class_attributes : Tests(no_plan) {
     my $attribs_ref = shift;
 
     my @attribs = (
-        'server',        'gateway',
-        'enterprise',    'user',
-        'password',      'commands',
-        'bin',           'use_perl',
-        'lang_id',       'child_runs',
-        'alarm_timeout', 'maximum_retries',
-        'retries',       'clear_raw',
-        'field_delimiter'
+        'server',          'gateway',
+        'enterprise',      'user',
+        'password',        'commands',
+        'bin',             'use_perl',
+        'lang_id',         'child_runs',
+        'alarm_timeout',   'maximum_retries',
+        'retries',         'clear_raw',
+        'field_delimiter', 'time_zone'
     );
 
     if (    ( defined($attribs_ref) )
@@ -280,7 +283,8 @@ sub the_last_run : Test(1) {
                 password   => $test->{test_data}->[4]->[2],
                 bin        => $test->{test_data}->[5]->[2],
                 has_lock   => 1,
-                use_perl   => 1
+                use_perl   => 1, 
+				time_zone => 'America/Sao_Paulo', 
                 , # important to avoid calling another interpreter besides perl when invoked by IPC::Open3
                 commands => [
                     Siebel::Srvrmgr::Daemon::Command->new(

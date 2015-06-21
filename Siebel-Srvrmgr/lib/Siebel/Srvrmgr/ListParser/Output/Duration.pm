@@ -2,7 +2,8 @@ package Siebel::Srvrmgr::ListParser::Output::Duration;
 
 use Moose::Role;
 use Carp;
- # :TODO:06-06-2015 01:53:30:: check possibility to use DateTime::Tiny instead
+
+# :TODO:06-06-2015 01:53:30:: check possibility to use DateTime::Tiny instead
 use DateTime;
 
 =pod
@@ -75,7 +76,29 @@ has 'end_datetime' => (
     default  => ''
 );
 
+=head2 time_zone
+
+The time_zone to be considered for the time stamps parsed, for having proper date and time as configured
+in the Siebel Enterprise OS level.
+
+This parameter has a default value fetched from the environment variable c<SIEBEL_TZ>, so this variable must
+previously set before to avoid errors. See L<Siebel::Srvrmgr::Daemon> for that.
+
+=cut
+
+has 'time_zone' => (
+    is       => 'ro',
+    isa      => 'Str',
+    required => 0,
+    reader   => 'get_time_zone',
+    default  => $ENV{SIEBEL_TZ}
+);
+
 =head1 METHODS
+
+=head2 get_time_zone
+
+Returns the C<time_zone> attribute value.
 
 =head2 get_start
 
@@ -207,6 +230,10 @@ L<Moose::Manual::Roles>
 =item *
 
 L<DateTime>
+
+=item *
+
+L<Siebel::Srvrmgr::Daemon>
 
 =back
 

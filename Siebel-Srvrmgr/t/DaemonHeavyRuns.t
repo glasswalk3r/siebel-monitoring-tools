@@ -45,7 +45,7 @@ if (    ( exists( $ENV{SIEBEL_SRVRMGR_DEVEL} ) )
                 $cfg->val( 'GENERAL', 'srvrmgr_bin' )
             ),
             use_perl     => 0,
-            is_infinite  => 0,
+			time_zone => 'America/Sao_Paulo', 
             read_timeout => 15,
             commands     => [
                 Siebel::Srvrmgr::Daemon::Command->new(
@@ -78,7 +78,7 @@ else {
             server      => 'whatever',
             bin         => File::Spec->catfile( getcwd(), 'srvrmgr-mock.pl' ),
             use_perl    => 1,
-            is_infinite => 0,
+			time_zone => 'America/Sao_Paulo', 
             timeout     => 0,
             commands    => [
                 Siebel::Srvrmgr::Daemon::Command->new(

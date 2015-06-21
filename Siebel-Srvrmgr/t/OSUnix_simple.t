@@ -5,7 +5,8 @@ use Test::Moose qw(has_attribute_ok);
 use Cwd;
 
 eval "use Siebel::Srvrmgr::OS::Unix";
-plan skip_all => "Siebel::Srvrmgr::OS::Unix is required for running these tests" if $@;
+plan skip_all => "Siebel::Srvrmgr::OS::Unix is required for running these tests"
+  if $@;
 my $cwd            = getcwd();
 my $enterprise_log = $cwd . '/foobar.foobar666.log';
 
@@ -38,7 +39,7 @@ SKIP: {
 
     open( my $script, '>', $proc_path ) or die "Cannot create $$proc_path: $!";
 
-my $code = q{#!/usr/bin/perl
+    my $code = q{#!/usr/bin/perl
 #let's put child to do something
 while (1) {
 
@@ -58,8 +59,8 @@ while (1) {
 
     print $script $code;
     close($script);
-	chmod 0700, $proc_path;
-    my $siebel_proc = Proc::Background->new( $proc_path );
+    chmod 0700, $proc_path;
+    my $siebel_proc = Proc::Background->new($proc_path);
 
     # giving some time to get data into /proc
     sleep 3;
@@ -68,7 +69,7 @@ while (1) {
     my $procs = Siebel::Srvrmgr::OS::Unix->new(
         {
             enterprise_log => $enterprise_log,
-            cmd_regex      => $cwd, 
+            cmd_regex      => $cwd,
             parent_regex =>
 'Created\s(multithreaded\s)?server\sprocess\s\(OS\spid\s\=\s+\d+\s+\)\sfor\s\w+'
         }
@@ -76,8 +77,21 @@ while (1) {
 
     my $procs_ref = $procs->get_procs;
     is( ref($procs_ref), 'HASH', 'get_procs returns a hash reference' );
+
+# :WORKAROUND:21-06-2015 12:53:45:: avoid getting other undesired process beside the one we are forcing as "Siebel process"
+    foreach my $pid ( keys( %{$procs_ref} ) ) {
+
+        if ( $procs_ref->{$pid}->{comp_alias} eq 'N/A' ) {
+
+            delete $procs_ref->{$pid};
+
+        }
+
+    }
+
     is( scalar( keys( %{$procs_ref} ) ),
-        1, 'get_procs returns a single process' );
+        1, 'get_procs returns a single process' )
+      or diag( explain($procs_ref) );
     my $pid = ( keys( %{$procs_ref} ) )[0];
     is( $procs_ref->{$pid}->{comp_alias},
         'EAIObjMgr_enu', 'process has the correct component alias associated' );

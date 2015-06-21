@@ -113,9 +113,9 @@ SKIP: {
             user        => 'whatever',
             password    => 'whatever',
             server      => 'whatever',
+            time_zone   => 'America/Sao_Paulo',
             bin         => File::Spec->catfile( getcwd(), 'srvrmgr-mock.pl' ),
             use_perl    => 1,
-            is_infinite => 0,
             timeout     => 0,
             commands    => [
                 Siebel::Srvrmgr::Daemon::Command->new(

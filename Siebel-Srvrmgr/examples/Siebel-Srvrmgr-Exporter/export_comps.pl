@@ -31,21 +31,24 @@ my $yap;
 
 BEGIN {
 
-	my %params = ( name   => 'Connecting to Siebel and getting initial data... ',
-					rotatable => 1,
-					time => 1 );
+    my %params = (
+        name      => 'Connecting to Siebel and getting initial data... ',
+        rotatable => 1,
+        time      => 1
+    );
 
-	if ($Config{useithreads}) {
+    if ( $Config{useithreads} ) {
 
-		require Term::YAP::iThread;
-		$yap = Term::YAP::iThread->new( \%params );
-		
-	} else {
-	
-		require require Term::YAP::Process;
-		$yap = Term::YAP::Process->new( \%params );
-		
-	}
+        require Term::YAP::iThread;
+        $yap = Term::YAP::iThread->new( \%params );
+
+    }
+    else {
+
+        require require Term::YAP::Process;
+        $yap = Term::YAP::Process->new( \%params );
+
+    }
 
 }
 
@@ -97,6 +100,7 @@ The parameters below are optional:
 	-q: quiet mode. If present, the program will not put print anything to STDOUT but the "create component" output (see also -o)
 	-o: output mode. If present, expects a filename as parameter to print the output to this file instead of STDOUT (default)
 	-d: delimiter. A single character that will used as delimiter to parse srvrmgr output. Be sure to include "set delimiter <character>" in the srvrmgr preferences file.
+	-t: time zone. A string of time zone as listed by DateTime::Timezone all_names() method. If not informed, 'UTC' will be used by default, which should a safe choice for most situations.
 
 BLOCK
 
@@ -116,49 +120,55 @@ foreach my $option (qw(s g e u p b r)) {
 
 }
 
-if ( ( $Config{osname} eq 'MSWin32' ) and ( not( $Config{useithreads} ) ) and ( not( exists( $opts{q} ) ) ) ) {
+if (    ( $Config{osname} eq 'MSWin32' )
+    and ( not( $Config{useithreads} ) )
+    and ( not( exists( $opts{q} ) ) ) )
+{
 
-	die 'Sorry, your perl does not support ithreads and you are in a Microsoft Windows OS: this program will not work correctly unless you select the "-q" option';
+    die
+'Sorry, your perl does not support ithreads and you are in a Microsoft Windows OS: this program will not work correctly unless you select the "-q" option';
 
 }
 
 my %daemon_options = (
-	server       => $opts{s},
-	gateway      => $opts{g},
-	enterprise   => $opts{e},
-	user         => $opts{u},
-	password     => $opts{p},
-	bin          => $opts{b},
-	is_infinite  => 0,
-	read_timeout => 5,
-	commands     => [
-		Siebel::Srvrmgr::Daemon::Command->new(
-			{
-				command => 'load preferences',
-				action  => 'LoadPreferences',
-			}
-		),
-# LoadPreferences does not add anything into ActionStash, so it's ok use a second action here
-		Siebel::Srvrmgr::Daemon::Command->new(
-			{
-				command => 'list comp',
-				action  => 'Siebel::Srvrmgr::Exporter::ListComp'
-			}
-		  )
+    server       => $opts{s},
+    gateway      => $opts{g},
+    enterprise   => $opts{e},
+    user         => $opts{u},
+    password     => $opts{p},
+    bin          => $opts{b},
+    time_zone    => ( exists( $opts{t} ) ) ? $opts{t} : 'UTC',
+    is_infinite  => 0,
+    read_timeout => 5,
+    commands     => [
+        Siebel::Srvrmgr::Daemon::Command->new(
+            {
+                command => 'load preferences',
+                action  => 'LoadPreferences',
+            }
+        ),
 
-	]
+# LoadPreferences does not add anything into ActionStash, so it's ok use a second action here
+        Siebel::Srvrmgr::Daemon::Command->new(
+            {
+                command => 'list comp',
+                action  => 'Siebel::Srvrmgr::Exporter::ListComp'
+            }
+          )
+
+    ]
 );
 
-if (exists($opts{d})) {
+if ( exists( $opts{d} ) ) {
 
-	$daemon_options{field_delimiter} = $opts{d};
-	print "Using field delimiter '$opts{d}'" unless ( $opts{q} );
+    $daemon_options{field_delimiter} = $opts{d};
+    print "Using field delimiter '$opts{d}'" unless ( $opts{q} );
 
 }
 
 $yap->start() unless ( $opts{q} );
 
-my $daemon = Siebel::Srvrmgr::Daemon::Heavy->new(\%daemon_options);
+my $daemon = Siebel::Srvrmgr::Daemon::Heavy->new( \%daemon_options );
 
 # these variables are global caches for component definitions and component types respectively
 my ( $DEFS_REF, $TYPES_REF );
@@ -237,8 +247,8 @@ foreach my $comp_alias ( @{$server_comps} ) {
 
         my $param = $params->{data_parsed}->{$param_alias};
 
-		# as spotted out by yaroslav.shabalin@gmail.com, old values here
-		# were being used only by Siebel 7.5.3 (rest in peace old one!)
+        # as spotted out by yaroslav.shabalin@gmail.com, old values here
+        # were being used only by Siebel 7.5.3 (rest in peace old one!)
         unless ( ( $param->{PA_SETLEVEL} eq 'Default value' )
             or ( $param->{PA_SETLEVEL} eq 'Never set' ) )
         {

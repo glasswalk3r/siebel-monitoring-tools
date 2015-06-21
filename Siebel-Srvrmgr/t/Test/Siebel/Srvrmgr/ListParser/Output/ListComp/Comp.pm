@@ -106,7 +106,7 @@ sub _constructor : Tests(2) {
 
 }
 
-sub class_attributes : Tests(16) {
+sub class_attributes : Tests(20) {
 
     my $test = shift;
 
@@ -118,7 +118,9 @@ sub class_attributes : Tests(16) {
         'actv_mts_procs', 'max_mts_procs',
         'start_datetime', 'end_datetime',
         'status',         'incarn_no',
-        'desc_text'
+        'desc_text',      'start_datetime',
+        'curr_datetime',  'end_datetime',
+        'time_zone'
     );
 
     foreach my $attrib (@attribs) {
@@ -132,8 +134,24 @@ sub class_methods : Tests(16) {
 
     my $test = shift;
 
-    can_ok( $test->{comp},
-        qw(get_current get_alias get_name get_ct_alias get_cg_alias get_run_mode get_disp_run_state get_num_run_tasks get_max_tasks get_actv_mts_procs get_max_mts_procs get_start get_end get_status get_incarn_no get_desc_text)
+    can_ok(
+        $test->{comp},
+        (
+            'get_current',        'get_alias',
+            'get_name',           'get_ct_alias',
+            'get_cg_alias',       'get_run_mode',
+            'get_disp_run_state', 'get_num_run_tasks',
+            'get_max_tasks',      'get_actv_mts_procs',
+            'get_max_mts_procs',  'get_start',
+            'get_end',            'get_status',
+            'get_incarn_no',      'get_desc_text',
+# from Moose roles
+            'get_start',          'get_current',
+            'get_end',            '_set_end',
+            'fix_endtime',        'is_running',
+            'get_datetime',       'get_duration',
+            'to_string_header',   'to_string'
+        )
     );
 
     is( $test->{comp}->get_num_run_tasks(),

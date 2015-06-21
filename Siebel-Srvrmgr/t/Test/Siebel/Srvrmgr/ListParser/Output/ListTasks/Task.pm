@@ -45,8 +45,16 @@ sub class_attributes : Tests(no_plan) {
 
     my $test = shift;
 
-    my @attribs =
-      qw(server_name comp_alias id pid run_state run_mode start_datetime end_datetime curr_datetime status group_alias parent_id incarn_no label type ping_time);
+    my @attribs = (
+        'server_name', 'comp_alias', 'id', 'pid', 'run_state', 'run_mode',
+        'start_datetime', 'end_datetime', 'curr_datetime', 'status',
+        'group_alias', 'parent_id', 'incarn_no', 'label', 'type', 'ping_time',
+
+        # from Moose roles
+        'start_datetime', 'curr_datetime', 'end_datetime', 'time_zone'
+
+    );
+
     $test->num_tests( scalar(@attribs) );
 
     for my $attrib (@attribs) {
@@ -57,7 +65,7 @@ sub class_attributes : Tests(no_plan) {
 
 }
 
-sub class_methods : Tests(10) {
+sub class_methods : Tests(14) {
 
     my $test = shift;
 
@@ -71,7 +79,14 @@ sub class_methods : Tests(10) {
         'get_parent_id',    'get_incarn_no',
         'get_label',        'get_type',
         'get_ping_time',    'to_string',
-        'to_string_header', 'get_current'
+        'to_string_header', 'get_current',
+
+        # from Moose roles
+        'get_start',        'get_current',
+        'get_end',          '_set_end',
+        'fix_endtime',      'is_running',
+        'get_datetime',     'get_duration',
+        'to_string_header', 'to_string'
     );
 
     like( $test->{task}->get_duration,
@@ -100,7 +115,7 @@ qr/SRProc\|\d{4}-\d{2}-\d{2}T\d{2}\:\d{2}\:\d{2}\|\|\|5242888\|\|\|\|20503\|\|\|
     my $header = $test->{task}->to_string_header($separator);
     is(
         $header,
-'comp_alias|curr_datetime|end_datetime|group_alias|id|incarn_no|label|parent_id|pid|ping_time|run_mode|run_state|server_name|start_datetime|status|type',
+'comp_alias|curr_datetime|end_datetime|group_alias|id|incarn_no|label|parent_id|pid|ping_time|run_mode|run_state|server_name|start_datetime|status|time_zone|type',
         'to_string_header returns the expected string'
     );
 
