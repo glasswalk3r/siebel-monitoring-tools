@@ -604,8 +604,7 @@ sub parse {
 
     }
 
-    $self->get_fsa->notes( all_data => $data_ref );
-    $self->get_fsa->notes( line_num => 0 );
+    $self->get_fsa->set_data($data_ref);
     $self->get_fsa->start() unless ( $self->get_fsa()->curr_state() );
     $data_ref = undef;
 
@@ -619,7 +618,7 @@ sub parse {
         if ( defined($state) ) {
 
             $prev_state_name = $state->name;
-            my $curr_msg = $state->notes('line');
+            my $curr_msg = $self->get_fsa()->get_curr_line();
             $found_prompt = $state->notes('found_prompt');
 
 # :TODO:03-10-2013:arfreitas: find a way to keep circular references between the two objects to avoid
@@ -677,7 +676,7 @@ sub parse {
         else {    # state hasn't changed, but let's keep getting other lines
 
             $self->set_buffer( $prev_state_name,
-                $self->get_fsa->notes('line') );
+                $self->get_fsa()->get_curr_line() );
 
         }
 

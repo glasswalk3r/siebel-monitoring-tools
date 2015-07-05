@@ -22,6 +22,18 @@ sub get_col_sep {
 
 }
 
+sub set_timezone : Test(startup) {
+
+    $ENV{SIEBEL_TZ} = 'America/Sao_Paulo';
+
+}
+
+sub unset_timezone : Test(shutdown) {
+
+    delete $ENV{IEBEL_TZ};
+
+}
+
 sub _constructor : Tests(+2) {
 
     my $test = shift;

@@ -520,18 +520,7 @@ sub BUILD {
     $SIG{INT}  = sub { $SIG_INT   = 1 };
     $SIG{PIPE} = sub { $SIG_PIPE  = 1 };
     $SIG{ALRM} = sub { $SIG_ALARM = 1 };
-
-    if ( $self->get_time_zone() =~ /^([\w\/\_]+)$/ ) {
-
-        # to avoid problems with taint mode
-        $ENV{SIEBEL_TZ} = $1;
-
-    }
-    else {
-
-        confess 'Invalid time zone: "' . $self->get_time_zone() . '"';
-
-    }
+    $ENV{SIEBEL_TZ} = $self->get_time_zone();
 
 }
 

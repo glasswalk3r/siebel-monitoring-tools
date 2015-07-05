@@ -5,6 +5,18 @@ use Test::Moose;
 use DateTime;
 use base 'Test::Siebel::Srvrmgr';
 
+sub set_timezone : Test(startup) {
+
+    $ENV{SIEBEL_TZ} = 'America/Sao_Paulo';
+
+}
+
+sub unset_timezone : Test(shutdown) {
+
+    delete $ENV{IEBEL_TZ};
+
+}
+
 sub _constructor : Tests(3) {
 
     my $test = shift;

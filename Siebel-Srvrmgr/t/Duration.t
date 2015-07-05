@@ -4,6 +4,8 @@ use Test::More tests => 1;
 use Siebel::Srvrmgr::ListParser::Output::ListComp::Comp;
 use DateTime;
 
+$ENV{SIEBEL_TZ} = 'America/Sao_Paulo';
+
 my $start = DateTime->now();
 note( 'Now is ' . $start );
 my $end           = $start->clone;
@@ -37,3 +39,5 @@ my $comp = Siebel::Srvrmgr::ListParser::Output::ListComp::Comp->new(
 
 is( $comp->get_duration, $interval_secs,
     "component executed for $interval_secs seconds" );
+
+delete $ENV{SIEBEL_TZ};

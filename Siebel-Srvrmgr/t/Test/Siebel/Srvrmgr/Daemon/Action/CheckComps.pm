@@ -28,6 +28,8 @@ sub before : Test(setup) {
 
     my $test = shift;
 
+    $ENV{SIEBEL_TZ} = 'America/Sao_Paulo';
+
     # applying roles as expected by Siebel::Srvrmgr::Daemon::Action::CheckComps
     my $comp1 = Test::Siebel::Srvrmgr::Daemon::Action::Check::Component->new(
         {
@@ -45,7 +47,7 @@ sub before : Test(setup) {
             description    => 'foobar',
             componentGroup => 'foobar',
             OKStatus       => 'Running',
-            criticality    => 5, 
+            criticality    => 5,
             taskOKStatus   => 'Running'
         }
     );
@@ -73,6 +75,12 @@ sub before : Test(setup) {
 
 }
 
+sub clean_up : Test(shutdown) {
+
+    delete $ENV{SIEBEL_TZ};
+
+}
+
 sub constructor : Tests(+2) {
 
     my $test = shift;
@@ -85,6 +93,8 @@ sub constructor : Tests(+2) {
 sub class_methods : Tests(+2) {
 
     my $test = shift;
+
+	note($ENV{SIEBEL_TZ});
 
     $test->SUPER::class_methods();
 

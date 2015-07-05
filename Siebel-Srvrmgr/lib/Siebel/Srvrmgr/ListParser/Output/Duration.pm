@@ -91,8 +91,19 @@ has 'time_zone' => (
     isa      => 'Str',
     required => 0,
     reader   => 'get_time_zone',
-    default  => $ENV{SIEBEL_TZ}
+    builder  => '_set_time_zone'
 );
+
+sub _set_time_zone {
+
+    my $tmp = $ENV{SIEBEL_TZ};
+
+    # to avoid problems with taint mode
+    $tmp =~ /^([\w\/\_]+)$/;
+
+    return $1;
+
+}
 
 =head1 METHODS
 

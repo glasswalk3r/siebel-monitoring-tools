@@ -78,10 +78,7 @@ sub new {
 
             my $self = shift;
 
-            my $curr_line = shift( @{ $self->notes('all_data') } );
-
-            # :TODO:22-02-2015 18:22:29:: add a new method to do that
-            $self->notes( 'line_num' => ( $self->notes('line_num') + 1 ) );
+            my $curr_line = shift( @{ $self->{data} } );
 
             if ( defined($curr_line) ) {
 
@@ -94,7 +91,7 @@ sub new {
                 }
                 else {
 
-                    $self->notes( line => $curr_line );
+                    $self->{curr_line} = $curr_line;
                     return 0;
 
                 }
@@ -129,10 +126,11 @@ sub new {
 
                     my $state = shift;
 
-                    if ( defined( $state->notes('line') ) ) {
+                    my $line = $state->machine()->{curr_line};
 
-                        return (
-                            $state->notes('line') =~ $map_ref->{greetings} );
+                    if ( defined($line) ) {
+
+                        return ( $line =~ $map_ref->{greetings} );
 
                     }
                     else {
@@ -145,10 +143,11 @@ sub new {
                 command_submission => sub {
 
                     my $state = shift;
+                    my $line  = $state->machine()->{curr_line};
 
-                    if ( defined( $state->notes('line') ) ) {
+                    if ( defined($line) ) {
 
-                        return ( $state->notes('line') =~ SRVRMGR_PROMPT );
+                        return ( $line =~ SRVRMGR_PROMPT );
 
                     }
                     else {
@@ -182,7 +181,8 @@ sub new {
                 command_submission => sub {
 
                     my $state = shift;
-                    return ( $state->notes('line') =~ SRVRMGR_PROMPT );
+                    my $line  = $state->machine()->{curr_line};
+                    return ( $line =~ SRVRMGR_PROMPT );
 
                 },
             ],
@@ -220,7 +220,7 @@ sub new {
                 command_submission => sub {
 
                     my $state = shift;
-                    return ( $state->notes('line') =~ SRVRMGR_PROMPT );
+                    return ( $state->machine->{curr_line} =~ SRVRMGR_PROMPT );
 
                 },
             ],
@@ -243,7 +243,7 @@ sub new {
                 command_submission => sub {
 
                     my $state = shift;
-                    return ( $state->notes('line') =~ SRVRMGR_PROMPT );
+                    return ( $state->machine->{curr_line} =~ SRVRMGR_PROMPT );
 
                 },
             ],
@@ -266,7 +266,7 @@ sub new {
                 command_submission => sub {
 
                     my $state = shift;
-                    return ( $state->notes('line') =~ SRVRMGR_PROMPT );
+                    return ( $state->machine->{curr_line} =~ SRVRMGR_PROMPT );
 
                 },
             ],
@@ -289,7 +289,7 @@ sub new {
                 command_submission => sub {
 
                     my $state = shift;
-                    return ( $state->notes('line') =~ SRVRMGR_PROMPT );
+                    return ( $state->machine->{curr_line} =~ SRVRMGR_PROMPT );
 
                 },
             ],
@@ -312,7 +312,7 @@ sub new {
                 command_submission => sub {
 
                     my $state = shift;
-                    return ( $state->notes('line') =~ SRVRMGR_PROMPT );
+                    return ( $state->machine->{curr_line} =~ SRVRMGR_PROMPT );
 
                 },
             ],
@@ -335,7 +335,7 @@ sub new {
                 command_submission => sub {
 
                     my $state = shift;
-                    return ( $state->notes('line') =~ SRVRMGR_PROMPT );
+                    return ( $state->machine->{curr_line} =~ SRVRMGR_PROMPT );
 
                 },
             ],
@@ -358,7 +358,7 @@ sub new {
                 command_submission => sub {
 
                     my $state = shift;
-                    return ( $state->notes('line') =~ SRVRMGR_PROMPT );
+                    return ( $state->machine->{curr_line} =~ SRVRMGR_PROMPT );
 
                 },
             ],
@@ -381,7 +381,7 @@ sub new {
                 command_submission => sub {
 
                     my $state = shift;
-                    return ( $state->notes('line') =~ SRVRMGR_PROMPT );
+                    return ( $state->machine->{curr_line} =~ SRVRMGR_PROMPT );
 
                 },
             ],
@@ -404,7 +404,7 @@ sub new {
                 command_submission => sub {
 
                     my $state = shift;
-                    return ( $state->notes('line') =~ SRVRMGR_PROMPT );
+                    return ( $state->machine->{curr_line} =~ SRVRMGR_PROMPT );
 
                 },
             ],
@@ -426,7 +426,7 @@ sub new {
                 }
 
                 $state->notes( found_prompt => 1 );
-                my $cmd = ( $state->notes('line') =~ SRVRMGR_PROMPT )[1];
+                my $cmd = ( $state->machine->{curr_line} =~ SRVRMGR_PROMPT )[1];
 
                 if ( ( defined($cmd) ) and ( $cmd ne '' ) ) {
 
@@ -445,9 +445,7 @@ sub new {
 
                     if ( $logger->is_debug() ) {
 
-                        $logger->debug(
-                            'got prompt, but no command submitted in line '
-                              . $state->notes('line_num') );
+                        $logger->debug('got prompt, but no command submitted');
 
                     }
 
@@ -643,7 +641,35 @@ sub new {
         }
     );
 
+    $self->{data}      = undef;
+    $self->{curr_line} = undef;
+
     return $self;
+
+}
+
+=head2 set_data
+
+Set the array reference of the data to be parsed by this object.
+
+=cut
+
+sub set_data {
+
+    my $self = shift;
+    $self->{data} = shift;
+
+}
+
+=head2 get_curr_line
+
+Returns a string, the current line being processed by this object.
+
+=cut
+
+sub get_curr_line {
+
+    return shift->{curr_line};
 
 }
 

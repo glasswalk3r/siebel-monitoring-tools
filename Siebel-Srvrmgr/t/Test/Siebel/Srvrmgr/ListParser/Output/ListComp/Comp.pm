@@ -21,6 +21,18 @@ sub get_col_sep {
 
 }
 
+sub set_timezone : Test(startup) {
+
+    $ENV{SIEBEL_TZ} = 'America/Sao_Paulo';
+
+}
+
+sub unset_timezone : Test(shutdown) {
+
+    delete $ENV{IEBEL_TZ};
+
+}
+
 # :TODO:11-01-2014:: should refactor this because behaviour is the same for other classes (maybe a Role?)
 # overriding parent's because the files will have the command itself followed by the output of it
 sub get_my_data {
@@ -145,12 +157,13 @@ sub class_methods : Tests(16) {
             'get_max_mts_procs',  'get_start',
             'get_end',            'get_status',
             'get_incarn_no',      'get_desc_text',
-# from Moose roles
-            'get_start',          'get_current',
-            'get_end',            '_set_end',
-            'fix_endtime',        'is_running',
-            'get_datetime',       'get_duration',
-            'to_string_header',   'to_string'
+
+            # from Moose roles
+            'get_start',        'get_current',
+            'get_end',          '_set_end',
+            'fix_endtime',      'is_running',
+            'get_datetime',     'get_duration',
+            'to_string_header', 'to_string'
         )
     );
 

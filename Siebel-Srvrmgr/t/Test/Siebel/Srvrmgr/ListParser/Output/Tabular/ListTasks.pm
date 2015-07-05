@@ -4,6 +4,18 @@ use Test::Moose;
 use Test::Most;
 use parent qw(Test::Siebel::Srvrmgr::ListParser::Output::Tabular);
 
+sub set_timezone : Test(startup) {
+
+    $ENV{SIEBEL_TZ} = 'America/Sao_Paulo';
+
+}
+
+sub unset_timezone : Test(shutdown) {
+
+    delete $ENV{IEBEL_TZ};
+
+}
+
 sub get_data_type {
 
     return 'list_tasks';

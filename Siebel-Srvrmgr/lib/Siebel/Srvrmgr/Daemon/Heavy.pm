@@ -148,11 +148,11 @@ Changing this value may help improving performance, but should be used with care
 =cut
 
 has read_timeout => (
-    isa     => 'Int',
+    isa     => 'Num',
     is      => 'rw',
     writer  => 'set_read_timeout',
     reader  => 'get_read_timeout',
-    default => 1
+    default => 0.5 
 );
 
 =pod
