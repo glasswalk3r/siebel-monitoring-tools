@@ -4,7 +4,7 @@ use Test::More;
 use Test::Moose qw(has_attribute_ok);
 use Cwd;
 eval "use Siebel::Srvrmgr::OS::Unix";
-plan skip_all => "Siebel::Srvrmgr::OS::Unix is required for running these tests" if $@;
+plan skip_all => "Siebel::Srvrmgr::OS::Unix is required for running these tests: $@" if $@;
 
 my $cwd            = getcwd();
 my $enterprise_log = $cwd . '/foobar.foobar666.log';
