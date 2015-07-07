@@ -78,7 +78,6 @@ use IO::Select;
 use Encode;
 use Carp qw(longmess);
 use Siebel::Srvrmgr;
-use Fcntl qw(F_GETFL F_SETFL O_NONBLOCK);
 
 extends 'Siebel::Srvrmgr::Daemon';
 
@@ -822,11 +821,6 @@ sub _create_child {
     my $params_ref = $self->_define_params();
 
     my ( $pid, $write_h, $read_h, $error_h ) = safe_open3($params_ref);
-
-    my $flags = fcntl( $read_h, F_GETFL, 0 )
-      or die "Couldn't get flags for HANDLE : $!\n";
-    fcntl( $read_h, F_SETFL, $flags | O_NONBLOCK )
-      or die "Couldn't set flags for HANDLE: $!\n";
 
     $self->_set_pid($pid);
     $self->_set_write($write_h);
