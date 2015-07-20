@@ -2,12 +2,15 @@ use warnings;
 use strict;
 use Test::More;
 use Test::Moose qw(has_attribute_ok);
-use Cwd;
+use Test::TempDir::Tiny;
+use File::Spec;
 eval "use Siebel::Srvrmgr::OS::Unix";
-plan skip_all => "Siebel::Srvrmgr::OS::Unix is required for running these tests: $@" if $@;
+plan skip_all =>
+  "Siebel::Srvrmgr::OS::Unix is required for running these tests: $@"
+  if $@;
 
-my $cwd            = getcwd();
-my $enterprise_log = $cwd . '/foobar.foobar666.log';
+my $tmp_dir = tempdir();
+my $enterprise_log = File::Spec->catfile( $tmp_dir, 'foobar.foobar666.log' );
 
 # :WORKAROUND:22-03-2015 19:58:18:: setting to this hardcode because the hack to define $0 for a running process
 # set both fname and cmndline attributes of Proc::ProcessTable::Process
@@ -29,8 +32,9 @@ plan tests => scalar(@attribs) + 9;
 
 SKIP: {
 
- # :REMARK:23-03-2015 02:23:56:: perl 5.8.9 does not allow the change of fname in /proc by changing $0
-    eval q{use Proc::Daemon;  die "This test is not supported at this version of perl ($])" unless $] > 5.012_005};
+# :REMARK:23-03-2015 02:23:56:: perl 5.8.9 does not allow the change of fname in /proc by changing $0
+    eval
+q{use Proc::Daemon;  die "This test is not supported at this version of perl ($])" unless $] > 5.012_005};
 
     skip "Cannot run this test because of \"$@\"", 8, if $@;
 
@@ -97,7 +101,8 @@ SKIP: {
 
         $daemon->Kill_Daemon($kid);
 
-        unlink $enterprise_log or warn "Failed to remove $enterprise_log: $!";
+        unlink $enterprise_log or note("Failed to remove $enterprise_log: $!");
+        rmdir $tmp_dir or note("Failed to remove $tmp_dir: $!");
 
     }
 

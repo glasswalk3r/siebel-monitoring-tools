@@ -1,12 +1,13 @@
 package Test::Siebel::Srvrmgr::Daemon;
 
-use Cwd;
 use Test::Most;
 use File::Spec;
 use Test::Moose 'has_attribute_ok';
 use Siebel::Srvrmgr::Daemon;
 use Siebel::Srvrmgr::Daemon::Command;
 use Log::Log4perl;
+use Test::TempDir::Tiny;
+use Cwd;
 use parent 'Test::Siebel::Srvrmgr';
 use Siebel::Srvrmgr;
 use Carp qw(cluck);
@@ -17,8 +18,9 @@ sub _set_log {
 
     my $test = shift;
 
-    my $log_file = File::Spec->catfile( getcwd(), 'daemon.log' );
-    $test->{log_cfg} = File::Spec->catfile( getcwd(), 'log4perl.cfg' );
+    $test->{tmp_dir} = tempdir();
+    my $log_file = File::Spec->catfile( $test->{tmp_dir}, 'daemon.log' );
+    $test->{log_cfg} = File::Spec->catfile( $test->{tmp_dir}, 'log4perl.cfg' );
 
     open( my $out, '>', $test->{log_cfg} )
       or die 'Cannot create ' . $test->{log_cfg} . ": $!\n";
@@ -86,9 +88,10 @@ sub _constructor : Tests(12) {
                     user       => $test->{test_data}->[3]->[2],
                     password   => $test->{test_data}->[4]->[2],
                     bin        => $test->{test_data}->[5]->[2],
+                    lock_dir   => $test->{tmp_dir},
                     has_lock   => 1,
-                    use_perl   => 1, 
-					time_zone => 'America/Sao_Paulo', 
+                    use_perl   => 1,
+                    time_zone  => 'America/Sao_Paulo',
                     , # important to avoid calling another interpreter besides perl when invoked by IPC::Open3
                     commands => [
                         Siebel::Srvrmgr::Daemon::Command->new(
@@ -138,8 +141,8 @@ sub bad_instance {
         user       => $test->{test_data}->[3]->[2],
         password   => $test->{test_data}->[4]->[2],
         bin        => $test->{test_data}->[5]->[2],
-        use_perl   => 1, 
-		time_zone => 'America/Sao_Paulo', 
+        use_perl   => 1,
+        time_zone  => 'America/Sao_Paulo',
         , # important to avoid calling another interpreter besides perl when invoked by IPC::Open3
         commands => [
             Siebel::Srvrmgr::Daemon::Command->new(
@@ -283,8 +286,9 @@ sub the_last_run : Test(1) {
                 password   => $test->{test_data}->[4]->[2],
                 bin        => $test->{test_data}->[5]->[2],
                 has_lock   => 1,
-                use_perl   => 1, 
-				time_zone => 'America/Sao_Paulo', 
+                lock_dir   => $test->{tmp_dir},
+                use_perl   => 1,
+                time_zone  => 'America/Sao_Paulo',
                 , # important to avoid calling another interpreter besides perl when invoked by IPC::Open3
                 commands => [
                     Siebel::Srvrmgr::Daemon::Command->new(
@@ -386,6 +390,9 @@ sub clean_up : Test(shutdown) {
         }
 
     }
+
+    rmdir $test->{tmp_dir}
+      or note( 'Failed to remove ' . $test->{tmp_dir} . ": $!" );
 
     $ENV{SIEBEL_SRVRMGR_DEBUG} = undef;
 

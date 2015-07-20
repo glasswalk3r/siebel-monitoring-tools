@@ -6,6 +6,7 @@ use Siebel::Srvrmgr::Daemon::Action::CheckComps;
 use Siebel::Srvrmgr::Daemon::ActionStash;
 use Cwd;
 use File::Spec;
+use Test::TempDir::Tiny;
 use lib 't';
 use Test::Siebel::Srvrmgr::Daemon::Action::Check::Component;
 use Test::Siebel::Srvrmgr::Daemon::Action::Check::Server;
@@ -45,7 +46,7 @@ if (    ( exists( $ENV{SIEBEL_SRVRMGR_DEVEL} ) )
                 $cfg->val( 'GENERAL', 'srvrmgr_bin' )
             ),
             use_perl     => 0,
-			time_zone => 'America/Sao_Paulo', 
+            time_zone    => 'America/Sao_Paulo',
             read_timeout => 15,
             commands     => [
                 Siebel::Srvrmgr::Daemon::Command->new(
@@ -71,16 +72,16 @@ else {
 
     $daemon = Siebel::Srvrmgr::Daemon::Heavy->new(
         {
-            gateway     => 'whatever',
-            enterprise  => 'whatever',
-            user        => 'whatever',
-            password    => 'whatever',
-            server      => 'whatever',
-            bin         => File::Spec->catfile( getcwd(), 'srvrmgr-mock.pl' ),
-            use_perl    => 1,
-			time_zone => 'America/Sao_Paulo', 
-            timeout     => 0,
-            commands    => [
+            gateway    => 'whatever',
+            enterprise => 'whatever',
+            user       => 'whatever',
+            password   => 'whatever',
+            server     => 'whatever',
+            bin        => File::Spec->catfile( getcwd(), 'srvrmgr-mock.pl' ),
+            use_perl   => 1,
+            time_zone  => 'America/Sao_Paulo',
+            timeout    => 0,
+            commands   => [
                 Siebel::Srvrmgr::Daemon::Command->new(
                     command => 'list comp',
                     action  => 'CheckComps',
@@ -95,7 +96,7 @@ else {
 my $repeat      = 12;
 my $total_tests = ( scalar( @{ $server->components() } ) + 2 ) * $repeat;
 plan tests => $total_tests;
-set_log();
+my ( $tmp_dir, $log_file, $log_cfg ) = set_log();
 my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
 
 for ( 1 .. $repeat ) {
@@ -127,15 +128,17 @@ for ( 1 .. $repeat ) {
 
 END {
 
-    my $log_file = File::Spec->catfile( getcwd(), 'daemon.log' );
-    unlink $log_file or diag("could not remove $log_file");
+    unlink $log_file or diag("could not remove $log_file: $!");
+    unlink $log_cfg  or diag("could not remove $log_cfg: $!");
+    rmdir $tmp_dir   or diag("could not remove $tmp_dir: $!");
 
 }
 
 sub set_log {
 
-    my $log_file = File::Spec->catfile( getcwd(), 'daemon.log' );
-    my $log_cfg  = File::Spec->catfile( getcwd(), 'log4perl.cfg' );
+    my $tmp_dir  = tempdir();
+    my $log_file = File::Spec->catfile( $tmp_dir, 'daemon.log' );
+    my $log_cfg  = File::Spec->catfile( $tmp_dir, 'log4perl.cfg' );
 
     my $config = <<BLOCK;
 log4perl.logger.Siebel.Srvrmgr.Daemon = WARN, LOG1
@@ -152,6 +155,8 @@ BLOCK
     close($out) or die 'Could not close ' . $log_cfg . ": $!\n";
 
     $ENV{SIEBEL_SRVRMGR_DEBUG} = $log_cfg;
+
+    return $tmp_dir, $log_file, $log_cfg;
 
 }
 
