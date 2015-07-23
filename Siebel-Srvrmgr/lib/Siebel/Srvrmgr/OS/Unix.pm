@@ -179,6 +179,28 @@ has limits_callback => (
     writer => 'set_callback'
 );
 
+=head2 last_line
+
+The last line read from the Siebel Enterprise log. One can use this attribute to avoid reading again the whole Siebel Enterprise log file.
+
+The atribute holds an integer, which is by default zero and is also read-only.
+
+It will be updated internally only if the attribute C<use_last_line> is set to true.
+
+=cut
+
+has last_line => ( is => 'ro', isa => 'Int', reader => 'get_last_line', writer => '_set_last_line', default => 0 );
+
+=head2 use_last_line
+
+A boolean attribute, by default set to false.
+
+If set to true, the attribute C<last_line> will be updated with the last line number read from the Siebel Enterprise log file.
+
+=cut
+
+has use_last_line => ( is => 'ro', isa => 'Bool', reader => 'use_last_line', default => 0 );
+
 =head1 METHODS
 
 =head2 get_procs
@@ -276,7 +298,7 @@ sub get_procs {
 
         next unless ( $process->cmndline =~ $cmd_regex );
 
-        # :WORKAROUND:22-03-2015 20:54:51:: forcing convertion to number
+        # :WORKAROUND:22-03-2015 20:54:51:: forcing conversion to number
         my $pctcpu = $process->pctcpu;
         $pctcpu =~ s/\s//;
         $pctcpu += 0;
@@ -368,24 +390,54 @@ sub _find_pid {
 
     open( my $in, '<', $self->get_ent_log )
       or die( 'Cannot read ' . $self->get_ent_log . ": $!" );
+      
+    my $last_line = $self->get_last_line();
+    
+    # WORKAROUND: to avoid testing for every line of the log file read, the while loop was duplicated
+    if ( $self->use_last_line() ) {
 
-    while ( my $line = <$in> ) {
-
-        chomp($line);
-
-        if ( $line =~ $create_regex ) {
-
+        while ( my $line = <$in> ) {
+        
+            next unless( ( $last_line == 0 ) or ( $. > $last_line ) );
+            chomp($line);
             my @parts = split( /\t/, $line );
-            $parts[7] =~ s/\s(\w)+\s//;
-            $parts[7] =~ tr/)//d;
 
-            # pid => component alias
-            $comps{ $parts[6] } = $parts[7];
+            if ( $line =~ $create_regex ) {
+
+                $parts[7] =~ s/\s(\w)+\s//;
+                $parts[7] =~ tr/)//d;
+
+                # pid => component alias
+                $comps{ $parts[6] } = $parts[7];
+                next;
+
+            }
 
         }
+    
+    } else {
 
+        while ( my $line = <$in> ) {
+        
+            chomp($line);
+            my @parts = split( /\t/, $line );
+
+            if ( $line =~ $create_regex ) {
+
+                $parts[7] =~ s/\s(\w)+\s//;
+                $parts[7] =~ tr/)//d;
+
+                # pid => component alias
+                $comps{ $parts[6] } = $parts[7];
+                next;
+
+            }
+
+        }
+    
     }
 
+    $self->_set_last_line( $. ) if ( $self->use_last_line() );
     close($in);
 
     foreach my $proc_pid ( keys( %{$procs_ref} ) ) {
