@@ -367,7 +367,7 @@ sub _find_pid {
     local $/ = "\015\012";
 
     open( my $in, '<', $self->get_ent_log )
-      or die( 'Cannot read ' . $self->get_ent_log . ': $!' );
+      or die( 'Cannot read ' . $self->get_ent_log . ": $!" );
 
     while ( my $line = <$in> ) {
 
