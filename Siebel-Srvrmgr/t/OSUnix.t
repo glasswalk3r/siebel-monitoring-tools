@@ -9,124 +9,205 @@ plan skip_all =>
   "Siebel::Srvrmgr::OS::Unix is required for running these tests: $@"
   if $@;
 
-my $tmp_dir = tempdir();
-my $enterprise_log = File::Spec->catfile( $tmp_dir, 'foobar.foobar666.log' );
+use constant TMP_DIR => tempdir();
+use constant ENTERPRISE_LOG =>
+  File::Spec->catfile( TMP_DIR, 'foobar.foobar666.log' );
+
+# number of attributes + other tests
+use constant TOTAL_TESTS => 8 + 9;
 
 # :WORKAROUND:22-03-2015 19:58:18:: setting to this hardcode because the hack to define $0 for a running process
 # set both fname and cmndline attributes of Proc::ProcessTable::Process
-my $proc_name = 'siebmtshmw';
-my @attribs =
-  (
-    qw(enterprise_log parent_regex cmd_regex mem_limit cpu_limit limits_callback)
-  );
+use constant PROC_NAME => 'siebmtshmw';
 
-my @methods = (
-    'get_ent_log',      'set_ent_log',
-    'get_parent_regex', 'set_parent_regex',
-    'get_cmd',          'set_cmd',
-    'get_mem_limit',    'set_mem_limit',
-    '_find_pid',        'get_procs'
-);
+plan tests => TOTAL_TESTS;
 
-plan tests => scalar(@attribs) + 9;
+if ( $] >= 5.012_005 ) {
 
-SKIP: {
+  SKIP: {
 
-# :REMARK:23-03-2015 02:23:56:: perl 5.8.9 does not allow the change of fname in /proc by changing $0
-    eval
+        eval
 q{use Proc::Daemon;  die "This test is not supported at this version of perl ($])" unless $] > 5.012_005};
 
-    skip "Cannot run this test because of \"$@\"", 8, if $@;
+        skip "Cannot run this test because of \"$@\"", TOTAL_TESTS, if $@;
 
-    my $daemon = Proc::Daemon->new();
+        my $daemon = Proc::Daemon->new();
 
-    my $kid = $daemon->init();
+        my $kid = $daemon->init();
 
-    unless ($kid) {
+        unless ($kid) {
 
-        local $0 = $proc_name;
+            local $0 = PROC_NAME;
 
-        #let's put child to do something
-        while (1) {
+            #let's put child to do something
+            while (1) {
 
-            my $a = 0;
-            my $b = 1;
-            my $n = 2000;
+                my $a = 0;
+                my $b = 1;
+                my $n = 2000;
 
-            for ( 0 .. ( $n - 1 ) ) {
-                my $sum = $a + $b;
-                $a = $b;
-                $b = $sum;
+                for ( 0 .. ( $n - 1 ) ) {
+                    my $sum = $a + $b;
+                    $a = $b;
+                    $b = $sum;
+                }
+
+                sleep 1;
+
             }
 
-            sleep 1;
+        }
+        else {
+
+            my $procs = fixtures($kid);
+            test_attributes($procs);
+            test_methods($procs);
+            test_operations( $procs->get_procs );
+            $daemon->Kill_Daemon($kid);
 
         }
 
     }
-    else {
 
-        # giving some time to get data into /proc
-        sleep 3;
+}
+else {
 
-        create_ent_log( $kid, $enterprise_log );
-        my $procs = Siebel::Srvrmgr::OS::Unix->new(
-            {
-                enterprise_log => $enterprise_log,
-                cmd_regex      => "^$proc_name",
-                parent_regex =>
-'Created\s(multithreaded\s)?server\sprocess\s\(OS\spid\s\=\s+\d+\s+\)\sfor\s\w+'
-            }
-        );
+  SKIP: {
 
-        my $procs_ref = $procs->get_procs;
-        is( ref($procs_ref), 'HASH', 'get_procs returns a hash reference' );
-        is( scalar( keys( %{$procs_ref} ) ),
-            1, 'get_procs returns a single process' );
-        my $pid = ( keys( %{$procs_ref} ) )[0];
-        is( $procs_ref->{$pid}->{comp_alias},
-            'EAIObjMgr_enu',
-            'process has the correct component alias associated' );
-        is( $procs_ref->{$pid}->{fname},
-            'siebmtshmw', 'process has the correct process name' );
+# :REMARK:23-03-2015 02:23:56:: perl 5.8.9 does not allow the change of fname in /proc by changing $0
+        eval q{use Proc::Background};
 
-        my $float   = qr/\d+(\.\d+)?/;
-        my $integer = qr/\d+/;
+        skip "Cannot run this test because of \"$@\"", TOTAL_TESTS, if $@;
 
-        like( $procs_ref->{$pid}->{pctcpu}, $float, 'process %CPU is a float' );
-        like( $procs_ref->{$pid}->{pctmem},
-            $float, 'process %memory is a float' );
-        like( $procs_ref->{$pid}->{rss}, $integer, 'process RSS is a integer' );
-        like( $procs_ref->{$pid}->{vsz}, $integer, 'process VSZ is a integer' );
+        my $proc_path = File::Spec->catfile( TMP_DIR, PROC_NAME );
 
-        $daemon->Kill_Daemon($kid);
+        open( my $script, '>', $proc_path )
+          or die "Cannot create $$proc_path: $!";
 
-        unlink $enterprise_log or note("Failed to remove $enterprise_log: $!");
-        rmdir $tmp_dir or note("Failed to remove $tmp_dir: $!");
+        my $code = q(#!/usr/bin/perl
+#let's put child to do something
+while (1) {
+
+    my $a = 0;
+    my $b = 1;
+    my $n = 2000;
+
+    for ( 0 .. ( $n - 1 ) ) {
+        my $sum = $a + $b;
+        $a = $b;
+        $b = $sum;
+    }
+
+    sleep 1;
+
+});
+
+        print $script $code;
+        close($script);
+        chmod 0700, $proc_path;
+        my $siebel_proc = Proc::Background->new($proc_path);
+        my $procs       = fixtures( $siebel_proc->pid );
+        test_attributes($procs);
+        test_methods($procs);
+        test_operations( $procs->get_procs );
+        $siebel_proc->die;
 
     }
 
 }
 
-basic_tests();
-
 ###################################################
 # SUBS
+#
 
-sub basic_tests {
+sub fixtures {
 
-    my $procs = Siebel::Srvrmgr::OS::Unix->new(
+    my $pid = shift;
+
+    note("Running tests against perl $], child PID is $pid");
+
+    # giving some time to get data into /proc
+    sleep 3;
+
+    create_ent_log( $pid, ENTERPRISE_LOG );
+    return Siebel::Srvrmgr::OS::Unix->new(
         {
-            enterprise_log => $enterprise_log,
-            cmd_regex      => "^$proc_name",
-
-            #Created multithreaded server process (OS pid = 	9644	) for SRProc
+            enterprise_log => ENTERPRISE_LOG,
+            #cmd_regex      => ( '^' . PROC_NAME ),
+            cmd_regex      => (PROC_NAME . '$'),
             parent_regex =>
-'Created\s(multithreaded\s)?server\sprocess\s\(OS\spid\s\=\s+\d+\s+\)\sfor\s\w+_\w+'
+'Created\s(multithreaded\s)?server\sprocess\s\(OS\spid\s\=\s+\d+\s+\)\sfor\s\w+'
         }
     );
 
+}
+
+END {
+
+    unlink ENTERPRISE_LOG
+      or note( 'Failed to remove ' . ENTERPRISE_LOG . ": $!" );
+    rmdir TMP_DIR or note( 'Failed to remove ' . TMP_DIR . ": $!" );
+
+}
+
+sub test_operations {
+
+    my $procs_ref = shift;
+
+    is( ref($procs_ref), 'HASH', 'get_procs returns a hash reference' );
+
+# :WORKAROUND:21-06-2015 12:53:45:: avoid getting other undesired process beside the one we are forcing as "Siebel process"
+    foreach my $pid ( keys( %{$procs_ref} ) ) {
+
+        if ( $procs_ref->{$pid}->{comp_alias} eq 'N/A' ) {
+
+            delete $procs_ref->{$pid};
+
+        }
+
+    }
+
+    is( scalar( keys( %{$procs_ref} ) ),
+        1, 'get_procs returns a single process' );
+    my $pid = ( keys( %{$procs_ref} ) )[0];
+    is( $procs_ref->{$pid}->{comp_alias},
+        'EAIObjMgr_enu', 'process has the correct component alias associated' );
+    is( $procs_ref->{$pid}->{fname},
+        'siebmtshmw', 'process has the correct process name' );
+
+    my $float   = qr/\d+(\.\d+)?/;
+    my $integer = qr/\d+/;
+
+    like( $procs_ref->{$pid}->{pctcpu}, $float, 'process %CPU is a float' );
+    like( $procs_ref->{$pid}->{pctmem}, $float, 'process %memory is a float' );
+    like( $procs_ref->{$pid}->{rss}, $integer, 'process RSS is a integer' );
+    like( $procs_ref->{$pid}->{vsz}, $integer, 'process VSZ is a integer' );
+
+}
+
+sub test_methods {
+
+    my $procs   = shift;
+    my @methods = (
+        'get_ent_log',      'set_ent_log',
+        'get_parent_regex', 'set_parent_regex',
+        'get_cmd',          'set_cmd',
+        'get_mem_limit',    'set_mem_limit',
+        '_find_pid',        'get_procs',
+        'use_last_line',    'get_last_line',
+        '_set_last_line'
+    );
     can_ok( $procs, @methods );
+
+}
+
+sub test_attributes {
+
+    my $procs = shift;
+    my @attribs =
+      (
+        qw(enterprise_log parent_regex cmd_regex mem_limit cpu_limit limits_callback last_line use_last_line)
+      );
 
     foreach my $attrib (@attribs) {
 

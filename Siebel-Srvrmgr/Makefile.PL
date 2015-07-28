@@ -42,8 +42,8 @@ my %config = (
         'Config::IniFiles'         => "2.83",
         'Proc::Daemon'             => "0.18",
         'Proc::Background'         => "1.10",
-        'Devel::Gladiator'         => "0.07"
-
+        'Devel::Gladiator'         => "0.07",
+        'Test::TempDir::Tiny'      => "0.004"
     },
     EXE_FILES  => ['srvrmgr-mock.pl'],
     META_MERGE => {
@@ -62,8 +62,7 @@ my %config = (
     },
     dist => { SUFFIX => '.gz', COMPRESS => 'gzip --best' },
     (
-        $] >= 5.010
-        ?    ## Add these new keywords supported since 5.005
+        $] >= 5.010 ?    ## Add these new keywords supported since 5.005
           (
             ABSTRACT_FROM =>
               'lib/Siebel/Srvrmgr.pm',    # retrieve abstract from module
