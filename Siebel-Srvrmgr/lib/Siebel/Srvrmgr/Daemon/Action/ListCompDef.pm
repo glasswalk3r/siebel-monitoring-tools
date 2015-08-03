@@ -23,7 +23,6 @@ Siebel::Srvrmgr::Daemon::Action::ListCompDef - subclass of Siebel::Srvrmgr::Daem
 =cut
 
 use namespace::autoclean;
-use Storable qw(nstore);
 use Moose;
 
 extends 'Siebel::Srvrmgr::Daemon::Action';
@@ -57,9 +56,7 @@ override 'do_parsed' => sub {
 
     if ( $obj->isa( $self->get_exp_output() ) ) {
 
-        my $data = $obj->get_data_parsed();
-
-        nstore $data, $self->get_dump_file();
+        $self->store( $obj->get_data_parsed );
 
         return 1;
 
@@ -82,7 +79,7 @@ override '_build_exp_output' => sub {
 
 =head1 SEE ALSO
 
-=over 4
+=over
 
 =item *
 

@@ -14,7 +14,7 @@ use constant ENTERPRISE_LOG =>
   File::Spec->catfile( TMP_DIR, 'foobar.foobar666.log' );
 
 # number of attributes + other tests
-use constant TOTAL_TESTS => 8 + 9;
+use constant TOTAL_TESTS => 8 + 11;
 
 # :WORKAROUND:22-03-2015 19:58:18:: setting to this hardcode because the hack to define $0 for a running process
 # set both fname and cmndline attributes of Proc::ProcessTable::Process
@@ -62,7 +62,7 @@ q{use Proc::Daemon;  die "This test is not supported at this version of perl ($]
             my $procs = fixtures($kid);
             test_attributes($procs);
             test_methods($procs);
-            test_operations( $procs->get_procs );
+            test_operations($procs);
             $daemon->Kill_Daemon($kid);
 
         }
@@ -109,7 +109,7 @@ while (1) {
         my $procs       = fixtures( $siebel_proc->pid );
         test_attributes($procs);
         test_methods($procs);
-        test_operations( $procs->get_procs );
+        test_operations($procs);
         $siebel_proc->die;
 
     }
@@ -133,8 +133,8 @@ sub fixtures {
     return Siebel::Srvrmgr::OS::Unix->new(
         {
             enterprise_log => ENTERPRISE_LOG,
-            #cmd_regex      => ( '^' . PROC_NAME ),
-            cmd_regex      => (PROC_NAME . '$'),
+            cmd_regex      => ( PROC_NAME . '$' ),
+            use_last_line  => 1,
             parent_regex =>
 'Created\s(multithreaded\s)?server\sprocess\s\(OS\spid\s\=\s+\d+\s+\)\sfor\s\w+'
         }
@@ -152,7 +152,8 @@ END {
 
 sub test_operations {
 
-    my $procs_ref = shift;
+    my $procs     = shift;
+    my $procs_ref = $procs->get_procs();
 
     is( ref($procs_ref), 'HASH', 'get_procs returns a hash reference' );
 
@@ -182,6 +183,10 @@ sub test_operations {
     like( $procs_ref->{$pid}->{pctmem}, $float, 'process %memory is a float' );
     like( $procs_ref->{$pid}->{rss}, $integer, 'process RSS is a integer' );
     like( $procs_ref->{$pid}->{vsz}, $integer, 'process VSZ is a integer' );
+
+    ok( $procs->use_last_line, 'use_last_line method returns true' );
+    is( $procs->get_last_line, 50,
+        'get_last_line returns the expected last line position' );
 
 }
 

@@ -3,7 +3,8 @@ package Test::Siebel::Srvrmgr::Daemon::Action;
 use Test::Most;
 use Siebel::Srvrmgr::ListParser;
 use Test::Moose 'has_attribute_ok';
-use Cwd;
+use Test::TempDir::Tiny;
+use File::Spec;
 use parent qw(Test::Siebel::Srvrmgr);
 
 sub get_parser {
@@ -54,10 +55,19 @@ sub get_col_sep {
 
 }
 
+sub get_temp_dir {
+
+    my $test = shift;
+    return $test->{temp_dir};
+
+}
+
 sub before : Tests(setup) {
 
     my $test       = shift;
     my $params_ref = shift;
+
+    $test->{temp_dir} = tempdir();
 
     if (    ( $test->get_struct() eq 'delimited' )
         and ( defined( $test->get_col_sep() ) ) )
@@ -94,7 +104,8 @@ sub before : Tests(setup) {
             $test->class()->new(
                 {
                     parser => $test->get_parser(),
-                    params => ['foobar']
+                    params =>
+                      [ File::Spec->catfile( $test->{temp_dir}, 'foobar' ) ]
                 }
             )
         );
@@ -173,7 +184,7 @@ sub clean_up : Test(shutdown) {
     my $test = shift;
 
     # removes the dump files
-    my $dir = getcwd();
+    my $dir = $test->get_temp_dir();
 
     opendir( DIR, $dir ) or die "Cannot read $dir: $!\n";
     my @files = readdir(DIR);
@@ -187,11 +198,14 @@ sub clean_up : Test(shutdown) {
 
         if ( $file =~ /$regex/ ) {
 
-            unlink $file or warn "Cannot remove $file: $!\n";
+            my $path = File::Spec->catfile( $dir, $file );
+            unlink $path or diag("Cannot remove $path: $!");
 
         }
 
     }
+
+    rmdir($dir) or diag("Cannot remove $dir: $!");
 
 }
 

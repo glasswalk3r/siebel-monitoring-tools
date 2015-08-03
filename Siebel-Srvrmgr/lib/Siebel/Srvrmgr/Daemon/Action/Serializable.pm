@@ -1,6 +1,8 @@
 package Siebel::Srvrmgr::Daemon::Action::Serializable;
 
 use Moose::Role;
+use Storable qw(nstore);
+use Carp;
 
 =pod
 
@@ -79,19 +81,49 @@ sub BUILD {
 
 }
 
-=pod
+=head2 store
+
+Serializes a arbitrary data reference to the file as returned by C<get_dump_file> method. That serialization is done with L<Storable> module C<nstore> function.
+
+Expects as parameters a data reference.
+
+Returns any value returned by the C<nstore> function.
+
+=cut
+
+sub store {
+
+    my $self     = shift;
+    my $data_ref = shift;
+
+    confess "the received parameter is not a reference"
+      if ( ref($data_ref) eq '' );
+
+    nstore $data_ref, $self->get_dump_file();
+
+}
 
 =head1 SEE ALSO
 
+=over
+
+=item *
+
 L<Siebel::Srvrmgr::Daemon::Action>
+
+=item *
+
+L<Storable>
+
+=back
 
 =head1 AUTHOR
 
-Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<Egt>
+Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2012 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.org<E<gt>
+This software is copyright (c) 2012 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
 
 This file is part of Siebel Monitoring Tools.
 

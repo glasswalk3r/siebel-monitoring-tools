@@ -19,7 +19,6 @@ Siebel::Srvrmgr::Daemon::Action::ListCompTypes - subclass for parsing list comp 
 
 use Moose;
 use namespace::autoclean;
-use Storable qw(nstore);
 
 extends 'Siebel::Srvrmgr::Daemon::Action';
 with 'Siebel::Srvrmgr::Daemon::Action::Serializable';
@@ -36,7 +35,7 @@ given as parameter to the C<do> method and stores the parsed data from this obje
 =head2 do_parsed
 
 It will check if the object given as parameter is a L<Siebel::Srvrmgr::ListParser::Output::ListCompDef> object. If true, it is serialized to the 
-filesystem with C<nstore> and the function returns 1 in this case. If none is found it will return 0.
+filesystem with C<store> method of L<Siebel::Srvrmgr::Daemon::Action::Serializable> class.
 
 =cut
 
@@ -47,9 +46,7 @@ override 'do_parsed' => sub {
 
     if ( $obj->isa( $self->get_exp_output() ) ) {
 
-        my $data = $obj->get_data_parsed();
-
-        nstore $data, $self->get_dump_file();
+		$self->store($obj->get_data_parsed());
 
         return 1;
 

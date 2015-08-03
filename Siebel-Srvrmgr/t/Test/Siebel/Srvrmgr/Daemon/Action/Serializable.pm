@@ -5,11 +5,13 @@ use Test::Most;
 use Test::Moose;
 use Siebel::Srvrmgr::ListParser;
 use Storable;
-use Socket qw(:crlf);
+use Test::TempDir::Tiny;
+use File::Spec;
+use utf8;
 
 # :WORKAROUND:25/06/2013 16:34:40::
-# this package was created because it seems impossible to use Test::Class with two superclasses being inherited, being one of them a role
-# because of that, this superclass will not be a subclass of Test::Siebel::Srvrmgr::Daemon::Action and all tests will focus on test the
+# This package was created because it seems impossible to use Test::Class with two superclasses being inherited, being one of them a role.
+# Because of that, this superclass will not be a subclass of Test::Siebel::Srvrmgr::Daemon::Action and all tests will focus on test the
 # usage of Siebel::Srvrmgr::Daemon::Action::Serializable Moose role
 # the scheme of defining automatically the class to be tested does not seems to work if it is desired to override Test::Siebel::Srvrmgr startup
 # method
@@ -17,6 +19,7 @@ use Socket qw(:crlf);
 BEGIN {
     __PACKAGE__->mk_classdata('class');
     __PACKAGE__->mk_classdata('role');
+    __PACKAGE__->mk_classdata('temp_dir');
 }
 
 __PACKAGE__->SKIP_CLASS(1);
@@ -44,6 +47,7 @@ sub startup : Test( startup => 1 ) {
     $test->class($class);
 
     $test->role('Siebel::Srvrmgr::Daemon::Action::Serializable');
+    $test->temp_dir( tempdir() );
 
     $test->{action} = $test->class()->new(
         {
@@ -57,6 +61,8 @@ sub startup : Test( startup => 1 ) {
 sub get_my_data {
 
     my $test = shift;
+    my $CR   = \015;
+    my $LF   = \012;
 
     if ( exists( $test->{data} ) ) {
 
@@ -66,16 +72,10 @@ sub get_my_data {
     else {
 
         my $handle = ref($test) . '::DATA';
-
-        my @data = <$handle>;
-
-        local $/ = LF;
-
+        my @data   = <$handle>;
         foreach (@data) { s/$CR?$LF/\n/ }
         chomp(@data);
-
         close($handle);
-
         return $test->{data} = \@data;
 
     }
@@ -89,7 +89,7 @@ sub get_dump {
     my $name = __PACKAGE__;
     $name =~ s/\:{2}/_/g;
 
-    return $name . '_storable';
+    return File::Spec->catfile( $test->temp_dir(), ( $name . '_storable' ) );
 
 }
 
@@ -105,7 +105,7 @@ sub class_methods : Tests(3) {
 
     my $test = shift;
 
-    can_ok( $test->{action}, qw(get_dump_file set_dump_file) );
+    can_ok( $test->{action}, qw(get_dump_file set_dump_file store) );
 
     is( $test->{action}->get_dump_file(),
         $test->get_dump(), 'get_dump_file returns the correct string' );
@@ -125,7 +125,7 @@ sub DESTROY {
         if ( -e $test->get_dump() ) {
 
             unlink( $test->get_dump() )
-              or warn 'Cannot remove ' . $test->get_dump() . ': ' . $!;
+              or diag( 'Cannot remove ' . $test->get_dump() . ': ' . $! );
 
         }
 
