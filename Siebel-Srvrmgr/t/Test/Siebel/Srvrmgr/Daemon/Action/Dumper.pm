@@ -14,7 +14,7 @@ sub class_methods : Test(+1) {
         open( STDOUT, '>', \$test_data )
           or die "Failed to redirect STDOUT to in-memory file: $!";
 
-        $test->{action}->do( $test->get_my_data() );
+     	$test->{action}->do( $test->get_my_data() );
 
         like(
             $test_data,

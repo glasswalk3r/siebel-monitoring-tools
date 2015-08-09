@@ -126,14 +126,6 @@ for ( 1 .. $repeat ) {
 
 }
 
-END {
-
-    unlink $log_file or diag("could not remove $log_file: $!");
-    unlink $log_cfg  or diag("could not remove $log_cfg: $!");
-    rmdir $tmp_dir   or diag("could not remove $tmp_dir: $!");
-
-}
-
 sub set_log {
 
     my $tmp_dir  = tempdir();

@@ -5,6 +5,7 @@ use Siebel::Srvrmgr::ListParser;
 use Test::Moose 'has_attribute_ok';
 use Test::TempDir::Tiny;
 use File::Spec;
+use Config;
 use parent qw(Test::Siebel::Srvrmgr);
 
 sub get_parser {
@@ -192,6 +193,15 @@ sub clean_up : Test(shutdown) {
 
 # :TODO      :08/07/2013 12:50:22:: change for a proper interface instead hoping for data structure be the expected
     my $filename = '^' . ( @{ $test->get_action()->get_params() } )[0];
+	
+	# to avoid warnings with matching regular expression due the backslash used
+	# by Windows
+	if ( $Config{osname} eq 'MSWin32' ) {
+	
+		$filename =~ s/\\/\\\\/g;
+	
+	}
+	
     my $regex = qr/$filename/;
 
     foreach my $file (@files) {

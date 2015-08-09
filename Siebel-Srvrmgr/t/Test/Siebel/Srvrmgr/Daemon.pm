@@ -354,7 +354,6 @@ sub clean_up : Test(shutdown) {
     if ( exists( $test->{daemon} ) ) {
 
         delete( $test->{daemon} );
-        note("removed daemon reference");
 
     }
 
@@ -378,21 +377,25 @@ sub clean_up : Test(shutdown) {
 
     close(DIR);
 
-    push( @files, $test->{log_cfg} );
-    push( @files, $test->{log_file} );
-
     foreach my $file (@files) {
 
         if ( -e $file ) {
 
-            unlink $file or diag("Cannot remove $file: $!")
+            my $exit = unlink $file;
+			
+			if ( $exit ) {
+			
+				 note("$file removed successfully");
+			
+			} else {
+
+				note("Cannot remove $file: $!");
+			
+			}
 
         }
 
     }
-
-    rmdir $test->{tmp_dir}
-      or note( 'Failed to remove ' . $test->{tmp_dir} . ": $!" );
 
     $ENV{SIEBEL_SRVRMGR_DEBUG} = undef;
 
