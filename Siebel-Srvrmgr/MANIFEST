@@ -133,7 +133,6 @@ t/ListSessions.t
 t/ListTasks.t
 t/LoadPreferences.t
 t/OSUnix.t
-t/OSUnix_simple.t
 t/output/delimited/8.0.0.2_20412.txt
 t/output/delimited/8.1.1.7_21238.txt
 t/output/delimited/list_comp.txt
