@@ -58,6 +58,8 @@ None by default.
 	Proc::Daemon [0.18]
 	Proc::ProcessTable [0.51]
 	Term::YAP [0.03]
+	Set::Tiny [0.02]
+	Test::TempDir::Tiny [0.004]
 
 =head1 SEE ALSO
 
