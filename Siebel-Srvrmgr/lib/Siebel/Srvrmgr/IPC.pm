@@ -30,6 +30,8 @@ use Symbol 'gensym';
 use IO::Socket;
 use Config;
 use POSIX qw(WIFEXITED WEXITSTATUS WIFSIGNALED WTERMSIG WIFSTOPPED);
+use warnings;
+use strict;
 
 =pod
 

@@ -138,7 +138,7 @@ L<Siebel::Srvrmgr::ListParser>
 
 =item *
 
-The project web page at L<http://code.google.com/p/siebel-monitoring-tools/> contains more information about project features and state.
+The project web page at L<https://github.com/glasswalk3r/siebel-monitoring-tools/> contains more information about project features and state.
 
 =back
 

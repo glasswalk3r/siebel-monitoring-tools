@@ -1,5 +1,7 @@
 package Siebel::Srvrmgr::Regexes;
 
+use warnings;
+use strict;
 require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT_OK =
