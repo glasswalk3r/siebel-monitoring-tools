@@ -4,6 +4,11 @@ use Moose;
 use Proc::ProcessTable;
 use namespace::autoclean;
 use Set::Tiny;
+use File::Copy;
+use File::Temp qw(tempfile);
+use Carp qw(cluck confess);
+use String::BOM qw(strip_bom_from_string);
+use Digest::MD5 qw(md5_base64);
 
 =pod
 
@@ -32,12 +37,12 @@ Siebel::Srvrmgr::OS::Unix - module to recover information from OS processes of S
 
 This module is a L<Moose> class.
 
-It is responsible to recover information from a UNIX-like operation system to be able to merge with information
-regarding Siebel components.
+It is responsible to recover information from processes executing on a UNIX-like O.S. and merging that with information of Siebel components.
 
-This class represents the processes of a single Siebel Server and will recover processes information from C</proc> directory.
+Details on running processes are recovered from C</proc> directory meanwhile the details about the components are read from the Siebel Enterprise log file. 
 
-Additionally, this class has a method to search the Siebel enterprise log file for processes information as well.
+This enables one to create a "cheap" (in the sense of not needing to connect to the Siebel Server) component monitor to recover periodic information about CPU, memory, etc, usage by the Siebel 
+components.
 
 =head1 ATTRIBUTES
 
@@ -61,9 +66,20 @@ has enterprise_log => (
 
 Required attribute.
 
-A string of the regular expression to match the components PID logged in the Siebel Enterprise log file.
+A string of the regular expression to match the components PID logged in the Siebel Enterprise log file. The regex should match the text in the sixth "column" (considering
+that they are separated by a tab character) of a Siebel Enterprise log. Since the Siebel Enterprise may contain different language settings, this parameter is required and 
+will depend on the language set.
 
-Since the enterprise may contain different language settings, this parameter is required and will depend on the language set.
+An example of configuration will help understand. Take your time to review the piece of Enterprise log file below:
+
+    ServerLog	ComponentUpdate	2	0000149754f82575:0	2015-03-05 13:15:41	AdminNotify	STARTING	Component is starting up.
+    ServerLog	ComponentUpdate	2	0000149754f82575:0	2015-03-05 13:15:41	AdminNotify	INITIALIZED	Component has initialized (no spawned procs).
+    ServerLog	ComponentUpdate	2	0000149754f82575:0	2015-03-05 13:15:41	SvrTaskPersist	STARTING	Component is starting up.
+    ServerLog	ProcessCreate	1	0000149754f82575:0	2015-03-05 13:15:41	Created multithreaded server process (OS pid = 	9644	) for SRProc
+    ServerLog	ProcessCreate	1	0000149754f82575:0	2015-03-05 13:15:41	Created multithreaded server process (OS pid = 	9645	) for FSMSrvr
+    ServerLog	ProcessCreate	1	0000149754f82575:0	2015-03-05 13:15:41	Created multithreaded server process (OS pid = 	9651	) for AdminNotify
+
+In this case, the string should be a regular expression something like C<Created\s(multithreaded)?\sserver\sprocess>.
 
 This attribute is a string, not a compiled regular expression with C<qr>.
 
@@ -181,27 +197,126 @@ has limits_callback => (
 
 =head2 last_line
 
-The last line read from the Siebel Enterprise log. One can use this attribute to avoid reading again the whole Siebel Enterprise log file.
+The last line read from the Siebel Enterprise log.
 
-The atribute holds an integer, which is by default zero and is also read-only.
+The attribute is an integer, and it's definition occurs automatically.
 
 It will be updated internally only if the attribute C<use_last_line> is set to true.
 
 =cut
 
-has last_line => ( is => 'ro', isa => 'Int', reader => 'get_last_line', writer => '_set_last_line', default => 0 );
+has last_line => (
+    is      => 'ro',
+    isa     => 'Int',
+    reader  => 'get_last_line',
+    writer  => '_set_last_line',
+    lazy    => 1,
+    builder => '_build_last_line'
+);
 
 =head2 use_last_line
 
 A boolean attribute, by default set to false.
 
-If set to true, the attribute C<last_line> will be updated with the last line number read from the Siebel Enterprise log file.
+If set to true, the attribute C<last_line> will be updated with the last line number read from the Siebel Enterprise log file. One can use this attribute to avoid reading again 
+and again the whole Siebel Enterprise log file. More important, that means that the risk to associated a component alias with a long gone process which PID was reused by the O.S.
+
+Of course, by limiting the amount of lines that will be read from the Siebel Enterprise log file, you will need to supply a set of values (PID/component alias) to compare with the most recent
+list of processes retrieved from the O.S.
 
 =cut
 
-has use_last_line => ( is => 'ro', isa => 'Bool', reader => 'use_last_line', default => 0 );
+has use_last_line =>
+  ( is => 'ro', isa => 'Bool', reader => 'use_last_line', default => 0 );
+
+=head2 archive
+
+An object instance of a class that uses the L<Moose::Role> L<Siebel::Srvrmgr::OS::Enterprise::Archive>.
+
+=cut
+
+has 'archive' => (
+    is     => 'ro',
+    does   => 'Siebel::Srvrmgr::OS::Enterprise::Archive',
+    reader => 'get_archive'
+);
+
+=head2 eol
+
+A string identifying the character(s) used as end-of-line in the Siebel Enterprise log file is configured.
+
+This attribute is read-only, this class will automatically try to define the field separator being used.
+
+=cut
+
+has eol => (
+    is      => 'ro',
+    isa     => 'Str',
+    reader  => 'get_eol',
+    writer  => '_set_eol',
+    default => 0
+);
+
+=head2 fs
+
+A string identifying the character(s) used to separate the fields in the Siebel Enterprise log file is configured.
+
+This attribute is read-only, this class will automatically try to define the EOL being used.
+
+=cut
+
+has fs => (
+    is      => 'ro',
+    isa     => 'Str',
+    reader  => 'get_fs',
+    writer  => '_set_fs',
+    default => 0
+);
 
 =head1 METHODS
+
+=head2 new
+
+To create new instances of Siebel::Srvrmgr::OS::Unix.
+
+The constructor expects a hash reference with the attributes required plus those that are marked as optional.
+
+An important concept (and the reason for this paragraph) is that the reading of the Siebel Enterprise log file might be restricted or not.
+
+In restricted mode, the Siebel Enterprise log file is read once and the already read component aliases is persisted somehow, including the last line of the file read: that will avoid
+reading all over the file again, and more important, minimizing association of reused PIDs with component aliases, thus generating incorrect data. For restricted mode it is necessary to pass 
+as parameters the attributes C<use_last_line> and C<archive>.
+
+To use "simple" mode, nothing else is necessary. Simple is much simpler to be used, but there is the risk of PIDs reutilization causing invalid data to be generated. For long running monitoring, 
+I suggest using restricted mode.
+
+=head2 BUILD
+
+Validates the state of the object during instantiation by checking if the attribute C<archive> is correctly set if C<use_last_line> is set to true.
+
+=cut
+
+sub BUILD {
+
+    my $self = shift;
+
+    confess "must have attribute archive defined if use_last_line is set"
+      if ( $self->use_last_line()
+        and ( not( defined( $self->get_archive ) ) ) );
+
+}
+
+sub _build_last_line {
+
+    my $self = shift;
+
+    if ( $self->use_last_line() ) {
+
+        $self->_set_last_line( $self->get_archive()->get_last_line() );
+
+    }
+
+}
 
 =head2 get_procs
 
@@ -365,9 +480,305 @@ sub get_procs {
 
     }
 
-    $self->_find_pid( \%procs );
+    if ( $self->use_last_line() ) {
+
+        $self->_res_find_pid( \%procs );
+
+    }
+    else {
+
+        $self->_find_pid( \%procs );
+
+    }
 
     return \%procs;
+
+}
+
+# to avoid reading the log file meanwhile the Siebel Server writes to it
+sub _read_ent_log {
+
+    my $self     = shift;
+    my $template = __PACKAGE__ . '_XXXXXX';
+    $template =~ s/\:{2}/_/g;
+    my ( $fh, $filename ) = tempfile( $template, UNLINK => 1 );
+
+    copy( $self->get_ent_log, $filename );
+
+    my $header = <$fh>;
+    $self->_check_header($header);
+
+    return $fh;
+
+}
+
+sub _check_header {
+
+    my $self   = shift;
+    my $header = strip_bom_from_string(shift);
+    $self->_validate_archive($header);
+    my @parts = split( /\s/, $header );
+    $self->_define_eol( $parts[0] );
+    $self->_define_fs( $parts[9], $parts[10] );
+
+}
+
+sub _define_fs {
+
+    my $self             = shift;
+    my $field_del_length = shift;
+    my $field_delim      = shift;
+    my $num;
+
+    for my $i ( 1 .. 4 ) {
+
+        my $temp = chop($field_del_length);
+        if ( $temp != 0 ) {
+
+            $num .= $temp;
+
+        }
+        else {
+
+            last;
+
+        }
+
+    }
+
+    confess "field delimiter unimplemented" if ( $num > 1 );
+
+    $self->_set_fs( chr( unpack( 's', pack 's', hex($field_delim) ) ) );
+
+}
+
+sub _validate_archive {
+
+    my $self        = shift;
+    my $header      = shift;
+    my $curr_digest = md5_base64($header);
+
+    if ( $self->get_archive()->has_digest() ) {
+
+        unless ( $self->get_archive()->get_digest eq $curr_digest ) {
+
+            # different log file
+            $self->get_archive()->reset();
+            $self->get_archive()->set_digest($curr_digest);
+
+        }
+
+    }
+    else {
+
+        $self->get_archive()->set_digest($curr_digest);
+
+    }
+
+}
+
+sub _define_eol {
+
+    my $self = shift;
+    my $part = shift;
+    my $eol  = substr $part, 1, 1;
+
+  CASE: {
+
+        if ( $eol eq '2' ) {
+
+            $self->_set_eol("\015\012");
+            last CASE;
+
+        }
+
+        if ( $eol eq '1' ) {
+
+            $self->_set_eol("\012");
+            last CASE;
+
+        }
+
+        if ( $eol eq '0' ) {
+
+            $self->_set_eol("\015");
+            last CASE;
+
+        }
+        else {
+
+            confess "EOL is custom, don't know what to use!";
+
+        }
+
+    }
+
+}
+
+sub _update_last_line {
+
+    my $self  = shift;
+    my $value = shift;
+
+    $self->get_archive()->set_last_line($value);
+    $self->_set_last_line($value);
+
+}
+
+# restrict find the pid by ignoring previous read line from the Siebel Enterprise log file
+sub _res_find_pid {
+
+    my $self      = shift;
+    my $procs_ref = shift;
+    my %comps;
+
+    my $create_regex;
+
+    {
+
+        my $regex = $self->get_parent_regex;
+        $create_regex = qr/$regex/;
+
+    }
+
+    my $in = $self->_read_ent_log();
+    local $/ = $self->get_eol();
+    my $field_delim = $self->get_fs();
+    my $last_line   = $self->get_last_line();
+
+    # for performance reasons this loop is duplicated in find_pid
+    while ( my $line = <$in> ) {
+
+        next unless ( ( $last_line == 0 ) or ( $. > $last_line ) );
+        chomp($line);
+        my @parts = split( /$field_delim/, $line );
+
+        next unless ( scalar(@parts) == 7 );
+
+#ServerLog	ProcessCreate	1	0000149754f82575:0	2015-03-05 13:15:41	Created multithreaded server process (OS pid = 	9645	) for FSMSrvr
+        if ( $parts[1] eq 'ProcessCreate' ) {
+
+            if ( $parts[5] =~ $create_regex ) {
+
+                $parts[7] =~ s/\s(\w)+\s//;
+                $parts[7] =~ tr/)//d;
+
+                # pid => component alias
+                $comps{ $parts[6] } = $parts[7];
+                next;
+
+            }
+            else {
+
+                cluck
+"Found a process creation statement but I cannot match parent_regex against '$parts[5]'. Check the regex";
+
+            }
+
+        }
+
+    }
+
+    $self->_update_last_line($.);
+    close($in);
+
+# consider that PIDS not available anymore in the /proc are gone and should be removed from the cache
+    $self->_delete_old($procs_ref);
+
+    # must keep the pids to add before modifying the procs_ref
+    my $to_add = $self->_to_add($procs_ref);
+    my $cached = $self->get_archive()->get_set();
+
+    foreach my $proc_pid ( keys( %{$procs_ref} ) ) {
+
+        if ( ( exists( $comps{$proc_pid} ) ) and ( $cached->has($proc_pid) ) ) {
+
+# new reads from log has precendence over the cache, so cache must be also updated
+            $procs_ref->{$proc_pid}->{comp_alias} = $comps{$proc_pid};
+            $self->get_archive()->remove($proc_pid);
+            next;
+
+        }
+
+        if ( exists( $comps{$proc_pid} ) ) {
+
+            $procs_ref->{$proc_pid}->{comp_alias} = $comps{$proc_pid};
+
+        }
+        elsif ( $cached->has($proc_pid) ) {
+
+            $procs_ref->{$proc_pid}->{comp_alias} =
+              $self->get_archive()->get_alias($proc_pid);
+
+        }
+        else {
+
+            $self->_ident_proc( $procs_ref, $proc_pid );
+
+        }
+
+    }
+
+    $self->_add_new( $to_add, $procs_ref );
+
+}
+
+# by nature of how Siebel processes are organized
+# hopefully will be invoked just a couple of times so a small performance hit will happen
+sub _ident_proc {
+
+    my ( $self, $procs_ref, $pid ) = @_;
+
+    if ( $procs_ref->{$pid}->{fname} eq 'siebmtshmw' ) {
+
+        $procs_ref->{$pid}->{comp_alias} = 'unknown';
+
+    }
+    else {
+
+        $procs_ref->{$pid}->{comp_alias} = 'N/A';
+
+    }
+
+}
+
+sub _delete_old {
+
+    my $self      = shift;
+    my $procs_ref = shift;
+    my $archived  = $self->get_archive->get_set();
+    my $new       = Set::Tiny->new( keys( %{$procs_ref} ) );
+    my $to_delete = $archived->difference($new);
+
+    foreach my $pid ( $to_delete->members ) {
+
+        $self->get_archive()->remove($pid);
+
+    }
+
+}
+
+sub _to_add {
+
+    my $self      = shift;
+    my $procs_ref = shift;
+    my $archived  = $self->get_archive->get_set();
+    my $new       = Set::Tiny->new( keys( %{$procs_ref} ) );
+    return $new->difference($archived);
+
+}
+
+sub _add_new {
+
+    my $self      = shift;
+    my $to_add    = shift;
+    my $procs_ref = shift;
+
+    foreach my $pid ( $to_add->members ) {
+
+        $self->get_archive->add( $pid, $procs_ref->{$pid}->{comp_alias} );
+
+    }
 
 }
 
@@ -386,23 +797,21 @@ sub _find_pid {
 
     }
 
-    local $/ = "\015\012";
+    my $in = $self->_read_ent_log();
+    local $/ = $self->get_eol();
+    my $field_delim = $self->get_fs();
 
-    open( my $in, '<', $self->get_ent_log )
-      or die( 'Cannot read ' . $self->get_ent_log . ": $!" );
-      
-    my $last_line = $self->get_last_line();
-    
-    # WORKAROUND: to avoid testing for every line of the log file read, the while loop was duplicated
-    if ( $self->use_last_line() ) {
+    # for performance reasons this loop is duplicated in res_find_pid
+    while ( my $line = <$in> ) {
 
-        while ( my $line = <$in> ) {
-        
-            next unless( ( $last_line == 0 ) or ( $. > $last_line ) );
-            chomp($line);
-            my @parts = split( /\t/, $line );
+        chomp($line);
+        my @parts = split( /$field_delim/, $line );
+        next unless ( scalar(@parts) == 7 );
 
-            if ( $line =~ $create_regex ) {
+#ServerLog	ProcessCreate	1	0000149754f82575:0	2015-03-05 13:15:41	Created multithreaded server process (OS pid = 	9645	) for FSMSrvr
+        if ( $parts[1] eq 'ProcessCreate' ) {
+
+            if ( $parts[5] =~ $create_regex ) {
 
                 $parts[7] =~ s/\s(\w)+\s//;
                 $parts[7] =~ tr/)//d;
@@ -412,32 +821,17 @@ sub _find_pid {
                 next;
 
             }
+            else {
 
-        }
-    
-    } else {
-
-        while ( my $line = <$in> ) {
-        
-            chomp($line);
-            my @parts = split( /\t/, $line );
-
-            if ( $line =~ $create_regex ) {
-
-                $parts[7] =~ s/\s(\w)+\s//;
-                $parts[7] =~ tr/)//d;
-
-                # pid => component alias
-                $comps{ $parts[6] } = $parts[7];
-                next;
+                cluck
+"Found a process creation statement but I cannot match parent_regex against '$parts[5]'. Check the regex";
 
             }
 
         }
-    
+
     }
 
-    $self->_set_last_line( $. ) if ( $self->use_last_line() );
     close($in);
 
     foreach my $proc_pid ( keys( %{$procs_ref} ) ) {
@@ -447,10 +841,24 @@ sub _find_pid {
             $procs_ref->{$proc_pid}->{comp_alias} = $comps{$proc_pid};
 
         }
+        else {
+
+            $self->_ident_proc($procs_ref);
+
+        }
 
     }
 
 }
+
+=head1 TODO
+
+Most probably this class does too much: reading from a Siebel Enterprise log file should have it's proper class. That should be even more important when different operational systems will have
+their respective classes to recover such information.
+
+Additionally, this class might be used as well when recover component information directly querying it from the Siebel Server with L<Siebel::Srvrgrm::Daemon> subclasses.
+
+One might expect this class interface to be changed soon enough.
 
 =head1 SEE ALSO
 
