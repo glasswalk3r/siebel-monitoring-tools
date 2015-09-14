@@ -26,6 +26,7 @@ my %config = (
         'DateTime'                     => "1.12",
         'Term::YAP'                    => "0.03",
         'Set::Tiny'                    => "0.02",
+        'Scalar::Util::Numeric'        => "0.40",
 
         # as spotted by yaroslav.shabalin@gmail.com
         ( $Config{osname} !~ /win32/i )
