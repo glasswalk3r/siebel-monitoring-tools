@@ -653,7 +653,7 @@ sub _res_find_pid {
         chomp($line);
         my @parts = split( /$field_delim/, $line );
 
-        next unless ( scalar(@parts) == 7 );
+        next unless ( scalar(@parts) >= 7 );
 
 #ServerLog	ProcessCreate	1	0000149754f82575:0	2015-03-05 13:15:41	Created multithreaded server process (OS pid = 	9645	) for FSMSrvr
         if ( $parts[1] eq 'ProcessCreate' ) {
@@ -806,7 +806,7 @@ sub _find_pid {
 
         chomp($line);
         my @parts = split( /$field_delim/, $line );
-        next unless ( scalar(@parts) == 7 );
+        next unless ( scalar(@parts) >= 7 );
 
 #ServerLog	ProcessCreate	1	0000149754f82575:0	2015-03-05 13:15:41	Created multithreaded server process (OS pid = 	9645	) for FSMSrvr
         if ( $parts[1] eq 'ProcessCreate' ) {
