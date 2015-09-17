@@ -1,16 +1,16 @@
-package Siebel::Srvrmgr::OS::Enterprise::Archive;
+package Siebel::Srvrmgr::Log::Enterprise::Archive;
 
 =pod
 
 =head1 NAME
 
-Siebel::Srvrmgr::OS::Enterprise::Archive - a Moose Role for Enterprise log file data archiving
+Siebel::Srvrmgr::Log::Enterprise::Archive - a Moose Role for Enterprise log file data archiving
 
 =head1 SYNOPSIS
 
     package MyArchive;
     
-    with 'Siebel::Srvrmgr::OS::Enterprise::Archive';
+    with 'Siebel::Srvrmgr::Log::Enterprise::Archive';
     
     sub add {
     

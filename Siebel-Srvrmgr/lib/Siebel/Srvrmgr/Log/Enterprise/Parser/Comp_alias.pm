@@ -1,0 +1,329 @@
+package Siebel::Srvrmgr::Log::Enterprise::Parser::Comp_alias;
+
+use Moose;
+use namespace::autoclean;
+use Set::Tiny;
+use Carp qw(cluck confess);
+
+with 'Siebel::Srvrmgr::Comps_source';
+
+=pod
+
+=head1 NAME
+
+Siebel::Srvrmgr::Log::Enterprise::Parser::Comp_alias - parses of component alias from the Siebel Enterprise log file
+
+=head1 SYNOPSIS
+
+=head1 DESCRIPTION
+
+=head1 ATTRIBUTES
+
+=head2 process_regex
+
+Required attribute.
+
+A string of the regular expression to match the components PID logged in the Siebel Enterprise log file. The regex should match the text in the sixth "column" (considering
+that they are delimited by a character) of a Siebel Enterprise log. Since the Siebel Enterprise may contain different language settings, this parameter is required and 
+will depend on the language set.
+
+An example of configuration will help understand. Take your time to review the piece of Enterprise log file below:
+
+    ServerLog	ComponentUpdate	2	0000149754f82575:0	2015-03-05 13:15:41	AdminNotify	STARTING	Component is starting up.
+    ServerLog	ComponentUpdate	2	0000149754f82575:0	2015-03-05 13:15:41	AdminNotify	INITIALIZED	Component has initialized (no spawned procs).
+    ServerLog	ComponentUpdate	2	0000149754f82575:0	2015-03-05 13:15:41	SvrTaskPersist	STARTING	Component is starting up.
+    ServerLog	ProcessCreate	1	0000149754f82575:0	2015-03-05 13:15:41	Created multithreaded server process (OS pid = 	9644	) for SRProc
+    ServerLog	ProcessCreate	1	0000149754f82575:0	2015-03-05 13:15:41	Created multithreaded server process (OS pid = 	9645	) for FSMSrvr
+    ServerLog	ProcessCreate	1	0000149754f82575:0	2015-03-05 13:15:41	Created multithreaded server process (OS pid = 	9651	) for AdminNotify
+
+In this case, the string should be a regular expression something like C<Created\s(multithreaded)?\sserver\sprocess>.
+
+This attribute is a string, not a compiled regular expression with C<qr>.
+
+=cut
+
+has process_regex => (
+    is       => 'ro',
+    isa      => 'Str',
+    reader   => 'get_process_regex',
+    required => 1
+);
+
+=head2 archive
+
+An optional object instance of a class that uses the L<Moose::Role> L<Siebel::Srvrmgr::OS::Enterprise::Archive>.
+
+An important concept (and the reason for this paragraph) is that the reading of the Siebel Enterprise log file might be restricted or not.
+
+In restricted mode, the Siebel Enterprise log file is read once and the already read component aliases is persisted somehow, including the last line of the file read: that will avoid
+reading all over the file again, and more important, minimizing association of reused PIDs with component aliases, thus generating incorrect data.
+
+To use "simple" mode, nothing else is necessary. Simple is much simpler to be used, but there is the risk of PIDs reutilization causing invalid data to be generated. For long running monitoring, 
+I suggest using restricted mode.
+
+=cut
+
+has 'archive' => (
+    is     => 'ro',
+    does   => 'Siebel::Srvrmgr::OS::Enterprise::Archive',
+    reader => 'get_archive'
+);
+
+=head2 log_path
+
+A string of the complete pathname to the Siebel Enterprise log file.
+
+=cut
+
+has log_path =>
+  ( is => 'ro', isa => 'Str', required => 1, reader => 'get_log_path' );
+
+=head1 METHODS
+
+=head2 get_process_regex
+
+Getter for the attribute C<process_regex>.
+
+=cut
+
+sub find_comps {
+
+    my $self  = shift;
+    my $procs = shift;
+
+    confess "the processes parameter is required" unless ( defined($procs) );
+    confess "must receive an hash reference as parameter"
+      unless ( ref($procs) eq 'HASH' );
+
+    foreach my $pid ( keys( %{$procs} ) ) {
+
+        confess
+"values of process parameter must be instances of Siebel::Srvrmgr::OS::Process"
+          unless ( $procs->{$pid}->isa('Siebel::Srvrmgr::OS::Process') );
+
+    }
+
+    my $enterprise_log = Siebel::Srvrmgr::Log::Enterprise->new(
+        { path => $self->get_log_path() } );
+
+    my $create_regex;
+
+    {
+
+        my $regex = $self->get_parent_regex;
+        $create_regex = qr/$regex/;
+
+    }
+
+    if ( defined( $self->get_archive() ) ) {
+
+        $self->_archived_recover( $procs, $enterprise_log, $create_regex );
+
+    }
+    else {
+
+        $self->_recover( $procs, $enterprise_log, $create_regex );
+
+    }
+
+    return $procs;
+
+}
+
+sub _get_last_line {
+
+    my $self = shift;
+
+    return $self->get_archive()->get_last_line();
+
+}
+
+sub _set_last_line {
+
+    my $self  = shift;
+    my $value = shift;
+
+    $self->get_archive()->set_last_line($value);
+
+}
+
+sub _delete_old {
+
+    my $self      = shift;
+    my $procs_ref = shift;
+    my $archived  = $self->get_archive->get_set();
+    my $new       = Set::Tiny->new( keys( %{$procs_ref} ) );
+    my $to_delete = $archived->difference($new);
+
+    foreach my $pid ( $to_delete->members ) {
+
+        $self->get_archive()->remove($pid);
+
+    }
+
+}
+
+sub _to_add {
+
+    my $self      = shift;
+    my $procs_ref = shift;
+    my $archived  = $self->get_archive->get_set();
+    my $new       = Set::Tiny->new( keys( %{$procs_ref} ) );
+    return $new->difference($archived);
+
+}
+
+sub _add_new {
+
+    my $self      = shift;
+    my $to_add    = shift;
+    my $procs_ref = shift;
+
+    foreach my $pid ( $to_add->members ) {
+
+        $self->get_archive->add( $pid, $procs_ref->{$pid}->get_comp_alias() );
+
+    }
+
+}
+
+sub _recover {
+
+    my $self         = shift;
+    my $procs_ref    = shift;
+    my $ent_log      = shift;
+    my $create_regex = shift;
+    my %comps;
+
+    my $next        = $ent_log->read();
+    my $field_delim = $ent_log->get_fs();
+
+    # for performance reasons this loop is duplicated in res_find_pid
+    while ( my $line = $next->() ) {
+
+        chomp($line);
+        my @parts = split( /$field_delim/, $line );
+        next unless ( scalar(@parts) >= 7 );
+
+#ServerLog	ProcessCreate	1	0000149754f82575:0	2015-03-05 13:15:41	Created multithreaded server process (OS pid = 	9645	) for FSMSrvr
+        if ( $parts[1] eq 'ProcessCreate' ) {
+
+            if ( $parts[5] =~ $create_regex ) {
+
+                $parts[7] =~ s/\s(\w)+\s//;
+                $parts[7] =~ tr/)//d;
+
+                # pid => component alias
+                $comps{ $parts[6] } = $parts[7];
+                next;
+
+            }
+            else {
+
+                cluck
+"Found a process creation statement but I cannot match parent_regex against '$parts[5]'. Check the regex";
+
+            }
+
+        }
+
+    }
+
+    foreach my $proc_pid ( keys( %{$procs_ref} ) ) {
+
+        if ( exists( $comps{$proc_pid} ) ) {
+
+            $procs_ref->{$proc_pid}->{comp_alias} = $comps{$proc_pid};
+
+        }
+
+    }
+
+}
+
+# restrict find the pid by ignoring previous read line from the Siebel Enterprise log file
+sub _archived_recover {
+
+    my $self         = shift;
+    my $procs_ref    = shift;
+    my $ent_log      = shift;
+    my $create_regex = shift;
+    my %comps;
+
+    my $next        = $ent_log->read();
+    my $field_delim = $ent_log->get_fs();
+
+    my $last_line = $self->get_last_line();
+
+    # for performance reasons this loop is duplicated in find_pid
+    while ( my $line = $next->() ) {
+
+        next unless ( ( $last_line == 0 ) or ( $. > $last_line ) );
+        chomp($line);
+        my @parts = split( /$field_delim/, $line );
+
+        next unless ( scalar(@parts) >= 7 );
+
+#ServerLog	ProcessCreate	1	0000149754f82575:0	2015-03-05 13:15:41	Created multithreaded server process (OS pid = 	9645	) for FSMSrvr
+        if ( $parts[1] eq 'ProcessCreate' ) {
+
+            if ( $parts[5] =~ $create_regex ) {
+
+                $parts[7] =~ s/\s(\w)+\s//;
+                $parts[7] =~ tr/)//d;
+
+                # pid => component alias
+                $comps{ $parts[6] } = $parts[7];
+                next;
+
+            }
+            else {
+
+                cluck
+"Found a process creation statement but I cannot match parent_regex against '$parts[5]'. Check the regex";
+
+            }
+
+        }
+
+    }
+
+    $self->_set_last_line($.);
+
+# consider that PIDS not available anymore in the /proc are gone and should be removed from the cache
+    $self->_delete_old($procs_ref);
+
+    # must keep the pids to add before modifying the procs_ref
+    my $to_add = $self->_to_add($procs_ref);
+    my $cached = $self->get_archive()->get_set();
+
+    foreach my $proc_pid ( keys( %{$procs_ref} ) ) {
+
+        if ( ( exists( $comps{$proc_pid} ) ) and ( $cached->has($proc_pid) ) ) {
+
+# new reads from log has precendence over the cache, so cache must be also updated
+            $procs_ref->{$proc_pid}->{comp_alias} = $comps{$proc_pid};
+            $self->get_archive()->remove($proc_pid);
+            next;
+
+        }
+
+        if ( exists( $comps{$proc_pid} ) ) {
+
+            $procs_ref->{$proc_pid}->{comp_alias} = $comps{$proc_pid};
+
+        }
+        elsif ( $cached->has($proc_pid) ) {
+
+            $procs_ref->{$proc_pid}->{comp_alias} =
+              $self->get_archive()->get_alias($proc_pid);
+
+        }
+
+    }
+
+    $self->_add_new( $to_add, $procs_ref );
+
+}
+
+__PACKAGE__->meta->make_immutable;

@@ -55,9 +55,6 @@ my %config = (
             license => 'http://www.gnu.org/licenses/gpl.txt',
             homepage =>
               'https://github.com/glasswalk3r/siebel-monitoring-tools',
-            license => 'http://www.gnu.org/licenses/gpl.txt',
-            homepage =>
-              'https://github.com/glasswalk3r/siebel-monitoring-tools',
             bugtracker =>
               'https://github.com/glasswalk3r/siebel-monitoring-tools/issues',
             repository =>
