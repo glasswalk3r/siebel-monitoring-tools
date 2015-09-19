@@ -109,6 +109,8 @@ my ( @dsns, @cpu, @mem );
 
 foreach my $comp_alias (@avail_comps) {
 
+    next unless ( exists( $rrd{$comp_alias} ) );
+
     my $temp_alias = substr( $comp_alias, 0, 19 ); # due restrictions of RRDTool
     push( @dsns, $temp_alias );
     push( @cpu,  $rrd{$comp_alias}->[0] );
