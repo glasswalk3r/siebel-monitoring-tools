@@ -4,11 +4,12 @@ use strict;
 use feature 'say';
 use Getopt::Std;
 use File::Spec;
-use Siebel::Srvrmgr::OS::Unix2;
+use Siebel::Srvrmgr::OS::Unix;
 use DateTime;
 use File::HomeDir;
 use Readonly;
 use RRDs;
+use Siebel::Srvrmgr::Log::Enterprise::Parser::Comp_alias;
 use lib '/ood_repository/environment_review';
 use Archive;
 
@@ -22,7 +23,6 @@ getopts( 'i:', \%opts );
 die "the -i option requires a instance name as value"
   unless ( ( exists( $opts{i} ) ) and ( defined( $opts{i} ) ) );
 
-# /tcfs12/siebel/81/siebsrvr/enterprises/tcfs12/vmsodcfst004/log/tcfs12.vmsodcfst004.log
 my $enterprise_log = File::Spec->catfile(
     '',             lc( $opts{i} ),
     'siebel',       '81',
@@ -31,19 +31,20 @@ my $enterprise_log = File::Spec->catfile(
     'log',          lc( $opts{i} ) . '.' . $ENV{HOSTNAME} . '.log'
 );
 
-#/tcfs12/siebel/81
 my $siebel_path = File::Spec->catdir( '', lc( $opts{i} ), 'siebel' );
 
-my $procs = Siebel::Srvrmgr::OS::Unix2->new(
+my $procs = Siebel::Srvrmgr::OS::Unix->new(
     {
-        enterprise_log => $enterprise_log,
-        use_last_line  => 1,
-        cmd_regex      => $siebel_path,
-
-#Se ha creado un proceso servidor con varios subprocesos (pid SO =       3289    ) para XMLPReportServer
-        parent_regex =>
+        comps_source =>
+          Siebel::Srvrmgr::Log::Enterprise::Parser::Comp_alias->new(
+            {
+                process_regex =>
 'Se\sha\screado\sun\sproceso\sservidor\s(con\svarios\ssubprocesos\s)?',
-        archive => Archive->new( { dbm_path => $MY_DBM } )
+                log_path => $enterprise_log,
+                archive  => Archive->new( { dbm_path => $MY_DBM } )
+            }
+          ),
+        cmd_regex => $siebel_path,
     }
 );
 
@@ -66,26 +67,33 @@ open( my $out, '>>', $output ) or die "failed to write to $output: $!";
 foreach my $pid ( keys( %{$procs_ref} ) ) {
 
     print $out join( '|',
-        $timestamp,                   $pid,
-        $procs_ref->{$pid}->{pctcpu}, $procs_ref->{$pid}->{fname},
-        $procs_ref->{$pid}->{pctmem}, $procs_ref->{$pid}->{rss},
-        $procs_ref->{$pid}->{vsz},    $procs_ref->{$pid}->{comp_alias} ),
+        $timestamp,                     $pid,
+        $procs_ref->{$pid}->get_pctcpu, $procs_ref->{$pid}->get_fname,
+        $procs_ref->{$pid}->get_pctmem, $procs_ref->{$pid}->get_rss,
+        $procs_ref->{$pid}->get_vsz,    $procs_ref->{$pid}->get_comp_alias ),
       "\n";
-      
-    if (exists($rrd{$procs_ref->{$pid}->{comp_alias}})) {
-    
-        $rrd{$procs_ref->{$pid}->{comp_alias}}->[0] += $procs_ref->{$pid}->{pctcpu};
-        $rrd{$procs_ref->{$pid}->{comp_alias}}->[1] += $procs_ref->{$pid}->{pctmem};
-    
-    } else {
-    
-        $rrd{$procs_ref->{$pid}->{comp_alias}} = [];
-    
-        $rrd{$procs_ref->{$pid}->{comp_alias}}->[0] = $procs_ref->{$pid}->{pctcpu};
-        $rrd{$procs_ref->{$pid}->{comp_alias}}->[1] = $procs_ref->{$pid}->{pctmem};
-    
+
+    my $comp_alias = $procs_ref->{$pid}->get_comp_alias();
+
+    if ( exists( $rrd{$comp_alias} ) ) {
+
+        $rrd{$comp_alias}->[0] +=
+          $procs_ref->{$pid}->get_pctcpu;
+        $rrd{$comp_alias}->[1] +=
+          $procs_ref->{$pid}->get_pctmem;
+
     }
-    
+    else {
+
+        $rrd{$comp_alias} = [];
+
+        $rrd{$comp_alias}->[0] =
+          $procs_ref->{$pid}->get_pctcpu;
+        $rrd{$comp_alias}->[1] =
+          $procs_ref->{$pid}->get_pctmem;
+
+    }
+
 }
 
 close($out);
@@ -93,25 +101,34 @@ close($out);
 $procs_ref = undef;
 
 # must avoid trying to update DSN that were not created if components are changed without warning
-my @avail_comps = (qw(AdminNotify ApptBook AsgnSrvr CommConfigMgr CommInboundProcessor CommInboundRcvr CommOutboundMgr CommSessionMgr EAIObjMgr_esn eCommunicationsObjMgr_esn eProdCfgObjMgr_esn FSCyccnt FSFulfill FSInvTxn FSLocate FSMSrvr FSPrevMnt FSRepl Optimizer SCBroker SCCObjMgr_esn ServerMgr SRBroker SRProc SvrTaskPersist WfProcBatchMgr WfProcMgr WfRecvMgr XMLPReportServer));
+my @avail_comps = (
+    qw(AdminNotify ApptBook AsgnSrvr CommConfigMgr CommInboundProcessor CommInboundRcvr CommOutboundMgr CommSessionMgr EAIObjMgr_esn eCommunicationsObjMgr_esn eProdCfgObjMgr_esn FSCyccnt FSFulfill FSInvTxn FSLocate FSMSrvr FSPrevMnt FSRepl Optimizer SCBroker SCCObjMgr_esn ServerMgr SRBroker SRProc SvrTaskPersist WfProcBatchMgr WfProcMgr WfRecvMgr XMLPReportServer)
+);
 
-my (@dsns, @cpu, @mem);
+my ( @dsns, @cpu, @mem );
 
-foreach my $comp_alias( @avail_comps ) {
+foreach my $comp_alias (@avail_comps) {
 
-    my $temp_alias = substr($comp_alias,0,19); # due restrictions of RRDTool
-    push(@dsns, $temp_alias);
-    push(@cpu, $rrd{$comp_alias}->[0]);
-    push(@mem, $rrd{$comp_alias}->[1]);
+    my $temp_alias = substr( $comp_alias, 0, 19 ); # due restrictions of RRDTool
+    push( @dsns, $temp_alias );
+    push( @cpu,  $rrd{$comp_alias}->[0] );
+    push( @mem,  $rrd{$comp_alias}->[1] );
 
 }
 
-
 my $filename = 'siebel_server_cpu.rrd';
-RRDs::update( $filename, '--template', (join(':',@dsns)), (join(':', $now->epoch, @cpu )) );
-my $ERR=RRDs::error;
+RRDs::update(
+    $filename, '--template',
+    ( join( ':', @dsns ) ),
+    ( join( ':', $now->epoch, @cpu ) )
+);
+my $ERR = RRDs::error;
 die "ERROR while updating $filename: $ERR\n" if $ERR;
 $filename = 'siebel_server_mem.rrd';
-RRDs::update( $filename, '--template', (join(':',@dsns)), (join(':', $now->epoch, @mem )) );
-$ERR=RRDs::error;
+RRDs::update(
+    $filename, '--template',
+    ( join( ':', @dsns ) ),
+    ( join( ':', $now->epoch, @mem ) )
+);
+$ERR = RRDs::error;
 die "ERROR while updating mydemo.rrd: $ERR\n" if $ERR;

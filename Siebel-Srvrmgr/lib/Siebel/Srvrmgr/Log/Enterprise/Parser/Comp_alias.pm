@@ -4,6 +4,7 @@ use Moose;
 use namespace::autoclean;
 use Set::Tiny;
 use Carp qw(cluck confess);
+use Siebel::Srvrmgr::Log::Enterprise;
 
 with 'Siebel::Srvrmgr::Comps_source';
 
@@ -110,7 +111,7 @@ sub find_comps {
 
     {
 
-        my $regex = $self->get_parent_regex;
+        my $regex = $self->get_process_regex;
         $create_regex = qr/$regex/;
 
     }
@@ -197,6 +198,7 @@ sub _recover {
 
     my $next        = $ent_log->read();
     my $field_delim = $ent_log->get_fs();
+    local $/ = $ent_log->get_eol();
 
     # for performance reasons this loop is duplicated in res_find_pid
     while ( my $line = $next->() ) {
@@ -221,7 +223,7 @@ sub _recover {
             else {
 
                 cluck
-"Found a process creation statement but I cannot match parent_regex against '$parts[5]'. Check the regex";
+"Found a process creation statement but I cannot match process_regex against '$parts[5]'. Check the regex";
 
             }
 
@@ -233,7 +235,7 @@ sub _recover {
 
         if ( exists( $comps{$proc_pid} ) ) {
 
-            $procs_ref->{$proc_pid}->{comp_alias} = $comps{$proc_pid};
+            $procs_ref->{$proc_pid}->set_comp_alias( $comps{$proc_pid} );
 
         }
 
@@ -252,8 +254,10 @@ sub _archived_recover {
 
     my $next        = $ent_log->read();
     my $field_delim = $ent_log->get_fs();
+    $self->get_archive()->validate_archive( $ent_log->get_header() );
+    local $/ = $ent_log->get_eol();
 
-    my $last_line = $self->get_last_line();
+    my $last_line = $self->_get_last_line();
 
     # for performance reasons this loop is duplicated in find_pid
     while ( my $line = $next->() ) {
@@ -280,7 +284,7 @@ sub _archived_recover {
             else {
 
                 cluck
-"Found a process creation statement but I cannot match parent_regex against '$parts[5]'. Check the regex";
+"Found a process creation statement but I cannot match process_regex against '$parts[5]'. Check the regex";
 
             }
 
@@ -302,7 +306,7 @@ sub _archived_recover {
         if ( ( exists( $comps{$proc_pid} ) ) and ( $cached->has($proc_pid) ) ) {
 
 # new reads from log has precendence over the cache, so cache must be also updated
-            $procs_ref->{$proc_pid}->{comp_alias} = $comps{$proc_pid};
+            $procs_ref->{$proc_pid}->set_comp_alias( $comps{$proc_pid} );
             $self->get_archive()->remove($proc_pid);
             next;
 

@@ -72,6 +72,27 @@ The file handle reference to the Siebel Enterprise log file, after was opened.
 has fh =>
   ( is => 'ro', isa => 'FileHandle', reader => 'get_fh', writer => '_set_fh' );
 
+has filename => (
+    is     => 'ro',
+    isa    => 'Str',
+    reader => 'get_filename',
+    writer => '_set_filename'
+);
+
+=head2 header
+
+The header of the file, without the BOM.
+
+=cut
+
+has header => (
+    is      => 'ro',
+    isa     => 'Str',
+    reader  => 'get_header',
+    writer  => '_set_header',
+    trigger => \&_check_header
+);
+
 =head1 SEE ALSO
 
 =over
@@ -104,19 +125,34 @@ sub read {
     my $self     = shift;
     my $template = __PACKAGE__ . '_XXXXXX';
     $template =~ s/\:{2}/_/g;
-    my ( $fh, $filename ) = tempfile( $template, UNLINK => 1 );
 
-    copy( $self->get_ent_log, $filename );
+# :TODO:09/18/2015 09:14:14 PM:: insecure, must check if it not possible to keep the file handle, copy the file
+# over and use seek to go back to the beginning of the file
+    my ( $fh, $filename ) = tempfile($template);
+    close($fh);
+    copy( $self->get_path(), $filename );
 
-# :TODO:17-09-2015 14:24:21:: quite naive approach, should try to find EOL, close and open again the file
+    open( $fh, '<:encoding(utf8)', $filename )
+      or die "Cannot read $filename: $!";
+    $self->_set_filename($filename);
     my $header = <$fh>;
-    $self->_check_header($header);
+
+    # remove BOM, see https://rt.cpan.org/Public/Bug/Display.html?id=101175
+    $header = strip_bom_from_string($header);
+    $header =~ s/^\x{feff}//;
+
+    # don't know which EOL is available
+    $header =~ tr/\012//d;
+    $header =~ tr/\015//d;
+
     $self->_set_fh($fh);
 
-    local $/ = $self->get_eol();
+    $self->_set_header($header);
+    my $eol = $self->get_eol();
 
     return sub {
 
+        local $/ = $eol;
         return <$fh>;
 
       }
@@ -135,14 +171,20 @@ sub DEMOLISH {
 
     }
 
+    my $file = $self->get_filename();
+
+    if ( ( defined($file) ) and ( -e $self->get_filename() ) ) {
+
+        unlink $file or cluck "Could not remove $file: $!";
+
+    }
+
 }
 
 sub _check_header {
 
-    my $self   = shift;
-    my $header = strip_bom_from_string(shift);
-    $self->_validate_archive($header);
-    my @parts = split( /\s/, $header );
+    my $self = shift;
+    my @parts = split( /\s/, $self->get_header() );
     $self->_define_eol( $parts[0] );
     $self->_define_fs( $parts[9], $parts[10] );
 
@@ -175,31 +217,6 @@ sub _define_fs {
 
 # converting hex number to the corresponding character as defined in ASCII table
     $self->_set_fs( chr( unpack( 's', pack 's', hex($field_delim) ) ) );
-
-}
-
-sub _validate_archive {
-
-    my $self        = shift;
-    my $header      = shift;
-    my $curr_digest = md5_base64($header);
-
-    if ( $self->get_archive()->has_digest() ) {
-
-        unless ( $self->get_archive()->get_digest eq $curr_digest ) {
-
-            # different log file
-            $self->get_archive()->reset();
-            $self->get_archive()->set_digest($curr_digest);
-
-        }
-
-    }
-    else {
-
-        $self->get_archive()->set_digest($curr_digest);
-
-    }
 
 }
 

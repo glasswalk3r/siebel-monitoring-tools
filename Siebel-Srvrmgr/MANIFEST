@@ -1,9 +1,10 @@
-ChangeLog
 examples/.Siebel_svrmgr.pref
 examples/get_samples.sh
 examples/list_cmd_del.txt
 examples/list_cmd_fixed.txt
 examples/log4perl-debug.txt
+examples/Procmon/Archive.pm
+examples/Procmon/proc_mon.pl
 examples/Siebel-Srvrmgr-Exporter/export_comps.pl
 examples/Siebel-Srvrmgr-Exporter/lib/Siebel/Srvrmgr/Exporter.pm
 examples/Siebel-Srvrmgr-Exporter/lib/Siebel/Srvrmgr/Exporter/ListComp.pm
@@ -47,6 +48,7 @@ inc/Devel/AssertOS/MSWin32.pm
 inc/Devel/AssertOS/Solaris.pm
 inc/Devel/CheckOS.pm
 lib/Siebel/Srvrmgr.pm
+lib/Siebel/Srvrmgr/Comps_source.pm
 lib/Siebel/Srvrmgr/Daemon.pm
 lib/Siebel/Srvrmgr/Daemon/Action.pm
 lib/Siebel/Srvrmgr/Daemon/Action/Check/Component.pm
@@ -94,6 +96,10 @@ lib/Siebel/Srvrmgr/ListParser/Output/Tabular/Struct/Delimited.pm
 lib/Siebel/Srvrmgr/ListParser/Output/Tabular/Struct/Fixed.pm
 lib/Siebel/Srvrmgr/ListParser/Output/ToString.pm
 lib/Siebel/Srvrmgr/ListParser/OutputFactory.pm
+lib/Siebel/Srvrmgr/Log/Enterprise.pm
+lib/Siebel/Srvrmgr/Log/Enterprise/Archive.pm
+lib/Siebel/Srvrmgr/Log/Enterprise/Parser/Comp_alias.pm
+lib/Siebel/Srvrmgr/OS/Process.pm
 lib/Siebel/Srvrmgr/OS/Unix.pm
 lib/Siebel/Srvrmgr/Regexes.pm
 lib/Siebel/Srvrmgr/Types.pm

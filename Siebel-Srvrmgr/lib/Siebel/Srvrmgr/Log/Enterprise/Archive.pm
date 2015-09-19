@@ -91,7 +91,12 @@ get_digest: returns the hash computed from the Siebel Enteprise log file header.
 
 =item *
 
-set_digest: sets the hash calculated from the Siebel Enterprise log file header.
+_set_digest: sets the hash calculated from the Siebel Enterprise log file header. "Private" method.
+
+=item *
+
+validate_archive: validates if the archive is still valid. Receives as parameter the header of the Siebel Enterprise log, creates a hash for it and compares with the
+hash already stored.
 
 =back
 
@@ -101,7 +106,8 @@ this role does not implement any hash, this is left to the programmer. A example
 =cut
 
 requires(
-    qw(add remove get_set get_alias reset has_digest get_digest set_digest));
+    qw(add remove get_set get_alias reset has_digest get_digest _set_digest validate_archive)
+);
 
 =head2 new
 

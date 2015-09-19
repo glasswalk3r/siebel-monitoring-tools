@@ -11,8 +11,7 @@ has pctcpu     => ( is => 'ro', isa => 'Num', required => 1 );
 has pctmem     => ( is => 'ro', isa => 'Num', required => 1 );
 has rss        => ( is => 'ro', isa => 'Int', required => 1 );
 has vsz        => ( is => 'ro', isa => 'Int', required => 1 );
-has comp_alias => ( is => 'ro', isa => 'Str', required => 0 );
-has siebel_procs => ( is => 'ro', isa => 'Set::Tiny', builder => '_build_set' );
+has comp_alias => ( is => 'rw', isa => 'Str', required => 0 );
 
 sub _build_set {
 
@@ -26,8 +25,9 @@ sub _build_set {
 sub BUILD {
 
     my $self = shift;
+    my $set  = $self->_build_set();
 
-    if ( $self->get_siebel_procs()->has( $self->get_fname ) ) {
+    if ( $set->has( $self->get_fname ) ) {
 
         $self->set_comp_alias('unknown');
 

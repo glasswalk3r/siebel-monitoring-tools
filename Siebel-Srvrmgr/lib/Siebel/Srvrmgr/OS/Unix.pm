@@ -18,9 +18,6 @@ Siebel::Srvrmgr::OS::Unix - module to recover information from OS processes of S
     use Siebel::Srvrmgr::OS::Unix;
     my $procs = Siebel::Srvrmgr::OS::Unix->new(
         {
-            enterprise_log => $enterprise_log,
-            cmd_regex      => "^$path_to_siebel_dir",
-            parent_regex => 'Created\s(multithreaded\s)?server\sprocess\s\(OS\spid\s\=\s+\d+\s+\)\sfor\s\w+'
         }
     );
     my $procs_ref = $procs->get_procs;
@@ -49,7 +46,12 @@ Required attribute.
 
 =cut
 
-has comps_source => (is => 'ro', does => 'Siebel::Srvrmgr::Comps_source', required => 1, reader => 'get_comps_source');
+has comps_source => (
+    is       => 'ro',
+    does     => 'Siebel::Srvrmgr::Comps_source',
+    required => 1,
+    reader   => 'get_comps_source'
+);
 
 =head2 cmd_regex
 
@@ -231,14 +233,16 @@ sub get_procs {
             vsz    => ( $process->size + 0 )
         };
 
-        $procs{$process->pid} = Siebel::Srvrmgr::OS::Process->new({
-            fname  => $process->fname,
-            pctcpu => $pctcpu,
-            pctmem => ( $process->pctmem + 0 ),
-            rss    => ( $process->rss + 0 ),
-            vsz    => ( $process->size + 0 )
-			}
-		);
+        $procs{ $process->pid } = Siebel::Srvrmgr::OS::Process->new(
+            {
+                pid    => $process->pid,
+                fname  => $process->fname,
+                pctcpu => $pctcpu,
+                pctmem => ( $process->pctmem + 0 ),
+                rss    => ( $process->rss + 0 ),
+                vsz    => ( $process->size + 0 )
+            }
+        );
 
         if ( $self->get_mem_limit > 0 ) {
 
@@ -283,18 +287,17 @@ sub get_procs {
 
     }
 
-    if ( $self->use_last_line() ) {
-
-        $self->_res_find_pid( \%procs );
-
-    }
-    else {
-
-        $self->_find_pid( \%procs );
-
-    }
+    $self->find_comps( \%procs );
 
     return \%procs;
+
+}
+
+sub find_comps {
+
+    my $self      = shift;
+    my $procs_ref = shift;
+    $self->get_comps_source()->find_comps($procs_ref);
 
 }
 
