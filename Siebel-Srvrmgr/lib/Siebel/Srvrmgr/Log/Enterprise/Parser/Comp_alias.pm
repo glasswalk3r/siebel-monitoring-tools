@@ -16,7 +16,14 @@ Siebel::Srvrmgr::Log::Enterprise::Parser::Comp_alias - parses of component alias
 
 =head1 SYNOPSIS
 
+    # see the proc_mon.pl script in the examples directory
+
 =head1 DESCRIPTION
+
+This class implements the L<Siebel::Srvrmgr::Comps_source> Moose Role to recover information from components by reading the Siebel Enterprise log file.
+
+This enables one to create a "cheap" (in the sense of not needing to connect to the Siebel Server) component monitor to recover information about CPU, memory, etc, usage by the Siebel 
+components.
 
 =head1 ATTRIBUTES
 
@@ -84,6 +91,16 @@ has log_path =>
 =head2 get_process_regex
 
 Getter for the attribute C<process_regex>.
+
+=cut
+
+=head2 find_comps
+
+Parses the Siebel Enterprise log file by using a instance of a class that implements L<Siebel::Srvrmgr::OS::Enterprise::Archive> Moose Role.
+
+Expects as parameter a hash reference containing as keys the PIDs and as values the respective instances of L<Siebel::Srvrmgr::OS::Process>.
+
+It will return the same reference with the component alias information include when possible.
 
 =cut
 

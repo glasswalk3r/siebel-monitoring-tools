@@ -18,8 +18,19 @@ Siebel::Srvrmgr::OS::Unix - module to recover information from OS processes of S
     use Siebel::Srvrmgr::OS::Unix;
     my $procs = Siebel::Srvrmgr::OS::Unix->new(
         {
+            comps_source =>
+              Siebel::Srvrmgr::Log::Enterprise::Parser::Comp_alias->new(
+                {
+                    process_regex => 'Created\s(multithreaded)?\sserver\sprocess', 
+                    log_path => $enterprise_log,
+                    archive  => Archive->new( { dbm_path => $MY_DBM } )
+                }
+              ),
+            cmd_regex => $siebel_path,
         }
     );
+
+    # hash reference of objects Siebel::Srvrmgr::OS::Process
     my $procs_ref = $procs->get_procs;
     foreach my $comp_pid( keys( %{$procs_ref} ) ) {
 
@@ -35,14 +46,13 @@ It is responsible to recover information from processes executing on a UNIX-like
 
 Details on running processes are recovered from C</proc> directory meanwhile the details about the components are read from a class that implements the L<Siebel::Srvrmgr::Comps_source> role.
 
-This enables one to create a "cheap" (in the sense of not needing to connect to the Siebel Server) component monitor to recover periodic information about CPU, memory, etc, usage by the Siebel 
-components.
-
 =head1 ATTRIBUTES
 
 =head2 comps_source
 
 Required attribute.
+
+An instance of a class that implements the Moose Role L<Siebel::Srvrmgr::Comps_source>. Those classes are supposed to recover information about the current modules available in a Siebel Server.
 
 =cut
 
@@ -163,40 +173,11 @@ To create new instances of Siebel::Srvrmgr::OS::Unix.
 
 The constructor expects a hash reference with the attributes required plus those that are marked as optional.
 
-
 =head2 get_procs
 
-Searches through C</proc> and the Siebel Enterprise log file and returns an hash reference with the pids as keys and hashes references as values.
-For those hash references, the following keys will be available:
+Searches through C</proc> and and returns an hash reference with the pids as keys and L<Siebel::Srvrmgr::OS::Process> instances as values.
 
-=over
-
-=item *
-
-fname: name of the process
-
-=item *
-
-pctcpu: % of server total CPU
-
-=item *
-
-pctmem: % of server total memory
-
-=item *
-
-rss: RSS
-
-=item *
-
-vsz: VSZ
-
-=item *
-
-comp_alias: alias of the Siebel Component. If the PID is not related to a Siebel component process (for example, the process of the Siebel Gateway)
-this key value will be "N/A" by default.
-
-=back
+Those instances will be created by merging information from C</proc> and the C<comps_source> attribute instance.
 
 =cut
 
@@ -321,6 +302,10 @@ L<Siebel::Srvrmgr::Log::Enterprise::Parser::Comp_alias>
 
 L<Siebel::Srvrmgr::Comps_source>
 
+=item *
+
+L<Siebel::Srvrmgr::OS::Process>
+
 =back
 
 =head1 AUTHOR
@@ -329,7 +314,7 @@ Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2012 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
+This software is copyright (c) 2015 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
 
 This file is part of Siebel Monitoring Tools.
 

@@ -1,4 +1,4 @@
-#!/ood_repository/environment_review/perl5/perls/perl-5.20.1/bin/perl
+#!/usr/bin/env perl
 use warnings;
 use strict;
 use feature 'say';
@@ -8,9 +8,8 @@ use Siebel::Srvrmgr::OS::Unix;
 use DateTime;
 use File::HomeDir;
 use Readonly;
-use RRDs;
 use Siebel::Srvrmgr::Log::Enterprise::Parser::Comp_alias;
-use lib '/ood_repository/environment_review';
+use lib '.';
 use Archive;
 
 Readonly my $MY_DBM =>
@@ -38,8 +37,7 @@ my $procs = Siebel::Srvrmgr::OS::Unix->new(
         comps_source =>
           Siebel::Srvrmgr::Log::Enterprise::Parser::Comp_alias->new(
             {
-                process_regex =>
-'Se\sha\screado\sun\sproceso\sservidor\s(con\svarios\ssubprocesos\s)?',
+                process_regex => 'Created\s(multithreaded)?\sserver\sprocess', 
                 log_path => $enterprise_log,
                 archive  => Archive->new( { dbm_path => $MY_DBM } )
             }
@@ -58,9 +56,6 @@ my $timestamp =
 
 my $procs_ref = $procs->get_procs();
 
-# data aggregation by component alias
-my %rrd;
-
 my $output = 'output.csv';
 open( my $out, '>>', $output ) or die "failed to write to $output: $!";
 
@@ -75,62 +70,6 @@ foreach my $pid ( keys( %{$procs_ref} ) ) {
 
     my $comp_alias = $procs_ref->{$pid}->get_comp_alias();
 
-    if ( exists( $rrd{$comp_alias} ) ) {
-
-        $rrd{$comp_alias}->[0] +=
-          $procs_ref->{$pid}->get_pctcpu;
-        $rrd{$comp_alias}->[1] +=
-          $procs_ref->{$pid}->get_pctmem;
-
-    }
-    else {
-
-        $rrd{$comp_alias} = [];
-
-        $rrd{$comp_alias}->[0] =
-          $procs_ref->{$pid}->get_pctcpu;
-        $rrd{$comp_alias}->[1] =
-          $procs_ref->{$pid}->get_pctmem;
-
-    }
-
 }
 
 close($out);
-%{$procs_ref} = ();
-$procs_ref = undef;
-
-# must avoid trying to update DSN that were not created if components are changed without warning
-my @avail_comps = (
-    qw(AdminNotify ApptBook AsgnSrvr CommConfigMgr CommInboundProcessor CommInboundRcvr CommOutboundMgr CommSessionMgr EAIObjMgr_esn eCommunicationsObjMgr_esn eProdCfgObjMgr_esn FSCyccnt FSFulfill FSInvTxn FSLocate FSMSrvr FSPrevMnt FSRepl Optimizer SCBroker SCCObjMgr_esn ServerMgr SRBroker SRProc SvrTaskPersist WfProcBatchMgr WfProcMgr WfRecvMgr XMLPReportServer)
-);
-
-my ( @dsns, @cpu, @mem );
-
-foreach my $comp_alias (@avail_comps) {
-
-    next unless ( exists( $rrd{$comp_alias} ) );
-
-    my $temp_alias = substr( $comp_alias, 0, 19 ); # due restrictions of RRDTool
-    push( @dsns, $temp_alias );
-    push( @cpu,  $rrd{$comp_alias}->[0] );
-    push( @mem,  $rrd{$comp_alias}->[1] );
-
-}
-
-my $filename = 'siebel_server_cpu.rrd';
-RRDs::update(
-    $filename, '--template',
-    ( join( ':', @dsns ) ),
-    ( join( ':', $now->epoch, @cpu ) )
-);
-my $ERR = RRDs::error;
-die "ERROR while updating $filename: $ERR\n" if $ERR;
-$filename = 'siebel_server_mem.rrd';
-RRDs::update(
-    $filename, '--template',
-    ( join( ':', @dsns ) ),
-    ( join( ':', $now->epoch, @mem ) )
-);
-$ERR = RRDs::error;
-die "ERROR while updating mydemo.rrd: $ERR\n" if $ERR;

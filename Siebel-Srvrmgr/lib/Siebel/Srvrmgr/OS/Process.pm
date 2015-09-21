@@ -5,12 +5,80 @@ use MooseX::FollowPBP;
 use namespace::autoclean;
 use Set::Tiny;
 
-has pid        => ( is => 'ro', isa => 'Int', required => 1 );
-has fname      => ( is => 'ro', isa => 'Str', required => 1 );
-has pctcpu     => ( is => 'ro', isa => 'Num', required => 1 );
-has pctmem     => ( is => 'ro', isa => 'Num', required => 1 );
-has rss        => ( is => 'ro', isa => 'Int', required => 1 );
-has vsz        => ( is => 'ro', isa => 'Int', required => 1 );
+=pod
+
+=head1 NAME
+
+Siebel::Srvrmgr::OS::Process - class to represents a operational system process
+
+=head2 DESCRIPTION
+
+This class holds information regarding a operational system process that is (hopefully) related to a running Siebel Server.
+
+=head1 ATTRIBUTES
+
+Except for the C<comp_alias> attribute, all attributes are read-only and required during object instantiation.
+
+=head2 pid
+
+A integer representing the process identification.
+
+=cut
+
+has pid => ( is => 'ro', isa => 'Int', required => 1 );
+
+=head2 fname
+
+A string of the program filename
+
+=cut
+
+has fname => ( is => 'ro', isa => 'Str', required => 1 );
+
+=head2 pctcpu
+
+A float of the percentage of CPU the process was using.
+
+=cut
+
+has pctcpu => ( is => 'ro', isa => 'Num', required => 1 );
+
+=head2 pctmem
+
+A float of the percentage of memory the process was using.
+
+=cut
+
+has pctmem => ( is => 'ro', isa => 'Num', required => 1 );
+
+=head2 rss
+
+For Unix-like OS only: the RSS of the process.
+
+=cut
+
+has rss => ( is => 'ro', isa => 'Int', required => 1 );
+
+=head2 vsz
+
+For Unix-like OS only: the VSZ used by the process.
+
+=cut
+
+has vsz => ( is => 'ro', isa => 'Int', required => 1 );
+
+=head2 comp_alias
+
+A string of the component alias associated with the process.
+
+When the process is not related to Siebel, the value will be automatically defined
+to "/NA".
+
+When the PID is not identified in the source (a class that implements L<Siebel::Srvrmgr::Comps_source>), the
+default value will be "unknown".
+
+=cut
+
 has comp_alias => ( is => 'rw', isa => 'Str', required => 0 );
 
 sub _build_set {
@@ -21,6 +89,20 @@ sub _build_set {
     );
 
 }
+
+=head1 METHODS
+
+All attributes have their "getter" methods as defined in the Perl Best Practices book.
+
+The C<comp_alias> attribute also have the "setter" method.
+
+=head2 BUILD
+
+This method is invoked automatically when a object is created.
+
+It takes care of setting proper initialization of the C<comp_alias> attribute.
+
+=cut
 
 sub BUILD {
 

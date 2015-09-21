@@ -15,9 +15,20 @@ Siebel::Srvrmgr::Log::Enterprise - module to read a Siebel Enterprise log file
 
 =head1 SYNOPSIS
 
+    use Siebel::Srvrmgr::Log::Enterprise;
+    my $enterprise_log = Siebel::Srvrmgr::Log::Enterprise->new( { path => File::Spec->catfile('somewhere', 'under', 'the', 'rainbow')} );
+	my $next = $enterprise_log->read();
+
+	while (my $line = $next->()) {
+
+        # do something
+
+	}
+
 
 =head1 DESCRIPTION
 
+A class that knows how to read Siebel Enterprise log files: it knows the header details and how to safely read lines from the file.
 
 =head1 ATTRIBUTES
 
@@ -72,6 +83,12 @@ The file handle reference to the Siebel Enterprise log file, after was opened.
 has fh =>
   ( is => 'ro', isa => 'FileHandle', reader => 'get_fh', writer => '_set_fh' );
 
+=head2 filename
+
+The complete path to the temporary filename that this class uses to store the lines of the Siebel Enterprise Log file.
+
+=cut
+
 has filename => (
     is     => 'ro',
     isa    => 'Str',
@@ -81,7 +98,7 @@ has filename => (
 
 =head2 header
 
-The header of the file, without the BOM.
+The header of the Siebel Enterprise log file, without the BOM.
 
 =cut
 
@@ -264,7 +281,7 @@ Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2012 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
+This software is copyright (c) 2015 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
 
 This file is part of Siebel Monitoring Tools.
 
