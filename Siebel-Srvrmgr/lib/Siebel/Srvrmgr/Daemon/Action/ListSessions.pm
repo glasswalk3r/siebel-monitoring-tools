@@ -38,7 +38,7 @@ Expects as parameters:
 
 =item 1.
 
-a L<Siebel::Srvrmgr::ListParser::Output> instance
+a L<Siebel::Srvrmgr::ListParser::Output::Tabular::ListSessions> instance
 
 =item 2.
 
@@ -56,7 +56,7 @@ override 'do_parsed' => sub {
     my $obj  = shift;
     my $servername = $self->get_params()->[0];
 
-    if ( $obj->isa('Siebel::Srvrmgr::ListParser::Output::Tabular::ListSessions') ) {
+    if ( $obj->isa( $self->get_exp_output() ) ) { 
     
         my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
         $stash->push_stash( $obj->get_sessions($servername) );
@@ -69,6 +69,12 @@ override 'do_parsed' => sub {
         return 0;
 
     }
+
+};
+
+override '_build_exp_output' => sub {
+
+    return 'Siebel::Srvrmgr::ListParser::Output::Tabular::ListSessions';
 
 };
 

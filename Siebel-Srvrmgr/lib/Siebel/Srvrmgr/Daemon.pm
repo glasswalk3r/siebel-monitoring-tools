@@ -10,7 +10,7 @@ Siebel::Srvrmgr::Daemon - super class for sessions with Siebel srvrmgr program
 
     package MyDaemon;
 
-	extends 'Siebel::Srvrmgr::Daemon';
+    extends 'Siebel::Srvrmgr::Daemon';
 
 =head1 DESCRIPTION
 

@@ -9,7 +9,7 @@ use Set::Tiny;
 
 =head1 NAME
 
-Siebel::Srvrmgr::OS::Process - class to represents a operational system process
+Siebel::Srvrmgr::OS::Process - class to represents a operational system process of Siebel
 
 =head2 DESCRIPTION
 
@@ -71,11 +71,10 @@ has vsz => ( is => 'ro', isa => 'Int', required => 1 );
 
 A string of the component alias associated with the process.
 
-When the process is not related to Siebel, the value will be automatically defined
+When the process is not directly related to Siebel (for example, a web server that servers SWSE), the value will be automatically defined
 to "/NA".
 
-When the PID is not identified in the source (a class that implements L<Siebel::Srvrmgr::Comps_source>), the
-default value will be "unknown".
+When the PID is not identified in the source (a class that implements L<Siebel::Srvrmgr::Comps_source>), the default value will be "unknown".
 
 =cut
 

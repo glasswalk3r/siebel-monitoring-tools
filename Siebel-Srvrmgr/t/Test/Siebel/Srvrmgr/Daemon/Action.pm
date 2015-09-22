@@ -136,7 +136,7 @@ sub class_attributes : Tests(3) {
 
 }
 
-sub class_methods : Tests(6) {
+sub class_methods : Tests(8) {
 
     my $test = shift;
 
@@ -156,6 +156,13 @@ sub class_methods : Tests(6) {
         ok( $test->get_action()->do( $test->get_my_data() ),
             'do method works with get_my_data()' );
 
+        lives_ok(
+            sub {
+                $test->get_action()->get_exp_output(),
+                  'get_exp_output does not raise an exception';
+            }
+        );
+
     }
 
   SKIP: {
@@ -171,7 +178,13 @@ sub class_methods : Tests(6) {
 
         dies_ok(
             sub { $test->get_action()->do_parsed() },
-            'does_parsed of superclass causes an exception'
+            'do_parsed of superclass causes an exception'
+        );
+
+        like(
+            $@,
+            qr/do_parsed must be overrided by subclasses/,
+            'the exception test is the expected'
         );
 
     }
@@ -193,15 +206,15 @@ sub clean_up : Test(shutdown) {
 
 # :TODO      :08/07/2013 12:50:22:: change for a proper interface instead hoping for data structure be the expected
     my $filename = '^' . ( @{ $test->get_action()->get_params() } )[0];
-	
-	# to avoid warnings with matching regular expression due the backslash used
-	# by Windows
-	if ( $Config{osname} eq 'MSWin32' ) {
-	
-		$filename =~ s/\\/\\\\/g;
-	
-	}
-	
+
+    # to avoid warnings with matching regular expression due the backslash used
+    # by Windows
+    if ( $Config{osname} eq 'MSWin32' ) {
+
+        $filename =~ s/\\/\\\\/g;
+
+    }
+
     my $regex = qr/$filename/;
 
     foreach my $file (@files) {

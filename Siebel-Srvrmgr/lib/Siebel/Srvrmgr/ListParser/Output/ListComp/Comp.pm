@@ -61,6 +61,8 @@ A string of the alias of the component.
 
 This is a required attribute during object creation.
 
+This attribute is read/write.
+
 =cut
 
 has alias => ( isa => 'Str', is => 'rw', required => 1 );
@@ -70,6 +72,8 @@ has alias => ( isa => 'Str', is => 'rw', required => 1 );
 =head2 name
 
 A string of the name of the component.
+
+This attribute is read/write.
 
 =cut
 
@@ -81,6 +85,8 @@ has name => ( isa => 'Str', is => 'rw', required => 1 );
 
 A string of the component type alias.
 
+This attribute is read/write.
+
 =cut
 
 has ct_alias => ( isa => 'Str', is => 'rw', required => 1 );
@@ -91,6 +97,8 @@ has ct_alias => ( isa => 'Str', is => 'rw', required => 1 );
 
 A string of the component group alias.
 
+This attribute is read/write.
+
 =cut
 
 has cg_alias => ( isa => 'Str', is => 'rw', required => 1 );
@@ -100,6 +108,8 @@ has cg_alias => ( isa => 'Str', is => 'rw', required => 1 );
 =head2 run_mode
 
 A string of the component run mode.
+
+This attribute is read/write.
 
 =cut
 
@@ -135,6 +145,8 @@ has num_run_tasks => ( isa => 'Int', is => 'ro', required => 1 );
 
 An integer with the maximum number of tasks the component will execute before restart itself.
 
+This attribute is read/write.
+
 =cut
 
 has max_tasks => ( isa => 'Int', is => 'rw', required => 1 );
@@ -156,6 +168,8 @@ has actv_mts_procs => ( isa => 'Int', is => 'ro', required => 1 );
 =head2 max_mts_procs
 
 An integer with the maximum number of MTS process that will run for the component.
+
+This attribute is read/write.
 
 =cut
 
@@ -195,6 +209,8 @@ has incarn_no => (
 
 A string representing the description of the component.
 
+This attribute is read/write.
+
 =cut
 
 has desc_text => ( isa => 'Str', is => 'rw', required => 1 );
@@ -203,7 +219,9 @@ has desc_text => ( isa => 'Str', is => 'rw', required => 1 );
 
 =head1 METHODS
 
-All attributes have the same methods name to access them. For setting them, just invoke the method name with the desirable value as parameter.
+All attributes have getter methods from than, following the Perl Best Practices book recomendation, so for component description invoke c<get_desc_text> method and so on.
+
+For those attributes that are read/write, their setters follows the same scheme.
 
 =head2 BUILD
 
@@ -241,6 +259,10 @@ L<Siebel::Srvrmgr::ListParser::Output::Duration>
 =item *
 
 L<Siebel::Srvrmgr::ListParser::Output::ToString>
+
+=item *
+
+L<MooseX::FollowPBP>
 
 =back
 

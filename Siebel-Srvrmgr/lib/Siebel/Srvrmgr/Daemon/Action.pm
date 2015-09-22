@@ -98,7 +98,7 @@ has params => (
 A string telling the expected output type the L<Siebel::Srvrmgr::Daemon::Action> subclass expectes to find. This is a lazy attribute since each subclass may have a
 different type of expected output.
 
-The string may be anything related to L<Siebel::Srvrmgr::ListParser::Output> subclasses and it will be used for validation during execution of C<do_parsed> method.
+The string must be the name of a subclass of L<Siebel::Srvrmgr::ListParser::Output> and it will be used for validation during execution of C<do_parsed> method.
 
 =cut
 

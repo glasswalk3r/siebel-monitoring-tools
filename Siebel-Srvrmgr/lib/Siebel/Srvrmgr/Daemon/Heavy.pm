@@ -4,13 +4,13 @@ package Siebel::Srvrmgr::Daemon::Heavy;
 
 =head1 NAME
 
-Siebel::Srvrmgr::Daemon::Heavy - "heavier' implementation of Siebel::Srvrmgr::Daemon
+Siebel::Srvrmgr::Daemon::Heavy - "heavier" implementation of Siebel::Srvrmgr::Daemon
 
 =head1 SYNOPSIS
 
-    use Siebel::Srvrmgr::Daemon;
+    use Siebel::Srvrmgr::Daemon::Heavy;
 
-    my $daemon = Siebel::Srvrmgr::Daemon->new(
+    my $daemon = Siebel::Srvrmgr::Daemon::Heavy->new(
         {
             server      => 'servername',
             gateway     => 'gateway',
@@ -18,6 +18,8 @@ Siebel::Srvrmgr::Daemon::Heavy - "heavier' implementation of Siebel::Srvrmgr::Da
             user        => 'user',
             password    => 'password',
             bin         => 'c:\\siebel\\client\\bin\\srvrmgr.exe',
+            time_zone   => 'America/Sao_Paulo',
+            has_lock    => 1, 
             commands    => [
                     Siebel::Srvrmgr::Daemon::Command->new(
                         command => 'load preferences',
@@ -45,8 +47,8 @@ Siebel::Srvrmgr::Daemon::Heavy - "heavier' implementation of Siebel::Srvrmgr::Da
 
 =head1 DESCRIPTION
 
-This class is the "heavier" version of L<Siebel::Srvmrgr::Daemon>. By heavier, understand more complex code to be able to deal with a heavier usage
-of srvrmgr.
+This class extends L<Siebel::Srvmrgr::Daemon>. By "Heavy" understand more complex code to be able to deal with a large number of commands
+of C<srvrmgr>.
 
 This class is indicated to be used in cenarios where several commands need to be executed in a short time interval: it will connect to srvrmgr by using 
 IPC for communication between the processes and once connected, the srvrmgr session will be reused as many times as desired instead of following the
@@ -88,6 +90,10 @@ our $SIG_ALARM = 0;
 # :TODO      :16/08/2013 19:02:24:: add statistics for daemon, like number of runs and average of used buffer for each command
 
 =pod
+
+=head1 ATTRIBUTES
+
+This class has additional attributes besides those from parent class.
 
 =head2 write_fh
 

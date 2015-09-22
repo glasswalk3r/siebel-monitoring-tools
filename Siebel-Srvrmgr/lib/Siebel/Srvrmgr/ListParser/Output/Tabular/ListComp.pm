@@ -318,10 +318,6 @@ L<Siebel::Srvrmgr::ListParser::Output::ListComp::Server>
 
 L<Siebel::Srvrmgr::ListParser::Output::ListComp::Comp>
 
-=item *
-
-L<Siebel::Srvrmgr::ListParser::Output::ToString>
-
 =back
 
 =head1 AUTHOR
