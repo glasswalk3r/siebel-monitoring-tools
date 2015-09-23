@@ -4,6 +4,8 @@ use Moose;
 use MooseX::FollowPBP;
 use namespace::autoclean;
 use Set::Tiny;
+use Scalar::Util::Numeric qw(isint);
+use Carp qw(confess cluck);
 
 =pod
 
@@ -89,11 +91,31 @@ sub _build_set {
 
 }
 
+=head2 tasks_num
+
+A integer representing the number of tasks that Siebel Component has executed in determined moment.
+
+This is read-write, non-required attribute with the default value of zero. For processes related to Siebel but not related to Siebel
+Components, this is the expected value too.
+
+=cut
+
+has tasks_num => (
+    is       => 'ro',
+    isa      => 'Int',
+    required => 0,
+    default  => 0,
+    reader   => 'get_tasks_num',
+    writer   => '_set_tasks_num'
+);
+
 =head1 METHODS
 
 All attributes have their "getter" methods as defined in the Perl Best Practices book.
 
-The C<comp_alias> attribute also have the "setter" method.
+=head2 set_comp_alias
+
+Sets the attribute C<comp_alias>. Expects a string passed as parameter.
 
 =head2 BUILD
 
@@ -116,6 +138,66 @@ sub BUILD {
     else {
 
         $self->set_comp_alias('N/A');
+
+    }
+
+}
+
+=head2 is_comp
+
+Returns true if the process is from a Siebel component, otherwise false.
+
+=cut
+
+sub is_comp {
+
+    my $self = shift;
+
+    my $comp_alias = $self->get_comp_alias();
+
+    if ( ( $comp_alias eq 'unknown' ) or ( $comp_alias eq 'N/A' ) ) {
+
+        return 0;
+
+    }
+    else {
+
+        return 1;
+
+    }
+
+}
+
+=head2 set_tasks_num
+
+Sets the value of C<tasks_num> related to this process.
+
+Expects as parameter a positive integer.
+
+The method will validate if the process being updated is related to a Siebel Component. If not, a warning will be raised and
+no update will be made.
+
+=cut
+
+sub set_tasks_num {
+
+    my ( $self, $value ) = @_;
+
+    confess "set_tasks_num requires a positive integer as parameter"
+      unless ( isint($value) );
+
+    my $set = $self->_build_set();
+
+    if ( $set->has( $self->get_fname ) ) {
+
+        $self->_set_tasks_num($value);
+
+    }
+    else {
+
+        cluck 'the process '
+          . $self->get_fname()
+          . ' is not a valid Siebel Server process';
 
     }
 

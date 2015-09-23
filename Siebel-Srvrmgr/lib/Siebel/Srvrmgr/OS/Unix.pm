@@ -206,14 +206,6 @@ sub get_procs {
         $pctcpu =~ s/\s//;
         $pctcpu += 0;
 
-        $procs{ $process->pid } = {
-            fname  => $process->fname,
-            pctcpu => $pctcpu,
-            pctmem => ( $process->pctmem + 0 ),
-            rss    => ( $process->rss + 0 ),
-            vsz    => ( $process->size + 0 )
-        };
-
         $procs{ $process->pid } = Siebel::Srvrmgr::OS::Process->new(
             {
                 pid    => $process->pid,
