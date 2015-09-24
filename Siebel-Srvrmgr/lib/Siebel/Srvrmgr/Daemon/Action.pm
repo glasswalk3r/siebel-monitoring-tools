@@ -112,9 +112,11 @@ has expected_output => (
 );
 
 sub _build_exp_output {
+	
+	my $self = shift;
 
-    confess
-'subclasses of Siebel::Srvrmgr::Daemon::Action must overrided _build_exp_output';
+    confess blessed($self)
+      . ', as a subclass of Siebel::Srvrmgr::Daemon::Action, must override the _build_exp_output method';
 
 }
 

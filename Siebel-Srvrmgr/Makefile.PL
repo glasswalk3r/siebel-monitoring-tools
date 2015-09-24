@@ -29,7 +29,7 @@ my %config = (
         'Scalar::Util::Numeric'        => "0.40",
         'Digest::MD5'                  => "2.54",
         'File::Temp'                   => "0.2304",
-        'File::Copy'                   => "2.30",
+        'File::Copy'                   => "2.26",
 
         # as spotted by yaroslav.shabalin@gmail.com
         ( $Config{osname} !~ /win32/i )

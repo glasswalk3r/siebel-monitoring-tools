@@ -45,7 +45,7 @@ override 'do_parsed' => sub {
     my $self = shift;
     my $obj  = shift;
 
-    if ( $obj->isa( $self->get_exp_output() ) ) {
+    if ( blessed($obj) eq $self->get_exp_output() ) {
 
         $obj->store( $self->get_dump_file() );
 
