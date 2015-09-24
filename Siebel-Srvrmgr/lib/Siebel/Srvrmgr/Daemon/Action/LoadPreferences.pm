@@ -42,7 +42,7 @@ override 'do_parsed' => sub {
     my $self = shift;
     my $item = shift;
 
-    if ( $item->isa('Siebel::Srvrmgr::ListParser::Output::LoadPreferences') ) {
+    if ( blessed($item) eq $self->get_exp_output() ) {
 
         return 1;
 
@@ -52,6 +52,12 @@ override 'do_parsed' => sub {
         return 0;
 
     }
+
+};
+
+override _build_exp_output => sub {
+
+    return 'Siebel::Srvrmgr::ListParser::Output::LoadPreferences';
 
 };
 

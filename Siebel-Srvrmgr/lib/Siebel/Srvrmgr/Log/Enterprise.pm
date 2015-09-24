@@ -176,6 +176,12 @@ sub read {
 
 }
 
+=head2 DEMOLISH
+
+During object termination, the associated temporary log file will be cloased and removed automatically, if available.
+
+=cut
+
 sub DEMOLISH {
 
     my $self = shift;
@@ -241,7 +247,7 @@ sub _define_eol {
 
     my $self = shift;
     my $part = shift;
-    my $eol  = substr $part, 1, 1;
+    my $eol  = substr $part, 0, 1;
 
   CASE: {
 
