@@ -59,7 +59,7 @@ has process_regex => (
 
 =head2 archive
 
-An optional object instance of a class that uses the L<Moose::Role> L<Siebel::Srvrmgr::OS::Enterprise::Archive>.
+An optional object instance of a class that uses the L<Moose::Role> L<Siebel::Srvrmgr::Log::Enterprise::Archive>.
 
 An important concept (and the reason for this paragraph) is that the reading of the Siebel Enterprise log file might be restricted or not.
 
@@ -73,7 +73,7 @@ I suggest using restricted mode.
 
 has 'archive' => (
     is     => 'ro',
-    does   => 'Siebel::Srvrmgr::OS::Enterprise::Archive',
+    does   => 'Siebel::Srvrmgr::Log::Enterprise::Archive',
     reader => 'get_archive'
 );
 
@@ -96,7 +96,7 @@ Getter for the attribute C<process_regex>.
 
 =head2 find_comps
 
-Parses the Siebel Enterprise log file by using a instance of a class that implements L<Siebel::Srvrmgr::OS::Enterprise::Archive> Moose Role.
+Parses the Siebel Enterprise log file by using a instance of a class that implements L<Siebel::Srvrmgr::Log::Enterprise::Archive> Moose Role.
 
 Expects as parameter a hash reference containing as keys the PIDs and as values the respective instances of L<Siebel::Srvrmgr::OS::Process>.
 

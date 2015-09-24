@@ -8,7 +8,7 @@ use Digest::MD5 qw(md5_base64);
 has 'dbm_path' =>
   ( is => 'ro', isa => 'Str', reader => 'get_dbm_path', required => 1 );
 
-with 'Siebel::Srvrmgr::OS::Enterprise::Archive';
+with 'Siebel::Srvrmgr::Log::Enterprise::Archive';
 
 sub BUILD {
 
