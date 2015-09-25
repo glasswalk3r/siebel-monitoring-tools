@@ -42,7 +42,7 @@ sub get_digest {
 
 }
 
-sub set_digest {
+sub _set_digest {
 
     my ( $self, $value ) = @_;
     $self->get_archive()->{DIGEST} = $value;
@@ -104,14 +104,14 @@ sub validate_archive {
 
             # different log file
             $self->reset();
-            $self->set_digest($curr_digest);
+            $self->_set_digest($curr_digest);
 
         }
 
     }
     else {
 
-        $self->set_digest($curr_digest);
+        $self->_set_digest($curr_digest);
 
     }
 

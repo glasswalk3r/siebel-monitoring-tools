@@ -511,6 +511,10 @@ ALRM
 
 =back
 
+Also the method sets the environment variable C<SIEBEL_TZ> if a time zone was set.
+
+If the logging is set to C<DEBUG> level all attribute values will be logged.
+
 =cut
 
 sub BUILD {
@@ -521,6 +525,25 @@ sub BUILD {
     $SIG{PIPE} = sub { $SIG_PIPE  = 1 };
     $SIG{ALRM} = sub { $SIG_ALARM = 1 };
     $ENV{SIEBEL_TZ} = $self->get_time_zone();
+
+    my $logger = Siebel::Srvrmgr->gimme_logger( $self->blessed() );
+
+    if ( $logger->is_debug() ) {
+
+        $logger->debug('This instance attributes values');
+
+        my @attribs = $self->meta->get_attribute_list();
+
+        foreach my $attrib_name (@attribs) {
+
+            my $attrib = $self->meta->get_attribute($attrib_name);
+            my $getter = $attrib->get_read_method();
+
+            $logger->debug( "attribute $attrib_name = " . $attrib->$getter );
+
+        }
+
+    }
 
 }
 
@@ -769,6 +792,8 @@ our $adm_02071    = qr/^SBL-ADM-02071.*/;
 our $adm_02049    = qr/^SBL-ADM-02049.*/;
 our $adm_02751    = qr/^SBL-ADM-02751.*/;
 our $siebel_error = SIEBEL_ERROR;
+# Fatal error (2555922): (null), exiting...
+our $fatal_error  = qr/Fatal error.*exiting\.\.\./;
 
 # this method will check for errors and warnings, specially if read from STDERR.
 # the first parameter is the data to be check, which can be an array reference or scalar, both will be checked the same way
@@ -793,6 +818,12 @@ sub _check_error {
     }
 
     foreach my $line ( @{$content} ) {
+
+        if ( $line =~ $fatal_error ) {
+
+            $logger->logdie("Failed to connect to: [$line]");
+
+        }
 
         if ( $line =~ $siebel_error ) {
 

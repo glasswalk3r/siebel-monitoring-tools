@@ -419,9 +419,9 @@ sub new {
                   Siebel::Srvrmgr->gimme_logger('Siebel::Srvrmgr::ListParser');
                 if ( $logger->is_debug() ) {
 
-                    $logger->debug( 'command_submission got ['
-                          . $state->notes('line')
-                          . ']' );
+                    my $line = $state->notes('line');
+                    $logger->debug( 'command_submission got [' . $line . ']' )
+                      if ( defined($line) );
 
                 }
 

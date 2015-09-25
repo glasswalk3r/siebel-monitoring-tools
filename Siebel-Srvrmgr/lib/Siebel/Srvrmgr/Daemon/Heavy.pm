@@ -146,7 +146,7 @@ has error_fh => (
 
 =head2 read_timeout
 
-The timeout for trying to read from child process handlers in seconds. It defaults to 1 second.
+The timeout for trying to read from child process handlers in seconds. It defaults to 0.5 second.
 
 Changing this value may help improving performance, but should be used with care.
 
@@ -414,12 +414,12 @@ override 'run' => sub {
           unless ( $self->_create_child() );
 
 # :WORKAROUND:31/07/2013 14:42:33:: must initialize the Log::Log4perl after forking the srvrmgr to avoid sharing filehandles
-        $logger = Siebel::Srvrmgr->gimme_logger( $self->blessed(), );
+        $logger = Siebel::Srvrmgr->gimme_logger( $self->blessed() );
 
     }
     else {
 
-        $logger = Siebel::Srvrmgr->gimme_logger( $self->blessed(), );
+        $logger = Siebel::Srvrmgr->gimme_logger( $self->blessed() );
         $logger->info( 'Reusing PID ', $self->get_pid() )
           if ( $logger->is_debug() );
         $ignore_output = 1;
