@@ -80,15 +80,18 @@ lib/Siebel/Srvrmgr/ListParser/Output/Duration.pm
 lib/Siebel/Srvrmgr/ListParser/Output/Enterprise.pm
 lib/Siebel/Srvrmgr/ListParser/Output/ListComp/Comp.pm
 lib/Siebel/Srvrmgr/ListParser/Output/ListComp/Server.pm
+lib/Siebel/Srvrmgr/ListParser/Output/ListProcs/Proc.pm
 lib/Siebel/Srvrmgr/ListParser/Output/ListServers/Server.pm
 lib/Siebel/Srvrmgr/ListParser/Output/ListTasks/Task.pm
 lib/Siebel/Srvrmgr/ListParser/Output/LoadPreferences.pm
 lib/Siebel/Srvrmgr/ListParser/Output/Set.pm
 lib/Siebel/Srvrmgr/ListParser/Output/Tabular.pm
+lib/Siebel/Srvrmgr/ListParser/Output/Tabular/ByServer.pm
 lib/Siebel/Srvrmgr/ListParser/Output/Tabular/ListComp.pm
 lib/Siebel/Srvrmgr/ListParser/Output/Tabular/ListCompDef.pm
 lib/Siebel/Srvrmgr/ListParser/Output/Tabular/ListCompTypes.pm
 lib/Siebel/Srvrmgr/ListParser/Output/Tabular/ListParams.pm
+lib/Siebel/Srvrmgr/ListParser/Output/Tabular/ListProcs.pm
 lib/Siebel/Srvrmgr/ListParser/Output/Tabular/ListServers.pm
 lib/Siebel/Srvrmgr/ListParser/Output/Tabular/ListSessions.pm
 lib/Siebel/Srvrmgr/ListParser/Output/Tabular/ListTasks.pm
@@ -129,12 +132,14 @@ t/DaemonHeavyLeak.t
 t/DaemonHeavyRuns.t
 t/DaemonLight.t
 t/Duration.t
+t/Enterprise.t
 t/Greetings.t
 t/ListComp.t
 t/ListCompDef.t
 t/ListCompTypes.t
 t/ListParams.t
 t/ListParser.t
+t/ListProcs.t
 t/ListServers.t
 t/ListSessions.t
 t/ListTasks.t
@@ -146,6 +151,7 @@ t/output/delimited/list_comp.txt
 t/output/delimited/list_comp_def.txt
 t/output/delimited/list_comp_types.txt
 t/output/delimited/list_params_for_srproc.txt
+t/output/delimited/list_procs.txt
 t/output/delimited/list_servers.txt
 t/output/delimited/list_sessions.txt
 t/output/delimited/list_tasks.txt
@@ -210,6 +216,7 @@ t/Test/Siebel/Srvrmgr/Daemon/Command.pm
 t/Test/Siebel/Srvrmgr/Daemon/Condition.pm
 t/Test/Siebel/Srvrmgr/Daemon/Heavy.pm
 t/Test/Siebel/Srvrmgr/Daemon/Light.pm
+t/Test/Siebel/Srvrmgr/Fixtures.pm
 t/Test/Siebel/Srvrmgr/ListParser.pm
 t/Test/Siebel/Srvrmgr/ListParser/Buffer.pm
 t/Test/Siebel/Srvrmgr/ListParser/Output.pm
@@ -223,6 +230,7 @@ t/Test/Siebel/Srvrmgr/ListParser/Output/Tabular/ListComp.pm
 t/Test/Siebel/Srvrmgr/ListParser/Output/Tabular/ListCompDef.pm
 t/Test/Siebel/Srvrmgr/ListParser/Output/Tabular/ListCompTypes.pm
 t/Test/Siebel/Srvrmgr/ListParser/Output/Tabular/ListParams.pm
+t/Test/Siebel/Srvrmgr/ListParser/Output/Tabular/ListProcs.pm
 t/Test/Siebel/Srvrmgr/ListParser/Output/Tabular/ListServers.pm
 t/Test/Siebel/Srvrmgr/ListParser/Output/Tabular/ListSessions.pm
 t/Test/Siebel/Srvrmgr/ListParser/Output/Tabular/ListTasks.pm

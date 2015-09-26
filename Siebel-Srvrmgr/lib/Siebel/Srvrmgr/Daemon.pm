@@ -46,6 +46,7 @@ use Fcntl ':flock';    # import LOCK_* constants
 use Config;
 use Carp;
 use File::Spec;
+use Data::Dumper;
 
 my $SIG_INT   = 0;
 my $SIG_PIPE  = 0;
@@ -530,16 +531,26 @@ sub BUILD {
 
     if ( $logger->is_debug() ) {
 
-        $logger->debug('This instance attributes values');
+        $logger->debug('This instance attributes values:');
 
-        my @attribs = $self->meta->get_attribute_list();
+        foreach my $attrib ( $self->meta->get_all_attributes() ) {
 
-        foreach my $attrib_name (@attribs) {
-
-            my $attrib = $self->meta->get_attribute($attrib_name);
             my $getter = $attrib->get_read_method();
+            my $value  = $self->$getter;
+            $value = 'UNDEFINED' unless ( defined($value) );
 
-            $logger->debug( "attribute $attrib_name = " . $attrib->$getter );
+            if ( ref($value) ne '' ) {
+
+                $logger->debug(
+                    'attribute ' . $attrib->name() . ' = ' . Dumper($value) );
+
+            }
+            else {
+
+                $logger->debug(
+                    'attribute ' . $attrib->name() . ' = ' . $value );
+
+            }
 
         }
 
@@ -792,8 +803,9 @@ our $adm_02071    = qr/^SBL-ADM-02071.*/;
 our $adm_02049    = qr/^SBL-ADM-02049.*/;
 our $adm_02751    = qr/^SBL-ADM-02751.*/;
 our $siebel_error = SIEBEL_ERROR;
+
 # Fatal error (2555922): (null), exiting...
-our $fatal_error  = qr/Fatal error.*exiting\.\.\./;
+our $fatal_error = qr/Fatal error.*exiting\.\.\./;
 
 # this method will check for errors and warnings, specially if read from STDERR.
 # the first parameter is the data to be check, which can be an array reference or scalar, both will be checked the same way

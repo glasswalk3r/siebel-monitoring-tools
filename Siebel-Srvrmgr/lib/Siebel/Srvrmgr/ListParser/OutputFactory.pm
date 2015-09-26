@@ -107,7 +107,7 @@ qr/list\s(advanced\s)?param(eter)?s?(\s(\w+\s)?(for\sserver\s\w+)?(\sfor\s((comp
     'list_servers' => [ 'Tabular::ListServers', qr/list\sserver(s)?.*/ ],
     'list_sessions' =>
       [ 'Tabular::ListSessions', qr/^list\s(active|hung)?\s?sessions$/ ],
-    'list_procs' => [ 'Tabular::ListProcs', qr/^list\sprocs(\sfor.*)?/ ]
+    'list_procs' => [ 'Tabular::ListProcs', qr/^list\sprocs/ ]
 );
 
 lock_hash(%table_mapping);
