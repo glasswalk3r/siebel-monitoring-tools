@@ -88,16 +88,26 @@ L<Siebel::Srvrmgr::ListParser>
 =cut
 
 my %table_mapping = (
-    'list_comp'        => ['Tabular::ListComp', qr/^list\scomps?$/],
-    'set_delimiter'    => ['Set', qr/^set\sdelimiter/],
-    'list_params'      => ['Tabular::ListParams', qr/list\s(advanced\s)?param(eter)?s?(\s(\w+\s)?(for\sserver\s\w+)?(\sfor\s((comp(nent)?)|named\ssubsystem|task)\s\w+)?)?/],
-    'list_comp_def'    => ['Tabular::ListCompDef', qr/list\scomp\sdefs?(\s\w+)?/],
-    'greetings'        => ['Enterprise', CONN_GREET],
-    'list_comp_types'  => ['Tabular::ListCompTypes', qr/list\scomp(nent)?\stypes?$/],
-    'load_preferences' => ['LoadPreferences', qr/^load\spreferences$/],
-    'list_tasks'       => ['Tabular::ListTasks', qr/list\stasks(\sfor\sserver\s\w+\scomponent\sgroup?\s\w+)?/],
-    'list_servers'     => ['Tabular::ListServers', qr/list\sserver(s)?.*/],
-    'list_sessions'    => ['Tabular::ListSessions', qr/^list\s(active|hung)?\s?sessions$/]
+    'list_comp'     => [ 'Tabular::ListComp', qr/^list\scomps?$/ ],
+    'set_delimiter' => [ 'Set',               qr/^set\sdelimiter/ ],
+    'list_params'   => [
+        'Tabular::ListParams',
+qr/list\s(advanced\s)?param(eter)?s?(\s(\w+\s)?(for\sserver\s\w+)?(\sfor\s((comp(nent)?)|named\ssubsystem|task)\s\w+)?)?/
+    ],
+    'list_comp_def' =>
+      [ 'Tabular::ListCompDef', qr/list\scomp\sdefs?(\s\w+)?/ ],
+    'greetings' => [ 'Enterprise', CONN_GREET ],
+    'list_comp_types' =>
+      [ 'Tabular::ListCompTypes', qr/list\scomp(nent)?\stypes?$/ ],
+    'load_preferences' => [ 'LoadPreferences', qr/^load\spreferences$/ ],
+    'list_tasks'       => [
+        'Tabular::ListTasks',
+        qr/list\stasks(\sfor\sserver\s\w+\scomponent\sgroup?\s\w+)?/
+    ],
+    'list_servers' => [ 'Tabular::ListServers', qr/list\sserver(s)?.*/ ],
+    'list_sessions' =>
+      [ 'Tabular::ListSessions', qr/^list\s(active|hung)?\s?sessions$/ ],
+    'list_procs' => [ 'Tabular::ListProcs', qr/^list\sprocs(\sfor.*)?/ ]
 );
 
 lock_hash(%table_mapping);

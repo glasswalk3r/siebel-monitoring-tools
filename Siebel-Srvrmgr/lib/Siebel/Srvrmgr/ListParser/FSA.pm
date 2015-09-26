@@ -318,6 +318,29 @@ sub new {
             ],
             message => 'prompt found'
         },
+        list_procs => {
+            label    => 'parses output from a list procs command',
+            on_enter => sub {
+                my $state = shift;
+                $state->notes( is_cmd_changed => 0 );
+                $state->notes( is_data_wanted => 1 );
+            },
+            on_exit => sub {
+
+                my $state = shift;
+                $state->notes( is_data_wanted => 0 );
+
+            },
+            rules => [
+                command_submission => sub {
+
+                    my $state = shift;
+                    return ( $state->machine->{curr_line} =~ SRVRMGR_PROMPT );
+
+                },
+            ],
+            message => 'prompt found'
+        },
         list_servers => {
             label    => 'parses output from a list servers command',
             on_enter => sub {
@@ -534,6 +557,24 @@ sub new {
 
                     if ( $state->notes('last_command') =~
                         $map_ref->{list_tasks} )
+                    {
+
+                        return 1;
+
+                    }
+                    else {
+
+                        return 0;
+
+                    }
+
+                },
+                list_procs => sub {
+
+                    my $state = shift;
+
+                    if ( $state->notes('last_command') =~
+                        $map_ref->{list_procs} )
                     {
 
                         return 1;

@@ -32,7 +32,10 @@ sub class_methods : Tests(no_plan) {
 
     my $test = shift;
 
-    $test->SUPER::class_methods( [qw(get_servers get_tasks)] );
+    does_ok( $test->get_output(),
+        'Siebel::Srvrmgr::ListParser::Output::Tabular::ByServer' );
+
+    $test->SUPER::class_methods( [qw(get_tasks)] );
 
     my @fixed_attribs = qw(server_name comp_alias id pid status);
     my @del_attribs   = (
@@ -48,7 +51,7 @@ sub class_methods : Tests(no_plan) {
                 scalar(
                     @{ $test->get_output()->get_data_parsed()->{siebel1} }
                 ) * ( scalar(@fixed_attribs) + scalar(@del_attribs) + 1 )
-            ) + 12
+            ) + 13
           )
     );
 
@@ -83,7 +86,7 @@ sub class_methods : Tests(no_plan) {
         qr/Siebel\sServer\sname\sparameter\sis\srequired\sand\smust\sbe\svalid/,
         'dies with correct message'
     );
-    dies_ok { $test->get_output()->get_tasks() }
+    dies_ok { $test->get_output()->get_tasks('') }
     'get_tasks dies when invoked with an invalid Siebel server name';
     like(
         $@,

@@ -1,5 +1,13 @@
 package Siebel::Srvrmgr::ListParser::Output::Tabular;
 
+=pod
+
+=head1 NAME
+
+Siebel::Srvrmgr::ListParser::Output::Tabular - base class for all command outputs that have a tabular form
+
+=cut
+
 use Moose;
 use namespace::autoclean;
 use Carp qw(cluck);
@@ -12,6 +20,30 @@ extends 'Siebel::Srvrmgr::ListParser::Output';
 
 with 'Siebel::Srvrmgr::ListParser::Output::ToString';
 
+=head1 SYNOPSIS
+
+This is a base class, look for implementations of subclasses for examples.
+
+=head1 DESCRIPTION
+
+This class is a base class for all classes that parses output that have a tabular form (almost all of them).
+
+All those outputs have a header with the columns names and the columns with the data. The "columns" are defined by a single character to separate them or by fixed width.
+
+It have common attributes and methods for parsing different commands output.
+
+This class extends L<Siebel::Srvrmgr::ListParser::Output> and applies the Moose Role L<Siebel::Srvrmgr::ListParser::Output::ToString>.
+
+=head1 ATTRIBUTES
+
+=head2 structure_type
+
+Identifies which subtype of output a instance is. See L<Siebel::Srvrmgr::Types>, C<OutputTabularType> for details.
+
+It is a read-only, required attribute during object creation.
+
+=cut
+
 has structure_type => (
     is       => 'ro',
     isa      => 'OutputTabularType',
@@ -19,11 +51,30 @@ has structure_type => (
     required => 1
 );
 
+=head2 col_sep
+
+The column/field separator in the tabular output, if any. Used to parse the data into columns.
+
+It is a single character (see L<Siebel::Srvrmgr::Types>, C<Chr>) and is a read-only, required attribute during object creation.
+
+=cut
+
 has col_sep => (
     is     => 'ro',
     isa    => 'Chr',
     reader => 'get_col_sep'
 );
+
+=head2 expected_fields
+
+An array reference with the fields names expected by a subclass.
+
+It is used for validation and parsing of the output. If the output doesn't have the same sequence of fields names, 
+an exception will be raised.
+
+It is a read-only, required attribute during object creation.
+
+=cut
 
 has expected_fields => (
     is      => 'ro',
@@ -33,6 +84,26 @@ has expected_fields => (
     builder => '_build_expected',
     lazy    => 1
 );
+
+=head2 known_types
+
+The two known types of tabular output, by default:
+
+=over
+
+=item *
+
+L<Siebel::Srvrmgr::ListParser::Output::Tabular::Struct::Fixed>
+
+=item *
+
+L<Siebel::Srvrmgr::ListParser::Output::Tabular::Struct::Delimited>
+
+=back
+
+Unless you're going to subclass this class you won't need to know more than that.
+
+=cut
 
 has known_types => (
     is      => 'ro',
@@ -48,6 +119,14 @@ has known_types => (
     }
 );
 
+=head2 found_header
+
+A boolean indicating if the header was located in the command output.
+
+Returns true or false depending on it. By default is false.
+
+=cut
+
 has found_header => (
     is      => 'ro',
     isa     => 'Bool',
@@ -55,6 +134,26 @@ has found_header => (
     writer  => '_set_found_header',
     default => 0
 );
+
+=head1 METHODS
+
+=head2 get_type
+
+Getter for C<structure_type> attribute.
+
+=head2 get_col_sep
+
+Getter for C<col_sep> attribute.
+
+=head2 get_expected_fields
+
+Getter for C<expected_fields> attribute.
+
+=head2 found_header
+
+Getter for C<found_header> attribute.
+
+=cut
 
 sub _build_expected {
 
@@ -69,8 +168,6 @@ sub _consume_data {
 '_consume_data must be overrided by subclasses of Siebel::Srvrmgr::ListParser::Output::Tabular';
 
 }
-
-=pod
 
 =head2 parse
 
@@ -201,8 +298,8 @@ override 'parse' => sub {
 
 =head1 CAVEATS
 
-All subclasses of Siebel::Srvrmgr::ListParser::Output::Tabular expect to have both the header and trailer of executed commands in C<srvrmgr> program. Removing one or both 
-of them will result in parsing errors and probably exceptions.
+All subclasses of Siebel::Srvrmgr::ListParser::Output::Tabular are expect to have both the header and trailer in the output of executed commands in C<srvrmgr> 
+program. Removing one or both of them will result in parsing errors and probably exceptions.
 
 =head1 SEE ALSO
 
@@ -211,6 +308,10 @@ of them will result in parsing errors and probably exceptions.
 =item *
 
 L<Siebel::Srvrmgr::ListParser::Output>
+
+=item *
+
+l<Siebel::Srvrmgr::ListParser::Output::ToString>
 
 =back
 
@@ -240,4 +341,4 @@ along with Siebel Monitoring Tools.  If not, see L<http://www.gnu.org/licenses/>
 =cut
 
 __PACKAGE__->meta->make_immutable;
-1;
+

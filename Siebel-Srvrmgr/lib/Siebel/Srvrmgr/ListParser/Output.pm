@@ -41,7 +41,7 @@ The C<parse> method must be overrided by subclasses or a exception will be raise
 
 =head2 data_type
 
-Identifies which kind of data is being given to the class. This is usually used by abstract factory classes to identify which subclass of 
+Identifies which kind of data is being given to the class. This is usually used by abstract factory class to identify which subclass of 
 Siebel::Srvrmgr::ListParser::Output must be created.
 
 This attribute is required during object creation.
@@ -105,6 +105,10 @@ has 'cmd_line' =>
 
 =head2 clear_raw
 
+A boolean attribute that defines if the raw data recovered from C<srvrmgr> should be kept or discarded as soon as possibly.
+
+Having a default value of true, it should help reducing memory usage or debugging, if set false.
+
 =cut
 
 has 'clear_raw' => (
@@ -121,7 +125,11 @@ has 'clear_raw' => (
 
 =head2 clear_raw
 
+Getter for the C<clear_raw> attribute.
+
 =head2 set_clear_raw
+
+Setter for the C<clear_raw> attribute.
 
 =head2 get_cmd_line
 
@@ -185,7 +193,7 @@ sub parse {
 
 =head1 SEE ALSO
 
-=over 4 
+=over 
 
 =item *
 
@@ -230,7 +238,5 @@ along with Siebel Monitoring Tools.  If not, see L<http://www.gnu.org/licenses/>
 
 =cut
 
-no Moose;
 __PACKAGE__->meta->make_immutable;
 
-1;

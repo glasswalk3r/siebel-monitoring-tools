@@ -15,6 +15,8 @@ Siebel::Srvrmgr::ListParser::Output::Tabular::ListTasks - subclass to parse list
 
 extends 'Siebel::Srvrmgr::ListParser::Output::Tabular';
 
+with 'Siebel::Srvrmgr::ListParser::Output::Tabular::ByServer';
+
 =pod
 
 =head1 SYNOPSIS
@@ -117,22 +119,6 @@ sub _build_expected {
 
 Some methods from the parent classes are overrided.
 
-=head2 get_servers
-
-Returns a list of the Siebel Server names from the parsed output.
-
-=cut
-
-sub get_servers {
-
-    my $self = shift;
-
-    return keys( %{ $self->get_data_parsed() } );
-
-}
-
-=pod
-
 =head2 count_tasks
 
 Returns an integer representing the number of tasks recovered from the parsed output.
@@ -147,26 +133,9 @@ sub count_tasks {
     my $self   = shift;
     my $server = shift;
 
-    my $server_ref = $self->_val_tasks_server($server);
+    my $server_ref = $self->val_items_server($server);
 
     return scalar( @{$server_ref} );
-
-}
-
-sub _val_tasks_server {
-
-    my $self   = shift;
-    my $server = shift;
-
-    confess 'Siebel Server name parameter is required and must be valid'
-      unless ( ( defined($server) ) and ( $server =~ SIEBEL_SERVER ) );
-
-    my $data_ref = $self->get_data_parsed;
-
-    confess "servername '$server' is not available in the output parsed"
-      unless ( exists( $data_ref->{$server} ) );
-
-    return $data_ref->{$server};
 
 }
 
@@ -183,7 +152,7 @@ Beware that depending on the type of output parsed, the returned instances will 
 values.
 
 To be compatible with the role L<Siebel::Srvrmgr::ListParser::Output::Duration>, fixed width output data will have a default
-value of '2000-00-00 00:00:00' for C<start_datetime> attribute, which is basically useless if you that kind of information.
+value of '2000-00-00 00:00:00' for C<start_datetime> attribute, which is basically useless if you need that of information.
 You should use delimited data for that.
 
 =cut
@@ -194,7 +163,7 @@ sub get_tasks {
     my $server  = shift;
     my $counter = 0;
 
-    my $server_ref = $self->_val_tasks_server($server);
+    my $server_ref = $self->val_items_server($server);
 
     my $total = scalar( @{$server_ref} ) - 1;
 
@@ -265,7 +234,6 @@ sub _consume_data {
     my $fields_ref = shift;
     my $parsed_ref = shift;
 
-    my $list_len    = scalar( @{$fields_ref} );
     my $server_name = $fields_ref->[0];
 
     $parsed_ref->{$server_name} = []
@@ -290,7 +258,7 @@ sub _consume_data {
 
 =head1 CAVEATS
 
-Unfornately the results of C<list tasks> command does not works as expected if a fixed width output type is selected due a bug with 
+Unfornately the results of C<list tasks> command does not work as expected if a fixed width output type is selected due a bug with 
 the C<srvrmgr> itself in recent versions of Siebel (8 and beyond).
 
 Even though a L<Siebel::Srvrmgr::ListParser> instance is capable of identifying a C<list tasks> command output, this class is 
@@ -300,10 +268,8 @@ The problem is that the output is not following the expected fixed width as setu
 C<configure list tasks show...> command: with that, the output width is resized depending on the content of each 
 column and thus impossible to predict how to parse it correctly.
 
-That said, this class will make all the fields available from C<list tasks> if a field delimited output was
-configured within srvrmgr.
-
-This problems does not happens when a delimited output is selected, so all fields will be available.
+That said, this class will make all the fields available from C<list tasks> B<only> if a field delimited output was
+configured within C<srvrmgr>.
 
 =head1 SEE ALSO
 
@@ -320,14 +286,6 @@ L<Moose>
 =item *
 
 L<Siebel::Srvrmgr::ListParser::Output::ListTasks::Task>
-
-=item *
-
-L<Siebel::Srvrmgr::ListParser::Output::ToString>
-
-=item *
-
-L<Siebel::Srvrmgr::ListParser::Output::Duration>
 
 =back
 
