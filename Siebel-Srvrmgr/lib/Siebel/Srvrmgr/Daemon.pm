@@ -527,7 +527,7 @@ sub BUILD {
     $SIG{ALRM} = sub { $SIG_ALARM = 1 };
     $ENV{SIEBEL_TZ} = $self->get_time_zone();
 
-    my $logger = Siebel::Srvrmgr->gimme_logger( $self->blessed() );
+    my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
 
     if ( $logger->is_debug() ) {
 
@@ -763,14 +763,16 @@ sub _define_params {
         $self->get_bin(),        '/e',
         $self->get_enterprise(), '/g',
         $self->get_gateway(),    '/u',
-        $self->get_user(),       '/p',
-        $self->get_password(),   '/l',
+        $self->get_user(),       '/l',
         $self->get_lang_id()
 
     );
 
     push( @params, '/s', $self->get_server() )
       if ( defined( $self->get_server() ) );
+
+    push( @params, '/k', $self->get_field_del() )
+      if ( defined( $self->get_field_del() ) );
 
 # :WORKAROUND:06/08/2013 21:05:32:: if a perl script will be executed (like for automated testing of this distribution)
 # then the perl interpreter must be part of the command path to avoid calling cmd.exe in Microsoft Windows
@@ -790,7 +792,7 @@ sub get_lock_file {
 
     my $self = shift;
 
-    my $filename = $self->blessed();
+    my $filename = blessed($self);
     $filename =~ s/\:{2}/_/g;
 
     return File::Spec->catfile( $self->get_lock_dir, ( $filename . '.lock' ) );
@@ -817,7 +819,7 @@ sub _check_error {
     my $content  = shift;
     my $is_error = shift;    #boolean
 
-    my $logger = Siebel::Srvrmgr->gimme_logger( $self->blessed() );
+    my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
 
 # :WORKAROUND: to enable the code to process both scalar and array reference data
 # without duplicating code
@@ -908,7 +910,7 @@ sub DEMOLISH {
 
     my $self = shift;
 
-    my $logger = Siebel::Srvrmgr->gimme_logger( $self->blessed() );
+    my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
 
     $logger->info('Terminating daemon: preparing cleanup');
 
@@ -959,7 +961,7 @@ sub _create_lock {
 
     my $self = shift;
 
-    my $logger = Siebel::Srvrmgr->gimme_logger( $self->blessed() );
+    my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
 
     my $lock_file = $self->get_lock_file;
 
@@ -996,7 +998,7 @@ sub _del_lock {
     my $self      = shift;
     my $lock_file = $self->get_lock_file;
 
-    my $logger = Siebel::Srvrmgr->gimme_logger( $self->blessed() );
+    my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
 
     if ( -e $lock_file ) {
 

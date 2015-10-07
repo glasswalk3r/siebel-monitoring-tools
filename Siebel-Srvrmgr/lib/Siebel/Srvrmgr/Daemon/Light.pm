@@ -135,7 +135,7 @@ override 'run' => sub {
 
     super();
 
-    my $logger = Siebel::Srvrmgr->gimme_logger( $self->blessed() );
+    my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
     $logger->info('Starting run method');
 
     my $parser = $self->create_parser();
@@ -235,6 +235,19 @@ override 'run' => sub {
     $logger->info('Exiting run sub');
 
     return 1;
+
+};
+
+override '_define_params' => sub {
+
+    my $self = shift;
+
+    my $params_ref = super();
+
+# :TODO:10/06/2015 07:09:25 PM:: this will expose the parameter when list the running processes
+    push( @{$params_ref}, '/p', $self->get_password() );
+
+    return $params_ref;
 
 };
 
@@ -399,7 +412,7 @@ sub _manual_check {
     my $self       = shift;
     my $ret_code   = shift;
     my $error_code = shift;
-    my $logger     = Siebel::Srvrmgr->gimme_logger( $self->blessed() );
+    my $logger     = Siebel::Srvrmgr->gimme_logger( blessed($self) );
 
     if ( $ret_code == 0 ) {
 
@@ -422,8 +435,7 @@ sub _check_system {
     my $ret_code    = shift;
     my $error_code  = shift;
 
-    my $logger =
-      Siebel::Srvrmgr->gimme_logger( $self->blessed() );
+    my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
 
     my ( $message, $is_error ) = check_system($child_error);
 

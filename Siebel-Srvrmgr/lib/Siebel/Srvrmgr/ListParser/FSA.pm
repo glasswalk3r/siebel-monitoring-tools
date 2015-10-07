@@ -68,7 +68,7 @@ sub new {
     my $class   = shift;
     my $map_ref = shift;
 
-    my $logger = Siebel::Srvrmgr->gimme_logger('Siebel::Srvrmgr::ListParser');
+    my $logger = Siebel::Srvrmgr->gimme_logger('Siebel::Srvrmgr::ListParser::FSA');
 
     $logger->logdie('the output type mapping reference received is not valid')
       unless ( ( defined($map_ref) ) and ( ref($map_ref) eq 'HASH' ) );

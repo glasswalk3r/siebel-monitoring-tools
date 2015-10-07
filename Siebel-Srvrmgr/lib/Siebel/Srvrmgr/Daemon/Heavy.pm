@@ -157,7 +157,7 @@ has read_timeout => (
     is      => 'rw',
     writer  => 'set_read_timeout',
     reader  => 'get_read_timeout',
-    default => 0.5 
+    default => 0.5
 );
 
 =pod
@@ -414,12 +414,12 @@ override 'run' => sub {
           unless ( $self->_create_child() );
 
 # :WORKAROUND:31/07/2013 14:42:33:: must initialize the Log::Log4perl after forking the srvrmgr to avoid sharing filehandles
-        $logger = Siebel::Srvrmgr->gimme_logger( $self->blessed() );
+        $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
 
     }
     else {
 
-        $logger = Siebel::Srvrmgr->gimme_logger( $self->blessed() );
+        $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
         $logger->info( 'Reusing PID ', $self->get_pid() )
           if ( $logger->is_debug() );
         $ignore_output = 1;
@@ -656,7 +656,7 @@ override 'run' => sub {
             }
 
 # :WORKAROUND:16/08/2013 18:54:51:: exceptions from validating output are not being seen
-# :TODO      :16/08/2013 18:55:18:: start using TryCatch to use exceptions for known problems
+# :TODO      :16/08/2013 18:55:18:: start using Try::Tiny to use exceptions for known problems
             eval {
 
                 $condition->set_output_used( $action->do( \@input_buffer ) );
@@ -757,7 +757,7 @@ sub _manage_handlers {
     my $self   = shift;
     my $select = shift;    # IO::Select object
 
-    my $logger = Siebel::Srvrmgr->gimme_logger( $self->blessed() );
+    my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
 
     # to keep data from both handles while looping over them
     my %data;
@@ -808,7 +808,7 @@ sub _create_child {
 
     my $self = shift;
 
-    my $logger = Siebel::Srvrmgr->gimme_logger( $self->blessed() );
+    my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
 
     if ( $self->get_retries() >= $self->get_max_retries() ) {
 
@@ -827,6 +827,9 @@ sub _create_child {
     my $params_ref = $self->_define_params();
 
     my ( $pid, $write_h, $read_h, $error_h ) = safe_open3($params_ref);
+
+  # submit the password, avoiding exposing it in the command line as a parameter
+    syswrite $write_h, ( $self->get_password . "\n" );
 
     $self->_set_pid($pid);
     $self->_set_write($write_h);
@@ -864,7 +867,7 @@ sub _process_stderr {
     my $self     = shift;
     my $data_ref = shift;
 
-    my $logger = Siebel::Srvrmgr->gimme_logger( $self->blessed() );
+    my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
 
     if ( defined($$data_ref) ) {
 
@@ -895,7 +898,7 @@ sub _process_stdout {
     my $buffer_ref = shift;
     my $condition  = shift;
 
-    my $logger = Siebel::Srvrmgr->gimme_logger( $self->blessed() );
+    my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
 
 # :TODO      :09/08/2013 19:35:30:: review and remove assigning the compiled regexes to scalar (probably unecessary)
     my $prompt_regex    = SRVRMGR_PROMPT;
@@ -1000,7 +1003,7 @@ sub _check_child {
 
     my $self = shift;
 
-    my $logger = Siebel::Srvrmgr->gimme_logger( $self->blessed() );
+    my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
 
     if ( $self->has_pid() ) {
 
@@ -1093,7 +1096,7 @@ sub _my_cleanup {
 
     my $self = shift;
 
-    my $logger = Siebel::Srvrmgr->gimme_logger( $self->blessed() );
+    my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
 
     if ( $self->has_pid() and ( $self->get_pid() =~ /\d+/ ) ) {
 
@@ -1183,7 +1186,7 @@ Accepts as an optional parameter an instance of a L<Log::Log4perl> for logging m
 sub close_child {
 
     my $self   = shift;
-    my $logger = Siebel::Srvrmgr->gimme_logger( $self->blessed() );
+    my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
 
     if ( $self->has_pid() ) {
 

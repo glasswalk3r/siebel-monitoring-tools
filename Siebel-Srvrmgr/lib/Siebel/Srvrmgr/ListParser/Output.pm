@@ -19,7 +19,6 @@ Siebel::Srvrmgr::ListParser::Output - base class of srvrmgr output
 =cut
 
 use Moose;
-
 use MooseX::Storage;
 use namespace::autoclean;
 use Carp;
