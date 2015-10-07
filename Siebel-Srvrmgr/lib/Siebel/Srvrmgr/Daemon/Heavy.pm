@@ -925,7 +925,7 @@ sub _process_stdout {
 
         }
 
-        #$self->_check_error( $line, 0 );
+        $self->_check_error( $line, 0 );
 
       SWITCH: {
 
