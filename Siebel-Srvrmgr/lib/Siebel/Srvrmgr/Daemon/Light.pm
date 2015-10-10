@@ -238,19 +238,6 @@ override 'run' => sub {
 
 };
 
-override '_define_params' => sub {
-
-    my $self = shift;
-
-    my $params_ref = super();
-
-# :TODO:10/06/2015 07:09:25 PM:: this will expose the parameter when list the running processes
-    push( @{$params_ref}, '/p', $self->get_password() );
-
-    return $params_ref;
-
-};
-
 =pod
 
 =head2 cmds_vs_tree
@@ -401,6 +388,9 @@ override _define_params => sub {
         '/b', '/i', $self->get_input_file(),
         '/o', $self->get_output_file()
     );
+
+# :TODO:10/06/2015 07:09:25 PM:: this will expose the parameter when list the running processes
+    push( @{$params_ref}, '/p', $self->get_password() );
 
     return $params_ref;
 

@@ -36,6 +36,14 @@ if ( ( ( exists( $opts{b} ) ) and $opts{b} ) ) {
 }
 else {
 
+    unless ( exists( $opts{p} ) ) {
+
+        print 'Password: ';
+        my $pass = <STDIN>;
+        chomp($pass);
+
+    }
+
     interactive( init() );
 
 }

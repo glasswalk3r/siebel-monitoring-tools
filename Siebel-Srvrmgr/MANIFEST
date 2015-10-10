@@ -181,6 +181,7 @@ t/output_files.t
 t/OutputFactory.t
 t/pod-coverage.t
 t/pod.t
+t/Process.t
 t/Regexes.t
 t/Serial-ActionListComp.t
 t/Serial-ActionListCompDef.t

@@ -4,6 +4,7 @@ use Test::More;
 use Test::Moose qw(has_attribute_ok);
 use Test::TempDir::Tiny;
 use File::Spec;
+use Siebel::Srvrmgr::Log::Enterprise::Parser::Comp_alias;
 use lib 't';
 use Test::Siebel::Srvrmgr::Fixtures qw(create_ent_log);
 
@@ -16,14 +17,11 @@ use constant TMP_DIR => tempdir();
 use constant ENTERPRISE_LOG =>
   File::Spec->catfile( TMP_DIR, 'foobar.foobar666.log' );
 
-# number of attributes + other tests
-use constant TOTAL_TESTS => 8 + 11;
-
 # :WORKAROUND:22-03-2015 19:58:18:: setting to this hardcode because the hack to define $0 for a running process
 # set both fname and cmndline attributes of Proc::ProcessTable::Process
-use constant PROC_NAME => 'siebmtshmw';
-
-plan tests => TOTAL_TESTS;
+use constant PROC_NAME   => 'siebmtshmw';
+use constant TOTAL_TESTS => 16;
+plan tests               => TOTAL_TESTS;
 
 if ( $] >= 5.012_005 ) {
 
@@ -135,11 +133,16 @@ sub fixtures {
     create_ent_log( $pid, ENTERPRISE_LOG );
     return Siebel::Srvrmgr::OS::Unix->new(
         {
-            enterprise_log => ENTERPRISE_LOG,
-            cmd_regex      => ( PROC_NAME . '$' ),
-            use_last_line  => 1,
-            parent_regex =>
-'Created\s(multithreaded\s)?server\sprocess\s\(OS\spid\s\=\s+\d+\s+\)\sfor\s\w+'
+            cmd_regex => ( PROC_NAME . '$' ),
+            comps_source =>
+              Siebel::Srvrmgr::Log::Enterprise::Parser::Comp_alias->new(
+                {
+#ServerLog	ProcessCreate	1	0000149754f82575:0	2015-03-05 13:15:41	Created multithreaded server process (OS pid = 	9644	) for SRProc
+                    process_regex =>
+                      'Created(\smultithreaded)?\sserver\sprocess',
+                    log_path => ENTERPRISE_LOG,
+                }
+              )
         }
     );
 
@@ -174,22 +177,25 @@ sub test_operations {
     is( scalar( keys( %{$procs_ref} ) ),
         1, 'get_procs returns a single process' );
     my $pid = ( keys( %{$procs_ref} ) )[0];
-    is( $procs_ref->{$pid}->{comp_alias},
+    isa_ok(
+        $procs_ref->{$pid},
+        'Siebel::Srvrmgr::OS::Process',
+        "reference of $pid key"
+    );
+    is( $procs_ref->{$pid}->get_comp_alias,
         'EAIObjMgr_enu', 'process has the correct component alias associated' );
-    is( $procs_ref->{$pid}->{fname},
+    is( $procs_ref->{$pid}->get_fname,
         'siebmtshmw', 'process has the correct process name' );
+    ok( $procs_ref->{$pid}->is_comp, 'is_comp returns true' );
 
     my $float   = qr/\d+(\.\d+)?/;
     my $integer = qr/\d+/;
 
-    like( $procs_ref->{$pid}->{pctcpu}, $float, 'process %CPU is a float' );
-    like( $procs_ref->{$pid}->{pctmem}, $float, 'process %memory is a float' );
-    like( $procs_ref->{$pid}->{rss}, $integer, 'process RSS is a integer' );
-    like( $procs_ref->{$pid}->{vsz}, $integer, 'process VSZ is a integer' );
-
-    ok( $procs->use_last_line, 'use_last_line method returns true' );
-    is( $procs->get_last_line, 50,
-        'get_last_line returns the expected last line position' );
+    like( $procs_ref->{$pid}->get_pctcpu, $float, 'process %CPU is a float' );
+    like( $procs_ref->{$pid}->get_pctmem, $float,
+        'process %memory is a float' );
+    like( $procs_ref->{$pid}->get_rss, $integer, 'process RSS is a integer' );
+    like( $procs_ref->{$pid}->get_vsz, $integer, 'process VSZ is a integer' );
 
 }
 
@@ -197,9 +203,11 @@ sub test_methods {
 
     my $procs   = shift;
     my @methods = (
-        'get_cmd',    'set_cmd',   'get_mem_limit', 'set_mem_limit',
-        'find_comps', 'get_procs', 'get_cpu_limit', 'set_cpu_limit', 
-		'get_comps_source'
+        'get_cmd',       'set_cmd',
+        'get_mem_limit', 'set_mem_limit',
+        'find_comps',    'get_procs',
+        'get_cpu_limit', 'set_cpu_limit',
+        'get_comps_source'
     );
     can_ok( $procs, @methods );
 
@@ -209,7 +217,7 @@ sub test_attributes {
 
     my $procs = shift;
     my @attribs =
-      ( qw(comps_source cmd_regex mem_limit cpu_limit limits_callback) );
+      (qw(comps_source cmd_regex mem_limit cpu_limit limits_callback));
 
     foreach my $attrib (@attribs) {
 
