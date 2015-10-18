@@ -1,6 +1,8 @@
 package Siebel::Srvrmgr::ListParser::Output::Tabular::ByServer;
+
+use strict;
+use warnings;
 use Moose::Role;
-use namespace::autoclean;
 use Siebel::Srvrmgr::Regexes qw(SIEBEL_SERVER);
 
 =head1 NAME

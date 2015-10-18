@@ -31,6 +31,8 @@ be a hash reference, there are a lot of options available out there.
 =cut
 
 use Moose::Role;
+use warnings;
+use strict;
 use Scalar::Util::Numeric qw(isint);
 use Carp;
 

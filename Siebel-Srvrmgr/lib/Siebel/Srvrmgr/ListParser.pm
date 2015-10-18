@@ -18,7 +18,6 @@ use Moose;
 use Siebel::Srvrmgr::ListParser::OutputFactory;
 use Siebel::Srvrmgr::ListParser::Buffer;
 use Siebel::Srvrmgr;
-use Log::Log4perl;
 use Siebel::Srvrmgr::ListParser::FSA;
 use namespace::autoclean;
 use Carp;

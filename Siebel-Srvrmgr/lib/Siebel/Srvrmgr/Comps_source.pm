@@ -23,6 +23,8 @@ The hash reference items will be updated and the same reference will be returned
 =cut
 
 use Moose::Role;
+use warnings;
+use strict;
 
 requires 'find_comps';
 

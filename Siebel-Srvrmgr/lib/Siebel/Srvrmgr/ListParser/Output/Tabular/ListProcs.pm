@@ -1,4 +1,5 @@
 package Siebel::Srvrmgr::ListParser::Output::Tabular::ListProcs;
+
 use Moose;
 use namespace::autoclean;
 use Siebel::Srvrmgr::ListParser::Output::ListProcs::Proc;

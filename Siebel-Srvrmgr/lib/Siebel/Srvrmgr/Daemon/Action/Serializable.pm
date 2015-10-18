@@ -2,6 +2,8 @@ package Siebel::Srvrmgr::Daemon::Action::Serializable;
 
 use Moose::Role;
 use Storable qw(nstore);
+use warnings;
+use strict;
 use Carp;
 
 =pod

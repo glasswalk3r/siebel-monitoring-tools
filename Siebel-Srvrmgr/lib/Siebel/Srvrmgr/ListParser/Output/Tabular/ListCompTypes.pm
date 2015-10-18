@@ -1,4 +1,5 @@
 package Siebel::Srvrmgr::ListParser::Output::Tabular::ListCompTypes;
+
 use Moose;
 use namespace::autoclean;
 

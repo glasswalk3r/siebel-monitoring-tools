@@ -1,7 +1,6 @@
 package Siebel::Srvrmgr::ListParser::FSA;
 use warnings;
 use strict;
-use Log::Log4perl;
 use Siebel::Srvrmgr;
 use Siebel::Srvrmgr::Regexes qw(SRVRMGR_PROMPT);
 use Scalar::Util qw(weaken);
