@@ -138,7 +138,6 @@ my %daemon_options = (
     password     => $opts{p},
     bin          => $opts{b},
     time_zone    => ( exists( $opts{t} ) ) ? $opts{t} : 'UTC',
-    is_infinite  => 0,
     read_timeout => 5,
     commands     => [
         Siebel::Srvrmgr::Daemon::Command->new(

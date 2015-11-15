@@ -6,20 +6,12 @@ package Siebel::Srvrmgr::Exporter::ListComp;
 
 Siebel::Srvrmgr::Daemon::Action::ListComps - subclass of Siebel::Srvrmgr::Daemon::Action to deal with list comp output
 
-=head1 SYNOPSIS
-
-	use Siebel::Srvrmgr::Daemon::Action::ListComps;
-
-	my $action = Siebel::Srvrmgr::Daemon::Action::ListComps->new({  parser => Siebel::Srvrmgr::ListParser->new(), 
-																	params => [$myDumpFile]});
-
-	$action->do(\@output);
-
 =cut
 
 use Moose;
 use namespace::autoclean;
 use Siebel::Srvrmgr::Daemon::ActionStash;
+use Siebel::Srvrmgr::ListParser::Output::ListComp::Server;
 
 extends 'Siebel::Srvrmgr::Daemon::Action';
 
@@ -27,20 +19,15 @@ extends 'Siebel::Srvrmgr::Daemon::Action';
 
 =head1 DESCRIPTION
 
-This subclass of L<Siebel::Srvrmgr::Daemon::Action> will try to find a L<Siebel::Srvrmgr::ListParser::Output::ListComp> object in the given array reference
-given as parameter to the C<do> method and stores the parsed data from this object in a serialized file. 
+This subclass of L<Siebel::Srvrmgr::Daemon::Action> overrides the C<do> method.
 
 =head1 METHODS
 
 =head2 do
 
-This methods expects an array reference as parameter containing a given command output.
+This methods expects a L<Siebel::Srvrmgr::ListParser::Output::Tabular::ListComp> instance as parameter.
 
-It will try to identify the first ocurrence of a L<Siebel::Srvrmgr::ListParser::Output::ListComp>: once one is found,
-it will call the C<get_servers> method from this class and then iterate over the servers (objects from the class L<Siebel::Srvrmgr::ListParser::Output::ListComp::Server>) 
-calling their respective C<store> method to serialize themselves into the OS filesystem.
-
-The name of the filename used for data serialization will be the value of C<dump_file> append with the character '_' and the server name.
+All servers available on the L<Siebel::Srvrmgr::ListParser::Output::ListComp> instance will stashed on a instance of L<Siebel::Srvrmgr::Daemon::ActionStash>.
 
 This method will return 1 if this operation was executed sucessfuly, 0 otherwise.
 
@@ -97,19 +84,7 @@ override 'do_parsed' => sub {
 
 =item *
 
-L<Siebel::Srvrmgr::ListParser::Output::ListComp>
-
-=item *
-
-L<Siebel::Srvrmgr::ListParser::Output::ListComp::Server>
-
-=item *
-
-L<Siebel::Srvrmgr::Daemon::Action>
-
-=item *
-
-L<Siebel::Srvrmgr::Daemon::Action::Serializable>
+L<Siebel::Srvrmgr>
 
 =back
 

@@ -127,6 +127,23 @@ sub shift_stash {
 
 }
 
+=head2 shift_all
+
+Retrieves all content from the C<stash> attribute, clean it up and returns the content.
+
+It is basically calling C<get_stash> and C<set_stash> with an empty array reference as parameter.
+
+=cut
+
+sub shift_all {
+
+    my $self = shift;
+    my $ref  = $self->get_stash();
+    $self->set_stash( [] );
+    return $ref;
+
+}
+
 =head1 SEE ALSO
 
 =over

@@ -64,7 +64,7 @@ This is what the parser of this class will expected to find:
         PA_REQ_COMP_RCFG (16):  Parameter requires component reconfiguration (bool)
         PA_NAME (76):  Parameter name
 
-The C<data_parsed> attribute will return the following data estructure:
+The C<data_parsed> attribute will return the a data estructure like this:
 
 	'data_parsed' => {
 		'Parameter1' => {
@@ -76,7 +76,7 @@ The C<data_parsed> attribute will return the following data estructure:
 			'PA_EFF_CMP_RSTRT' => '',
 			'PA_EFF_SRVR_RSTRT' => '',
 			'PA_REQ_COMP_RCFG' => '',
-			'PA_ALIAS' => 'KeyFileName',
+			'PA_ALIAS' => 'Parameter1',
 			'PA_SETLEVEL' => 'SIS_NEVER_SET',
 			'PA_DISP_SETLEVEL' => 'SIS_NEVER_SET',
 			'PA_SUBSYSTEM' => 'Networking'
@@ -90,7 +90,7 @@ The C<data_parsed> attribute will return the following data estructure:
 			'PA_EFF_CMP_RSTRT' => '',
 			'PA_EFF_SRVR_RSTRT' => '',
 			'PA_REQ_COMP_RCFG' => '',
-			'PA_ALIAS' => 'KeyFileName',
+			'PA_ALIAS' => 'Parameter2',
 			'PA_SETLEVEL' => 'SIS_NEVER_SET',
 			'PA_DISP_SETLEVEL' => 'SIS_NEVER_SET',
 			'PA_SUBSYSTEM' => 'Networking'
@@ -98,7 +98,7 @@ The C<data_parsed> attribute will return the following data estructure:
 			# N parameters
 	}
 
-For this release there is no method implemented that would return a parameter name and it's properties, it's necessary to access the hashes directly.
+So far there is no method implemented that would return a parameter name and it's properties, it's necessary to access the hashes directly.
 
 =head1 ATTRIBUTES
 

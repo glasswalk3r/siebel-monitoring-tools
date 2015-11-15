@@ -18,36 +18,31 @@ extends 'Siebel::Srvrmgr::Daemon::Action';
 
 =head1 DESCRIPTION
 
-This subclass of L<Siebel::Srvrmgr::Daemon::Action> will try to find a L<Siebel::Srvrmgr::ListParser::Output::ListParams> object in the given array reference
-given as parameter to the C<do> method and stores the parsed data from this object in a L<Siebel::Srvrmgr::Daemon::ActionStash> object.
+This subclass of L<Siebel::Srvrmgr::Daemon::Action> overrides the C<do> method.
 
 =head1 METHODS
 
 =head2 do
 
-This method is overrided from the superclass method, that is still called to validate parameter given.
+Expects as parameter a instance of L<Siebel::Srvrmgr::ListParser::Output::Tabular::ListParams>, otherwise it will call C<confess> from L<Carp>.
 
-It will search in the array reference given as parameter: the first object found is stored in instance of L<Siebel::Srvrmgr::Daemon::ActionStash>
-and the function returns 1 in this case. Otherwise it will return 0.
+If valid, the instance will be stash in a instance of L<Siebel::Srvrmgr::Daemon::ActionStash>.
+
+Returns true if everything went ok, false otherwise.
 
 =cut
 
 override 'do_parsed' => sub {
 
-    my $self = shift;
-    my $obj  = shift;
+    my ( $self, $obj ) = @_;
+    confess
+"invalid Siebel::Srvrmgr::ListParser::Output::Tabular subclass instance received as parameter"
+      unless (
+        $obj->isa('Siebel::Srvrmgr::ListParser::Output::Tabular::ListParams') );
+    my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
+    $stash->set_stash( [$obj] );
 
-    if ( $obj->isa('Siebel::Srvrmgr::ListParser::Output::Tabular::ListParams') ) {
-
-        my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
-
-        $stash->set_stash( [$obj] );
-
-        return 1;
-
-    }
-
-    return 0;
+    return 1;
 
 };
 
