@@ -88,7 +88,7 @@ L<Siebel::Srvrmgr::ListParser>
 =cut
 
 my %table_mapping = (
-    'list_comp'     => [ 'Tabular::ListComp', qr/^list\scomps?$/ ],
+    'list_comp'     => [ 'Tabular::ListComp', qr/^list\scomps?.*/ ],
     'set_delimiter' => [ 'Set',               qr/^set\sdelimiter/ ],
     'list_params'   => [
         'Tabular::ListParams',
