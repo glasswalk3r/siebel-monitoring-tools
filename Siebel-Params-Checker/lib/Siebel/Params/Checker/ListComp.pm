@@ -8,8 +8,8 @@ Siebel::Params::Checker::ListComp - subclass of Siebel::Srvrmgr::Daemon::Action 
 
 =cut
 
-use Moose;
-use namespace::autoclean;
+use Moose 2.1604;
+use namespace::autoclean 0.28;
 use Siebel::Srvrmgr::Daemon::ActionStash;
 use Siebel::Srvrmgr::ListParser::Output::ListComp::Server;
 use Carp;

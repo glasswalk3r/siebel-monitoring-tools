@@ -8,8 +8,8 @@ Siebel::Params::Checker::ListParams - subclass of Siebel::Srvrmgr::Daemon::Actio
 
 =cut
 
-use Moose;
-use namespace::autoclean;
+use Moose 2.1604;
+use namespace::autoclean 0.28;
 use Siebel::Srvrmgr::Daemon::ActionStash;
 
 extends 'Siebel::Srvrmgr::Daemon::Action';

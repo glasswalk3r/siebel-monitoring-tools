@@ -1,4 +1,7 @@
 #!/usr/bin/env perl
+# just to get automatic version number from Dist::Zilla::Plugin::PkgVersion
+package main;
+
 use warnings;
 use strict;
 use Getopt::Std;
@@ -21,20 +24,20 @@ sub HELP_MESSAGE {
 
     print <<BLOCK;
 
-scpc - version
+scpc - version $main::VERSION
 
 This program will connect to a Siebel server, check desired components parameters and print all information to STDOUT as a table for comparison.
 
 The parameters available are:
 
-	-n: required parameter of the component alias to export as parameter (case sensitive). The component alias must be unique.
+    -n: required parameter of the component alias to export as parameter (case sensitive). The component alias must be unique.
     -o: required parameter with the complete pathname to the HTML file to be generated as result
     -c: optional parameter to the complete path to the configuration file (defaults to .scpc.cfg in the user home directory).
         See the Pod of Siebel::Params::Checker for details on the configuration file.
 
 The parameters below are optional:
 
-	-h: prints this help message and exits
+    -h: prints this help message and exits
 
 Beware that environment variables required to connect to a Siebel Enterprise are expected to be already in place.
 
