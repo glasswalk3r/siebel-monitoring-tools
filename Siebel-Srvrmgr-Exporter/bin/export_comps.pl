@@ -42,17 +42,17 @@ BEGIN {
     }
     else {
 
-        require require Term::YAP::Process;
+        require Term::YAP::Process;
         $yap = Term::YAP::Process->new( \%params );
 
     }
 
 }
 
-use Siebel::Srvrmgr::Daemon::Heavy;
-use Siebel::Srvrmgr::ListParser::Output::ListComp::Server;
-use Siebel::Srvrmgr::ListParser::Output::Tabular::ListParams;
-use Siebel::Srvrmgr::Daemon::Command;
+use Siebel::Srvrmgr::Daemon::Heavy 0.21;
+use Siebel::Srvrmgr::ListParser::Output::ListComp::Server 0.21;
+use Siebel::Srvrmgr::ListParser::Output::Tabular::ListParams 0.21;
+use Siebel::Srvrmgr::Daemon::Command 0.21;
 use Siebel::Srvrmgr::Exporter::ListCompDef;
 use Siebel::Srvrmgr::Exporter::ListComp;
 use Siebel::Srvrmgr::Exporter::ListCompTypes;

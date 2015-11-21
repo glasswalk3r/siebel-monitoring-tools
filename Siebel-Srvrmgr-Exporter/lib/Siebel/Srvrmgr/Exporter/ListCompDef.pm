@@ -8,9 +8,9 @@ Siebel::Srvrmgr::Daemon::Action::ListCompDef - subclass of Siebel::Srvrmgr::Daem
 
 =cut
 
-use Moose;
-use namespace::autoclean;
-use Siebel::Srvrmgr::Daemon::ActionStash;
+use Moose 2.1604;
+use namespace::autoclean 0.13;
+use Siebel::Srvrmgr::Daemon::ActionStash 0.21;
 
 extends 'Siebel::Srvrmgr::Daemon::Action';
 

@@ -28,23 +28,23 @@ else {    # else is for UNIX-line OS
 }
 
 my $filename = 'test.txt';
-
 # srvrmgr-mock.pl ignores all parameters
 my $dummy = 'foobar';
-
+my $mock = File::Spec->catfile( $Config{sitebin}, 'srvrmgr-mock.pl' );
 die "Cannot find srvrmgr-mock.pl for execution"
-  unless ( -e ( File::Spec->catfile( $Config{sitebin}, 'srvrmgr-mock.pl' ) ) );
+  unless ( -e $mock );
 
 note('Fetching values, this can take some seconds');
-
 my $exports = File::Spec->catfile( getcwd(), 'bin', 'export_comps.pl' );
+die "Cannot find export_comps.pl for execution"
+  unless ( -e $exports );
 
 system(
     'perl', '-Ilib', $exports,
     '-s', $dummy, '-g', $dummy,
     '-e', $dummy, '-u', $dummy,
     '-p', $dummy, '-b',
-    File::Spec->catfile( $Config{sitebin}, 'srvrmgr-mock.pl' ),
+    $mock, 
     '-r',      'SRProc', '-x', '-o',
     $filename, '-q'
   ) == 0

@@ -8,10 +8,10 @@ Siebel::Srvrmgr::Daemon::Action::ListComps - subclass of Siebel::Srvrmgr::Daemon
 
 =cut
 
-use Moose;
-use namespace::autoclean;
-use Siebel::Srvrmgr::Daemon::ActionStash;
-use Siebel::Srvrmgr::ListParser::Output::ListComp::Server;
+use Moose 2.1604;
+use namespace::autoclean 0.13;
+use Siebel::Srvrmgr::Daemon::ActionStash 0.21;
+use Siebel::Srvrmgr::ListParser::Output::ListComp::Server 0.21;
 
 extends 'Siebel::Srvrmgr::Daemon::Action';
 
