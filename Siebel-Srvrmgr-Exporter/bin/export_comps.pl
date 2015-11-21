@@ -18,10 +18,7 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with Siebel Monitoring Tools.  If not, see <http://www.gnu.org/licenses/>.
-
-# this script will use srvrmgr program to connect to a given Siebel Server,
-# list it's components available and print a set of 'create component definition'
-# commands of the respective components
+package main;
 
 use warnings;
 use strict;

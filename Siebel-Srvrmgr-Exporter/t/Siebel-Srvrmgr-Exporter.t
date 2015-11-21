@@ -4,6 +4,7 @@ use Test::More tests => 2;
 use Digest::MD5;
 use Config;
 use File::Spec;
+use Cwd;
 
 BEGIN { use_ok('Siebel::Srvrmgr::Exporter') }
 
@@ -36,8 +37,10 @@ die "Cannot find srvrmgr-mock.pl for execution"
 
 note('Fetching values, this can take some seconds');
 
+my $exports = File::Spec->catfile( getcwd(), 'bin', 'export_comps.pl' );
+
 system(
-    'perl', '-Ilib', 'export_comps.pl',
+    'perl', '-Ilib', $exports,
     '-s', $dummy, '-g', $dummy,
     '-e', $dummy, '-u', $dummy,
     '-p', $dummy, '-b',
