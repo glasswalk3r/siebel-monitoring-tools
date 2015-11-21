@@ -175,7 +175,7 @@ sub test_operations {
     }
 
     is( scalar( keys( %{$procs_ref} ) ),
-        1, 'get_procs returns a single process' );
+        1, 'get_procs returns a single process' ) or diag(explain($procs_ref));
     my $pid = ( keys( %{$procs_ref} ) )[0];
     isa_ok(
         $procs_ref->{$pid},

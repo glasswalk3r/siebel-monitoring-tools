@@ -27,8 +27,8 @@ Siebel::Srvrmgr::Daemon::Action::CheckTasks - subclass of Siebel::Srvrmgr::Daemo
 
 =cut
 
-use Moose;
-use namespace::autoclean;
+use Moose 2.0401;
+use namespace::autoclean 0.13;
 use Moose::Util qw(does_role);
 use Siebel::Srvrmgr::Daemon::ActionStash;
 use Siebel::Srvrmgr;

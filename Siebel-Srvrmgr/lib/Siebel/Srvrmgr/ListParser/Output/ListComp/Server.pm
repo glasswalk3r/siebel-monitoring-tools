@@ -8,9 +8,9 @@ Siebel::Srvrmgr::ListParser::Output::ListComp::Server - class to parse and aggre
 
 =cut
 
-use Moose;
-use MooseX::Storage;
-use namespace::autoclean;
+use Moose 2.0401;
+use MooseX::Storage 0.33;
+use namespace::autoclean 0.13;
 use Siebel::Srvrmgr::ListParser::Output::ListComp::Comp;
 use Carp;
 

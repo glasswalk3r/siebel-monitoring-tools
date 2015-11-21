@@ -1,9 +1,9 @@
 package Siebel::Srvrmgr::ListParser::Output::ListTasks::Task;
 
-use Moose;
-use MooseX::FollowPBP;
-use namespace::autoclean;
-use DateTime;
+use Moose 2.0401;
+use MooseX::FollowPBP 0.05;
+use namespace::autoclean 0.13;
+use DateTime 1.12;
 use Siebel::Srvrmgr::Types;
 
 with 'Siebel::Srvrmgr::ListParser::Output::ToString';

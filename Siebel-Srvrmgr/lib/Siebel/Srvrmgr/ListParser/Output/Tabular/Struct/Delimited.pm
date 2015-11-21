@@ -1,8 +1,8 @@
 package Siebel::Srvrmgr::ListParser::Output::Tabular::Struct::Delimited;
 
-use Moose;
+use Moose 2.0401;
 use Carp;
-use namespace::autoclean;
+use namespace::autoclean 0.13;
 
 extends 'Siebel::Srvrmgr::ListParser::Output::Tabular::Struct';
 

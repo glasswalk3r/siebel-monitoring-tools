@@ -8,9 +8,9 @@ Siebel::Srvrmgr::ListParser::Output::LoadPreferences - subclass to parse load pr
 
 =cut
 
-use Moose;
+use Moose 2.0401;
 use Siebel::Srvrmgr::Regexes qw(LOAD_PREF_RESP LOAD_PREF_CMD);
-use namespace::autoclean;
+use namespace::autoclean 0.13;
 use Carp;
 
 extends 'Siebel::Srvrmgr::ListParser::Output';

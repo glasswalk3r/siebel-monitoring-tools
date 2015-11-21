@@ -8,8 +8,8 @@ Siebel::Srvrmgr::ListParser::Output::Tabular - base class for all command output
 
 =cut
 
-use Moose;
-use namespace::autoclean;
+use Moose 2.0401;
+use namespace::autoclean 0.13;
 use Carp qw(cluck);
 use Siebel::Srvrmgr::Regexes qw(ROWS_RETURNED);
 use Siebel::Srvrmgr::Types;

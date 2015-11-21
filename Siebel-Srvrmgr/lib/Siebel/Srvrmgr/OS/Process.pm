@@ -1,10 +1,10 @@
 package Siebel::Srvrmgr::OS::Process;
 
-use Moose;
-use MooseX::FollowPBP;
-use namespace::autoclean;
-use Set::Tiny;
-use Scalar::Util::Numeric qw(isint);
+use Moose 2.0401;
+use MooseX::FollowPBP 0.05;
+use namespace::autoclean 0.13;
+use Set::Tiny 0.02;
+use Scalar::Util::Numeric 0.40 qw(isint);
 use Carp qw(confess cluck);
 
 =pod

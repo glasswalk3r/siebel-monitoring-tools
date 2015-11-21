@@ -57,17 +57,17 @@ L<IPC::Open3>.
 
 =cut
 
-use Moose;
-use namespace::autoclean;
+use Moose 2.0401;
+use namespace::autoclean 0.13;
 use Siebel::Srvrmgr::Daemon::ActionFactory;
 use Siebel::Srvrmgr::ListParser;
 use Siebel::Srvrmgr::Daemon::Command;
 use Config;
 use Carp qw(longmess);
-use File::Temp qw(:POSIX);
+use File::Temp 0.2304 qw(:POSIX);
 use Data::Dumper;
 use Siebel::Srvrmgr;
-use File::BOM qw(:all);
+use File::BOM 0.14 qw(:all);
 use Siebel::Srvrmgr::IPC qw(check_system);
 
 extends 'Siebel::Srvrmgr::Daemon';

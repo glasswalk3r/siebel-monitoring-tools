@@ -2,7 +2,7 @@ package Siebel::Srvrmgr::Types;
 
 use warnings;
 use strict;
-use Moose::Util::TypeConstraints;
+use Moose::Util::TypeConstraints 2.0402;
 
 =pod
 

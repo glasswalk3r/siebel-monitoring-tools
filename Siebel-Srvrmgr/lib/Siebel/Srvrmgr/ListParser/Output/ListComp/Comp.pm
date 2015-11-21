@@ -8,9 +8,9 @@ Siebel::Srvrmgr::ListParser::Output::ListComp::Comp - class that represents a Si
 
 =cut
 
-use Moose;
-use MooseX::FollowPBP;
-use namespace::autoclean;
+use Moose 2.0401;
+use MooseX::FollowPBP 0.05;
+use namespace::autoclean 0.13;
 
 with 'Siebel::Srvrmgr::ListParser::Output::Duration';
 with 'Siebel::Srvrmgr::ListParser::Output::ToString';

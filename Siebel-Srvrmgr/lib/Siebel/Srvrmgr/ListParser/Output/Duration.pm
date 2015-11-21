@@ -1,11 +1,9 @@
 package Siebel::Srvrmgr::ListParser::Output::Duration;
 
-use Moose::Role;
+use Moose::Role 2.1604;
 use Carp;
 use warnings;
 use strict;
-
-# :TODO:06-06-2015 01:53:30:: check possibility to use DateTime::Tiny instead
 use DateTime;
 
 =pod

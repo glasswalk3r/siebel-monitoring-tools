@@ -8,18 +8,15 @@ Siebel::Srvrmgr::Daemon::Action::ListParams - subclass of Siebel::Srvrmgr::Daemo
 
 =head1 SYNOPSIS
 
-	use Siebel::Srvrmgr::Daemon::Action::ListParams;
-
-	my $action = Siebel::Srvrmgr::Daemon::Action::ListParams->new(  parser => Siebel::Srvrmgr::ListParser->new(),
-																	params => [$filename]);
-
-	$action->do(\@output);
-
+    use Siebel::Srvrmgr::Daemon::Action::ListParams;
+    my $action = Siebel::Srvrmgr::Daemon::Action::ListParams->new(  parser => Siebel::Srvrmgr::ListParser->new(),
+                                                                    params => [$filename]);
+    $action->do(\@output);
 
 =cut
 
-use Moose;
-use namespace::autoclean;
+use Moose 2.0401;
+use namespace::autoclean 0.13;
 
 extends 'Siebel::Srvrmgr::Daemon::Action';
 with 'Siebel::Srvrmgr::Daemon::Action::Serializable';

@@ -19,10 +19,10 @@ use Siebel::Srvrmgr::ListParser::OutputFactory;
 use Siebel::Srvrmgr::ListParser::Buffer;
 use Siebel::Srvrmgr;
 use Siebel::Srvrmgr::ListParser::FSA;
-use namespace::autoclean;
+use namespace::autoclean 0.13;
 use Carp;
 use Siebel::Srvrmgr::Types;
-use String::BOM qw(string_has_bom strip_bom_from_string);
+use String::BOM 0.3 qw(string_has_bom strip_bom_from_string);
 
 =pod
 

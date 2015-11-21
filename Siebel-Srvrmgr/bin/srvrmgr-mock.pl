@@ -1,23 +1,20 @@
 #!/usr/bin/env perl
+package main;
+
 use warnings;
 use strict;
 use Hash::Util qw(lock_keys);
 use YAML::Syck;
 use Getopt::Std;
 
-our $VERSION = 0.04;
 my $CRLF = "\015\012";
 
 for ( my $i = 0 ; $i <= scalar(@ARGV) ; $i++ ) {
-
     $ARGV[$i] =~ s#^/([bgeupslio])$#-$1# if ( defined( $ARGV[$i] ) );
-
 }
 
 my %opts;
-
 getopts( 'bg:e:u:p:s:l:i:o:', \%opts );
-
 $SIG{INT} = sub { die "\nDisconnecting...\n" };
 
 # detects batch mode

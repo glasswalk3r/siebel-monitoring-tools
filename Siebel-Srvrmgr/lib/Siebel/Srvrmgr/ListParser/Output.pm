@@ -18,9 +18,9 @@ Siebel::Srvrmgr::ListParser::Output - base class of srvrmgr output
 
 =cut
 
-use Moose;
-use MooseX::Storage;
-use namespace::autoclean;
+use Moose 2.0401;
+use MooseX::Storage 0.33;
+use namespace::autoclean 0.13;
 use Carp;
 use Siebel::Srvrmgr::Regexes qw(ROWS_RETURNED);
 

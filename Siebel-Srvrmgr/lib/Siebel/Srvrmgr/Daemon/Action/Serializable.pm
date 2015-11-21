@@ -1,7 +1,7 @@
 package Siebel::Srvrmgr::Daemon::Action::Serializable;
 
-use Moose::Role;
-use Storable qw(nstore);
+use Moose::Role 2.1604;
+use Storable 2.51 qw(nstore);
 use warnings;
 use strict;
 use Carp;

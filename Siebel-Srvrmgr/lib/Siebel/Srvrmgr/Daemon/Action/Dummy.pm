@@ -16,8 +16,8 @@ This is a subclass of L<Siebel::Srvrmgr::Daemon::Action> that will do... nothing
 
 =cut
 
-use Moose;
-use namespace::autoclean;
+use Moose 2.0401;
+use namespace::autoclean 0.13;
 
 extends 'Siebel::Srvrmgr::Daemon::Action';
 

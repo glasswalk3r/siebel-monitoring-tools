@@ -8,17 +8,15 @@ Siebel::Srvrmgr::Daemon::Action::ListComps - subclass of Siebel::Srvrmgr::Daemon
 
 =head1 SYNOPSIS
 
-	use Siebel::Srvrmgr::Daemon::Action::ListComps;
-
-	my $action = Siebel::Srvrmgr::Daemon::Action::ListComps->new({  parser => Siebel::Srvrmgr::ListParser->new(), 
-																	params => [$myDumpFile]});
-
-	$action->do(\@output);
+    use Siebel::Srvrmgr::Daemon::Action::ListComps;
+    my $action = Siebel::Srvrmgr::Daemon::Action::ListComps->new({  parser => Siebel::Srvrmgr::ListParser->new(), 
+                                                                    params => [$myDumpFile]});
+    $action->do(\@output);
 
 =cut
 
-use Moose;
-use namespace::autoclean;
+use Moose 2.0401;
+use namespace::autoclean 0.13;
 
 extends 'Siebel::Srvrmgr::Daemon::Action';
 

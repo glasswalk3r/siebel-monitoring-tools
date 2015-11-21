@@ -10,7 +10,7 @@ Siebel::Srvrmgr::ListParser::OutputFactory - abstract factory class to create Si
 
 use warnings;
 use strict;
-use MooseX::AbstractFactory;
+use MooseX::AbstractFactory 0.004000;
 use Carp;
 use Siebel::Srvrmgr::Regexes qw(CONN_GREET);
 use Hash::Util qw(lock_hash);
@@ -88,7 +88,7 @@ L<Siebel::Srvrmgr::ListParser>
 =cut
 
 my %table_mapping = (
-    'list_comp'     => [ 'Tabular::ListComp', qr/^list\scomps?.*/ ],
+    'list_comp'     => [ 'Tabular::ListComp', qr/^list\scomps?$|^list\scomps?\s[^(defs)(types)]/ ],
     'set_delimiter' => [ 'Set',               qr/^set\sdelimiter/ ],
     'list_params'   => [
         'Tabular::ListParams',

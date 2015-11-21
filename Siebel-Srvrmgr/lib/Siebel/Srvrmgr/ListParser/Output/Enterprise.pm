@@ -12,10 +12,10 @@ See L<Siebel::Srvrmgr::ListParser::Output>.
 
 =cut
 
-use Moose;
+use Moose 2.0401;
 use Siebel::Srvrmgr::Regexes qw(CONN_GREET);
 use Carp;
-use List::Util qw(sum);
+use List::Util 1.42 qw(sum);
 
 extends 'Siebel::Srvrmgr::ListParser::Output';
 

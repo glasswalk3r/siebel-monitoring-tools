@@ -35,12 +35,11 @@ Implementation details are reserved to subclasses of Siebel::Srvrmgr::Daemon: be
 
 =cut
 
-use Moose;
+use Moose 2.0401;
 use Siebel::Srvrmgr::Regexes qw(SIEBEL_ERROR);
 use Siebel::Srvrmgr::ListParser;
 use Siebel::Srvrmgr;
 use Scalar::Util qw(weaken);
-use Config;
 use Siebel::Srvrmgr::Types;
 use Fcntl ':flock';    # import LOCK_* constants
 use Config;

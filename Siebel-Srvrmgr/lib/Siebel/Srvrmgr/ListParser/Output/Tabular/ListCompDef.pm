@@ -8,8 +8,8 @@ Siebel::Srvrmgr::ListParser::Output::Tabular::ListCompDef - subclass to parse co
 
 =cut
 
-use Moose;
-use namespace::autoclean;
+use Moose 2.0401;
+use namespace::autoclean 0.13;
 
 extends 'Siebel::Srvrmgr::ListParser::Output::Tabular';
 

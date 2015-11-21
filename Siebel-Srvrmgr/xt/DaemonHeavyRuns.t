@@ -1,6 +1,6 @@
 use warnings;
 use strict;
-use Test::Most;
+use Test::Most tests => 6480;
 use Siebel::Srvrmgr::Daemon::Heavy;
 use Siebel::Srvrmgr::Daemon::Action::CheckComps;
 use Siebel::Srvrmgr::Daemon::ActionStash;
@@ -14,31 +14,86 @@ use Test::Siebel::Srvrmgr::Daemon::Action::Check::Server;
 my $daemon;
 my $server;
 
-$server = build_server('siebfoobar');
-$daemon = Siebel::Srvrmgr::Daemon::Heavy->new(
-    {
-        gateway    => 'whatever',
-        enterprise => 'whatever',
-        user       => 'whatever',
-        password   => 'whatever',
-        server     => 'whatever',
-        bin        => File::Spec->catfile( getcwd(), 'srvrmgr-mock.pl' ),
-        use_perl   => 1,
-        time_zone  => 'America/Sao_Paulo',
-        timeout    => 0,
-        commands   => [
-            Siebel::Srvrmgr::Daemon::Command->new(
-                command => 'list comp',
-                action  => 'CheckComps',
-                params  => [$server]
-            )
-        ]
-    }
-);
+# setting a INI file with configuration to connect to a real Siebel Enterprise will
+# enable the tests below
+if (    ( exists( $ENV{SIEBEL_SRVRMGR_DEVEL} ) )
+    and ( -e $ENV{SIEBEL_SRVRMGR_DEVEL} ) )
+{
 
-my $repeat      = 12;
-my $total_tests = ( scalar( @{ $server->components() } ) + 2 ) * $repeat;
-plan tests => $total_tests;
+    note('Running with configuration file');
+
+    eval "use Config::IniFiles";
+    BAIL_OUT('Missing Config::IniFiles') if ($@);
+
+    my $cfg = Config::IniFiles->new(
+        -file     => $ENV{SIEBEL_SRVRMGR_DEVEL},
+        -fallback => 'GENERAL'
+    );
+    $server = build_server(
+        $cfg->val( 'GENERAL', 'server' ),
+        $cfg->val( 'GENERAL', 'comp_list' )
+    );
+
+    $daemon = Siebel::Srvrmgr::Daemon::Heavy->new(
+        {
+            gateway    => $cfg->val( 'GENERAL', 'gateway' ),
+            enterprise => $cfg->val( 'GENERAL', 'enterprise' ),
+            user       => $cfg->val( 'GENERAL', 'user' ),
+            password   => $cfg->val( 'GENERAL', 'password' ),
+            server     => $cfg->val( 'GENERAL', 'server' ),
+            bin        => File::Spec->catfile(
+                $cfg->val( 'GENERAL', 'srvrmgr_path' ),
+                $cfg->val( 'GENERAL', 'srvrmgr_bin' )
+            ),
+            use_perl     => 0,
+            time_zone    => 'America/Sao_Paulo',
+            read_timeout => 15,
+            commands     => [
+                Siebel::Srvrmgr::Daemon::Command->new(
+                    command => 'load preferences',
+                    action  => 'LoadPreferences',
+                    params  => [$server]
+                ),
+                Siebel::Srvrmgr::Daemon::Command->new(
+                    command => 'list comp',
+                    action  => 'CheckComps',
+                    params  => [$server]
+                )
+            ]
+        }
+    );
+
+}
+else {
+
+    note('Running with hardcoded values');
+
+    $server = build_server('siebfoobar');
+
+    $daemon = Siebel::Srvrmgr::Daemon::Heavy->new(
+        {
+            gateway    => 'whatever',
+            enterprise => 'whatever',
+            user       => 'whatever',
+            password   => 'whatever',
+            server     => 'whatever',
+            bin        => File::Spec->catfile( getcwd(), 'srvrmgr-mock.pl' ),
+            use_perl   => 1,
+            time_zone  => 'America/Sao_Paulo',
+            timeout    => 0,
+            commands   => [
+                Siebel::Srvrmgr::Daemon::Command->new(
+                    command => 'list comp',
+                    action  => 'CheckComps',
+                    params  => [$server]
+                )
+            ]
+        }
+    );
+
+}
+
+my $repeat      = 120;
 my ( $tmp_dir, $log_file, $log_cfg ) = set_log();
 my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
 

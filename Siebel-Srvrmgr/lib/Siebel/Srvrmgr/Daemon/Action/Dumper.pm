@@ -19,8 +19,8 @@ This class uses L<Data::Dumper> them to print the buffer content to C<STDOUT>.
 
 =cut
 
-use Moose;
-use namespace::autoclean;
+use Moose 2.0401;
+use namespace::autoclean 0.13;
 use Data::Dumper;
 
 extends 'Siebel::Srvrmgr::Daemon::Action';

@@ -1,9 +1,9 @@
 package Siebel::Srvrmgr::OS::Unix;
 
-use Moose;
-use Proc::ProcessTable;
-use namespace::autoclean;
-use Set::Tiny;
+use Moose 2.0401;
+use Proc::ProcessTable 0.53;
+use namespace::autoclean 0.13;
+use Set::Tiny 0.02;
 use Carp qw(cluck confess);
 use Siebel::Srvrmgr::OS::Process;
 

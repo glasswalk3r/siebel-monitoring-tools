@@ -50,7 +50,7 @@ infinite loop.
 =cut
 
 use Moose;
-use namespace::autoclean;
+use namespace::autoclean 0.13;
 use Carp;
 
 =pod

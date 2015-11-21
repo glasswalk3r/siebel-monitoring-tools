@@ -26,9 +26,9 @@ L<Siebel::Srvrmgr::Daemon::Action>) and an optional parameter in the form of an 
 
 =cut
 
-use Moose;
-use MooseX::FollowPBP;
-use namespace::autoclean;
+use Moose 2.0401;
+use MooseX::FollowPBP 0.05;
+use namespace::autoclean 0.13;
 
 =pod
 

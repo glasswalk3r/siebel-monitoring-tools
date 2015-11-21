@@ -31,9 +31,9 @@ This class offers some validations on the values recovered, as well some additio
 
 =cut
 
-use Moose;
-use namespace::autoclean;
-use MooseX::FollowPBP;
+use Moose 2.0401;
+use namespace::autoclean 0.13;
+use MooseX::FollowPBP 0.05;
 
 =pod
 
