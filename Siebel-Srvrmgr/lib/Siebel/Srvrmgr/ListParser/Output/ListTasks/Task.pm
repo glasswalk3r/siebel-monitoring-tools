@@ -1,4 +1,5 @@
 package Siebel::Srvrmgr::ListParser::Output::ListTasks::Task;
+
 use Moose;
 use MooseX::FollowPBP;
 use namespace::autoclean;
