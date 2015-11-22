@@ -53,36 +53,6 @@ sub class_attributes : Tests(no_plan) {
 
 }
 
-sub runs : Tests(+10) {
-
-    my $test = shift;
-
-    $test->SUPER::runs();
-
-    ok( $test->{daemon}->run(), 'run method executes successfuly' );
-
-    my $lock_file = $test->{daemon}->get_lock_file;
-    $test->{lock_file} = $lock_file;    # see the_last_run
-
-    is( $test->{daemon}->get_child_runs(),
-        1, 'get_child_runs returns the expected number' );
-
-    my $shifted_cmd;
-    ok( $shifted_cmd = $test->{daemon}->shift_commands(),
-        'shift_command works' );
-    isa_ok( $shifted_cmd, 'Siebel::Srvrmgr::Daemon::Command' );
-    ok( $test->{daemon}->shift_commands(), 'shift_command works' );
-    ok( $test->{daemon}->shift_commands(), 'shift_command works' );
-
-    ok( $test->{daemon}->run(), 'run method executes successfuly (2)' );
-    is( $test->{daemon}->get_child_runs(),
-        2, 'get_child_runs returns the expected number' );
-    ok( $test->{daemon}->run(), 'run method executes successfuly (3)' );
-    is( $test->{daemon}->get_child_runs(),
-        3, 'get_child_runs returns the expected number' );
-
-}
-
 sub runs_with_stderr : Test(4) {
 
     my $test = shift;

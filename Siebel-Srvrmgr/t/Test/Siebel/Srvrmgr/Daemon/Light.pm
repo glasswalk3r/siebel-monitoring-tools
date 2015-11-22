@@ -33,53 +33,6 @@ sub class_attributes : Tests(+2) {
 
 }
 
-sub runs : Tests(+10) {
-
-    my $test = shift;
-    $test->SUPER::runs;
-
-    ok( $test->{daemon}->run(), 'run method executes successfuly' );
-
-    my $lock_file = $test->{daemon}->get_lock_file;
-    $test->{lock_file} = $lock_file;    # see the_last_run
-
-    ok( -e $lock_file, 'lock file created succesfully' );
-
-    is( $test->{daemon}->get_child_runs(),
-        1, 'get_child_runs returns the expected number' );
-
-    is( $test->{daemon}->shift_commands(),
-        undef, 'shift_command does not removes a load preferences command' );
-
-    ok( $test->{daemon}->run(), 'run method executes successfuly (2)' );
-
-    is( $test->{daemon}->get_child_runs(),
-        2, 'get_child_runs returns the expected number' );
-    ok( $test->{daemon}->run(), 'run method executes successfuly (3)' );
-    is( $test->{daemon}->get_child_runs(),
-        3, 'get_child_runs returns the expected number' );
-
-    $test->{daemon}->set_commands(
-        [
-            Siebel::Srvrmgr::Daemon::Command->new(
-                command => 'list comp type',
-                action  => 'ListCompTypes',
-                params  => ['dump1']
-            ),
-            Siebel::Srvrmgr::Daemon::Command->new(
-                command => 'list comp type',
-                action  => 'ListCompTypes',
-                params  => ['dump1']
-            ),
-        ]
-    );
-
-    my $cmd;
-    ok( $cmd = $test->{daemon}->shift_commands(), 'shift_commands works' );
-    isa_ok( $cmd, 'Siebel::Srvrmgr::Daemon::Command' );
-
-}
-
 sub runs_much_more : Tests(60) {
 
     my $test = shift;

@@ -9,7 +9,6 @@ Siebel::Srvrmgr::Daemon - super class for sessions with Siebel srvrmgr program
 =head1 SYNOPSIS
 
     package MyDaemon;
-
     extends 'Siebel::Srvrmgr::Daemon';
 
 =head1 DESCRIPTION
@@ -39,7 +38,7 @@ use Moose 2.0401;
 use Siebel::Srvrmgr::Regexes qw(SIEBEL_ERROR);
 use Siebel::Srvrmgr::ListParser;
 use Siebel::Srvrmgr;
-use Scalar::Util qw(weaken);
+use Scalar::Util qw(weaken blessed);
 use Siebel::Srvrmgr::Types;
 use Fcntl ':flock';    # import LOCK_* constants
 use Config;
@@ -182,7 +181,7 @@ Required attribute.
 A string representing the time zone to be considered for all date/time values recovered from C<srvrmgr>.
 
 See L<DateTime::TimeZone> C<all_names> methods to list the available time zones that you can use. The on-liner
-below show do it for you to find a proper value:
+below will show you them so you can find a proper value:
 
     perl -MDateTime::TimeZone -e 'foreach ( DateTime::TimeZone->all_names ) { print "$_\n" }'
 
@@ -626,7 +625,7 @@ sub check_cmd {
 
 =pod
 
-=head2 shift_commands
+=head2 shift_command
 
 Does a C<shift> in the C<commands> attribute.
 
@@ -638,7 +637,7 @@ again.
 
 =cut
 
-sub shift_commands {
+sub shift_command {
 
     my $self = shift;
 
@@ -661,6 +660,27 @@ sub shift_commands {
 
 =pod
 
+=head2 push_command
+
+Does a C<push> in the C<commands> attribute.
+
+Expects as parameter a L<Siebel::Srvrmgr::Daemon::Command> instance.
+
+=cut
+
+sub push_command {
+
+    my ( $self, $command ) = @_;
+    confess 'must received a Siebel::Srvrmgr::Daemon::Command as parameter'
+      unless ( blessed($command) eq 'Siebel::Srvrmgr::Daemon::Command' );
+    my $cmds_ref = $self->get_commands();
+    push( @{$cmds_ref}, $command );
+    $self->set_commands($cmds_ref);    # must trigger the attribute
+
+}
+
+=pod
+
 =head2 run
 
 This is the method used to execute commands in srvrmgr program and must be overrided by subclasses of Siebel::Srvrmgr::Daemon.
@@ -670,7 +690,11 @@ Subclasses should invoke L<Moose> C<super> to when doing override because this i
 
 sub run {
 
-    my $self = shift;
+    my $self  = shift;
+    my $class = blessed($self);
+    confess
+      'Only subclasses of Siebel::Srvrmgr::Daemon can executed this method'
+      unless ( defined($class) and ( $self->isa('Siebel::Srvrmgr::Daemon') ) );
 
     if ( $self->has_lock ) {
 

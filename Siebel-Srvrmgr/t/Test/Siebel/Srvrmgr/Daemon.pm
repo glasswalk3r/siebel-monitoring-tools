@@ -7,6 +7,7 @@ use Siebel::Srvrmgr::Daemon;
 use Siebel::Srvrmgr::Daemon::Command;
 use Log::Log4perl;
 use Test::TempDir::Tiny;
+use Scalar::Util qw(blessed);
 use Cwd;
 use parent 'Test::Siebel::Srvrmgr';
 use Siebel::Srvrmgr;
@@ -165,26 +166,26 @@ sub class_methods : Tests(24) {
     can_ok(
         $test->{daemon},
         (
-            'get_server',      'set_server',
-            'get_gateway',     'set_gateway',
-            'get_enterprise',  'set_enterprise',
-            'get_user',        'set_user',
-            'get_password',    'set_password',
-            'get_commands',    'set_commands',
-            'get_bin',         'set_bin',
-            '_setup_commands', 'run',
-            'DEMOLISH',        'shift_commands',
-            'use_perl',        'get_lang_id',
-            'set_lang_id',     'get_child_runs',
-            '_set_child_runs', 'shift_commands',
-            '_check_error',    'check_cmd',
-            'get_retries',     '_set_retries',
-            'clear_raw',       'set_clear_raw',
-            'get_max_retries', '_set_max_retries',
-            'get_lang_id',     'set_lang_id',
-            'use_perl',        'set_alarm',
-            'get_alarm',       'get_field_del',
-            'get_time_zone'
+            'get_server',       'set_server',
+            'get_gateway',      'set_gateway',
+            'get_enterprise',   'set_enterprise',
+            'get_user',         'set_user',
+            'get_password',     'set_password',
+            'get_commands',     'set_commands',
+            'get_bin',          'set_bin',
+            '_setup_commands',  'run',
+            'DEMOLISH',         'shift_command',
+            'use_perl',         'get_lang_id',
+            'set_lang_id',      'get_child_runs',
+            '_set_child_runs',  '_check_error',
+            'check_cmd',        'get_retries',
+            '_set_retries',     'clear_raw',
+            'set_clear_raw',    'get_max_retries',
+            '_set_max_retries', 'get_lang_id',
+            'set_lang_id',      'use_perl',
+            'set_alarm',        'get_alarm',
+            'get_field_del',    'get_time_zone',
+            'push_command',
         )
     );
 
@@ -195,7 +196,7 @@ sub class_methods : Tests(24) {
 
   SKIP: {
 
-        skip 'superclass cannot run this command', 21
+        skip 'Siebel::Srvrmgr::Daemon cannot run these methods', 21
           if ( $test->class() eq 'Siebel::Srvrmgr::Daemon' );
 
         ok( $test->{daemon}->_setup_commands(), '_setup_commands works' );
@@ -236,7 +237,7 @@ sub class_attributes : Tests(no_plan) {
         'field_delimiter', 'time_zone'
     );
 
-        $test->num_method_tests( 'class_attributes', scalar(@attribs) );
+    $test->num_method_tests( 'class_attributes', scalar(@attribs) );
 
     if (    ( defined($attribs_ref) )
         and ( ref($attribs_ref) eq 'ARRAY' )
@@ -330,16 +331,39 @@ sub the_last_run : Test(1) {
 
 }
 
-sub runs : Test(1) {
+sub runs : Test(10) {
 
-    my $test = shift;
+    my $test  = shift;
+    my $class = blessed( $test->{daemon} );
 
   SKIP: {
 
-        skip 'run method dies only with superclass', 1
-          if ( ref( $test->{daemon} ) ne 'Siebel::Srvrmgr::Daemon' );
+        skip
+          'only subclasses of Siebel::Srvrmgr::Daemon can execute those tests',
+          10
+          unless ( defined($class) and ( $class ne 'Siebel::Srvrmgr::Daemon' ) );
 
-        dies_ok { $test->{daemon}->run() } 'run is expected to die';
+        ok( $test->{daemon}->run(), 'run method executes successfuly' );
+
+        my $lock_file = $test->{daemon}->get_lock_file;
+        $test->{lock_file} = $lock_file;
+
+        is( $test->{daemon}->get_child_runs(),
+            1, 'get_child_runs returns the expected number' );
+
+        my $shifted_cmd;
+        ok( $shifted_cmd = $test->{daemon}->shift_command(),
+            'shift_command works' );
+        isa_ok( $shifted_cmd, 'Siebel::Srvrmgr::Daemon::Command' );
+        ok( $test->{daemon}->shift_command(), 'shift_command works' );
+        ok( $test->{daemon}->shift_command(), 'shift_command works' );
+
+        ok( $test->{daemon}->run(), 'run method executes successfuly (2)' );
+        is( $test->{daemon}->get_child_runs(),
+            2, 'get_child_runs returns the expected number' );
+        ok( $test->{daemon}->run(), 'run method executes successfuly (3)' );
+        is( $test->{daemon}->get_child_runs(),
+            3, 'get_child_runs returns the expected number' );
 
     }
 
@@ -381,16 +405,17 @@ sub clean_up : Test(shutdown) {
         if ( -e $file ) {
 
             my $exit = unlink $file;
-			
-			if ( $exit ) {
-			
-				 note("$file removed successfully");
-			
-			} else {
 
-				note("Cannot remove $file: $!");
-			
-			}
+            if ($exit) {
+
+                note("$file removed successfully");
+
+            }
+            else {
+
+                note("Cannot remove $file: $!");
+
+            }
 
         }
 
