@@ -77,7 +77,7 @@ else {
             user       => 'whatever',
             password   => 'whatever',
             server     => 'whatever',
-            bin        => File::Spec->catfile( getcwd(), 'srvrmgr-mock.pl' ),
+            bin        => File::Spec->catfile( getcwd(), 'bin', 'srvrmgr-mock.pl' ),
             use_perl   => 1,
             time_zone  => 'America/Sao_Paulo',
             timeout    => 0,

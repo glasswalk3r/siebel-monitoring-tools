@@ -60,7 +60,7 @@ sub _constructor : Tests(12) {
             [qw(get_password set_password my_pass)],
             [
                 'get_bin', 'set_bin',
-                File::Spec->catfile( getcwd(), 'srvrmgr-mock.pl' )
+                File::Spec->catfile( getcwd(), 'bin', 'srvrmgr-mock.pl' )
             ]
         ];
 
