@@ -48,7 +48,7 @@ sub class_attributes : Tests(no_plan) {
         'child_pid'
     );
 
-    $test->num_method_tests( 'class_attributes', ( '+' . scalar(@attribs) ) );
+#    $test->num_method_tests( 'class_attributes', ( '+' . scalar(@attribs) ) );
     $test->SUPER::class_attributes( \@attribs );
 
 }

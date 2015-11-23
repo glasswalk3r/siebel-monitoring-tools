@@ -348,21 +348,27 @@ override _setup_commands => sub {
 
 =pod
 
-=head2 shift_commands
+=head2 shift_command
 
 Overrided from parent class.
 
-If the first command is a LOAD PREFERENCES, the C<commands> attribute will not be shifted and the method returns C<undef>.
+If there is only one command and this command is C<load preferences>, the C<commands> attribute will not be shifted and the method returns C<undef>.
 
 Otherwise, the same behaviour from parent will be executed.
 
+The idea of this implementation is that if C<load preferences> was executed once, it will probably necessary to be executed again. Remember that this
+class execute commands in batch mode, so preview configurations loaded from C<load preferences> will not persist from one session to the other.
+
 =cut
 
-override shift_commands => sub {
+override shift_command => sub {
 
     my $self = shift;
+    my $cmds_ref = $self->get_commands();
 
-    if ( $self->get_commands()->[0]->get_command() =~ /load\spreferences/i ) {
+    if (    ( scalar( @{$cmds_ref} ) == 1 )
+        and ( $cmds_ref->[0]->get_command() =~ /load\spreferences/i ) )
+    {
 
         return undef;
 

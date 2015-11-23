@@ -7,6 +7,7 @@ use Siebel::Srvrmgr::Daemon::Light;
 use Siebel::Srvrmgr::Daemon::Command;
 use Config::IniFiles 2.88;
 use Exporter 'import';
+use Carp;
 
 =pod
 
@@ -53,8 +54,13 @@ sub create_daemon {
     if ( $cfg->val( 'GENERAl', 'type' ) eq 'heavy' ) {
         $class = 'Siebel::Srvrmgr::Daemon::Heavy';
     }
-    else {
+    elsif ( $cfg->val( 'GENERAl', 'type' ) eq 'light' ) {
         $class = 'Siebel::Srvrmgr::Daemon::Light';
+    }
+    else {
+        confess 'Invalid value "'
+          . $cfg->val( 'GENERAl', 'type' )
+          . '" for daemon type';
     }
 
     my $params = {
@@ -102,11 +108,13 @@ Here is an example of the required parameters with a description:
     field_delimiter=|
     # the complete pathname to the program srvrmgr
     srvrmgr= /foobar/bin/srvrmgr
-    [SEARCH]
-    # the parameters you want to check the values separated by a comma
-    parameters=MaxTasks,MaxMTServers,MinMTServers,BusObjCacheSize
-    # the advanced parameters you want to check the values separated by comma
-    advanced=MaxSharedDbConns,MinSharedDbConns
+    # if true, will add a "load preferences" command with "LoadPreferences" action automatically
+    load_prefs = 1
+    # type defines which subclass of Siebel::Srvrmgr::Daemon to use. The acceptable value is "heavy" 
+    # for Siebel::Srvrmgr::Daemon::Heavy and "light" for Siebel::Srvrmgr::Daemon::Light
+    type = heavy
+
+Whatever other parameters or sections available on the same INI will be ignored.
 
 =head1 SEE ALSO
 
@@ -118,7 +126,7 @@ L<Siebel::Srvrmgr>
 
 =item *
 
-L<Config::Tiny>
+L<Config::IniFile>
 
 =back
 

@@ -237,12 +237,13 @@ sub class_attributes : Tests(no_plan) {
         'field_delimiter', 'time_zone'
     );
 
-    $test->num_method_tests( 'class_attributes', scalar(@attribs) );
-
     if (    ( defined($attribs_ref) )
         and ( ref($attribs_ref) eq 'ARRAY' )
         and ( scalar( @{$attribs_ref} ) > 0 ) )
     {
+
+        $test->num_method_tests( 'class_attributes',
+            ( scalar(@attribs) + scalar( @{$attribs_ref} ) ) );
 
         foreach my $attribute ( @attribs, @{$attribs_ref} ) {
 
@@ -252,6 +253,8 @@ sub class_attributes : Tests(no_plan) {
 
     }
     else {
+
+        $test->num_method_tests( 'class_attributes', scalar(@attribs) );
 
         foreach my $attribute (@attribs) {
 
@@ -341,7 +344,8 @@ sub runs : Test(10) {
         skip
           'only subclasses of Siebel::Srvrmgr::Daemon can execute those tests',
           10
-          unless ( defined($class) and ( $class ne 'Siebel::Srvrmgr::Daemon' ) );
+          unless ( defined($class)
+            and ( $class ne 'Siebel::Srvrmgr::Daemon' ) );
 
         ok( $test->{daemon}->run(), 'run method executes successfuly' );
 
