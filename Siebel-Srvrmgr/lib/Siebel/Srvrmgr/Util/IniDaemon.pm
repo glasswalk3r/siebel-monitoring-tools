@@ -6,7 +6,7 @@ use Siebel::Srvrmgr::Daemon::Heavy;
 use Siebel::Srvrmgr::Daemon::Light;
 use Siebel::Srvrmgr::Daemon::Command;
 use Config::IniFiles 2.88;
-use Exporter 'import';
+use Exporter qw(import);
 use Carp;
 
 =pod
@@ -25,7 +25,7 @@ The C<recover_info> function is the only one exported by default.
 
 =cut
 
-our @EXPORT = qw(create_daemon);
+our @EXPORT_OK = qw(create_daemon);
 
 =head1 FUNCTIONS
 
@@ -48,18 +48,28 @@ A string of the complete path to a configuration file that is understandle by L<
 sub create_daemon {
 
     my ($cfg_file) = @_;
-    my $cfg = Config::IniFile->new( -file => $cfg_file );
+    confess "$cfg_file does not exist or is not readable"
+      unless ( ( -e $cfg_file ) and ( -r _ ) );
+    my $cfg = Config::IniFiles->new( -file => $cfg_file );
+
+    my @required =
+      (qw(type gateway enterprise user password srvrmgr time_zone read_timeout));
+
+    foreach my $param (@required) {
+        confess "$param is missing in the $cfg_file"
+          unless ( defined( $cfg->val( 'GENERAL', $param ) ) );
+    }
 
     my $class;
-    if ( $cfg->val( 'GENERAl', 'type' ) eq 'heavy' ) {
+    if ( $cfg->val( 'GENERAL', 'type' ) eq 'heavy' ) {
         $class = 'Siebel::Srvrmgr::Daemon::Heavy';
     }
-    elsif ( $cfg->val( 'GENERAl', 'type' ) eq 'light' ) {
+    elsif ( $cfg->val( 'GENERAL', 'type' ) eq 'light' ) {
         $class = 'Siebel::Srvrmgr::Daemon::Light';
     }
     else {
         confess 'Invalid value "'
-          . $cfg->val( 'GENERAl', 'type' )
+          . $cfg->val( 'GENERAL', 'type' )
           . '" for daemon type';
     }
 
