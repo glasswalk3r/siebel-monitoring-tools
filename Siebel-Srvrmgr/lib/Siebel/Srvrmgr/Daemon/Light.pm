@@ -55,6 +55,10 @@ would be a good choice for using with Inetd and Xinetd daemons.
 This class is also highly recommended for OS plataforms like Microsoft Windows where IPC is not reliable enough, since this class uses C<system> instead of
 L<IPC::Open3>.
 
+Since version 0.21, this class does not overrides anymore the parent class method C<shift_command>. Some attention is required is this matter, since a instance of
+Siebel::Srvrmgr::Daemon::Light will not maintain configuration previously loaded with C<load preferences> command. Be sure to maintain this command everytime you invoke
+C<run> available in the C<commands> attribute.
+
 =cut
 
 use Moose 2.0401;
@@ -343,41 +347,6 @@ override _setup_commands => sub {
     close($fh);
 
     $self->_set_input_file($input_file);
-
-};
-
-=pod
-
-=head2 shift_command
-
-Overrided from parent class.
-
-If there is only one command and this command is C<load preferences>, the C<commands> attribute will not be shifted and the method returns C<undef>.
-
-Otherwise, the same behaviour from parent will be executed.
-
-The idea of this implementation is that if C<load preferences> was executed once, it will probably necessary to be executed again. Remember that this
-class execute commands in batch mode, so preview configurations loaded from C<load preferences> will not persist from one session to the other.
-
-=cut
-
-override shift_command => sub {
-
-    my $self = shift;
-    my $cmds_ref = $self->get_commands();
-
-    if (    ( scalar( @{$cmds_ref} ) == 1 )
-        and ( $cmds_ref->[0]->get_command() =~ /load\spreferences/i ) )
-    {
-
-        return undef;
-
-    }
-    else {
-
-        return super();
-
-    }
 
 };
 

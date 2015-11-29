@@ -8,10 +8,12 @@ use Siebel::Srvrmgr::Daemon::Command;
 use Log::Log4perl;
 use Test::TempDir::Tiny;
 use Scalar::Util qw(blessed);
+use Test::Differences 0.63;
 use Cwd;
-use parent 'Test::Siebel::Srvrmgr';
 use Siebel::Srvrmgr;
 use Carp qw(cluck);
+
+use parent 'Test::Siebel::Srvrmgr';
 
 $SIG{INT} = \&clean_up;
 
@@ -42,7 +44,7 @@ BLOCK
 
 }
 
-sub _constructor : Tests(12) {
+sub _constructor : Test(12) {
 
     my $test = shift;
     $test->_set_log();
@@ -159,7 +161,7 @@ sub bad_instance {
 
 }
 
-sub class_methods : Tests(24) {
+sub class_methods : Test(24) {
 
     my $test = shift;
 
@@ -221,7 +223,7 @@ sub class_methods : Tests(24) {
 
 }
 
-sub class_attributes : Tests(no_plan) {
+sub class_attributes : Tests {
 
     my $test        = shift;
     my $attribs_ref = shift;
@@ -334,7 +336,7 @@ sub the_last_run : Test(1) {
 
 }
 
-sub runs : Test(10) {
+sub runs : Test(18) {
 
     my $test  = shift;
     my $class = blessed( $test->{daemon} );
@@ -355,12 +357,61 @@ sub runs : Test(10) {
         is( $test->{daemon}->get_child_runs(),
             1, 'get_child_runs returns the expected number' );
 
-        my $shifted_cmd;
-        ok( $shifted_cmd = $test->{daemon}->shift_command(),
+        ok( my @originals = @{ $test->{daemon}->get_commands() },
+            'get_commands works' );
+
+        ok( my $shifted_cmd = $test->{daemon}->shift_command(),
             'shift_command works' );
         isa_ok( $shifted_cmd, 'Siebel::Srvrmgr::Daemon::Command' );
         ok( $test->{daemon}->shift_command(), 'shift_command works' );
         ok( $test->{daemon}->shift_command(), 'shift_command works' );
+        is( $test->{daemon}->shift_command(),
+            undef, 'last shift_command returns undef' );
+        is( scalar( @{ $test->{daemon}->get_commands } ),
+            0, 'get_commands now returns zero commands' );
+
+        ok(
+            $test->{daemon}->push_command(
+                Siebel::Srvrmgr::Daemon::Command->new(
+                    command => 'load preferences',
+                    action  => 'LoadPreferences',
+                )
+            ),
+            'push_command works'
+        );
+        ok(
+            $test->{daemon}->push_command(
+                Siebel::Srvrmgr::Daemon::Command->new(
+                    command => 'list comp type',
+                    action  => 'ListCompTypes',
+                    params  => ['dump1']
+                )
+            ),
+            'push_command works'
+        );
+        ok(
+            $test->{daemon}->push_command(
+                Siebel::Srvrmgr::Daemon::Command->new(
+                    command => 'list comp',
+                    action  => 'ListComps',
+                    params  => ['dump2']
+                )
+            ),
+            'push_command works'
+        );
+        ok(
+            $test->{daemon}->push_command(
+                Siebel::Srvrmgr::Daemon::Command->new(
+                    command => 'list comp def',
+                    action  => 'ListCompDef',
+                    params  => ['dump3']
+                )
+            ),
+            'push_command works'
+        );
+
+        eq_or_diff_data( $test->{daemon}->get_commands,
+            \@originals, 'get_commands returns the original set of commands' );
 
         ok( $test->{daemon}->run(), 'run method executes successfuly (2)' );
         is( $test->{daemon}->get_child_runs(),

@@ -652,6 +652,7 @@ sub shift_command {
     }
     else {
 
+        $self->set_commands( [] );         # must trigger the attribute
         return undef;
 
     }

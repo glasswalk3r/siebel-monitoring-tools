@@ -1,14 +1,11 @@
 package Test::Siebel::Srvrmgr::Daemon::Light;
 
-use Cwd;
 use Test::Most;
-use File::Spec;
-use Test::Moose 'has_attribute_ok';
 use Siebel::Srvrmgr::Daemon;
 use Config;
 use base 'Test::Siebel::Srvrmgr::Daemon';
 
-sub class_methods : Tests(+1) {
+sub class_methods : Test(+1) {
 
     my $test = shift;
     $test->SUPER::class_methods();
@@ -18,11 +15,11 @@ sub class_methods : Tests(+1) {
 
 }
 
-sub class_attributes : Tests(no_plan) {
+sub class_attributes : Tests {
 
-    my $test = shift;
+    my $test    = shift;
     my @attribs = (qw(output_file input_file));
-    $test->SUPER::class_attributes(\@attribs);
+    $test->SUPER::class_attributes( \@attribs );
 
 }
 

@@ -35,7 +35,7 @@ sub class_methods : Test(+1) {
 
 }
 
-sub class_attributes : Tests(no_plan) {
+sub class_attributes : Tests {
 
     my $test = shift;
 
