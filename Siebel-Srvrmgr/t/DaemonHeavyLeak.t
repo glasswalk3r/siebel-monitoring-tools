@@ -114,7 +114,7 @@ SKIP: {
             password    => 'whatever',
             server      => 'whatever',
             time_zone   => 'America/Sao_Paulo',
-            bin         => File::Spec->catfile( getcwd(), 'srvrmgr-mock.pl' ),
+            bin         => File::Spec->catfile( getcwd(), 'bin', 'srvrmgr-mock.pl' ),
             use_perl    => 1,
             timeout     => 0,
             commands    => [
