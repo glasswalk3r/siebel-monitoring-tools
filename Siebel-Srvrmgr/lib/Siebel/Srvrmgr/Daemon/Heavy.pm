@@ -710,7 +710,8 @@ override 'run' => sub {
             else {
 
                 $logger->logdie(
-                    'prompt was not defined from read output, cannot continue');
+"prompt was not defined from read output, cannot continue. Input buffer was: \n"
+                      . Dumper(@input_buffer) );
 
             }
 

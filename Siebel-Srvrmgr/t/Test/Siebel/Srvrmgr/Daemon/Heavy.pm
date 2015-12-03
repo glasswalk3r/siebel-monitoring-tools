@@ -48,8 +48,16 @@ sub class_attributes : Tests {
         'child_pid'
     );
 
-#    $test->num_method_tests( 'class_attributes', ( '+' . scalar(@attribs) ) );
+ #    $test->num_method_tests( 'class_attributes', ( '+' . scalar(@attribs) ) );
     $test->SUPER::class_attributes( \@attribs );
+
+}
+
+sub runs : Tests {
+
+    my $test = shift;
+    $test->{daemon}->set_read_timeout(3);
+    $test->SUPER::runs();
 
 }
 

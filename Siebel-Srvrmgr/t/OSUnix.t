@@ -164,9 +164,12 @@ sub test_operations {
     is( ref($procs_ref), 'HASH', 'get_procs returns a hash reference' );
 
 # :WORKAROUND:21-06-2015 12:53:45:: avoid getting other undesired process beside the one we are forcing as "Siebel process"
+# :WORKAROUND:03-12-2015 13:31:44:: avoid problems with concurrent tests on the same OS
     foreach my $pid ( keys( %{$procs_ref} ) ) {
 
-        if ( $procs_ref->{$pid}->{comp_alias} eq 'N/A' ) {
+        if (   ( $procs_ref->{$pid}->{comp_alias} eq 'N/A' )
+            or ( $procs_ref->{$pid}->{comp_alias} eq 'unknown' ) )
+        {
 
             delete $procs_ref->{$pid};
 
@@ -175,7 +178,8 @@ sub test_operations {
     }
 
     is( scalar( keys( %{$procs_ref} ) ),
-        1, 'get_procs returns a single process' ) or diag(explain($procs_ref));
+        1, 'get_procs returns a single process' )
+      or diag( explain($procs_ref) );
     my $pid = ( keys( %{$procs_ref} ) )[0];
     isa_ok(
         $procs_ref->{$pid},
