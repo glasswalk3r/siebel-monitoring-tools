@@ -1,6 +1,6 @@
 use warnings;
 use strict;
-use Test::Most;
+use Test::Most tests => 6480;
 use Siebel::Srvrmgr::Daemon::Light;
 use Siebel::Srvrmgr::Daemon::Action::CheckComps;
 use Siebel::Srvrmgr::Daemon::ActionStash;
@@ -122,8 +122,6 @@ for ( 1 .. $repeat ) {
     }
 
 }
-
-done_testing();
 
 sub set_log {
 

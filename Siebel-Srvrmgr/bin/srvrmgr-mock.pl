@@ -308,10 +308,13 @@ sub put_text {
 
 sub hello {
 
+# :WORKAROUND:14-12-2015 10:00:47:: fix the "egg and chicken" problem because Dist::Zilla did not yet installed srvrmgr-mock to generate a version for it
+    my $version = $main::VERSION || 'unknown (run dzil!)';
+
     return <<"BLOCK";
 Siebel Enterprise Applications Siebel Server Manager, Version 8.0.0.7 [20426] LANG_INDEPENDENT
 Ahn... well, not exactly.
-This is Server Manager Simulator, Version $main::VERSION [1234] RAMO_NES
+This is Server Manager Simulator, Version $version [1234] RAMO_NES
 Copyright (c) 2012 Siebel Monitoring Tools. Released under GNU GPL version 3.
 See http://code.google.com/p/siebel-gnu-tools/ for more details.
 
