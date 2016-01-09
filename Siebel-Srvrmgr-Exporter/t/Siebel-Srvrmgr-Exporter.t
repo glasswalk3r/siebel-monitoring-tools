@@ -28,6 +28,7 @@ else {    # else is for UNIX-line OS
 }
 
 my $filename = 'test.txt';
+
 # srvrmgr-mock.pl ignores all parameters
 my $dummy = 'foobar';
 my $mock = File::Spec->catfile( $Config{sitebin}, 'srvrmgr-mock.pl' );
@@ -39,14 +40,13 @@ my $exports = File::Spec->catfile( getcwd(), 'bin', 'export_comps.pl' );
 die "Cannot find export_comps.pl for execution"
   unless ( -e $exports );
 
-system(
-    'perl', '-Ilib', $exports,
-    '-s', $dummy, '-g', $dummy,
-    '-e', $dummy, '-u', $dummy,
-    '-p', $dummy, '-b',
-    $mock, 
-    '-r',      'SRProc', '-x', '-o',
-    $filename, '-q'
+my $path_to_perl = $Config{perlpath};
+
+system( $path_to_perl, '-Ilib', $exports, '-s', $dummy,
+    '-g',   $dummy,   '-e',   $dummy, '-u',
+    $dummy, '-p',     $dummy, '-b',   $mock,
+    '-r',   'SRProc', '-x',   '-o',   $filename,
+    '-q'
   ) == 0
   or die "failed to execute export_comps.pl: $!\n";
 
