@@ -9,7 +9,7 @@ __END__
 
 Siebel::Srvrmgr::Exporter - Perl extension for dumping Siebel Components data
 
-head1 SYNOPSIS
+=head1 SYNOPSIS
 
   use Siebel::Srvrmgr::Exporter;
 
