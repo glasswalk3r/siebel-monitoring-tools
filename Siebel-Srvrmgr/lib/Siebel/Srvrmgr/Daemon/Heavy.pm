@@ -1120,23 +1120,13 @@ sub _my_cleanup {
 
 sub _submit_cmd {
 
-    my $self       = shift;
-    my $cmd        = shift;
-    my $logger     = shift;
-    my $has_logger = 0;
-
-    if ( ( defined($logger) ) and ( ref($logger) ) ) {
-
-        weaken($logger);
-        $has_logger = 1;
-
-    }
-
+    my ( $self, $cmd ) = @_;
+    my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
     my $bytes = syswrite $self->get_write(), "$cmd\n";
 
     if ( defined($bytes) ) {
 
-        if ( $has_logger && $logger->is_debug() ) {
+        if ( $logger->is_debug() ) {
 
             $logger->debug("Submitted $cmd, wrote $bytes bytes");
 
@@ -1145,20 +1135,8 @@ sub _submit_cmd {
     }
     else {
 
-        if ($has_logger) {
-
-            $logger->logdie( 'A failure occurred when trying to submit '
-                  . $cmd . ': '
-                  . $! );
-
-        }
-        else {
-
-            die(    'A failure occurred when trying to submit '
-                  . $cmd . ': '
-                  . $! );
-
-        }
+        $logger->logdie(
+            'A failure occurred when trying to submit ' . $cmd . ': ' . $! );
 
     }
 
@@ -1202,7 +1180,7 @@ sub close_child {
             and ( not($SIG_ALARM) ) )
         {
 
-            $self->_submit_cmd( 'exit', $logger );
+            $self->_submit_cmd('exit');
 
             if ( $logger->is_debug() ) {
 
