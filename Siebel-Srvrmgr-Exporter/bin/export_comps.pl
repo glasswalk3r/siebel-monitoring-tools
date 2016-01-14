@@ -49,10 +49,10 @@ BEGIN {
 
 }
 
-use Siebel::Srvrmgr::Daemon::Heavy 0.21;
-use Siebel::Srvrmgr::ListParser::Output::ListComp::Server 0.21;
-use Siebel::Srvrmgr::ListParser::Output::Tabular::ListParams 0.21;
-use Siebel::Srvrmgr::Daemon::Command 0.21;
+use Siebel::Srvrmgr::Daemon::Heavy 0.24;
+use Siebel::Srvrmgr::ListParser::Output::ListComp::Server 0.24;
+use Siebel::Srvrmgr::ListParser::Output::Tabular::ListParams 0.24;
+use Siebel::Srvrmgr::Daemon::Command 0.24;
 use Siebel::Srvrmgr::Exporter::ListCompDef;
 use Siebel::Srvrmgr::Exporter::ListComp;
 use Siebel::Srvrmgr::Exporter::ListCompTypes;

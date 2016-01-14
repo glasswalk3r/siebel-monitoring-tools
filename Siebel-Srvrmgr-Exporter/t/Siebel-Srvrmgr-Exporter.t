@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 2;
+use Test::More tests => 5;
 use Digest::MD5;
 use Config;
 use File::Spec;
@@ -30,31 +30,53 @@ else {    # else is for UNIX-line OS
 my $filename = 'test.txt';
 
 # srvrmgr-mock.pl ignores all parameters
+
 my $dummy = 'foobar';
 my $mock = File::Spec->catfile( $Config{sitebin}, 'srvrmgr-mock.pl' );
-die "Cannot find srvrmgr-mock.pl for execution"
-  unless ( -e $mock );
 
+unless ( -e $mock ) {
+
+    note(
+"Could not locate srvrmgr-mock.pl in Config sitebin ($Config{sitebin}). Hoping that the script is available on the current PATH"
+    );
+
+    my @paths = split( ':', $ENV{PATH} );
+    foreach my $path (@paths) {
+
+        my $full_path = File::Spec->catfile( $path, 'srvrmgr-mock.pl' );
+        if ( -e $full_path ) {
+            $mock = $full_path;
+            last;
+        }
+    }
+    note("Found srvrmgr-mock.pl ('$mock')");
+}
+ok( -x $mock, 'srvrmgr-mock.pl is executable' );
 note('Fetching values, this can take some seconds');
 my $exports = File::Spec->catfile( getcwd(), 'bin', 'export_comps.pl' );
-die "Cannot find export_comps.pl for execution"
-  unless ( -e $exports );
-
+ok( -e $exports, 'export_comps.pl exists' );
+ok( -r $exports, 'export_comps.pl is readable' );
 my $path_to_perl = $Config{perlpath};
-
-system( $path_to_perl, '-Ilib', $exports, '-s', $dummy,
+note("Trying with with '$path_to_perl', '$exports', '$mock'");
+my $ret = system( $path_to_perl, '-Ilib', $exports, '-s', $dummy,
     '-g',   $dummy,   '-e',   $dummy, '-u',
     $dummy, '-p',     $dummy, '-b',   $mock,
     '-r',   'SRProc', '-x',   '-o',   $filename,
     '-q'
-  ) == 0
-  or die "failed to execute export_comps.pl: $!\n";
+);
 
-open( my $fh, '<', $filename ) or die "Can't open '$filename': $!";
-binmode($fh);
-is( Digest::MD5->new->addfile($fh)->hexdigest(),
-    $expected_digest, 'got expected output from srvrmgr-mock' );
+unless ( $ret == 0 ) {
 
-close($fh);
+    fail("Failed to execute export_comps.pl: $!");
 
-unlink($filename) or die "Cannot remove $filename: $!\n";
+}
+else {
+
+    open( my $fh, '<', $filename ) or die "Can't open '$filename': $!";
+    binmode($fh);
+    is( Digest::MD5->new->addfile($fh)->hexdigest(),
+        $expected_digest, 'got expected output from srvrmgr-mock' );
+    close($fh);
+    unlink($filename) or diag("Cannot remove $filename: $!");
+
+}
