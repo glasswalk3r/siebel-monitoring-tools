@@ -3,10 +3,10 @@ use warnings;
 use strict;
 use RPC::XML;
 use RPC::XML::Client;
-use Nagios::Plugin;
+use Monitoring::Plugin;
 use TryCatch;
 
-my $np = Nagios::Plugin->new(
+my $np = Monitoring::Plugin->new(
     shortname => 'NRPC',
     usage     => "Usage: %s -w -c -h -a -p -s",
     version   => '0.1'

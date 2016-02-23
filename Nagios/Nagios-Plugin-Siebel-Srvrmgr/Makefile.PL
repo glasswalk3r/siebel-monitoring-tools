@@ -15,7 +15,8 @@ my %config = (
         'RPC::XML'        => 0.78,
         'YAML::Syck'      => 1.27,
         'CHI'             => 0.58,
-        'TryCatch'        => 1.003002
+        'TryCatch'        => 1.003002,
+		'Monitoring::Plugin'  => 0.39
     },
     EXE_FILES  => [ 'xmlrpc-client.pl', 'xmlrpc-server.pl' ],
     META_MERGE => {
