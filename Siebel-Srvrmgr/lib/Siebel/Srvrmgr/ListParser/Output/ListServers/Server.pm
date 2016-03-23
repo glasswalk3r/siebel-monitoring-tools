@@ -15,6 +15,7 @@ use MooseX::FollowPBP 0.05;
 
 with 'Siebel::Srvrmgr::ListParser::Output::Duration';
 with 'Siebel::Srvrmgr::ListParser::Output::ToString';
+# VERSION
 
 =head1 SYNOPSIS
 

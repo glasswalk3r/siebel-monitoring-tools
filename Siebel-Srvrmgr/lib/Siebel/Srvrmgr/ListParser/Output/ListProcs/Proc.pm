@@ -34,6 +34,7 @@ This class offers some validations on the values recovered, as well some additio
 use Moose 2.0401;
 use namespace::autoclean 0.13;
 use MooseX::FollowPBP 0.05;
+# VERSION
 
 =pod
 

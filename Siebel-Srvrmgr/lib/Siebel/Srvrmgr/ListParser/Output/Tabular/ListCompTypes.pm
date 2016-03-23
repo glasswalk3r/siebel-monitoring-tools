@@ -3,6 +3,9 @@ package Siebel::Srvrmgr::ListParser::Output::Tabular::ListCompTypes;
 use Moose 2.0401;
 use namespace::autoclean 0.13;
 
+extends 'Siebel::Srvrmgr::ListParser::Output::Tabular';
+# VERSION
+
 =pod
 
 =head1 NAME
@@ -11,7 +14,6 @@ Siebel::Srvrmgr::ListParser::Output::Tabular::ListCompTypes - subclass to parse 
 
 =cut
 
-extends 'Siebel::Srvrmgr::ListParser::Output::Tabular';
 
 =pod
 

@@ -6,6 +6,7 @@ use namespace::autoclean 0.13;
 use Set::Tiny 0.02;
 use Scalar::Util::Numeric 0.40 qw(isint);
 use Carp qw(confess cluck);
+# VERSION
 
 =pod
 

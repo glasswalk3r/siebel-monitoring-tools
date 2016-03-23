@@ -12,6 +12,7 @@ use Moose 2.0401;
 use namespace::autoclean 0.13;
 use Siebel::Srvrmgr::ListParser::Output::ListComp::Server;
 use Siebel::Srvrmgr::ListParser::Output::ListComp::Comp;
+# VERSION
 
 =head1 SYNOPSIS
 

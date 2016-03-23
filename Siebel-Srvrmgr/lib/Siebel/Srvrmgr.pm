@@ -4,6 +4,7 @@ use warnings;
 use strict;
 use Log::Log4perl 1.41;
 use Carp;
+#VERSION
 
 =pod
 

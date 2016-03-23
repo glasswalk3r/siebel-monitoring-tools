@@ -8,6 +8,7 @@ use Siebel::Srvrmgr::Daemon::Command;
 use Config::IniFiles 2.88;
 use Exporter qw(import);
 use Carp;
+# VERSION
 
 =pod
 
@@ -17,7 +18,9 @@ Siebel::Srvrmgr::Util::IniDaemon - creates a Siebel::Srvrmgr::Daemon from a INI 
 
 =head1 DESCRIPTION
 
-This modules provides a interface to a Siebel Enterprise to search and extract parameters from a specific Siebel component from all Siebel Server it is available.
+By using a INI file, you can pass all necessary information to have a instance of L<Siebel::Srvrmgr::Daemon> subclasses.
+
+Since it's common to need to fine tune parameters for them, this module will help to achieve proper configuration without touching code.
 
 =head1 EXPORTS
 
@@ -31,7 +34,7 @@ our @EXPORT_OK = qw(create_daemon);
 
 =head2 create_daemon
 
-This functions connects to the Siebel Enterprise and retrieve the parameters values of the desired component.
+Creates a instance of L<Siebel::Srvrmgr::Daemon> subclass and returns it.
 
 It expects as parameters:
 
@@ -101,7 +104,7 @@ sub create_daemon {
 
 =head1 CONFIGURATION FILE
 
-The configuration file must have a INI format, which is supported by the L<Config::Tiny> module.
+The configuration file must have a INI format, which is supported by the L<Config::IniFile> module.
 
 Here is an example of the required parameters with a description:
 

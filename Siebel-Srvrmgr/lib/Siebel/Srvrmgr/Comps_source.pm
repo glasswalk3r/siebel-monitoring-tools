@@ -22,11 +22,12 @@ The hash reference items will be updated and the same reference will be returned
 
 =cut
 
-use Moose::Role 2.1604;
 use warnings;
 use strict;
+use Moose::Role 2.1604;
 
 requires 'find_comps';
+# VERSION
 
 =head1 SEE ALSO
 

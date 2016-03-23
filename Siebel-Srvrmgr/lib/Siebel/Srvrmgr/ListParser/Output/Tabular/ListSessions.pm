@@ -4,6 +4,7 @@ use Moose 2.0401;
 use namespace::autoclean 0.13;
 use Carp qw(cluck);
 use Siebel::Srvrmgr::Regexes qw(SIEBEL_SERVER);
+# VERSION
 
 =pod
 

@@ -16,12 +16,13 @@ This is a subclass of L<Siebel::Srvrmgr::Daemon::Action> that will recover sessi
 
 =cut
 
-use Moose;
-use namespace::autoclean;
+use Moose 2.0401;
+use namespace::autoclean 0.13;
 use Siebel::Srvrmgr;
 use Siebel::Srvrmgr::Daemon::ActionStash;
 
 extends 'Siebel::Srvrmgr::Daemon::Action';
+# VERSION
 
 =head1 METHODS
 

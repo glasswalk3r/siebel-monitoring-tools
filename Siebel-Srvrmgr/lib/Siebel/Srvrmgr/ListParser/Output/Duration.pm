@@ -1,10 +1,11 @@
 package Siebel::Srvrmgr::ListParser::Output::Duration;
 
-use Moose::Role 2.1604;
-use Carp;
 use warnings;
 use strict;
-use DateTime;
+use Moose::Role 2.1604;
+use Carp;
+use DateTime 1.12;
+# VERSION
 
 =pod
 

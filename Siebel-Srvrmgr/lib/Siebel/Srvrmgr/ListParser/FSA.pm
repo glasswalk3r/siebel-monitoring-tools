@@ -7,6 +7,7 @@ use Siebel::Srvrmgr::Regexes qw(SRVRMGR_PROMPT);
 use Scalar::Util qw(weaken);
 
 use parent 'FSA::Rules';
+# VERSION
 
 =pod
 

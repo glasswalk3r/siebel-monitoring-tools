@@ -41,7 +41,8 @@ Considering this situation, the interface of this class should be considered exp
 
 use warnings;
 use strict;
-use MooseX::Singleton;
+use MooseX::Singleton 0.29;
+# VERSION
 
 =pod
 

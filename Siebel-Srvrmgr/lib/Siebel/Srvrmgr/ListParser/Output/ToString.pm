@@ -1,9 +1,10 @@
 package Siebel::Srvrmgr::ListParser::Output::ToString;
 
-use Moose::Role 2.1604;
-use Carp;
 use warnings;
 use strict;
+use Moose::Role 2.1604;
+use Carp;
+# VERSION
 
 =head1 NAME
 

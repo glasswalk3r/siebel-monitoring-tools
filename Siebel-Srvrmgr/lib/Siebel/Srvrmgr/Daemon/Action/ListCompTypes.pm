@@ -20,6 +20,7 @@ use namespace::autoclean 0.13;
 
 extends 'Siebel::Srvrmgr::Daemon::Action';
 with 'Siebel::Srvrmgr::Daemon::Action::Serializable';
+# VERSION
 
 =pod
 

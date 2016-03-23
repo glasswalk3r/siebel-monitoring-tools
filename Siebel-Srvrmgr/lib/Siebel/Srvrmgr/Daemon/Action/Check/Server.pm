@@ -1,7 +1,10 @@
 package Siebel::Srvrmgr::Daemon::Action::Check::Server;
 
-use Moose::Role;
+use warnings;
+use strict;
+use Moose::Role 2.0401;
 use Siebel::Srvrmgr::Types;
+# VERSION
 
 =pod
 

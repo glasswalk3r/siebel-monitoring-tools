@@ -8,6 +8,7 @@ use Siebel::Srvrmgr::Types;
 
 with 'Siebel::Srvrmgr::ListParser::Output::ToString';
 with 'Siebel::Srvrmgr::ListParser::Output::Duration';
+# VERSION
 
 =pod
 

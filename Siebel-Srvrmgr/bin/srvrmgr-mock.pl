@@ -1,11 +1,11 @@
 #!/usr/bin/env perl
-package main;
 
 use warnings;
 use strict;
 use Hash::Util qw(lock_keys);
 use YAML::Syck;
 use Getopt::Std;
+# VERSION
 
 my $CRLF = "\015\012";
 

@@ -13,6 +13,7 @@ use namespace::autoclean 0.13;
 use Carp;
 
 extends 'Siebel::Srvrmgr::ListParser::Output';
+# VERSION
 
 =pod
 

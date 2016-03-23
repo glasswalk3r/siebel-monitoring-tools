@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Moose::Role 2.1604;
 use Siebel::Srvrmgr::Regexes qw(SIEBEL_SERVER);
+# VERSION
 
 =head1 NAME
 

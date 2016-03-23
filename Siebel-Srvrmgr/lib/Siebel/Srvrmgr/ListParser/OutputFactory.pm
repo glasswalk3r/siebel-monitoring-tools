@@ -14,6 +14,7 @@ use MooseX::AbstractFactory 0.004000;
 use Carp;
 use Siebel::Srvrmgr::Regexes qw(CONN_GREET);
 use Hash::Util qw(lock_hash);
+# VERSION
 
 =pod
 

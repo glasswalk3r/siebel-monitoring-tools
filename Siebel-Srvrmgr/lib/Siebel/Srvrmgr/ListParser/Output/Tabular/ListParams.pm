@@ -3,6 +3,7 @@ package Siebel::Srvrmgr::ListParser::Output::Tabular::ListParams;
 use Moose 2.0401;
 use namespace::autoclean 0.13;
 use Carp;
+# VERSION
 
 =pod
 

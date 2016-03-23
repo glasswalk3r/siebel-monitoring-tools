@@ -27,6 +27,7 @@ to define the Action objects to process generated output.
 use warnings;
 use strict;
 use MooseX::AbstractFactory 0.004000;
+# VERSION
 
 =pod
 

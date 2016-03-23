@@ -5,6 +5,7 @@ use Carp;
 use namespace::autoclean 0.13;
 
 extends 'Siebel::Srvrmgr::ListParser::Output::Tabular::Struct';
+# VERSION
 
 =head1 NAME
 

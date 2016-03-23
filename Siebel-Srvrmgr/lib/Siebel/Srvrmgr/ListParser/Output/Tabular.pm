@@ -17,8 +17,8 @@ use Siebel::Srvrmgr::ListParser::Output::Tabular::Struct::Fixed;
 use Siebel::Srvrmgr::ListParser::Output::Tabular::Struct::Delimited;
 
 extends 'Siebel::Srvrmgr::ListParser::Output';
-
 with 'Siebel::Srvrmgr::ListParser::Output::ToString';
+# VERSION
 
 =head1 SYNOPSIS
 

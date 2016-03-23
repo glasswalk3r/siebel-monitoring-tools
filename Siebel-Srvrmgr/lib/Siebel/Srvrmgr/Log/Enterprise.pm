@@ -1,11 +1,12 @@
 package Siebel::Srvrmgr::Log::Enterprise;
 
-use Moose;
-use namespace::autoclean;
+use Moose 2.0401;
+use namespace::autoclean 0.13;
 use File::Copy;
 use File::Temp qw(tempfile);
 use Carp qw(cluck confess);
-use String::BOM qw(strip_bom_from_string);
+use String::BOM 0.3 qw(strip_bom_from_string);
+# VERSION
 
 =pod
 
@@ -178,7 +179,7 @@ sub read {
 
 =head2 DEMOLISH
 
-During object termination, the associated temporary log file will be cloased and removed automatically, if available.
+During object termination, the associated temporary log file will be closed and removed automatically, if available.
 
 =cut
 

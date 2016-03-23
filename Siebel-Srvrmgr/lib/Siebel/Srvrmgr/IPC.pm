@@ -21,17 +21,18 @@ This module is based on L<IPC::Open3::Callback> from Lucas Theisen (see SEE ALSO
 
 =cut
 
-require Exporter;
-our @ISA    = qw(Exporter);
-our @EXPORT = qw(safe_open3 check_system);
-
+use warnings;
+use strict;
 use IPC::Open3;
 use Symbol 'gensym';
 use IO::Socket;
 use Config;
 use POSIX qw(WIFEXITED WEXITSTATUS WIFSIGNALED WTERMSIG WIFSTOPPED);
-use warnings;
-use strict;
+
+require Exporter;
+our @ISA    = qw(Exporter);
+our @EXPORT = qw(safe_open3 check_system);
+# VERSION
 
 =pod
 
@@ -182,7 +183,7 @@ sub check_system {
     }
     else {
 
-        return undef, undef;
+        return;
 
     }
 

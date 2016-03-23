@@ -29,6 +29,7 @@ use Siebel::Srvrmgr::Daemon::ActionStash;
 use Siebel::Srvrmgr;
 
 extends 'Siebel::Srvrmgr::Daemon::Action';
+# VERSION
 
 =pod
 

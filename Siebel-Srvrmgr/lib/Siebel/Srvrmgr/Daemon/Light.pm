@@ -73,6 +73,7 @@ use Data::Dumper;
 use Siebel::Srvrmgr;
 use File::BOM 0.14 qw(:all);
 use Siebel::Srvrmgr::IPC qw(check_system);
+# VERSION
 
 extends 'Siebel::Srvrmgr::Daemon';
 

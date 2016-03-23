@@ -23,6 +23,7 @@ use namespace::autoclean 0.13;
 use Carp;
 use Siebel::Srvrmgr::Types;
 use String::BOM 0.3 qw(string_has_bom strip_bom_from_string);
+# VERSION
 
 =pod
 

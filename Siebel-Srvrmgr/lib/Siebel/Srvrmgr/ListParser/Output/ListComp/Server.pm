@@ -13,6 +13,7 @@ use namespace::autoclean 0.13;
 use Siebel::Srvrmgr::ListParser::Output::ListComp::Comp;
 use Carp;
 use Storable qw(nstore);
+# VERSION
 
 =pod
 

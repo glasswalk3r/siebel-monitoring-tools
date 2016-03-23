@@ -14,6 +14,7 @@ use namespace::autoclean 0.13;
 
 with 'Siebel::Srvrmgr::ListParser::Output::Duration';
 with 'Siebel::Srvrmgr::ListParser::Output::ToString';
+# VERSION
 
 =pod
 

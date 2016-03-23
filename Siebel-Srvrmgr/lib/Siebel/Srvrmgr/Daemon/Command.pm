@@ -29,6 +29,7 @@ L<Siebel::Srvrmgr::Daemon::Action>) and an optional parameter in the form of an 
 use Moose 2.0401;
 use MooseX::FollowPBP 0.05;
 use namespace::autoclean 0.13;
+# VERSION
 
 =pod
 

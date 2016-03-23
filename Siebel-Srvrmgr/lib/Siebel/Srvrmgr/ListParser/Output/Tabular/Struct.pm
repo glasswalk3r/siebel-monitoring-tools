@@ -11,6 +11,7 @@ Siebel::Srvrmgr::ListParser::Output::Tabular::Struct - base class for parsing sr
 use Moose 2.0401;
 use namespace::autoclean 0.13;
 use Carp;
+# VERSION
 
 =pod
 

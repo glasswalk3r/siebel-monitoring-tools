@@ -18,6 +18,7 @@ use Moose 2.0401;
 use namespace::autoclean 0.13;
 
 extends 'Siebel::Srvrmgr::Daemon::Action';
+# VERSION
 
 =head1 DESCRIPTION
 

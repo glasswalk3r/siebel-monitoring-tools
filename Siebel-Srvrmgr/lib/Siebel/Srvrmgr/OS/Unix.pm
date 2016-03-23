@@ -6,6 +6,7 @@ use namespace::autoclean 0.13;
 use Set::Tiny 0.02;
 use Carp qw(cluck confess);
 use Siebel::Srvrmgr::OS::Process;
+# VERSION
 
 =pod
 

@@ -4,6 +4,7 @@ use Moose 2.0401;
 use Siebel::Srvrmgr::ListParser::Output::ListTasks::Task;
 use namespace::autoclean 0.13;
 use Siebel::Srvrmgr::Regexes qw(SIEBEL_SERVER);
+# VERSION
 
 =pod
 

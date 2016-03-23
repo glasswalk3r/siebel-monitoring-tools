@@ -2,11 +2,12 @@ package Siebel::Srvrmgr::Log::Enterprise::Parser::Comp_alias;
 
 use Moose;
 use namespace::autoclean;
-use Set::Tiny;
+use Set::Tiny 0.02;
 use Carp qw(cluck confess);
 use Siebel::Srvrmgr::Log::Enterprise;
 
 with 'Siebel::Srvrmgr::Comps_source';
+# VERSION
 
 =pod
 

@@ -78,6 +78,7 @@ use IO::Select;
 use Encode;
 use Carp qw(longmess);
 use Siebel::Srvrmgr;
+# VERSION
 
 extends 'Siebel::Srvrmgr::Daemon';
 

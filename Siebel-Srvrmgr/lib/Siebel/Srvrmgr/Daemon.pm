@@ -45,6 +45,7 @@ use Config;
 use Carp;
 use File::Spec;
 use Data::Dumper;
+# VERSION
 
 my $SIG_INT   = 0;
 my $SIG_PIPE  = 0;

@@ -18,6 +18,7 @@ use Carp;
 use List::Util 1.42 qw(sum);
 
 extends 'Siebel::Srvrmgr::ListParser::Output';
+# VERSION
 
 =pod
 

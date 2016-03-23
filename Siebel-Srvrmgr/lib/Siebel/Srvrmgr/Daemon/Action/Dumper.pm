@@ -24,6 +24,7 @@ use namespace::autoclean 0.13;
 use Data::Dumper;
 
 extends 'Siebel::Srvrmgr::Daemon::Action';
+# VERSION
 
 =head1 METHODS
 
