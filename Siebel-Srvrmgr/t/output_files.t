@@ -76,12 +76,20 @@ my @files = (
     ],
     [
         File::Spec->catfile(
+            getcwd(), 't', 'output', 'fixed', '8.1.1.14_23044.txt'
+        ),
+        '8.1.1.14',
+        23044, 1,
+        \@expected
+    ],
+    [
+        File::Spec->catfile(
             getcwd(), 't', 'output', 'fixed', '8.1.1.7_21238.txt'
         ),
         '8.1.1.7',
         21238, 3,
         \@expected
-    ]
+    ], 
 );
 
 my $tests = 0;
