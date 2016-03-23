@@ -97,7 +97,7 @@ sub class_methods : Tests(4) {
     my $test = shift;
 
     can_ok( $test->{server},
-        qw(new get_data get_name load store get_comps get_comp) );
+        qw(new get_data get_name store get_comps get_comp) );
 
     is( $test->{server}->get_name(),
         'siebel1', 'get_name returns the correct value' );

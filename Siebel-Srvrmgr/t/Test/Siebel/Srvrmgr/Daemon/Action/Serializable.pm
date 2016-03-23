@@ -25,7 +25,6 @@ BEGIN {
 __PACKAGE__->SKIP_CLASS(1);
 
 # just to avoid "use Storable" in subclasses
-# :TODO      :25/06/2013 16:42:54:: should check if there is a correction for the MooseX related module
 sub recover {
 
     my $test = shift;

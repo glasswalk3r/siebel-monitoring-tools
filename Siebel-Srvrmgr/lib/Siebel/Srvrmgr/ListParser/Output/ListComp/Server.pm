@@ -9,10 +9,10 @@ Siebel::Srvrmgr::ListParser::Output::ListComp::Server - class to parse and aggre
 =cut
 
 use Moose 2.0401;
-use MooseX::Storage 0.33;
 use namespace::autoclean 0.13;
 use Siebel::Srvrmgr::ListParser::Output::ListComp::Comp;
 use Carp;
+use Storable qw(nstore);
 
 =pod
 
@@ -32,11 +32,7 @@ use Carp;
 This class represents a server in a Siebel Enterprise and it's related components. This class is meant to be instantied by a method from 
 L<Siebel::Srvrmgr::ListParser::Output::ListComp> object.
 
-This class inherits from L<MooseX::Storage>, using the L<MooseX::Storage::IO::StorableFile> trait. See the methods C<load> and C<store> for details.
-
 =cut
-
-with Storage( io => 'StorableFile' );
 
 =head1 ATTRIBUTES
 
@@ -85,17 +81,19 @@ Returns an hash reference from the C<data> attribute.
 
 Returns an string from the C<name> attribute.
 
-=head2 load
-
-Load the object data and methods from a previously serialized object.
-
-Expects as a parameter a string the filename (or complete path).
-
-=head2 store
 
 Stores the object data and methods in a serialized file.
 
 Expects as a parameter a string the filename (or complete path).
+
+=cut
+
+sub store {
+
+    my ( $self, $filename ) = @_;
+    nstore $self, $filename;
+
+}
 
 =head2 get_comps
 
@@ -170,10 +168,6 @@ sub get_comp {
 =item *
 
 L<Moose>
-
-=item *
-
-L<MooseX::Storage>
 
 =item *
 

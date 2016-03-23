@@ -21,8 +21,8 @@ needs serialization to the filesystem.
 
 =head2 dump_file
 
-This attribute is a string used to indicate in which file the data from L<Siebel::Srvmrgr::ListParser::Output::ListCompDef> should
-be serialized into the OS filesystem. The string can be a complete path or just the filename.
+This attribute is a string used to indicate in which file the data from the class using this role should be serialized into 
+the OS filesystem. The string can be a complete path or just the filename.
 
 =cut
 
@@ -95,8 +95,7 @@ Returns any value returned by the C<nstore> function.
 
 sub store {
 
-    my $self     = shift;
-    my $data_ref = shift;
+    my ($self, $data_ref) = @_;
 
     confess "the received parameter is not a reference"
       if ( ref($data_ref) eq '' );

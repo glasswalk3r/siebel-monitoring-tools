@@ -1,7 +1,7 @@
 use lib 't';
 use Test::Siebel::Srvrmgr::Daemon::Action::ListParams;
 
-my $filename = 'list_comp_params.txt';
+my $filename = 'list_params_for_srproc.txt';
 
 my $fixed = Test::Siebel::Srvrmgr::Daemon::Action::ListParams->new(
     {

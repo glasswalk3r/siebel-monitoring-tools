@@ -19,12 +19,9 @@ Siebel::Srvrmgr::ListParser::Output - base class of srvrmgr output
 =cut
 
 use Moose 2.0401;
-use MooseX::Storage 0.33;
 use namespace::autoclean 0.13;
 use Carp;
 use Siebel::Srvrmgr::Regexes qw(ROWS_RETURNED);
-
-with Storage( io => 'StorableFile' );
 
 =pod
 
@@ -150,15 +147,6 @@ Returns an array reference of the attribute C<raw_data>.
 
 Sets the C<raw_data> attribute. An array reference is expected as parameter of the method.
 
-=head2 load
-
-Method inherited from L<MooseX::Storage::IO::StorableFile> role. It loads a previously serialized Siebel::Srvrmgr::ListParser:Output object into memory.
-
-=head2 store
-
-Method inherited from L<MooseX::Storage::IO::StorableFile> role. It stores (serializes) a Siebel::Srvrmgr::ListParser:Output object into a file. A a string of the filename 
-(with complete or not full path) is expected as a parameter.
-
 =head2 BUILD
 
 All subclasses of Siebel::Srvrmgr::ListParser::Object will call the method C<parse> right after object instatiation.
@@ -197,14 +185,6 @@ sub parse {
 =item *
 
 L<Moose>
-
-=item *
-
-L<MooseX::Storage>
-
-=item *
-
-L<MooseX::Storage::IO::StorableFile>
 
 =item *
 

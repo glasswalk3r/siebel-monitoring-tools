@@ -47,17 +47,15 @@ Siebel::Srvrmgr::Daemon::Heavy - "heavier" implementation of Siebel::Srvrmgr::Da
 
 =head1 DESCRIPTION
 
-This class extends L<Siebel::Srvmrgr::Daemon>. By "Heavy" understand more complex code to be able to deal with a large number of commands
+This class extends L<Siebel::Srvmrgr::Daemon>. By "Heavy" you should understand as more complex code to be able to deal with a large number of commands
 of C<srvrmgr>.
 
-This class is indicated to be used in cenarios where several commands need to be executed in a short time interval: it will connect to srvrmgr by using 
+This class is indicated to be used in scenarios where several commands need to be executed in a short time interval: it will connect to srvrmgr by using 
 IPC for communication between the processes and once connected, the srvrmgr session will be reused as many times as desired instead of following the
 sequence of connect -> run commands -> disconnect.
 
 The sessions are not "interactive" from the user point of view but the usage of this class enable the adoption of some logic to change how the commands will 
 be executed or even generate commands on the fly.
-
-This module is based on L<IPC::Open3::Callback> from Lucas Theisen (see SEE ALSO section) implemented in L<Siebel::Srvrmgr::Daemon::IPC>.
 
 Since it uses Perl IPC, this class may suffer from good support in OS plataforms that are not UNIX-like. Be sure to check out tests results of the distribution
 before trying to use it.
@@ -73,7 +71,7 @@ use Siebel::Srvrmgr::Regexes
 use Siebel::Srvrmgr::Daemon::Command;
 use POSIX;
 use Data::Dumper;
-use Scalar::Util qw(weaken openhandle);
+use Scalar::Util qw(openhandle);
 use Config;
 use Siebel::Srvrmgr::IPC;
 use IO::Select;
@@ -1156,9 +1154,7 @@ handles associated with the child will be closed. If after that the PID is still
 For MS Windows OS, this might not be sufficient: the PID will be checked again after C<waitpid>, and if it is still running, this method will try to use
 C<kill 9> to eliminate the process.
 
-If the child process is terminated succesfully, this method returns true. If there is no PID associated with the Daemon instance, this method will return false.
-
-Accepts as an optional parameter an instance of a L<Log::Log4perl> for logging messages.
+If the child process is terminated successfully, this method returns true. If there is no PID associated with the Daemon instance, this method will return false.
 
 =cut
 
@@ -1227,7 +1223,7 @@ sub close_child {
                 if ( $ret == $self->get_pid() ) {
 
 # :WORKAROUND:14/08/2013 17:44:00:: for Windows, not using shutdown when creating the socketpair causes the application to not
-# exit with waitpid. using waitpid without non-blocking mode just blocks the application to finish
+# exit with waitpid. Using waitpid without non-blocking mode just blocks the application to finish
                     if ( $Config{osname} eq 'MSWin32' ) {
 
                         if ( kill 0, $self->get_pid() ) {
@@ -1294,6 +1290,16 @@ sub close_child {
 
 =pod
 
+=head1 BACKGROUND EXECUTION
+
+If you're in a UNIX-like OS, you might want to execute some code with this class as a background process. This can be easily done with:
+
+    nohup ~/perl5/perlbrew/perls/perl-5.16.3/bin/perl ~/my_script.pl
+    CRTL+Z
+    bg 1
+
+In this example, the Perl interpreter was located in C<~/perl5/perlbrew/perls/perl-5.16.3/bin/perl> but of course you location might be different.
+
 =head1 CAVEATS
 
 This class is still considered experimental and should be used with care. Tests with MS Windows (and the nature of doing IPC within the plataform) makes it difficult do use this class in Microsoft OS's.
@@ -1310,7 +1316,7 @@ L<IPC::Open3>
 
 =item *
 
-L<Moose>
+L<Siebel::Srvrmgr:::Daemon>
 
 =item *
 
@@ -1334,15 +1340,7 @@ L<POSIX>
 
 =item *
 
-L<Siebel::Srvrmgr::Daemon::Command>
-
-=item *
-
 L<Siebel::Srvrmgr::Daemon::IPC>
-
-=item *
-
-L<https://github.com/lucastheisen/ipc-open3-callback>
 
 =back
 

@@ -44,8 +44,7 @@ override 'do_parsed' => sub {
 
     if ( blessed($obj) eq $self->get_exp_output() ) {
 
-        $obj->store( $self->get_dump_file() );
-
+        $self->store($obj);
         return 1;
 
     }

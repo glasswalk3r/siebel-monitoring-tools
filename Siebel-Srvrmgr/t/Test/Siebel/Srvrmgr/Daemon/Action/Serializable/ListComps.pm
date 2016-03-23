@@ -5,49 +5,6 @@ use base 'Test::Siebel::Srvrmgr::Daemon::Action::Serializable';
 use Test::Most;
 use Siebel::Srvrmgr::ListParser::Output::ListComp::Server;
 
-sub recover_me : Tests(+1) {
-
-    my $test = shift;
-
-	$test->SUPER::recover_me();
-
-    my $server =
-      Siebel::Srvrmgr::ListParser::Output::ListComp::Server->load(
-        $test->get_other_dump() );
-
-    isa_ok(
-        $server,
-        'Siebel::Srvrmgr::ListParser::Output::ListComp::Server',
-        'an server object can be recovered from file with serialized data'
-    );
-
-}
-
-# generated dump has the Siebel server name appended to the value of get_dump_file method
-sub get_other_dump {
-
-    my $test = shift;
-    return $test->SUPER::get_dump() . '_sieb__crm01'
-
-}
-
-sub DESTROY {
-
-    my $test = shift;
-
-    $test->SUPER::DESTROY();
-
-    if ( -e $test->get_other_dump() ) {
-
-        unlink( $test->get_other_dump() )
-          or warn 'Cannot remove ' . $test->get_other_dump() . ': ' . $!;
-
-    }
-
-	return 1;
-
-}
-
 1;
 
 __DATA__

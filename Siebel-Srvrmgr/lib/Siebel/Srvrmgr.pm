@@ -139,6 +139,11 @@ L<Siebel::Srvrmgr::ListParser>
 
 The project web page at L<https://github.com/glasswalk3r/siebel-monitoring-tools/> contains more information about project features and state.
 
+=item *
+
+PPM package: if you are a Active Perl user, you might be happy to know that there are PPM packages created automatically from this distribution
+at L<https://code.activestate.com/ppm/Siebel-Srvrmgr/>.
+
 =back
 
 =head1 AUTHOR

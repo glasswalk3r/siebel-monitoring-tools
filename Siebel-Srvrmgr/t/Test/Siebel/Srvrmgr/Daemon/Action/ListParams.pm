@@ -3,17 +3,6 @@ package Test::Siebel::Srvrmgr::Daemon::Action::ListParams;
 use base 'Test::Siebel::Srvrmgr::Daemon::Action';
 use Test::More;
 
-sub class_methods : Test {
-
-  TODO: {
-
-        local $TODO =
-'MooseX-Storage still does not supports RegexpRef attributes (see RT 86415 ticket for more information)';
-
-    }
-
-}
-
 1;
 
 __DATA__

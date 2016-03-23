@@ -9,20 +9,15 @@ Siebel::Srvrmgr::Daemon::Action::CheckComps - subclass of Siebel::Srvrmgr::Daemo
 =head1 SYNOPSIS
 
     use Siebel::Srvrmgr::Daemon::Action::CheckComps;
-
     my $return_data = Siebel::Srvrmgr::Daemon::ActionStash->instance();
-
     my $comps = [ {name => 'SynchMgr', ok_status => 'Running'}, { name => 'WfProcMgr', ok_status => 'Running'} ];
-
     my $action = Siebel::Srvrmgr::Daemon::Action::CheckComps->new(
                                                                      {  
                                                                          parser => Siebel::Srvrmgr::ListParser->new(), 
                                                                          params => [ $server1, $server2 ]
                                                                      }
                                                                  );
-
     $action->do();
-
     # do something with $return_data
 
 =cut
