@@ -223,7 +223,7 @@ sub get_server {
     }
     else {
 
-        return undef;
+        return;
 
     }
 

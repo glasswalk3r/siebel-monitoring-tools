@@ -46,8 +46,8 @@ Returns a list of the Siebel Server names from the parsed output, sorted alphabe
 sub get_servers {
 
     my $self = shift;
-
-    return sort( keys( %{ $self->get_data_parsed() } ) );
+    my @servers = sort( keys( %{ $self->get_data_parsed() } ) );
+    return @servers;
 
 }
 

@@ -115,7 +115,7 @@ sub get_procs {
         }
         else {
 
-            return undef;
+            return;
 
         }
 

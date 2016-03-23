@@ -652,7 +652,7 @@ sub shift_command {
     else {
 
         $self->set_commands( [] );         # must trigger the attribute
-        return undef;
+        return;
 
     }
 
@@ -725,12 +725,11 @@ sub normalize_eol {
 
     confess 'data parameter must be an array or scalar reference'
       unless ( ( $ref_type eq 'ARRAY' ) or ( $ref_type eq 'SCALAR' ) );
-
-    my $c_regex = qr/\015?\012/;
+    my $c_regex = qr/\o{15}?\o{12}/;
 
     if ( $ref_type eq 'ARRAY' ) {
 
-        local $/ = \012;
+        local $/ = "\o{12}";
 
         foreach ( @{$data_ref} ) {
 

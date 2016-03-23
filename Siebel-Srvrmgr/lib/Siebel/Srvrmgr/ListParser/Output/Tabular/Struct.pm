@@ -126,11 +126,8 @@ If the separator could not be matched against the string, returns C<undef>.
 
 sub split_fields {
 
-    my $self = shift;
-    my $line = shift;
-
+    my ($self, $line) = @_;
     my $sep = $self->get_col_sep();
-
     my $comp_sep = qr/$sep/;
 
     if ( $line =~ $comp_sep ) {
@@ -141,7 +138,7 @@ sub split_fields {
     }
     else {
 
-        return undef;
+        return;
 
     }
 

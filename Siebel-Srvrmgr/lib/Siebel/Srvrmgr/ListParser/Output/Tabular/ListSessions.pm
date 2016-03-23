@@ -311,7 +311,7 @@ sub get_sessions {
         }
         else {
 
-            return undef;
+            return;
 
         }
 

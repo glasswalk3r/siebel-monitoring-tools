@@ -444,8 +444,14 @@ override 'run' => sub {
 # :WARNING:16-07-2014 11:35:13:: cannot using SRVRMGR_PROMPT regex because it is too restrictive
 # since we are reading a stream here. The regex is a copy of SRVRMGR_PROMPT without the "^" at the beginning
     my $prompt_regex = qr/srvrmgr(\:[\w\_\-]+)?>\s(.*)?$/;
-    my $eol_regex    = qr/\015\012$/;
-    my $buffer_size  = $self->get_buffer_size();
+
+# :WARNING:22-03-2016 23:21:53:: configuration of EOL is obscure but possible in Siebel. The hardcode values might
+# be a problem
+# :TODO:22-03-2016 23:22:29:: add more attributes to take care of it, with default values
+    my $CR = "\o{15}";
+    my $LF = "\o{12}";
+    my $eol_regex   = qr/$CR$LF$/;
+    my $buffer_size = $self->get_buffer_size();
 
     if ( $logger->is_debug() ) {
 
@@ -459,15 +465,15 @@ override 'run' => sub {
 
       SWITCH: {
 
-            if ( $/ eq \015 ) {
+            if ( $/ eq $CR ) {
                 $logger->debug( $assert . 'CR' );
                 last SWITCH;
             }
-            if ( $/ eq ( \015 . \012 ) ) {
+            if ( $/ eq ("$CR$LF") ) {
                 $logger->debug( $assert . 'CRLF' );
                 last SWITCH;
             }
-            if ( $/ eq \012 ) {
+            if ( $/ eq $LF ) {
                 $logger->debug( $assert . 'LF' );
                 last SWITCH;
             }
@@ -487,9 +493,7 @@ override 'run' => sub {
         while ( my @ready = $select->can_read($timeout) ) {
 
             foreach my $fh (@ready) {
-
                 my $fh_name = fileno($fh);
-
                 $logger->debug("Reading filehandle $fh_name")
                   if ( $logger->is_debug() );
 
@@ -503,7 +507,6 @@ override 'run' => sub {
 
                 }
                 else {
-
                     $logger->info(
                         'Caught part of a record, repeating sysread with offset'
                     ) if ( $logger->is_info() );

@@ -134,7 +134,7 @@ sub get_servers {
         }
         else {
 
-            return undef;
+            return;
 
         }
 

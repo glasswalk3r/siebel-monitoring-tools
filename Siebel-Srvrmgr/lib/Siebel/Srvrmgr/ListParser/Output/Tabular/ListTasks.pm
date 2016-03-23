@@ -221,7 +221,7 @@ sub get_tasks {
         }
         else {
 
-            return undef;
+            return;
 
         }
 

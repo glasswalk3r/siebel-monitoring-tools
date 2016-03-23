@@ -64,9 +64,7 @@ The C<raw_data> attribute will be set to an reference to an empty array.
 override 'parse' => sub {
 
     my $self = shift;
-
     my $data_ref = $self->get_raw_data();
-
     my %parsed_lines;
 
     foreach my $line ( @{$data_ref} ) {
@@ -99,7 +97,7 @@ override 'parse' => sub {
             }
             else {
 
-                confess 'Invalid data in line [' . $line . ']';
+                confess "Invalid data in line [$line]";
 
             }
 

@@ -267,7 +267,7 @@ sub cmds_vs_tree {
     }
     else {
 
-        return undef;
+        return;
 
     }
 

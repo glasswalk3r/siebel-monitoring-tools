@@ -81,6 +81,7 @@ Returns an hash reference from the C<data> attribute.
 
 Returns an string from the C<name> attribute.
 
+=head2 store
 
 Stores the object data and methods in a serialized file.
 
@@ -153,7 +154,7 @@ sub get_comp {
     }
     else {
 
-        return undef;
+        return;
 
     }
 

@@ -15,7 +15,6 @@ sub get_super {
 sub is_super {
 
     my $test = shift;
-
     return ( $test->class() eq $test->get_super() ) ? 1 : 0;
 
 }
@@ -23,7 +22,6 @@ sub is_super {
 sub get_struct {
 
     my $test = shift;
-
     return $test->{struct};
 
 }
@@ -157,7 +155,7 @@ sub class_methods : Tests(no_plan) {
             [qw(AAAA BBBB CCCC)],
             'split_fields returns an array reference with the correct fields'
         );
-        is_deeply(
+        is(
             $test->get_struct()->split_fields( $test->get_fail_split() ),
             undef,
             'split_fields returns undef if the separator cannot be matched'
