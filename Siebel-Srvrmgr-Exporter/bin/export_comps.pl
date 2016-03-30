@@ -18,11 +18,11 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with Siebel Monitoring Tools.  If not, see <http://www.gnu.org/licenses/>.
-package main;
 
 use warnings;
 use strict;
 use Config;
+# VERSION
 
 my $yap;
 
@@ -47,9 +47,15 @@ BEGIN {
 
     }
 
+    if ( $Config{osname} eq 'Win32' ) {
+        require Siebel::Srvrmgr::Daemon::Light;
+    }
+    else {
+        require Siebel::Srvrmgr::Daemon::Heavy;
+    }
+
 }
 
-use Siebel::Srvrmgr::Daemon::Heavy 0.24;
 use Siebel::Srvrmgr::ListParser::Output::ListComp::Server 0.24;
 use Siebel::Srvrmgr::ListParser::Output::Tabular::ListParams 0.24;
 use Siebel::Srvrmgr::Daemon::Command 0.24;
@@ -163,8 +169,14 @@ if ( exists( $opts{d} ) ) {
 }
 
 $yap->start() unless ( $opts{q} );
+my $daemon;
 
-my $daemon = Siebel::Srvrmgr::Daemon::Heavy->new( \%daemon_options );
+if ( $Config{osname} eq 'Win32' ) {
+    $daemon = Siebel::Srvrmgr::Daemon::Light->new( \%daemon_options );
+}
+else {
+    $daemon = Siebel::Srvrmgr::Daemon::Heavy->new( \%daemon_options );
+}
 
 # these variables are global caches for component definitions and component types respectively
 my ( $DEFS_REF, $TYPES_REF );

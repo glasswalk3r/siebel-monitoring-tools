@@ -14,6 +14,7 @@ use Siebel::Srvrmgr::Daemon::ActionStash 0.21;
 use Siebel::Srvrmgr::ListParser::Output::ListComp::Server 0.21;
 
 extends 'Siebel::Srvrmgr::Daemon::Action';
+# VERSION
 
 =pod
 

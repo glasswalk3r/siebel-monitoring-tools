@@ -2,6 +2,7 @@ package Siebel::Srvrmgr::Exporter;
 
 use strict;
 use warnings;
+# VERSION
 
 1;
 __END__

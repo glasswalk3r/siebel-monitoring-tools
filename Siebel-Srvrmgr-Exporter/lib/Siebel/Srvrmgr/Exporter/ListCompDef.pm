@@ -13,6 +13,7 @@ use namespace::autoclean 0.13;
 use Siebel::Srvrmgr::Daemon::ActionStash 0.21;
 
 extends 'Siebel::Srvrmgr::Daemon::Action';
+# VERSION
 
 =pod
 
