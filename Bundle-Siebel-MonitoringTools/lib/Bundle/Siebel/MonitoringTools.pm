@@ -38,8 +38,7 @@ None by default.
     Log::Log4perl [1.41]
     YAML::Syck [1.27]
     Config::Tiny [2.14]
-    Nagios::Plugin [0.36]
-    Config::Tiny [2.14]
+    Monitoring::Plugin [0.36]
     DBD::ODBC [1.43]
     DBI [1.623]
     XML::Rabbit [0.3]
@@ -60,6 +59,10 @@ None by default.
 	Term::YAP [0.03]
 	Set::Tiny [0.02]
 	Test::TempDir::Tiny [0.004]
+    XML::Parser [2.41]
+    RPC::XML [0.78]
+    CHI [0.58]
+    TryCatch [1.003002]
 
 =head1 SEE ALSO
 

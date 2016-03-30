@@ -47,7 +47,7 @@ BEGIN {
 
     }
 
-    if ( $Config{osname} eq 'Win32' ) {
+    if ( $Config{osname} eq 'MSWin32' ) {
         require Siebel::Srvrmgr::Daemon::Light;
     }
     else {
@@ -80,7 +80,7 @@ sub HELP_MESSAGE {
 
     print <<BLOCK;
 
-export_comps - version $Siebel::Srvrmgr::Exporter::VERSION
+export_comps - version $VERSION
 
 This program will connect to a Siebel server and exports all components configuration in the form of "create component" commands.
 Those commands can be used with srvrmgr program to recreate those components in another Siebel server. Think of it something like a "Siebel component dumper".
@@ -171,7 +171,7 @@ if ( exists( $opts{d} ) ) {
 $yap->start() unless ( $opts{q} );
 my $daemon;
 
-if ( $Config{osname} eq 'Win32' ) {
+if ( $Config{osname} eq 'MSWin32' ) {
     $daemon = Siebel::Srvrmgr::Daemon::Light->new( \%daemon_options );
 }
 else {

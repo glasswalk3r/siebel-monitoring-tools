@@ -33,9 +33,8 @@ my $filename = 'test.txt';
 
 my $dummy = 'foobar';
 my $mock = File::Spec->catfile( $Config{sitebin}, 'srvrmgr-mock.pl' );
-
+note("Attempting $mock");
 unless ( -e $mock ) {
-
     note(
 "Could not locate srvrmgr-mock.pl in Config sitebin ($Config{sitebin}). Hoping that the script is available on the current PATH"
     );
@@ -51,7 +50,7 @@ unless ( -e $mock ) {
     }
     note("Found srvrmgr-mock.pl ('$mock')");
 }
-ok( -x $mock, 'srvrmgr-mock.pl is executable' );
+ok( -e $mock, 'srvrmgr-mock.pl is available' );
 note('Fetching values, this can take some seconds');
 my $exports = File::Spec->catfile( getcwd(), 'bin', 'export_comps.pl' );
 ok( -e $exports, 'export_comps.pl exists' );
