@@ -1,16 +1,17 @@
 package Siebel::Params::Checker;
-
 use strict;
 use warnings;
 use Siebel::Srvrmgr::Daemon::Heavy;
 use Siebel::Srvrmgr::ListParser::Output::ListComp::Server;
 use Siebel::Srvrmgr::ListParser::Output::Tabular::ListParams;
 use Siebel::Srvrmgr::Daemon::Command;
-use Config::Tiny 2.23;
 use Set::Tiny 0.03;
 use Siebel::Params::Checker::ListComp;
 use Siebel::Params::Checker::ListParams;
+use Siebel::Srvrmgr::Util::IniDaemon qw(create_daemon);
+use Config::IniFiles 2.88;
 use Exporter 'import';
+# VERSION
 
 =pod
 
@@ -24,11 +25,11 @@ This modules provides a interface to a Siebel Enterprise to search and extract p
 
 =head1 EXPORTS
 
-The C<recover_info> function is the only one exported by default.
+The C<recover_info> function is the only one exported by demand.
 
 =cut
 
-our @EXPORT = qw(recover_info);
+our @EXPORT_OK = qw(recover_info);
 
 =head1 FUNCTIONS
 
@@ -81,62 +82,38 @@ All the parameters corresponding to the desired Siebel component.
 =cut
 
 sub recover_info {
-
     my ( $cfg_file, $given_alias ) = @_;
-    my $cfg = Config::Tiny->read($cfg_file);
+    my $daemon = create_daemon($cfg_file);
+    my $cfg    = Config::Tiny->read($cfg_file);
     my $wanted_params =
       Set::Tiny->new( ( split( ',', $cfg->{SEARCH}->{parameters} ) ) );
-
     my $comp_cmd = "list comp $given_alias";
     chop($comp_cmd);
     $comp_cmd .= '%';
 
-    my $daemon = Siebel::Srvrmgr::Daemon::Heavy->new(
-        {
-            gateway         => $cfg->{GENERAL}->{gateway},
-            enterprise      => $cfg->{GENERAL}->{enterprise},
-            user            => $cfg->{GENERAL}->{user},
-            password        => $cfg->{GENERAL}->{password},
-            field_delimiter => $cfg->{GENERAL}->{field_delimiter},
-            bin             => $cfg->{GENERAL}->{srvrmgr},
-            time_zone       => 'UTC',
-            read_timeout    => 5,
-            commands        => [
-                Siebel::Srvrmgr::Daemon::Command->new(
-                    {
-                        command => 'load preferences',
-                        action  => 'LoadPreferences',
-                    }
-                ),
-
 # LoadPreferences does not add anything into ActionStash, so it's ok use a second action here
-                Siebel::Srvrmgr::Daemon::Command->new(
-                    {
-                        command => $comp_cmd,
-                        action  => 'Siebel::Params::Checker::ListComp'
-                    }
-                  )
-
-            ]
-        }
+    $daemon->push_command(
+        Siebel::Srvrmgr::Daemon::Command->new(
+            {
+                command => $comp_cmd,
+                action  => 'Siebel::Params::Checker::ListComp'
+            }
+        )
     );
 
     my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
-
     $daemon->run();
     my %data;
     my $servers_ref = $stash->get_stash();
     $stash->set_stash( [] );
 
     foreach my $server ( @{$servers_ref} ) {
-
         my $server_comps = $server->get_comps();
         my $server_name  = $server->get_name();
         print "going over $server_name\n";
         $data{$server_name} = {};
 
         foreach my $comp_alias ( @{$server_comps} ) {
-
             next unless ( $comp_alias eq $given_alias );
             my $command =
                 'list params for server '
@@ -194,7 +171,9 @@ sub recover_info {
                 );
                 $daemon->run();
                 my $params_ref = $stash->shift_stash;
+
                 foreach my $param_alias ( keys( %{$params_ref} ) ) {
+
                     if ( $adv_want->has($param_alias) ) {
                         $data{$server_name}->{$param_alias} =
                           $params_ref->{$param_alias}->{PA_VALUE};
@@ -250,6 +229,10 @@ L<Siebel::Srvrmgr>
 =item *
 
 L<Config::Tiny>
+
+=item *
+
+L<Siebel::Srvrmgr::Util::IniDaemon>
 
 =back
 

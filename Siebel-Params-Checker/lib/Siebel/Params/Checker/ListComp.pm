@@ -1,5 +1,4 @@
 package Siebel::Params::Checker::ListComp;
-
 =pod
 
 =head1 NAME
@@ -15,6 +14,7 @@ use Siebel::Srvrmgr::ListParser::Output::ListComp::Server;
 use Carp;
 
 extends 'Siebel::Srvrmgr::Daemon::Action';
+# VERSION
 
 =pod
 

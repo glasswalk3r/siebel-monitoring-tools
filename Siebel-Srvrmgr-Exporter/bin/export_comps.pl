@@ -22,6 +22,15 @@
 use warnings;
 use strict;
 use Config;
+use Siebel::Srvrmgr::ListParser::Output::ListComp::Server 0.24;
+use Siebel::Srvrmgr::ListParser::Output::Tabular::ListParams 0.24;
+use Siebel::Srvrmgr::Daemon::Command 0.24;
+use Siebel::Srvrmgr::Exporter::ListCompDef;
+use Siebel::Srvrmgr::Exporter::ListComp;
+use Siebel::Srvrmgr::Exporter::ListCompTypes;
+use File::Spec;
+use Getopt::Std;
+use Siebel::Srvrmgr::Exporter;
 # VERSION
 
 my $yap;
@@ -56,15 +65,6 @@ BEGIN {
 
 }
 
-use Siebel::Srvrmgr::ListParser::Output::ListComp::Server 0.24;
-use Siebel::Srvrmgr::ListParser::Output::Tabular::ListParams 0.24;
-use Siebel::Srvrmgr::Daemon::Command 0.24;
-use Siebel::Srvrmgr::Exporter::ListCompDef;
-use Siebel::Srvrmgr::Exporter::ListComp;
-use Siebel::Srvrmgr::Exporter::ListCompTypes;
-use File::Spec;
-use Getopt::Std;
-use Siebel::Srvrmgr::Exporter;
 
 $Getopt::Std::STANDARD_HELP_VERSION = 2;
 
