@@ -1,4 +1,13 @@
 package Siebel::Params::Checker::Template;
+
+=pod
+
+=head1 NAME
+
+Siebel::Params::Checker::Template - defines and generates HTML report for scpc.pl command line program
+
+=cut
+
 use warnings;
 use strict;
 use Exporter qw(import);
@@ -7,6 +16,45 @@ use Template 2.26;
 # VERSION
 our @EXPORT_OK = qw(gen_report);
 our $TEMPLATE;
+
+=head1 DESCRIPTION
+
+This module uses L<Template> to generate the HTML report for C<scpc.pl> command line program.
+
+=head1 FUNCTIONS
+
+Only the sub C<gen_report> is exportable by demand.
+
+=head2 gen_report
+
+Generates the report.
+
+Expects as positional parameters:
+
+=over
+
+=item *
+
+A string with the component name
+
+=item *
+
+An array reference with the data to be used as header
+
+=item *
+
+An array reference to be used report body.
+
+=item *
+
+The complete path where the HTML file should be generated
+
+=back
+
+It returns true if the report is generated success. Errors might generate
+an exception with L<Carp> C<confess>.
+
+=cut
 
 sub gen_report {
     my ( $comp_name, $header_ref, $rows_ref, $output_path ) = @_;
@@ -22,6 +70,7 @@ sub gen_report {
     unless (defined($TEMPLATE))
     {
         local $/ = undef;
+        # the template will be hold on memory if this sub is invoked again
         $TEMPLATE = <DATA>;
         close(DATA);
     }
@@ -37,6 +86,55 @@ sub gen_report {
 
     return 1;
 }
+
+=pod
+
+=head1 SEE ALSO
+
+=over
+
+=item *
+
+L<Siebel::Srvrmgr>
+
+=item *
+
+The command line utility scpc.pl uses this module.
+
+=item *
+
+L<Siebel::Params::Checker::ListComp>
+
+=item *
+
+L<Siebel::Params::Checker::ListParams>
+
+=back
+
+=head1 AUTHOR
+
+Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2016 of Alceu Rodrigues de Freitas Junior, E<lt>arfreitas@cpan.orgE<gt>
+
+This file is part of Siebel Monitoring Tools.
+
+Siebel Monitoring Tools is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Siebel Monitoring Tools is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Siebel Monitoring Tools.  If not, see <http://www.gnu.org/licenses/>.
+
+=cut
 
 1;
 
