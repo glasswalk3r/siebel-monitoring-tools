@@ -38,6 +38,7 @@ with 'Siebel::Srvrmgr::ListParser::Output::ToString';
                 end_datetime   => $data_ref->{CP_END_TIME},
                 status         => $data_ref->{CP_STATUS},
                 incarn_no      => $data_ref->{CC_INCARN_NO},
+                time_zone      => 'America/Sao_Paulo',
                 desc_text      => $data_ref->{CC_DESC_TEXT}
 
     } );

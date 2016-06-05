@@ -1,7 +1,8 @@
 package Test::Siebel::Srvrmgr::ListParser::Output::Tabular;
 
-use base 'Test::Siebel::Srvrmgr::ListParser::Output';
+use parent 'Test::Siebel::Srvrmgr::ListParser::Output';
 use Test::Most;
+use Test::Moose;
 use Siebel::Srvrmgr::Regexes qw(SRVRMGR_PROMPT);
 
 sub get_structure_type {
@@ -123,20 +124,15 @@ sub class_attributes : Test(no_plan) {
 
 }
 
-sub class_methods : Test(+6) {
-
-    my $test        = shift;
-    my $methods_ref = shift;
-
+sub class_methods : Test(+7) {
+    my ( $test, $methods_ref ) = @_;
     my @methods =
       qw(_consume_data parse get_known_types get_type get_expected_fields found_header _set_found_header _build_expected to_string);
 
     if ( ( defined($methods_ref) ) and ( ref($methods_ref) eq 'ARRAY' ) ) {
 
         foreach my $method ( @{$methods_ref} ) {
-
             push( @methods, $method );
-
         }
 
     }
@@ -144,24 +140,18 @@ sub class_methods : Test(+6) {
     $test->SUPER::class_methods( \@methods );
 
   SKIP: {
-
-        skip $test->get_super() . ' does not have instance for those tests', 6 
+        skip $test->get_super() . ' does not have instance for those tests', 6
           if ( $test->is_super() );
-
         ok( $test->get_output()->set_raw_data( [] ), 'set_raw_data works' );
-
         dies_ok
           sub { $test->get_output()->parse() },
           'test parse validation 1';
-
         like( $@, qr/Invalid\sdata\sto\sparse/, 'invalid data to parse' );
-
         ok(
             $test->get_output()
               ->set_raw_data( [ '', '10 rows returned.', '' ] ),
             'set_raw_data works'
         );
-
         dies_ok
           sub { $test->get_output()->parse() },
           'test parse validation 2';
@@ -170,6 +160,11 @@ sub class_methods : Test(+6) {
             $@,
             qr/Raw\sdata\sbecame\sinvalid/,
             'raw data became invalid after initial cleanup'
+        );
+        does_ok(
+            $test->get_output(),
+            'Siebel::Srvrmgr::ListParser::Output::ToString',
+            'this class does ToString role'
         );
 
     }

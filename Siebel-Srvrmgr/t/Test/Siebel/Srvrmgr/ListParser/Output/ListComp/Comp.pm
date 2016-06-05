@@ -1,7 +1,7 @@
 package Test::Siebel::Srvrmgr::ListParser::Output::ListComp::Comp;
 
 use Test::Most;
-use Test::Moose 'has_attribute_ok';
+use Test::Moose;
 use parent 'Test::Siebel::Srvrmgr';
 use Siebel::Srvrmgr::ListParser::Output::Tabular::ListComp;
 
@@ -119,9 +119,7 @@ sub _constructor : Tests(2) {
 }
 
 sub class_attributes : Tests(20) {
-
     my $test = shift;
-
     my @attribs = (
         'alias',          'name',
         'ct_alias',       'cg_alias',
@@ -136,16 +134,12 @@ sub class_attributes : Tests(20) {
     );
 
     foreach my $attrib (@attribs) {
-
         has_attribute_ok( $test->{comp}, $attrib );
-
     }
 }
 
-sub class_methods : Tests(16) {
-
+sub class_methods : Tests(18) {
     my $test = shift;
-
     can_ok(
         $test->{comp},
         (
@@ -157,16 +151,10 @@ sub class_methods : Tests(16) {
             'get_max_mts_procs',  'get_start',
             'get_end',            'get_status',
             'get_incarn_no',      'get_desc_text',
-
-            # from Moose roles
-            'get_start',        'get_current',
-            'get_end',          '_set_end',
-            'fix_endtime',      'is_running',
-            'get_datetime',     'get_duration',
-            'to_string_header', 'to_string'
         )
     );
-
+    does_ok($test->{comp}, 'Siebel::Srvrmgr::ListParser::Output::ToString', 'instance does ToString role');
+    does_ok($test->{comp}, 'Siebel::Srvrmgr::ListParser::Output::Duration', 'instance does Duration role');
     is( $test->{comp}->get_num_run_tasks(),
         2, 'get_num_run_tasks returns the correct value' );
     is( $test->{comp}->get_incarn_no(),

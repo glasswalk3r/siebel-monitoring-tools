@@ -5,6 +5,7 @@ use strict;
 use Moose::Role 2.1604;
 use Carp;
 use DateTime 1.12;
+
 # VERSION
 
 =pod
@@ -96,14 +97,11 @@ has 'time_zone' => (
 );
 
 sub _set_time_zone {
-
     my $tmp = $ENV{SIEBEL_TZ};
 
     # to avoid problems with taint mode
     $tmp =~ /^([\w\/\_]+)$/;
-
     return $1;
-
 }
 
 =head1 METHODS
@@ -134,15 +132,10 @@ need to a create one to do that.
 =cut
 
 sub fix_endtime {
-
     my $self = shift;
-
     if ( $self->get_end eq '2000-00-00 00:00:00' ) {
-
         $self->_set_end('');
-
     }
-
 }
 
 =head2 is_running
@@ -154,17 +147,12 @@ If returns true (1) or false (0);
 =cut
 
 sub is_running {
-
     my $self = shift;
-
     return ( $self->get_end eq '' ) ? 1 : 0;
-
 }
 
 sub _get_now {
-
     return DateTime->now;
-
 }
 
 =head2 get_datetime
@@ -176,25 +164,19 @@ Returns a L<DateTime> object representation of this string using the available t
 =cut
 
 sub get_datetime {
-
-    my $self      = shift;
-    my $timestamp = shift;
-
-    my ( $date, $time ) = split( /\s/, $timestamp );
+    my ( $self, $timestamp ) = @_;
+    my ( $date, $time ) =
+      split( /\s/, $timestamp );
     my @date = split( /\-/, $date );
     my @time = split( /\:/, $time );
-
     return DateTime->new(
-
         year   => $date[0],
         month  => $date[1] * 1,    #forcing to be stored as a number
         day    => $date[2] * 1,
         hour   => $time[0] * 1,
         minute => $time[1] * 1,
         second => $time[2] * 1
-
     );
-
 }
 
 =head2 get_duration
@@ -207,28 +189,20 @@ The return value is in seconds.
 =cut
 
 sub get_duration {
-
     my $self = shift;
-
     my $end;
 
     if ( $self->get_end ne '' ) {
-
         $end = $self->get_datetime( $self->get_end );
-
     }
     else {
-
         $end = $self->get_current;
-
     }
 
     my $duration =
       $end->subtract_datetime_absolute(
         $self->get_datetime( $self->get_start ) );
-
     return $duration->seconds;
-
 }
 
 =head1 SEE ALSO

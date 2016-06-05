@@ -4,6 +4,7 @@ use warnings;
 use strict;
 use Moose::Role 2.1604;
 use Carp;
+
 # VERSION
 
 =head1 NAME
@@ -29,19 +30,12 @@ Expects as parameter a single character to be used as field separator.
 =cut
 
 sub to_string_header {
-
-    my $self      = shift;
-    my $separator = shift;
-
+    my ( $self, $separator ) = @_;
     confess 'separator must be a single character'
       unless ( ( defined($separator) ) and ( $separator =~ /^.$/ ) );
-
-    my $meta = $self->meta;
-
+    my $meta              = $self->meta;
     my $attribs_names_ref = $self->_to_string;
-
     return join( $separator, @{$attribs_names_ref} );
-
 }
 
 =head2 to_string
@@ -53,40 +47,27 @@ Expects as parameter a single character to be used as field separator.
 =cut
 
 sub to_string {
-
-    my $self      = shift;
-    my $separator = shift;
-
+    my ( $self, $separator ) = @_;
     confess 'separator must be a single character'
       unless ( ( defined($separator) ) and ( $separator =~ /^.$/ ) );
-
     my $meta              = $self->meta;
     my $attribs_names_ref = $self->_to_string;
     my @values;
 
     foreach my $name ( @{$attribs_names_ref} ) {
-
         my $attrib = $meta->get_attribute($name);
         my $reader = $attrib->get_read_method;
-
         push( @values, ( defined( $self->$reader ) ? $self->$reader : '' ) );
-
     }
 
     return join( $separator, @values );
-
 }
 
 sub _to_string {
-
     my $self = shift;
-
     my $meta = $self->meta;
-
     my @attribs = sort( $meta->get_attribute_list );
-
     return \@attribs;
-
 }
 
 =head1 AUTHOR

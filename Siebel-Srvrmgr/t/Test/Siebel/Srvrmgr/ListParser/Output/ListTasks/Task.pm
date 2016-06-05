@@ -77,7 +77,7 @@ sub class_attributes : Tests(no_plan) {
 
 }
 
-sub class_methods : Tests(14) {
+sub class_methods : Tests(16) {
 
     my $test = shift;
 
@@ -92,18 +92,19 @@ sub class_methods : Tests(14) {
         'get_label',        'get_type',
         'get_ping_time',    'to_string',
         'to_string_header', 'get_current',
-
-        # from Moose roles
-        'get_start',        'get_current',
-        'get_end',          '_set_end',
-        'fix_endtime',      'is_running',
-        'get_datetime',     'get_duration',
-        'to_string_header', 'to_string'
     );
-
+    does_ok(
+        $test->{task},
+        'Siebel::Srvrmgr::ListParser::Output::ToString',
+        'instance does ToString role'
+    );
+    does_ok(
+        $test->{task},
+        'Siebel::Srvrmgr::ListParser::Output::Duration',
+        'instance does Duration role'
+    );
     like( $test->{task}->get_duration,
         qr/^\d+$/, 'get_duration returns a positive integer' );
-
     is( $test->{task}->get_server_name(),
         'siebfoobar', 'get_server_name method returns the expected value' );
     is( $test->{task}->get_comp_alias(),
@@ -114,7 +115,6 @@ sub class_methods : Tests(14) {
         20503, 'get_pid method returns the expected value' );
     is( $test->{task}->get_run_state(),
         'Running', 'get_run_state method returns the expected value' );
-
     dies_ok { $test->{task}->to_string }
     'to_string expects a single character as parameter';
     my $separator = '|';

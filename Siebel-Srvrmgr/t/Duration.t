@@ -1,11 +1,11 @@
 use warnings;
 use strict;
-use Test::More tests => 1;
+use Test::More tests => 6;
+use Test::Moose 2.1605;
 use Siebel::Srvrmgr::ListParser::Output::ListComp::Comp;
-use DateTime;
+use DateTime 1.26;
 
-$ENV{SIEBEL_TZ} = 'America/Sao_Paulo';
-
+local $ENV{SIEBEL_TZ} = 'America/Sao_Paulo';
 my $start = DateTime->now();
 note( 'Now is ' . $start );
 my $end           = $start->clone;
@@ -14,7 +14,6 @@ my $interval_secs = $interval * 60;
 note("Considering that component finished after $interval minutes");
 $end->add( minutes => $interval );
 note( 'End time will be ' . $end );
-
 my $comp = Siebel::Srvrmgr::ListParser::Output::ListComp::Comp->new(
     {
         alias          => 'SRProc',
@@ -34,10 +33,12 @@ my $comp = Siebel::Srvrmgr::ListParser::Output::ListComp::Comp->new(
         desc_text      => ''
 
     }
-
 );
-
 is( $comp->get_duration, $interval_secs,
     "component executed for $interval_secs seconds" );
-
-delete $ENV{SIEBEL_TZ};
+can_ok( $comp,
+    qw(get_time_zone get_start get_current get_end fix_endtime is_running get_datetime get_duration)
+);
+foreach my $attrib (qw(start_datetime curr_datetime end_datetime time_zone)) {
+    has_attribute_ok( $comp, $attrib, "instance has the attribute $attrib" );
+}
