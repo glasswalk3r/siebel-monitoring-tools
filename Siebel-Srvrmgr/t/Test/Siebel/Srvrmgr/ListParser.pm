@@ -5,17 +5,12 @@ use Test::Moose 'has_attribute_ok';
 use parent 'Test::Siebel::Srvrmgr';
 
 sub get_col_sep {
-
     my $self = shift;
-
     return $self->{col_sep};
-
 }
 
 sub class_attributes : Tests(no_plan) {
-
-    my $test = shift;
-
+    my $test    = shift;
     my @attribs = (
         'parsed_tree',  'has_tree',
         'last_command', 'is_cmd_changed',
@@ -27,34 +22,27 @@ sub class_attributes : Tests(no_plan) {
     $test->num_tests( scalar(@attribs) );
 
     foreach my $attrib (@attribs) {
-
         has_attribute_ok( $test->{parser}, $attrib );
-
     }
 
 }
 
 sub _constructor : Test(2) {
-
     my $test = shift;
 
     if ( $test->get_col_sep() ) {
-
         ok(
             $test->{parser} =
               $test->class()
               ->new( { field_delimiter => $test->get_col_sep() } ),
             'it is possible to create an instance'
         );
-
     }
     else {
-
         ok(
             $test->{parser} = $test->class()->new(),
             'it is possible to create an instance'
         );
-
     }
 
     isa_ok( $test->{parser}, $test->class(),
@@ -63,9 +51,7 @@ sub _constructor : Test(2) {
 }
 
 sub class_methods : Tests(11) {
-
     my $test = shift;
-
     can_ok(
         $test->{parser},
         (
@@ -87,26 +73,19 @@ sub class_methods : Tests(11) {
     );
 
     ok( $test->{parser}->parse( $test->get_my_data() ), 'parse method works' );
-
     isa_ok( $test->{parser}->get_enterprise(),
         'Siebel::Srvrmgr::ListParser::Output::Enterprise' );
-
     is(
         scalar( @{ $test->{parser}->get_buffer() } ),
         scalar( @{ [] } ),
         'calling parse method automatically resets the buffer'
     );
-
     ok( $test->{parser}->clear_buffer(), 'clear_buffer method works' );
-
-    ok( $test->{parser}->has_tree(), 'the parser has a parsed tree' );
-
+    ok( $test->{parser}->has_tree(),     'the parser has a parsed tree' );
     is( $test->{parser}->get_last_command(),
         '', 'get_last_command method returns the expected value' );
-
     is( $test->{parser}->count_parsed(),
         10, 'count_parsed method returns the correct number' );
-
     my @data = (
         'srvrXXXXmgr> list comp',
         '',

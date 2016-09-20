@@ -4,34 +4,53 @@ use warnings;
 use strict;
 use Scalar::Util::Numeric qw(isint);
 use Exporter 'import';
-our @EXPORT_OK = qw(create_ent_log);
+use String::BOM qw(string_has_bom strip_bom_from_string);
+use Carp;
+use Test::More; # for note() use
+our @EXPORT_OK = qw(create_ent_log data_from_file);
+
+sub data_from_file {
+    my $file = shift;
+    confess "Don't have a defined file to read!" unless ( defined($file) );
+    note("Reading file $file content to use it's data for testing");
+    open( my $in, '<', $file )
+      or confess "cannot read $file: $!";
+    my @data;
+
+    while (<$in>) {
+        # input text files for testing are expected to have UNIX EOL character
+        s/\012$//;
+        push( @data, $_ );
+    }
+
+    close($in);
+
+    if ( string_has_bom( $data[0] ) ) {
+        $data[0] = strip_bom_from_string( $data[0] );
+    }
+
+    return \@data;
+}
 
 sub create_ent_log {
-
     my ( $grand_child_pid, $log_file ) = @_;
-
-    die "must receive pid parameter as an integer"
+    confess "must receive pid parameter as an integer"
       unless ( ( defined($grand_child_pid) )
         and ( isint($grand_child_pid) == 1 ) );
-    die "must receive the log file parameter as an string"
+    confess "must receive the log file parameter as an string"
       unless ( defined($log_file) );
-
     my @lines = <DATA>;
     close(DATA);
-
     $lines[48] =~ s/GRAND_CHILD_PID/$grand_child_pid/;
-	$lines[0] =~ s/MY_LOCATION/$log_file/;
+    $lines[0] =~ s/MY_LOCATION/$log_file/;
+    open( my $out, '>', $log_file ) or confess "Cannot create $log_file=: $!";
 
-    open( my $out, '>', $log_file ) or die "Cannot create $log_file=: $!";
     foreach my $line (@lines) {
-
         chomp($line);
         print $out $line, "\015\012";
-
     }
 
     close($out);
-
 }
 
 1;

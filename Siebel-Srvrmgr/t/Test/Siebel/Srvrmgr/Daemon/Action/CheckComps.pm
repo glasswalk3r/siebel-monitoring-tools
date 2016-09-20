@@ -9,25 +9,18 @@ use Test::Siebel::Srvrmgr::Daemon::Action::Check::Server;
 use Test::Siebel::Srvrmgr::Daemon::Action::Check::Component;
 
 sub set_action2 {
-
     my $test = shift;
     $test->{action2} = shift;
-
 }
 
 sub get_action2 {
-
     my $test = shift;
-
     return $test->{action2};
-
 }
 
 # must override parent method because CheckComps has different arguments for new
 sub before : Test(setup) {
-
     my $test = shift;
-
     $ENV{SIEBEL_TZ} = 'America/Sao_Paulo';
 
     # applying roles as expected by Siebel::Srvrmgr::Daemon::Action::CheckComps
@@ -76,28 +69,19 @@ sub before : Test(setup) {
 }
 
 sub clean_up : Test(shutdown) {
-
     delete $ENV{SIEBEL_TZ};
-
 }
 
 sub constructor : Tests(+2) {
-
     my $test = shift;
-
     ok( $test->{action2}, 'the other constructor should succeed' );
     isa_ok( $test->get_action2(), $test->class() );
-
 }
 
 sub class_methods : Tests(+2) {
-
     my $test = shift;
-
-	note($ENV{SIEBEL_TZ});
-
+    note($ENV{SIEBEL_TZ});
     $test->SUPER::class_methods();
-
     my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
 
     # data expected to be returned from the stash

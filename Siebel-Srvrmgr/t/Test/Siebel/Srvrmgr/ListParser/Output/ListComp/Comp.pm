@@ -4,58 +4,41 @@ use Test::Most;
 use Test::Moose;
 use parent 'Test::Siebel::Srvrmgr';
 use Siebel::Srvrmgr::ListParser::Output::Tabular::ListComp;
+use Regexp::Common 0.07 qw(time);
 
 sub get_struct {
-
     my $test = shift;
-
     return $test->{structure_type};
-
 }
 
 sub get_col_sep {
-
     my $test = shift;
-
     return $test->{col_sep};
-
 }
 
 sub set_timezone : Test(startup) {
-
     $ENV{SIEBEL_TZ} = 'America/Sao_Paulo';
-
 }
 
 sub unset_timezone : Test(shutdown) {
-
     delete $ENV{IEBEL_TZ};
-
 }
 
-# :TODO:11-01-2014:: should refactor this because behaviour is the same for other classes (maybe a Role?)
+# :TODO:11-01-2014:: should refactor this because behavior is the same for other classes (maybe a Role?)
 # overriding parent's because the files will have the command itself followed by the output of it
 sub get_my_data {
-
-    my $test = shift;
-
+    my $test     = shift;
     my $data_ref = $test->SUPER::get_my_data();
-
     shift( @{$data_ref} );    #command
     shift( @{$data_ref} );    #new line
-
     return $data_ref;
-
 }
 
 sub _constructor : Tests(2) {
-
     my $test = shift;
-
     my $list_comp;
 
     if ( ( $test->get_struct eq 'delimited' ) and ( $test->get_col_sep ) ) {
-
         $list_comp =
           Siebel::Srvrmgr::ListParser::Output::Tabular::ListComp->new(
             {
@@ -66,10 +49,8 @@ sub _constructor : Tests(2) {
                 col_sep        => $test->get_col_sep()
             }
           );
-
     }
     else {
-
         $list_comp =
           Siebel::Srvrmgr::ListParser::Output::Tabular::ListComp->new(
             {
@@ -79,13 +60,10 @@ sub _constructor : Tests(2) {
                 structure_type => $test->get_struct()
             }
           );
-
     }
 
-    my $server = $list_comp->get_server('siebel1');
-
-    my $alias = 'SRProc';
-
+    my $server   = $list_comp->get_server('siebel1');
+    my $alias    = 'SRProc';
     my $data_ref = $server->get_data->{$alias};
 
     ok(
@@ -97,6 +75,7 @@ sub _constructor : Tests(2) {
                 cg_alias       => $data_ref->{CG_ALIAS},
                 run_mode       => $data_ref->{CC_RUNMODE},
                 disp_run_state => $data_ref->{CP_DISP_RUN_STATE},
+                start_mode     => $data_ref->{CP_STARTMODE},
                 num_run_tasks  => $data_ref->{CP_NUM_RUN_TASKS},
                 max_tasks      => $data_ref->{CP_MAX_TASKS},
                 actv_mts_procs => $data_ref->{CP_ACTV_MTS_PROCS},
@@ -119,7 +98,7 @@ sub _constructor : Tests(2) {
 }
 
 sub class_attributes : Tests(20) {
-    my $test = shift;
+    my $test    = shift;
     my @attribs = (
         'alias',          'name',
         'ct_alias',       'cg_alias',
@@ -130,7 +109,7 @@ sub class_attributes : Tests(20) {
         'status',         'incarn_no',
         'desc_text',      'start_datetime',
         'curr_datetime',  'end_datetime',
-        'time_zone'
+        'time_zone',      'start_mode',
     );
 
     foreach my $attrib (@attribs) {
@@ -138,7 +117,7 @@ sub class_attributes : Tests(20) {
     }
 }
 
-sub class_methods : Tests(18) {
+sub class_methods : Tests(20) {
     my $test = shift;
     can_ok(
         $test->{comp},
@@ -151,10 +130,19 @@ sub class_methods : Tests(18) {
             'get_max_mts_procs',  'get_start',
             'get_end',            'get_status',
             'get_incarn_no',      'get_desc_text',
+            'get_start_mode',     'is_auto_start'
         )
     );
-    does_ok($test->{comp}, 'Siebel::Srvrmgr::ListParser::Output::ToString', 'instance does ToString role');
-    does_ok($test->{comp}, 'Siebel::Srvrmgr::ListParser::Output::Duration', 'instance does Duration role');
+    does_ok(
+        $test->{comp},
+        'Siebel::Srvrmgr::ListParser::Output::ToString',
+        'instance does ToString role'
+    );
+    does_ok(
+        $test->{comp},
+        'Siebel::Srvrmgr::ListParser::Output::Duration',
+        'instance does Duration role'
+    );
     is( $test->{comp}->get_num_run_tasks(),
         2, 'get_num_run_tasks returns the correct value' );
     is( $test->{comp}->get_incarn_no(),
@@ -178,11 +166,8 @@ sub class_methods : Tests(18) {
         1, 'get_actv_mts_procs returns the correct value' );
     is( $test->{comp}->get_max_mts_procs(),
         1, 'get_max_mts_procs returns the correct value' );
-    is(
-        $test->{comp}->get_start(),
-        '2014-01-06 18:22:00',
-        'get_start returns the correct value'
-    );
+    like( $test->{comp}->get_start(),
+        qr/$RE{time}{iso}/, 'get_start returns a ISO-8601 value' );
     is( $test->{comp}->get_end, '', 'get_end returns the correct value' );
     is( $test->{comp}->get_status(),
         'Enabled', 'get_status returns the correct value' );
@@ -190,6 +175,9 @@ sub class_methods : Tests(18) {
         '', 'get_desc_text returns the correct value' );
     like( $test->{comp}->get_duration,
         qr/\d+/, 'get_duration returns a number' );
+    is( $test->{comp}->get_start_mode,
+        'Auto', 'get_start_mode returns the expected value' );
+    ok( $test->{comp}->is_auto_start, 'is_auto_start returns true' );
 
 }
 

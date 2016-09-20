@@ -1,8 +1,6 @@
 package Siebel::Srvrmgr::ListParser::Output::Tabular::Struct::Fixed;
-
 use Moose 2.0401;
 use namespace::autoclean 0.13;
-
 extends 'Siebel::Srvrmgr::ListParser::Output::Tabular::Struct';
 # VERSION
 
@@ -34,10 +32,8 @@ has fields_pattern => (
 );
 
 sub _build_col_sep {
-
     my $self = shift;
     $self->_set_col_sep('\s{2,}');
-
 }
 
 =pod
@@ -56,25 +52,18 @@ Expects the "------------" line under the header with the fields names.
 =cut
 
 sub define_fields_pattern {
-
-    my $self = shift;
-    my $line = shift;
-
+    my ( $self, $line ) = @_;
     my $separator = $self->get_col_sep();
     my $comp_sep  = qr/$separator/;
 
     # :TODO:30-12-2013:: some logging would ne nice here
     if ( $line =~ $comp_sep ) {
-
         my @columns = split( /$separator/, $line );
-
         my $pattern;
 
         foreach my $column (@columns) {
-
 # :WARNING   :09/05/2013 12:19:37:: + 2 because of the spaces after the "---" that will be trimmed
             $pattern .= 'A' . ( length($column) + 2 );
-
         }
 
         $self->_set_fields_pattern($pattern);
@@ -82,11 +71,8 @@ sub define_fields_pattern {
 
     }
     else {
-
         return 0;
-
     }
-
 }
 
 =pod
@@ -102,23 +88,16 @@ Expects a string with fields values to be parsed.
 =cut
 
 sub get_fields {
-
-    my $self = shift;
-    my $line = shift;
+    my ( $self, $line ) = @_;
 
     if ( defined( $self->get_fields_pattern() ) ) {
-
         my @fields = unpack( $self->get_fields_pattern(), $line );
-
         return \@fields;
-
     }
     else {
-
-        confess 'cannot procede without being able to define the fields pattern for parsing: check if command output configuration is as expected by the parsing class';
-
+        confess
+'cannot procede without being able to define the fields pattern for parsing: check if command output configuration is as expected by the parsing class';
     }
-
 }
 
 =head1 SEE ALSO

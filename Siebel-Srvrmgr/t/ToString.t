@@ -12,6 +12,7 @@ my $comp = Siebel::Srvrmgr::ListParser::Output::ListComp::Comp->new(
         cg_alias       => 'SystemAux',
         run_mode       => 'Batch',
         disp_run_state => 'Online',
+        start_mode     => 'Auto',
         num_run_tasks  => 0,
         max_tasks      => 20,
         actv_mts_procs => 1,
@@ -33,7 +34,7 @@ dies_ok { $comp->to_string } 'to_string expects a separator as parameter';
 like( $@, qr/separator must be a single character/,
     'exception is as expected' );
 my $header =
-q{actv_mts_procs#alias#cg_alias#ct_alias#curr_datetime#desc_text#disp_run_state#end_datetime#incarn_no#max_mts_procs#max_tasks#name#num_run_tasks#run_mode#start_datetime#status#time_zone};
+q{actv_mts_procs#alias#cg_alias#ct_alias#curr_datetime#desc_text#disp_run_state#end_datetime#incarn_no#max_mts_procs#max_tasks#name#num_run_tasks#run_mode#start_datetime#start_mode#status#time_zone};
 stdout_is { print $comp->to_string_header('#') } $header,
   'to_string_header prints the expected text';
 my $body =

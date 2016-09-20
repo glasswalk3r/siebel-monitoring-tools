@@ -8,9 +8,8 @@ Siebel::Srvrmgr::ListParser - state model parser to idenfity which output type w
 
 =head1 SYNOPSIS
 
-	use Siebel::Srvrmgr::ListParser;
-
-	my $parser = Siebel::Srvrmgr::ListParser->new({ prompt_regex => $some_prompt });
+    use Siebel::Srvrmgr::ListParser;
+    my $parser = Siebel::Srvrmgr::ListParser->new({ prompt_regex => $some_prompt });
 
 =cut
 
@@ -257,11 +256,8 @@ Set the last command found in the parser received data. It also triggers that th
 =cut
 
 sub _toggle_cmd_changed {
-
     my ( $self, $new_value, $old_value ) = @_;
-
     $self->is_cmd_changed(1);
-
 }
 
 =pod
@@ -273,20 +269,15 @@ Automatically defines the state machine object based on L<Siebel::Srvrmgr::ListP
 =cut
 
 sub BUILD {
-
     my $self = shift;
-
     my $copy_ref = Siebel::Srvrmgr::ListParser::OutputFactory->get_mapping();
 
     foreach my $cmd_alias ( keys( %{$copy_ref} ) ) {
-
         my $regex = $copy_ref->{$cmd_alias}->[1];
         $copy_ref->{$cmd_alias} = $regex;
-
     }
 
     $self->_set_fsa( Siebel::Srvrmgr::ListParser::FSA->new($copy_ref) );
-
 }
 
 =pod

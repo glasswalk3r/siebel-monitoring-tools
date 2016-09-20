@@ -13,6 +13,7 @@ use namespace::autoclean 0.13;
 use Siebel::Srvrmgr::ListParser::Output::ListComp::Comp;
 use Carp;
 use Storable qw(nstore);
+
 # VERSION
 
 =pod
@@ -91,10 +92,8 @@ Expects as a parameter a string the filename (or complete path).
 =cut
 
 sub store {
-
     my ( $self, $filename ) = @_;
     nstore $self, $filename;
-
 }
 
 =head2 get_comps
@@ -104,11 +103,8 @@ Returns an array reference with all components aliases available in the server.
 =cut
 
 sub get_comps {
-
     my $self = shift;
-
     return [ keys( %{ $self->get_data() } ) ];
-
 }
 
 =pod
@@ -122,13 +118,12 @@ Returns a L<Siebel::Srvrmgr::ListParser::Output::ListComp::Comp> object if the c
 =cut
 
 sub get_comp {
-
-    my $self  = shift;
-    my $alias = shift;
+    my ( $self, $alias ) = @_;
 
     if ( exists( $self->get_data()->{$alias} ) ) {
-
         my $data_ref = $self->get_data->{$alias};
+
+# :TODO:09/19/2016 07:28:47 PM:: maybe move this mapping detail to the class would be wiser and allow changes easily
         return Siebel::Srvrmgr::ListParser::Output::ListComp::Comp->new(
             {
                 alias          => $alias,
@@ -137,6 +132,7 @@ sub get_comp {
                 cg_alias       => $data_ref->{CG_ALIAS},
                 run_mode       => $data_ref->{CC_RUNMODE},
                 disp_run_state => $data_ref->{CP_DISP_RUN_STATE},
+                start_mode     => $data_ref->{CP_STARTMODE},
                 num_run_tasks  => $data_ref->{CP_NUM_RUN_TASKS},
                 max_tasks      => $data_ref->{CP_MAX_TASKS},
                 desc_text      => $data_ref->{CC_DESC_TEXT},
@@ -148,17 +144,12 @@ sub get_comp {
                 actv_mts_procs => $data_ref->{CP_ACTV_MTS_PROCS} || 0,
                 incarn_no      => $data_ref->{CC_INCARN_NO}      || 0,
                 max_mts_procs  => $data_ref->{CP_MAX_MTS_PROCS}  || 0,
-
             }
         );
-
     }
     else {
-
         return;
-
     }
-
 }
 
 =pod

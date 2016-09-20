@@ -6,53 +6,38 @@ use Test::Moose;
 use Siebel::Srvrmgr::Regexes qw(SRVRMGR_PROMPT);
 
 sub get_structure_type {
-
     my $test = shift;
-
     return $test->{structure_type};
-
 }
 
 sub get_col_sep {
-
     my $test = shift;
     return $test->{col_sep};
-
 }
 
 sub get_super {
-
     return 'Siebel::Srvrmgr::ListParser::Output::Tabular';
-
 }
 
 # :WORKAROUND:06-07-2014 00:25:20:: cannot easily change default getter of Class::Data::Inheritable, so creating an alias
 sub get_cmd_line {
-
     my $self = shift;
     $self->get_my_data;
     return __PACKAGE__->cmd_line;
-
 }
 
 # overriding parent's because the files will have the command itself followed by the output of it
 sub get_my_data {
-
-    my $test = shift;
-
+    my $test     = shift;
     my $data_ref = $test->SUPER::get_my_data();
-
     my $cmd_line = shift( @{$data_ref} );
     $cmd_line =~ s/@{[SRVRMGR_PROMPT]}/$2/;  # removing the prompt from the data
     __PACKAGE__->mk_classdata( cmd_line => $cmd_line );
     shift( @{$data_ref} );                   # empty line before output
-
     return $data_ref;
-
 }
 
 sub _constructor : Test(+2) {
-
     my $test        = shift;
     my $attribs_ref = shift;
 
@@ -104,18 +89,13 @@ sub _constructor : Test(+2) {
 }
 
 sub class_attributes : Test(no_plan) {
-
-    my $test        = shift;
-    my $attribs_ref = shift;
-
+    my ( $test, $attribs_ref ) = @_;
     my @attribs = qw (structure_type known_types expected_fields found_header);
 
     if ( ( defined($attribs_ref) ) and ( ref($attribs_ref) eq 'ARRAY' ) ) {
 
         foreach my $attrib ( @{$attribs_ref} ) {
-
             push( @attribs, $attrib );
-
         }
 
     }

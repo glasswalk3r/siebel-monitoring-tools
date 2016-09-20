@@ -4,28 +4,20 @@ use Test::Most;
 use parent 'Test::Siebel::Srvrmgr::ListParser::Output::Tabular';
 
 sub class_attributes : Tests(no_plan) {
-
     my $test = shift;
-
     $test->SUPER::class_attributes( [qw(last_server comp_attribs servers)] );
-
 }
 
 sub get_last_server {
-
     return 'siebel1';
-
 }
 
 sub get_servers {
-
     my $test = shift;
     return [ $test->get_last_server() ];
-
 }
 
 sub class_methods : Tests(+5) {
-
     my $test = shift;
 
     $test->SUPER::class_methods(
@@ -33,7 +25,7 @@ sub class_methods : Tests(+5) {
     );
 
     my $comp_attribs = [
-        qw(CC_NAME CT_ALIAS CG_ALIAS CC_RUNMODE CP_DISP_RUN_STATE CP_NUM_RUN_TASKS CP_MAX_TASKS CP_ACTV_MTS_PROCS CP_MAX_MTS_PROCS CP_START_TIME CP_END_TIME CP_STATUS CC_INCARN_NO CC_DESC_TEXT)
+        qw(CC_NAME CT_ALIAS CG_ALIAS CC_RUNMODE CP_DISP_RUN_STATE CP_STARTMODE CP_NUM_RUN_TASKS CP_MAX_TASKS CP_ACTV_MTS_PROCS CP_MAX_MTS_PROCS CP_START_TIME CP_END_TIME CP_STATUS CC_INCARN_NO CC_DESC_TEXT)
     ];
 
     is_deeply( $test->get_output()->get_comp_attribs(),
@@ -62,19 +54,14 @@ sub class_methods : Tests(+5) {
     );
 
   SKIP: {
-
         skip 'get_server() method failed', 1 unless ( defined($server) );
-
         isa_ok( $server, $server_class );
-
     }
 
 }
 
 sub get_data_type {
-
-	return 'list_comp';
-
+    return 'list_comp';
 }
 
 1;

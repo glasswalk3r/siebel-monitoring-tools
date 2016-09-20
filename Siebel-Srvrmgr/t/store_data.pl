@@ -1,23 +1,22 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 #===============================================================================
 #
 #         FILE: store_data.pl
 #
 #  DESCRIPTION: this small program is to help adding YAML serialized data into srvrmgr_mock program in the DATA handler
 #
-#       AUTHOR: arfreitas@cpan.org, 
+#       AUTHOR: arfreitas@cpan.org,
 #      CREATED: 11/07/2013 17:17:37
 #===============================================================================
 use warnings;
 use strict;
 use utf8;
-use YAML::Syck;
+use YAML::XS 0.62 qw(DumpFile);
 use File::Spec;
 use Cwd;
 use feature 'say';
 
 my %data;
-
 my @keys = (
     'load_preferences',
     'list_comp',
@@ -33,31 +32,26 @@ my @keys = (
 );
 
 foreach my $key (@keys) {
-
     say "Processing $key";
     read_output( \%data, $key );
-
 }
 
-my $filename = shift;
-chomp($filename);
-DumpFile( $filename, \%data );
+my $output_file = shift;
+chomp($output_file);
+unless ( defined($output_file) ) {
+    die
+"the filename parameter must be given a valid pathname to a srvrmgr output file";
+}
+DumpFile( $output_file, \%data );
 
 sub read_output {
-
-    my $data_ref = shift;    # hash ref
-    my $key      = shift;
-
+    my ( $data_ref, $key ) = @_;
     my $filename =
       File::Spec->catfile( getcwd(), 'output', 'mock', 'fixed_width',
         $key . '.txt' );
-
     open( my $in, '<:utf8', $filename ) or die "Cannot read $filename: $!\n";
     my @data = <$in>;
     close($in);
-
     $data_ref->{$key} = \@data;
-
     return 1;
-
 }

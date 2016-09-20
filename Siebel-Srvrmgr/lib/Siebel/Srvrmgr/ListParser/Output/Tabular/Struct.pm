@@ -47,12 +47,9 @@ has 'header_regex' => (
 );
 
 sub _build_header_regex {
-
     my $self = shift;
-
     $self->_set_header_regex(
         join( $self->get_col_sep(), @{ $self->get_header_cols() } ) );
-
 }
 
 =pod
@@ -80,9 +77,7 @@ has 'col_sep' => (
 );
 
 sub _build_col_sep {
-
     confess '_build_col_sep must be overrided by subclasses';
-
 }
 
 =head2 header_cols
@@ -126,23 +121,17 @@ If the separator could not be matched against the string, returns C<undef>.
 =cut
 
 sub split_fields {
-
     my ($self, $line) = @_;
     my $sep = $self->get_col_sep();
     my $comp_sep = qr/$sep/;
 
     if ( $line =~ $comp_sep ) {
-
         my @columns = split( $comp_sep, $line );
         return \@columns;
-
     }
     else {
-
         return;
-
     }
-
 }
 
 =pod
@@ -157,10 +146,8 @@ fields values.
 =cut
 
 sub define_fields_pattern {
-
     confess
 'define_fields_pattern must be overrided by subclasses of Siebel::Srvrmgr::ListParser::Output::Tabular::Struct';
-
 }
 
 =pod
@@ -175,10 +162,8 @@ C<srvrmgr> output.
 =cut
 
 sub get_fields {
-
     confess
 'get_fields must be overrided by subclasses of Siebel::Srvrmgr::ListParser::Output::Tabular::Struct';
-
 }
 
 =pod

@@ -14,6 +14,7 @@ use namespace::autoclean 0.13;
 
 with 'Siebel::Srvrmgr::ListParser::Output::Duration';
 with 'Siebel::Srvrmgr::ListParser::Output::ToString';
+
 # VERSION
 
 =pod
@@ -21,15 +22,15 @@ with 'Siebel::Srvrmgr::ListParser::Output::ToString';
 =head1 SYNOPSIS
 
     use Siebel::Srvrmgr::ListParser::Output::ListComp::Comp;
-
     # see Siebel::Srvrmgr::ListParser::Output::ListComp::Server for more details
     my $comp = Siebel::Srvrmgr::ListParser::Output::ListComp::Comp->new( {
                 alias          => $data_ref->{CC_ALIAS},
-				name           => $data_ref->{CC_NAME}, 
+                name           => $data_ref->{CC_NAME}, 
                 ct_alias       => $data_ref->{CT_ALIAS},
                 cg_alias       => $data_ref->{CG_ALIAS},
                 run_mode       => $data_ref->{CC_RUNMODE},
                 disp_run_state => $data_ref->{CP_DISP_RUN_STATE},
+                start_mode     => $data_ref->{CP_STARTMODE},
                 num_run_tasks  => $data_ref->{CP_NUM_RUN_TASKS},
                 max_tasks      => $data_ref->{CP_MAX_TASKS},
                 actv_mts_procs => $data_ref->{CP_ACTV_MTS_PROCS},
@@ -128,6 +129,26 @@ This attribute is read-only.
 =cut
 
 has disp_run_state => ( isa => 'Str', is => 'ro', required => 1 );
+
+=pod
+
+=head2 start_mode
+
+A string representing the component start mode. Currently the only valid values are:
+
+=over
+
+=item Manual
+
+=item Auto
+
+=back
+
+This attribute is read-only.
+
+=cut
+
+has start_mode => ( isa => 'Str', is => 'ro', required => 1 );
 
 =pod
 
@@ -234,10 +255,32 @@ Once this operation is finished, the C<data> attribute is set to an empty hash r
 =cut
 
 sub BUILD {
-
     my $self = shift;
     $self->fix_endtime;
+}
 
+=pod
+
+=head2 is_auto_start
+
+A helper method, it returns true if C<start_mode> attribute is "Auto", false if it is "Manual".
+
+=cut
+
+sub is_auto_start {
+    my $self = shift;
+    if ( $self->get_start_mode eq 'Auto' ) {
+        return 1;
+    }
+
+    if ( $self->get_start_mode eq 'Manual' ) {
+        return 0;
+    }
+    else {
+        confess 'Invalid object state: the start mode value "'
+          . $self->get_start_mode
+          . ' is not valid';
+    }
 }
 
 =pod

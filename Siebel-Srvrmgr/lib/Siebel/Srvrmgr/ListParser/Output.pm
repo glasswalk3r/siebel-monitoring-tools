@@ -8,13 +8,13 @@ Siebel::Srvrmgr::ListParser::Output - base class of srvrmgr output
 
 =head1 SYNOPSIS
 
-	use Siebel::Srvrmgr::ListParser::Output;
-
-	my $output = Siebel::Srvrmgr::ListParser::Output->new({ data_type => 'sometype', 
-															raw_data => \@data, 
-															cmd_line => 'list something from somewhere'});
-
-	$output->store($complete_pathname);
+    use Siebel::Srvrmgr::ListParser::Output;
+    my $output = Siebel::Srvrmgr::ListParser::Output->new({
+        data_type => 'sometype', 
+        raw_data => \@data, 
+        cmd_line => 'list something from somewhere'
+    });
+    $output->store($complete_pathname);
 
 =cut
 

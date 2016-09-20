@@ -22,6 +22,7 @@ my $comp = Siebel::Srvrmgr::ListParser::Output::ListComp::Comp->new(
         cg_alias       => 'SystemAux',
         run_mode       => 'Interactive',
         disp_run_state => 'Running',
+        start_mode     => 'Auto',
         num_run_tasks  => 2,
         max_tasks      => 20,
         actv_mts_procs => 1,
