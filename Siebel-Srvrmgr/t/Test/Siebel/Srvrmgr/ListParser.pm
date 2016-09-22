@@ -3,10 +3,25 @@ package Test::Siebel::Srvrmgr::ListParser;
 use Test::Most;
 use Test::Moose 'has_attribute_ok';
 use parent 'Test::Siebel::Srvrmgr';
+use Siebel::Srvrmgr::Regexes qw(SRVRMGR_PROMPT);
 
 sub get_col_sep {
     my $self = shift;
     return $self->{col_sep};
+}
+
+sub count_cmds {
+    my $test     = shift;
+    my $data_ref = $test->get_my_data();
+    my $counter  = 0;
+
+    foreach my $line ( @{$data_ref} ) {
+        if ( $line =~ SRVRMGR_PROMPT ) {
+            $counter++ if ( ( defined($2) ) and ( $2 =~ /\w+/ ) );
+        }
+    }
+
+    return $counter;
 }
 
 sub class_attributes : Tests(no_plan) {
@@ -29,6 +44,7 @@ sub class_attributes : Tests(no_plan) {
 
 sub _constructor : Test(2) {
     my $test = shift;
+    note( 'Validating the file ' . $test->get_output_file );
 
     if ( $test->get_col_sep() ) {
         ok(
@@ -85,7 +101,7 @@ sub class_methods : Tests(11) {
     is( $test->{parser}->get_last_command(),
         '', 'get_last_command method returns the expected value' );
     is( $test->{parser}->count_parsed(),
-        10, 'count_parsed method returns the correct number' );
+        $test->count_cmds, 'count_parsed method returns the correct number' );
     my @data = (
         'srvrXXXXmgr> list comp',
         '',

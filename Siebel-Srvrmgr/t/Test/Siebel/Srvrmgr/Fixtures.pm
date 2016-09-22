@@ -6,8 +6,49 @@ use Scalar::Util::Numeric qw(isint);
 use Exporter 'import';
 use String::BOM qw(string_has_bom strip_bom_from_string);
 use Carp;
-use Test::More; # for note() use
-our @EXPORT_OK = qw(create_ent_log data_from_file);
+use Test::More;    # for note() use
+use Siebel::Srvrmgr::ListParser::Output::ListComp::Comp;
+use Scalar::Util qw(blessed);
+use DateTime 1.26;
+
+our @EXPORT_OK = qw(create_ent_log data_from_file create_comp);
+
+sub create_comp {
+    my ( $start, $end );
+
+    if (@_) {
+        ( $start, $end ) = @_;
+        confess "start parameter must be a DataTime instance"
+          unless ( ( defined($start) ) and ( blessed($start) eq 'DateTime' ) );
+        confess "start parameter must be a DataTime instance"
+          unless ( ( defined($end) ) and ( blessed($end) eq 'DateTime' ) );
+    }
+    else {
+        $start = DateTime->now( time_zone => 'America/Sao_Paulo' );
+        $end = $start->clone;
+        $end->add( hours => 72 );
+    }
+    return Siebel::Srvrmgr::ListParser::Output::ListComp::Comp->new(
+        {
+            alias          => 'SRProc',
+            name           => 'Server Request Processor',
+            ct_alias       => 'SRProc',
+            cg_alias       => 'SystemAux',
+            run_mode       => 'Interactive',
+            disp_run_state => 'Shutdown',
+            start_mode     => 'Auto',
+            num_run_tasks  => 2,
+            max_tasks      => 20,
+            actv_mts_procs => 1,
+            max_mts_procs  => 1,
+            start_datetime => $start->strftime('%F %H:%M:%S'),
+            end_datetime   => $end->strftime('%F %H:%M:%S'),
+            status         => 'Enabled',
+            incarn_no      => 0,
+            desc_text      => ''
+        }
+    );
+}
 
 sub data_from_file {
     my $file = shift;
@@ -18,6 +59,7 @@ sub data_from_file {
     my @data;
 
     while (<$in>) {
+
         # input text files for testing are expected to have UNIX EOL character
         s/\012$//;
         push( @data, $_ );

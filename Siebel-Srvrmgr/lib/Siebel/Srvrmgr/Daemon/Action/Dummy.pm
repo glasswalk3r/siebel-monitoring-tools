@@ -12,7 +12,8 @@ See L<Siebel::Srvrmgr::Daemon::Action> for an example.
 
 =head1 DESCRIPTION
 
-This is a subclass of L<Siebel::Srvrmgr::Daemon::Action> that will do... nothing.
+This is a subclass of L<Siebel::Srvrmgr::Daemon::Action> that will do nothing with the data recovered. Useful only if you want to run
+integrated tests with a live server and check if the connection to command execution are OK.
 
 =cut
 
@@ -35,9 +36,7 @@ This functions always returns true.
 =cut
 
 override 'do_parsed' => sub {
-
     return 1;
-
 };
 
 =pod

@@ -36,7 +36,7 @@ extends 'Siebel::Srvrmgr::Daemon::Action';
 =head1 DESCRIPTION
 
 This subclass of L<Siebel::Srvrmgr::Daemon::Action> will try to find a L<Siebel::Srvrmgr::ListParser::Output::Tabular::ListComp> object in the given array reference
-given as parameter to the C<do> method and compares the status of the components with the array reference given as parameter.
+given as parameter to the C<do> method and compares the status of the components (CP_DISP_RUN_STATE) with the array reference given as parameter.
 
 The C<do> method of C<Siebel::Srvrmgr::Daemon::Action::CheckComps> uses L<Siebel::Srvrmgr::Daemon::ActionStash> to enable the program that created the object 
 instance to be able to fetch the information returned.

@@ -97,6 +97,10 @@ has 'time_zone' => (
 );
 
 sub _set_time_zone {
+    confess
+"The environment SIEBEL_TZ is not configured. See Siebel::Srvrmgr::Daemon perldoc for information"
+      unless ( ( exists( $ENV{SIEBEL_TZ} ) )
+        and ( defined( $ENV{SIEBEL_TZ} ) ) );
     my $tmp = $ENV{SIEBEL_TZ};
 
     # to avoid problems with taint mode

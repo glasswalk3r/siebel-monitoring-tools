@@ -11,11 +11,8 @@ use lib 't';
 use Test::Siebel::Srvrmgr::Daemon::Action::Check::Component;
 use Test::Siebel::Srvrmgr::Daemon::Action::Check::Server;
 
-my $daemon;
-my $server;
-
-$server = build_server('siebfoobar');
-$daemon = Siebel::Srvrmgr::Daemon::Heavy->new(
+my $server = build_server('siebfoobar');
+my $daemon = Siebel::Srvrmgr::Daemon::Heavy->new(
     {
         gateway    => 'whatever',
         enterprise => 'whatever',
@@ -36,6 +33,7 @@ $daemon = Siebel::Srvrmgr::Daemon::Heavy->new(
     }
 );
 
+note('Validating output from "list comp" from srvrmgr-mock.pl several times');
 my $repeat      = 12;
 my $total_tests = ( scalar( @{ $server->components() } ) + 2 ) * $repeat;
 plan tests => $total_tests;
@@ -43,13 +41,9 @@ my ( $tmp_dir, $log_file, $log_cfg ) = set_log();
 my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
 
 for ( 1 .. $repeat ) {
-
     $daemon->run();
-
     my $data = $stash->shift_stash();
-
     is( scalar( keys( %{$data} ) ), 1, 'only one server is returned' );
-
     my ($servername) = keys( %{$data} );
     is( $servername, $server->name(), 'returned server name is correct' );
 
@@ -60,9 +54,7 @@ for ( 1 .. $repeat ) {
           unless ( defined($servername) );
 
         foreach my $comp ( keys( %{ $data->{$servername} } ) ) {
-
             ok( $data->{$servername}->{$comp}, "component $comp status is ok" );
-
         }
 
     }
@@ -70,12 +62,10 @@ for ( 1 .. $repeat ) {
 }
 
 sub set_log {
-
     my $tmp_dir  = tempdir();
     my $log_file = File::Spec->catfile( $tmp_dir, 'daemon.log' );
     my $log_cfg  = File::Spec->catfile( $tmp_dir, 'log4perl.cfg' );
-
-    my $config = <<BLOCK;
+    my $config   = <<BLOCK;
 log4perl.logger.Siebel.Srvrmgr.Daemon = WARN, LOG1
 log4perl.appender.LOG1 = Log::Log4perl::Appender::File
 log4perl.appender.LOG1.filename  = $log_file
@@ -83,71 +73,39 @@ log4perl.appender.LOG1.mode = clobber
 log4perl.appender.LOG1.layout = Log::Log4perl::Layout::PatternLayout
 log4perl.appender.LOG1.layout.ConversionPattern = %d %p> %F{1}:%L %M - %m%n
 BLOCK
-
     open( my $out, '>', $log_cfg )
       or die 'Cannot create ' . $log_cfg . ": $!\n";
     print $out $config;
     close($out) or die 'Could not close ' . $log_cfg . ": $!\n";
-
     $ENV{SIEBEL_SRVRMGR_DEBUG} = $log_cfg;
-
     return $tmp_dir, $log_file, $log_cfg;
 
 }
 
+# to check the components, the list of them must be extracted from srvrmgr-mock.pl manually and added to DATA
+# each line must be in the format CP_ALIAS|CP_DISP_RUN_STATE
 sub build_server {
-
-    my $server_name = shift;
-    my $comp_list   = shift;
+    my ($server_name) = @_;
     my @comps;
 
-    if ( defined($comp_list) ) {
-
-        my @list = split( /\|/, $comp_list );
-
-        foreach (@list) {
-
-            push(
-                @comps,
-                Test::Siebel::Srvrmgr::Daemon::Action::Check::Component->new(
-                    {
-                        alias          => $_,
-                        description    => 'whatever',
-                        componentGroup => 'whatever',
-                        OKStatus       => 'Running|Online',
-                        taskOKStatus   => 'Running|Online',
-                        criticality    => 5
-                    }
-                )
-            );
-
-        }
-
+    while (<DATA>) {
+        chomp();
+        my ( $alias, $state ) = ( split( /\|/, $_ ) );
+        push(
+            @comps,
+            Test::Siebel::Srvrmgr::Daemon::Action::Check::Component->new(
+                {
+                    alias          => $alias,
+                    description    => 'whatever',
+                    componentGroup => 'whatever',
+                    OKStatus       => $state,
+                    taskOKStatus   => 'Running|Online',
+                    criticality    => 5
+                }
+            )
+        );
     }
-    else {
-
-        while (<DATA>) {
-
-            chomp();
-
-            push(
-                @comps,
-                Test::Siebel::Srvrmgr::Daemon::Action::Check::Component->new(
-                    {
-                        alias          => $_,
-                        description    => 'whatever',
-                        componentGroup => 'whatever',
-                        OKStatus       => 'Running|Online',
-                        taskOKStatus   => 'Running|Online',
-                        criticality    => 5
-                    }
-                )
-            );
-
-        }
-        close(DATA);
-
-    }
+    close(DATA);
 
     return Test::Siebel::Srvrmgr::Daemon::Action::Check::Server->new(
         {
@@ -159,55 +117,34 @@ sub build_server {
 }
 
 __DATA__
-ADMBatchProc
-ADMObjMgr_enu
-ADMObjMgr_ptb
-ADMProc
-AsgnSrvr
-AsgnBatch
-BusIntBatchMgr
-BusIntMgr
-CommConfigMgr
-CommInboundProcessor
-CommInboundRcvr
-CommOutboundMgr
-CommSessionMgr
-CustomAppObjMgr_enu
-CustomAppObjMgr_ptb
-DbXtract
-EAIObjMgr_enu
-EAIObjMgr_ptb
-MailMgr
-EIM
-FSMSrvr
-GenNewDb
-GenTrig
-htimObjMgr_enu
-htimObjMgr_ptb
-htimprmObjMgr_enu
-htimprmObjMgr_ptb
-JMSReceiver
-ListImportSvcMgr
-PDbXtract
-RepAgent
-FooAssetRecCMon
-FooAssetWorkMon
-ServerMgr
-SRBroker
-SRProc
-SvrTblCleanup
-SvrTaskPersist
-AdminNotify
-SCBroker
-SynchMgr
-TaskLogCleanup
-WorkActn
-WorkMon
-WorkMonSWI
-WfProcBatchMgr
-WfProcMgr
-WfRecvMgr
-eChannelCMEObjMgr_enu
-eChannelCMEObjMgr_ptb
-eCommunicationsObjMgr_enu
-eCommunicationsObjMgr_ptb
+AsgnSrvr|Online
+AsgnBatch|Online
+CommConfigMgr|Online
+CommInboundProcessor|Online
+CommInboundRcvr|Online
+CommOutboundMgr|Online
+CommSessionMgr|Online
+EAIObjMgr_enu|Online
+EAIObjMgrXXXXX_enu|Online
+InfraEAIOutbound|Online
+MailMgr|Online
+EIM|Online
+FSMSrvr|Online
+JMSReceiver|Shutdown
+MqSeriesAMIRcvr|Shutdown
+MqSeriesSrvRcvr|Shutdown
+MSMQRcvr|Shutdown
+PageMgr|Shutdown
+SMQReceiver|Shutdown
+ServerMgr|Running
+SRBroker|Running
+SRProc|Running
+SvrTblCleanup|Shutdown
+SvrTaskPersist|Running
+AdminNotify|Online
+SCBroker|Running
+SmartAnswer|Shutdown
+LoyEngineBatch|Shutdown
+LoyEngineInteractive|Shutdown
+LoyEngineRealtime|Online
+LoyEngineRealtimeTier|Online
