@@ -15,6 +15,7 @@ use MooseX::FollowPBP 0.05;
 
 with 'Siebel::Srvrmgr::ListParser::Output::Duration';
 with 'Siebel::Srvrmgr::ListParser::Output::ToString';
+
 # VERSION
 
 =head1 SYNOPSIS
@@ -34,7 +35,7 @@ with 'Siebel::Srvrmgr::ListParser::Output::ToString';
                 pid            => $ref->{SBLMGR_PID}
     );
 
-	($server->is_running) ? print $server->name . 'is still running' : $server->name ' was running for a period of ' . $server->duration;
+    ($server->is_running) ? print $server->name . 'is still running' : $server->name ' was running for a period of ' . $server->duration;
 
 =head1 DESCRIPTION
 
@@ -74,7 +75,7 @@ This attribute is read-only and required.
 
 =cut
 
-has 'host' => (is => 'ro', isa => 'NotNullStr', required => 1);
+has 'host' => ( is => 'ro', isa => 'NotNullStr', required => 1 );
 
 =head2 install_dir
 
@@ -84,7 +85,7 @@ This attribute is read-only.
 
 =cut
 
-has 'install_dir' => (is => 'ro', isa => 'Str');
+has 'install_dir' => ( is => 'ro', isa => 'Str' );
 
 =head2 pid
 
@@ -96,7 +97,7 @@ It will return C<undef> if the Siebel Server is not running anymore.
 
 =cut
 
-has 'pid' => (is => 'ro', isa => 'Int');
+has 'pid' => ( is => 'ro', isa => 'Int' );
 
 =head2 disp_state
 
@@ -106,7 +107,7 @@ This attribute is read-only and required.
 
 =cut
 
-has 'disp_state' => (is => 'ro', isa => 'Str', required => 1);
+has 'disp_state' => ( is => 'ro', isa => 'Str', required => 1 );
 
 =head2 state
 
@@ -116,7 +117,7 @@ This attribute is read-only and required.
 
 =cut
 
-has 'state' => (is => 'ro', isa => 'Str', required => 1);
+has 'state' => ( is => 'ro', isa => 'Str', required => 1 );
 
 =head2 status
 
@@ -126,7 +127,17 @@ This attribute is read-only and required.
 
 =cut
 
-has 'status' => (is => 'ro', isa => 'Str', required => 1);
+has 'status' => ( is => 'ro', isa => 'Str', required => 1 );
+
+=head2 id
+
+A integer in the whole Siebel Enterprise that univocally describes a Siebel Server.
+
+This attribute is read-only and required.
+
+=cut
+
+has 'id' => ( is => 'ro', isa => 'Int', required => 1 );
 
 =head1 METHODS
 
@@ -140,11 +151,8 @@ object creation.
 =cut
 
 sub BUILD {
-
-	my $self = shift;
-
-	$self->fix_endtime;
-
+    my $self = shift;
+    $self->fix_endtime;
 }
 
 =head1 SEE ALSO

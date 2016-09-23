@@ -1314,14 +1314,6 @@ foobar_001  SRProc    5242885    5668    Running
 
 2 rows returned.
 
-srvrmgr:foobar_001> list servers
-
-SBLSRVR_NAME  SBLSRVR_GROUP_NAME  HOST_NAME   INSTALL_DIR                        SBLMGR_PID  SV_DISP_STATE  SBLSRVR_STATE  START_TIME           END_TIME  SBLSRVR_STATUS                     
-------------  ------------------  ----------  ---------------------------------  ----------  -------------  -------------  -------------------  --------  ---------------------------------  
-foobar_001                        FOOBAR_001  C:\Siebel\8.1.1.11.0\ses\siebsrvr  6092        Running        Running        2016-02-19 09:37:37            8.1.1.14 [23044] LANG_INDEPENDENT  
-
-1 row returned.
-
 srvrmgr:foobar_001> list sessions
 
 SV_NAME     CC_ALIAS       CG_ALIAS   TK_TASKID  TK_PID  TK_DISP_RUNSTATE   TK_IDLE_STATE  TK_PING_TIME  TK_HUNG_STATE  DB_SESSION_ID                    OM_LOGIN             OM_BUSSVC                                   OM_VIEW                                             OM_APPLET                                              OM_BUSCOMP                              

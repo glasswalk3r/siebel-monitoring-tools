@@ -3,6 +3,7 @@ package Siebel::Srvrmgr::ListParser::Output::Tabular::ListServers;
 use Moose 2.0401;
 use namespace::autoclean 0.13;
 use Siebel::Srvrmgr::ListParser::Output::ListServers::Server;
+
 # VERSION
 
 =pod
@@ -25,7 +26,7 @@ See L<Siebel::Srvrmgr::ListParser::Output::Tabular> for examples.
 
 This subclass of L<Siebel::Srvrmgr::ListParser::Output::Tabular> parses the output of the command C<list servers>.
 
-This class expectes the following order and configuration of fields from C<list servers> command:
+This is probably the default configuration you have:
 
     srvrmgr> configure list servers
         SBLSRVR_NAME (31):  Siebel Server name
@@ -39,7 +40,24 @@ This class expectes the following order and configuration of fields from C<list 
         END_TIME (21):  Time the server was stopped
         SBLSRVR_STATUS (101):  Server status
 
-Anything different from that will generate exceptions when parsing
+This class expectes the following order and configuration of fields from C<list servers> command:
+
+    srvrmgr> configure list server
+        SBLSRVR_NAME (31):  Siebel Server name
+        SBLSRVR_GROUP_NAME (46):  Siebel server Group name
+        HOST_NAME (31):  Host name of server machine
+        INSTALL_DIR (256):  Server install directory name
+        SBLMGR_PID (16):  O/S process/thread ID of Siebel Server Manager
+        SV_DISP_STATE (61):  Server state (started, stopped, etc.)
+        SBLSRVR_STATE (31):  Server state internal (started, stopped, etc.)
+        START_TIME (21):  Time the server was started
+        END_TIME (21):  Time the server was stopped
+        SBLSRVR_STATUS (101):  Server status
+        SV_SRVRID (9):  Server ID
+
+Anything different from that will generate exceptions when parsing. Using the following command to configure it properly:
+
+    configure list server show SBLSRVR_NAME(31), SBLSRVR_GROUP_NAME(46),HOST_NAME(31),INSTALL_DIR(256),SBLMGR_PID(16),SV_DISP_STATE(61),SBLSRVR_STATE(31),START_TIME(21),END_TIME(21),SBLSRVR_STATUS(101), SV_SRVRID(9)
 
 =head1 ATTRIBUTES
 
@@ -69,19 +87,17 @@ where the keys are the Siebel servers names, each one holding a reference to ano
 =cut
 
 sub _build_expected {
-
     my $self = shift;
-
     $self->_set_expected_fields(
         [
             'SBLSRVR_NAME',  'SBLSRVR_GROUP_NAME',
             'HOST_NAME',     'INSTALL_DIR',
             'SBLMGR_PID',    'SV_DISP_STATE',
             'SBLSRVR_STATE', 'START_TIME',
-            'END_TIME',      'SBLSRVR_STATUS'
+            'END_TIME',      'SBLSRVR_STATUS',
+            'SV_SRVRID'
         ]
     );
-
 }
 
 =head2 get_servers
@@ -94,24 +110,20 @@ until the list of servers is exausted. In this case the sub reference will retur
 =cut
 
 sub get_servers {
-
-    my $self    = shift;
-    my $counter = 0;
-
+    my $self        = shift;
+    my $counter     = 0;
     my $servers_ref = $self->get_data_parsed;
-
-    my @servers = sort( keys( %{$servers_ref} ) );
-    my $total   = scalar(@servers) - 1;
+    my @servers     = sort( keys( %{$servers_ref} ) );
+    my $total       = scalar(@servers) - 1;
 
     return sub {
 
         if ( $counter <= $total ) {
-
-            my $server_ref = $servers_ref->{ $servers[$counter] };
+            my $name = $servers[$counter];
+            my $server_ref = $servers_ref->{ $name };
             $counter++;
-
             my %attribs = (
-                name           => $server_ref->{SBLSRVR_NAME},
+                name           => $name,
                 group          => $server_ref->{SBLSRVR_GROUP_NAME},
                 host           => $server_ref->{HOST_NAME},
                 install_dir    => $server_ref->{INSTALL_DIR},
@@ -119,58 +131,43 @@ sub get_servers {
                 state          => $server_ref->{SBLSRVR_STATE},
                 start_datetime => $server_ref->{START_TIME},
                 end_datetime   => $server_ref->{END_TIME},
-                status         => $server_ref->{SBLSRVR_STATUS}
+                status         => $server_ref->{SBLSRVR_STATUS},
+                id             => $server_ref->{SV_SRVRID}
             );
 
             # the server can be stopped, so no PID associated with it
             if ( defined( $server_ref->{SBLMGR_PID} ) ) {
-
                 $attribs{pid} = $server_ref->{SBLMGR_PID};
-
             }
 
             return Siebel::Srvrmgr::ListParser::Output::ListServers::Server
               ->new( \%attribs );
-
         }
         else {
-
             return;
-
         }
 
       }    # end of sub block
 }
 
 sub _consume_data {
-
-    my $self       = shift;
-    my $fields_ref = shift;
-    my $parsed_ref = shift;
-
+    my ( $self, $fields_ref, $parsed_ref ) = @_;
     my $list_len    = scalar( @{$fields_ref} );
     my $server_name = $fields_ref->[0];
-
     my $columns_ref = $self->get_expected_fields;
 
     if ( @{$fields_ref} ) {
 
         for ( my $i = 1 ; $i < $list_len ; $i++ ) {
-
             $parsed_ref->{$server_name}->{ $columns_ref->[$i] } =
               $fields_ref->[$i];
-
         }
 
         return 1;
-
     }
     else {
-
         return 0;
-
     }
-
 }
 
 =pod

@@ -4,7 +4,6 @@ use warnings;
 use strict;
 use Siebel::Srvrmgr;
 use Siebel::Srvrmgr::Regexes qw(SRVRMGR_PROMPT);
-use Scalar::Util qw(weaken);
 
 use parent 'FSA::Rules';
 # VERSION
@@ -450,7 +449,8 @@ sub new {
                 }
 
                 $state->notes( found_prompt => 1 );
-                my $cmd = ( $state->machine->{curr_line} =~ SRVRMGR_PROMPT )[1];
+                my $cmd = ( $state->machine->{curr_line} =~ SRVRMGR_PROMPT )[2];
+                $cmd =~ s/^\s//;
 
                 if ( ( defined($cmd) ) and ( $cmd ne '' ) ) {
 

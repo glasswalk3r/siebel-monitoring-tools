@@ -718,13 +718,3 @@ siebel1|SRProc  |5242888  |3408  |Running         |Interactive|2014-01-06 18:22:
 siebel1|SRProc  |5242885  |3408  |Running         |Interactive|2014-01-06 18:22:38|2000-00-00 00:00:00|         |SystemAux|                 |0           |Forwarding Task|Worker     |            |
 
 2 rows returned.
-
-srvrmgr> list servers
-
-SBLSRVR_NAME|SBLSRVR_GROUP_NAME|HOST_NAME|INSTALL_DIR                                    |SBLMGR_PID|SV_DISP_STATE|SBLSRVR_STATE|START_TIME         |END_TIME|SBLSRVR_STATUS                  |
-------------  ------------------  ---------  -----------------------------------------------  ----------  -------------  -------------  -------------------  --------  --------------------------------  
-siebel1     |                  |siebel1  |/opt/oracle/app/product/8.0.0/siebel_1/siebsrvr|3323      |Running      |Running      |2014-01-06 18:21:55|        |8.0.0.2 [20412] LANG_INDEPENDENT|
-
-1 row returned.
-
-srvrmgr> 

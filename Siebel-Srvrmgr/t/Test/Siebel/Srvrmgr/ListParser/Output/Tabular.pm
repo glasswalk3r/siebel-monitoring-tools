@@ -3,6 +3,7 @@ package Test::Siebel::Srvrmgr::ListParser::Output::Tabular;
 use parent 'Test::Siebel::Srvrmgr::ListParser::Output';
 use Test::Most;
 use Test::Moose;
+use Carp;
 use Siebel::Srvrmgr::Regexes qw(SRVRMGR_PROMPT);
 
 sub get_structure_type {
@@ -31,9 +32,17 @@ sub get_my_data {
     my $test     = shift;
     my $data_ref = $test->SUPER::get_my_data();
     my $cmd_line = shift( @{$data_ref} );
-    $cmd_line =~ s/@{[SRVRMGR_PROMPT]}/$2/;  # removing the prompt from the data
-    __PACKAGE__->mk_classdata( cmd_line => $cmd_line );
-    shift( @{$data_ref} );                   # empty line before output
+
+    my $cmd;
+    if ( $cmd_line =~ SRVRMGR_PROMPT ) {
+        $cmd = ( $cmd_line =~ SRVRMGR_PROMPT )[-1];
+        $cmd =~ s/^\s//;
+    }
+    else {
+        confess "cannot match the command from $cmd_line";
+    }
+    __PACKAGE__->mk_classdata( cmd_line => $cmd );
+    shift( @{$data_ref} );    # empty line before output
     return $data_ref;
 }
 

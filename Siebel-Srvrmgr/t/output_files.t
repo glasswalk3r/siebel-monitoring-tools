@@ -18,7 +18,7 @@ foreach my $item ( @{$files_ref} ) {
 plan tests => $tests;
 
 foreach my $item ( @{$files_ref} ) {
-    note( 'Testing file ' . $item->{filename} );
+    note( 'Testing file ' . $item->{filename} . ' at ' . $item->{location});
     my $missing = $current_gen->difference( $item->{outputs} );
     if ( $missing->size > 0 ) {
         diag(
@@ -98,7 +98,6 @@ sub fixtures {
         'Siebel::Srvrmgr::ListParser::Output::Tabular::ListCompDef',
         'Siebel::Srvrmgr::ListParser::Output::Tabular::ListTasks',
         'Siebel::Srvrmgr::ListParser::Output::Tabular::ListTasks',
-        'Siebel::Srvrmgr::ListParser::Output::Tabular::ListServers'
     );
     my $first_gen  = Set::Tiny->new(@first_gen);
     my @second_gen = (
@@ -110,7 +109,6 @@ sub fixtures {
         'Siebel::Srvrmgr::ListParser::Output::Tabular::ListCompDef',
         'Siebel::Srvrmgr::ListParser::Output::Tabular::ListTasks',
         'Siebel::Srvrmgr::ListParser::Output::Tabular::ListTasks',
-        'Siebel::Srvrmgr::ListParser::Output::Tabular::ListServers',
         'Siebel::Srvrmgr::ListParser::Output::Tabular::ListSessions',
         'Siebel::Srvrmgr::ListParser::Output::Tabular::ListSessions',
         'Siebel::Srvrmgr::ListParser::Output::Tabular::ListSessions',

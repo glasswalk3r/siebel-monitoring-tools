@@ -17,7 +17,9 @@ sub count_cmds {
 
     foreach my $line ( @{$data_ref} ) {
         if ( $line =~ SRVRMGR_PROMPT ) {
-            $counter++ if ( ( defined($2) ) and ( $2 =~ /\w+/ ) );
+            my $cmd = ( $line =~ SRVRMGR_PROMPT )[-1];
+            $counter++
+              if ( ( defined($cmd) ) and ( $cmd =~ /^\s[[:alpha:]]/ ) );
         }
     }
 

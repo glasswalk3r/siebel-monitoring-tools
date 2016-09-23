@@ -6,6 +6,8 @@ require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT_OK =
   qw(SRVRMGR_PROMPT LOAD_PREF_RESP LOAD_PREF_CMD CONN_GREET SIEBEL_ERROR ROWS_RETURNED SIEBEL_SERVER);
+our %EXPORT_TAGS = ( all => [@EXPORT_OK] );
+
 # VERSION
 
 =pod
@@ -19,39 +21,37 @@ Siebel::Srvrmgr::Regexes - common regular expressions to match things in srvrmgr
     use Siebel::Srvrmgr::Regexes qw(SRVRMGR_PROMPT);
 
     if($line =~ /SRVRMGR_PROMPT/) {
-
         #do something
-
     }
 
 =head1 DESCRIPTION
 
 This modules exports several pre-compiled regular expressions by demand.
 
+To get all regular expressions, you can use the tag C<:all>;
+
 =head1 EXPORTS
 
 =head2 SRVRMGR_PROMPT
 
-Regular expression to match the C<srvrmgr> prompt, with or without any command. It will match the server name, if included.
+Regular expression to match the C<srvrmgr> prompt, with or without the Siebel server name and/or command.
 
 =cut
 
+my $server_regex = '[[:alpha:]]([\w\_]{1,11})';
+ # :WARNING:09/22/2016 10:11:10 PM:: be very careful to change SRVRMGR_PROMPT, Siebel::Srvrmgr::ListParser::FSA depends a lot on it!
 sub SRVRMGR_PROMPT {
-
-    return qr/^srvrmgr(\:[\w\_\-]+)?>\s(.*)?$/;
-
+    return qr/^srvrmgr(\:$server_regex)?>(\s.*)?$/;
 }
 
 =head2 SIEBEL_SERVER
 
-Regular expression to match a valid Siebel Server name.
+Regular expression to match a valid Siebel Server name. See L<https://docs.oracle.com/cd/E14004_01/books/SiebInstUNIX/SiebInstCOM_Requirements21.html#wp1333940>.
 
 =cut
 
 sub SIEBEL_SERVER {
-
-    return qr/^([\w\_\-]+)$/;
-
+    return qr/^$server_regex$/;
 }
 
 =pod
@@ -63,7 +63,7 @@ Regular expression to match the C<load preferences> response once the command is
 =cut
 
 sub LOAD_PREF_RESP {
-    return qr/^(srvrmgr(\:[\w\_\-]+)?>)?\s?File\:\s.*\.pref$/;
+    return qr/^(srvrmgr(\:$server_regex)?>)?\s?File\:\s.*\.pref$/;
 }
 
 =pod
@@ -74,7 +74,9 @@ Regular expression to match the C<load preferences> command when submitted.
 
 =cut
 
-sub LOAD_PREF_CMD { return qr/^(srvrmgr(\:[\w\_\-]+)?>)?\s?load preferences$/; }
+sub LOAD_PREF_CMD {
+    return qr/^(srvrmgr(\:$server_regex)?>)?\s?load preferences$/;
+}
 
 =pod
 
@@ -106,9 +108,7 @@ This line indicated how many rows were returned by a command.
 =cut
 
 sub ROWS_RETURNED {
-
     return qr/^\d+\srows?\sreturned\./;
-
 }
 
 =pod
@@ -125,9 +125,7 @@ The regular expression matches the default error code.
 =cut
 
 sub SIEBEL_ERROR {
-
     return qr/^SBL\-\w{3}\-\d+/;
-
 }
 
 =head1 AUTHOR

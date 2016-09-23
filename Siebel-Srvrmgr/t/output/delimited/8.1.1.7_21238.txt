@@ -1685,16 +1685,6 @@ foobar_sv023|SRProc  |6291461  |1986  |Ejecutando      |Interactive|2014-06-27 1
 
 6 rows returned.
 
-srvrmgr> list servers
-
-SBLSRVR_NAME|SBLSRVR_GROUP_NAME|HOST_NAME   |INSTALL_DIR               |SBLMGR_PID|SV_DISP_STATE|SBLSRVR_STATE|START_TIME         |END_TIME|SBLSRVR_STATUS                  |
-------------  ------------------  ------------  --------------------------  ----------  -------------  -------------  -------------------  --------  --------------------------------  
-foobar_sv022|                  |foobar_sv022|/foo_22/siebel/81/siebsrvr|20386     |Ejecutando   |Running      |2014-06-27 14:35:44|        |8.1.1.7 [21238] LANG_INDEPENDENT|
-foobar_svp5 |                  |foobar_svp5 |D:\foo_22\siebel\81\siebsrvr|4284      |Ejecutando   |Running      |2014-06-27 14:36:20|        |8.1.1.7 [21238] LANG_INDEPENDENT|
-foobar_sv023|                  |foobar_sv023|/foo_22/siebel/81/siebsrvr|1838      |Ejecutando   |Running      |2014-06-27 14:35:51|        |8.1.1.7 [21238] LANG_INDEPENDENT|
-
-3 rows returned.
-
 srvrmgr> list sessions
 
 SV_NAME    |CC_ALIAS |CG_ALIAS |TK_TASKID|TK_PID|TK_DISP_RUNSTATE|TK_IDLE_STATE|TK_PING_TIME|TK_HUNG_STATE|DB_SESSION_ID|OM_LOGIN                |OM_BUSSVC|OM_VIEW|OM_APPLET|OM_BUSCOMP|
