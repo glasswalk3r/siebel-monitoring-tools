@@ -6,24 +6,33 @@ use Siebel::Srvrmgr::Regexes qw(:all);
 can_ok(
     'Siebel::Srvrmgr::Regexes',
     (
-        qw(SRVRMGR_PROMPT LOAD_PREF_RESP LOAD_PREF_CMD CONN_GREET SIEBEL_ERROR ROWS_RETURNED SIEBEL_SERVER)
+        qw(SRVRMGR_PROMPT LOAD_PREF_RESP LOAD_PREF_CMD CONN_GREET SIEBEL_ERROR ROWS_RETURNED SIEBEL_SERVER prompt_slices)
     )
 );
-my $prompt = 'srvrmgr:SUsrvr> ';
 
-foreach my $prompt (
-    'srvrmgr>',
-    'srvrmgr:SUsrvr> ',
-    'srvrmgr> list comp',
-    'srvrmgr:foo_bar> list comp'
-  )
-{
+# fixtures
+my @cases = (
+    [ 'srvrmgr>',                   undef,     undef ],
+    [ 'srvrmgr:SUsrvr> ',           'SUsrvr',  undef ],
+    [ 'srvrmgr> list comp',         undef,     'list comp' ],
+    [ 'srvrmgr:foo_bar> list comp', 'foo_bar', 'list comp' ]
+);
+
+foreach my $case (@cases) {
+    my $prompt = $case->[0];
     like( $prompt, SRVRMGR_PROMPT, "SRVRMGR_PROMPT matches '$prompt'" );
+    my ( $server, $command ) = prompt_slices($prompt);
+    is( $server, $case->[1],
+        'prompt_slices returns the expected server name value' );
+    is( $command, $case->[2],
+        'prompt_slices returns the expected command value' );
 }
 
-'srvrmgr:foo_bar> list comp' =~ SRVRMGR_PROMPT;
-is( $1, ':foo_bar',    '$1 matches the server name' );
-is( $3, ' list comp', '$3 matches the command' );
+my @pieces = ( 'srvrmgr:foo_bar> list comp' =~ SRVRMGR_PROMPT );
+is( $pieces[0], ':foo_bar', 'matches the server name' )
+  or diag( explain(@pieces) );
+is( $pieces[1], ' list comp', 'matches the command' )
+  or diag( explain(@pieces) );
 my $load_pref_resp = 'File: C:\Siebel\8.0\web client\BIN\.Siebel_svrmgr.pref';
 like( $load_pref_resp, LOAD_PREF_RESP,
     "LOAD_PREF_RESP matches '$load_pref_resp'" );

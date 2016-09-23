@@ -4,7 +4,7 @@ use parent 'Test::Siebel::Srvrmgr::ListParser::Output';
 use Test::Most;
 use Test::Moose;
 use Carp;
-use Siebel::Srvrmgr::Regexes qw(SRVRMGR_PROMPT);
+use Siebel::Srvrmgr::Regexes qw(SRVRMGR_PROMPT prompt_slices);
 
 sub get_structure_type {
     my $test = shift;
@@ -33,14 +33,15 @@ sub get_my_data {
     my $data_ref = $test->SUPER::get_my_data();
     my $cmd_line = shift( @{$data_ref} );
 
-    my $cmd;
+    my ( $server, $cmd );
+
     if ( $cmd_line =~ SRVRMGR_PROMPT ) {
-        $cmd = ( $cmd_line =~ SRVRMGR_PROMPT )[-1];
-        $cmd =~ s/^\s//;
+        ( $server, $cmd ) = prompt_slices($cmd_line);
     }
     else {
         confess "cannot match the command from $cmd_line";
     }
+
     __PACKAGE__->mk_classdata( cmd_line => $cmd );
     shift( @{$data_ref} );    # empty line before output
     return $data_ref;

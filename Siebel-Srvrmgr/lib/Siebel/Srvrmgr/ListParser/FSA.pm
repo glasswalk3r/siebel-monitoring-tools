@@ -3,9 +3,10 @@ package Siebel::Srvrmgr::ListParser::FSA;
 use warnings;
 use strict;
 use Siebel::Srvrmgr;
-use Siebel::Srvrmgr::Regexes qw(SRVRMGR_PROMPT);
+use Siebel::Srvrmgr::Regexes qw(SRVRMGR_PROMPT prompt_slices);
 
 use parent 'FSA::Rules';
+
 # VERSION
 
 =pod
@@ -68,7 +69,8 @@ sub new {
     my $class   = shift;
     my $map_ref = shift;
 
-    my $logger = Siebel::Srvrmgr->gimme_logger('Siebel::Srvrmgr::ListParser::FSA');
+    my $logger =
+      Siebel::Srvrmgr->gimme_logger('Siebel::Srvrmgr::ListParser::FSA');
 
     $logger->logdie('the output type mapping reference received is not valid')
       unless ( ( defined($map_ref) ) and ( ref($map_ref) eq 'HASH' ) );
@@ -449,33 +451,23 @@ sub new {
                 }
 
                 $state->notes( found_prompt => 1 );
-                my $cmd = ( $state->machine->{curr_line} =~ SRVRMGR_PROMPT )[2];
-                $cmd =~ s/^\s//;
+                my ( $server, $cmd ) =
+                  prompt_slices( $state->machine->{curr_line} );
 
                 if ( ( defined($cmd) ) and ( $cmd ne '' ) ) {
-
-                    # removing spaces from command
-                    $cmd =~ s/^\s+//;
-                    $cmd =~ s/\s+$//;
-
                     $logger->debug("last_command set with '$cmd'")
                       if $logger->is_debug();
-
                     $state->notes( last_command   => $cmd );
                     $state->notes( is_cmd_changed => 1 );
-
                 }
                 else {
 
                     if ( $logger->is_debug() ) {
-
                         $logger->debug('got prompt, but no command submitted');
-
                     }
 
                     $state->notes( last_command   => '' );
                     $state->notes( is_cmd_changed => 1 );
-
                 }
 
             },
@@ -625,54 +617,37 @@ sub new {
 
                 },
                 list_comp_def => sub {
-
                     my $state = shift;
 
                     if ( $state->notes('last_command') =~
                         $map_ref->{list_comp_def} )
                     {
-
                         return 1;
-
                     }
                     else {
-
                         return 0;
-
                     }
-
                 },
                 load_preferences => sub {
-
                     my $state = shift;
 
                     if ( $state->notes('last_command') =~
                         $map_ref->{load_preferences} )
                     {
-
                         return 1;
-
                     }
                     else {
-
                         return 0;
-
                     }
-
                 },
                 no_data => sub {
-
                     my $state = shift;
 
                     if ( $state->notes('last_command') eq '' ) {
-
                         return 1;
-
                     }
                     else {
-
                         return 0;
-
                     }
 
                 },
@@ -685,9 +660,7 @@ sub new {
 
     $self->{data}      = undef;
     $self->{curr_line} = undef;
-
     return $self;
-
 }
 
 =head2 set_data
@@ -697,10 +670,8 @@ Set the array reference of the data to be parsed by this object.
 =cut
 
 sub set_data {
-
     my $self = shift;
     $self->{data} = shift;
-
 }
 
 =head2 get_curr_line

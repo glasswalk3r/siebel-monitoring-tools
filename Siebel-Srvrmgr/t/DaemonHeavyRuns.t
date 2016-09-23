@@ -10,6 +10,7 @@ use Test::TempDir::Tiny;
 use lib 't';
 use Test::Siebel::Srvrmgr::Daemon::Action::Check::Component;
 use Test::Siebel::Srvrmgr::Daemon::Action::Check::Server;
+use lib 'xt';
 
 my $server = build_server('siebfoobar');
 my $daemon = Siebel::Srvrmgr::Daemon::Heavy->new(
@@ -116,6 +117,7 @@ sub build_server {
 
 }
 
+# must be kept in tandem with srvrmgr-mock output for "list comp"
 __DATA__
 AsgnSrvr|Online
 AsgnBatch|Online

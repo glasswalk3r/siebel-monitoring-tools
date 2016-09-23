@@ -5,9 +5,8 @@ use strict;
 require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT_OK =
-  qw(SRVRMGR_PROMPT LOAD_PREF_RESP LOAD_PREF_CMD CONN_GREET SIEBEL_ERROR ROWS_RETURNED SIEBEL_SERVER);
+  qw(SRVRMGR_PROMPT LOAD_PREF_RESP LOAD_PREF_CMD CONN_GREET SIEBEL_ERROR ROWS_RETURNED SIEBEL_SERVER prompt_slices);
 our %EXPORT_TAGS = ( all => [@EXPORT_OK] );
-
 # VERSION
 
 =pod
@@ -38,10 +37,66 @@ Regular expression to match the C<srvrmgr> prompt, with or without the Siebel se
 
 =cut
 
-my $server_regex = '[[:alpha:]]([\w\_]{1,11})';
- # :WARNING:09/22/2016 10:11:10 PM:: be very careful to change SRVRMGR_PROMPT, Siebel::Srvrmgr::ListParser::FSA depends a lot on it!
+# this will be reused by more than one sub
+my $server_regex = '[[:alpha:]][\w\_]{1,11}';
+
+# :WARNING:09/22/2016 10:11:10 PM:: be very careful to change SRVRMGR_PROMPT, Siebel::Srvrmgr::ListParser::FSA depends a lot on it!
 sub SRVRMGR_PROMPT {
     return qr/^srvrmgr(\:$server_regex)?>(\s.*)?$/;
+}
+
+=head2 prompt_slices
+
+This sub will use the SRVRMGR_PROMPT regular expression to try and match all the pieces of information that can be included into the C<srvrmgr> prompt:
+
+=over
+
+=item *
+
+the Siebel Server name
+
+=item *
+
+the executed command
+
+=back
+
+It expects as parameter the corresponding string of a C<srvrmgr> prompt. It will then return a list of two values: Siebel Server Name and the executed command.
+Those files can be undefined depending on the string given as parameter, so they should be tested before use.
+
+This helper function was created because it is a common case to search for both string in the prompt, it should help avoiding impacts to other parts of the
+API given changes made to the SRVRMGR_PROMPT regular expression, but you can always fetch the values from it directly.
+
+Additionally, this sub will also remove any character that is not part of the slices (colon and spaces).
+
+When using this function, be sure to do it like:
+    my ($server,$command) = prompt_slices($my_prompt);
+
+=cut
+
+sub prompt_slices {
+    my $prompt = shift;
+    my ( $server, $cmd );
+    $prompt =~ SRVRMGR_PROMPT;
+
+    if ( defined($1) ) {
+        $server = $1;
+        $server =~ tr/://d;
+    }
+
+    if ( defined($2) ) {
+
+        if ( $2 eq ' ' ) {
+            $cmd = undef;
+        }
+        else {
+            $cmd = $2;
+            $cmd =~ s/^\s+//;
+            $cmd =~ s/\s+$//;
+        }
+    }
+
+    return $server, $cmd;
 }
 
 =head2 SIEBEL_SERVER

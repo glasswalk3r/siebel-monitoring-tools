@@ -3,7 +3,7 @@ package Test::Siebel::Srvrmgr::ListParser;
 use Test::Most;
 use Test::Moose 'has_attribute_ok';
 use parent 'Test::Siebel::Srvrmgr';
-use Siebel::Srvrmgr::Regexes qw(SRVRMGR_PROMPT);
+use Siebel::Srvrmgr::Regexes qw(SRVRMGR_PROMPT prompt_slices);
 
 sub get_col_sep {
     my $self = shift;
@@ -17,9 +17,8 @@ sub count_cmds {
 
     foreach my $line ( @{$data_ref} ) {
         if ( $line =~ SRVRMGR_PROMPT ) {
-            my $cmd = ( $line =~ SRVRMGR_PROMPT )[-1];
-            $counter++
-              if ( ( defined($cmd) ) and ( $cmd =~ /^\s[[:alpha:]]/ ) );
+            my ( $server, $cmd ) = prompt_slices($line);
+            $counter++ if ( defined($cmd) );
         }
     }
 
