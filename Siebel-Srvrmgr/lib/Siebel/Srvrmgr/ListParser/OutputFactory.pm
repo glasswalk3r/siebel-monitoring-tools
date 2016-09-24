@@ -14,6 +14,7 @@ use MooseX::AbstractFactory 0.004000;
 use Carp;
 use Siebel::Srvrmgr::Regexes qw(CONN_GREET);
 use Hash::Util qw(lock_hash);
+
 # VERSION
 
 =pod
@@ -89,8 +90,10 @@ L<Siebel::Srvrmgr::ListParser>
 =cut
 
 my %table_mapping = (
-    'list_comp'     => [ 'Tabular::ListComp', qr/^list\scomps?$|^list\scomps?\s[^(defs)(types)]/ ],
-    'set_delimiter' => [ 'Set',               qr/^set\sdelimiter/ ],
+    'list_comp' => [
+        'Tabular::ListComp', qr/^list\scomps?$|^list\scomps?\s[^(defs)(types)]/
+    ],
+    'set_delimiter' => [ 'Set', qr/^set\sdelimiter/ ],
     'list_params'   => [
         'Tabular::ListParams',
 qr/list\s(advanced\s)?param(eter)?s?(\s(\w+\s)?(for\sserver\s\w+)?(\sfor\s((comp(nent)?)|named\ssubsystem|task)\s\w+)?)?/
@@ -122,41 +125,28 @@ sub get_mapping {
 }
 
 sub can_create {
-
-    my $class = shift;
-    my $type  = shift;
-
+    my ( $class, $type ) = @_;
     return ( exists( $table_mapping{$type} ) );
 
 }
 
 sub build {
-
-    my $class         = shift;
-    my $last_cmd_type = shift;
-    my $object_data   = shift;    # hash ref
-
+    my ( $class, $last_cmd_type, $object_data, $field_del ) = @_;
     confess 'object data is required' unless ( defined($object_data) );
 
     if ( $table_mapping{$last_cmd_type}->[0] =~ /^Tabular/ ) {
 
-        my $field_del = shift;
-
         if ( defined($field_del) ) {
-
             $object_data->{col_sep}        = $field_del;
             $object_data->{structure_type} = 'delimited';
         }
         else {
-
             $object_data->{structure_type} = 'fixed';
-
         }
 
     }
 
     $class->create( $last_cmd_type, $object_data );
-
 }
 
 implementation_class_via sub {

@@ -16,30 +16,21 @@ the command executed or the L<Siebel::Srvrmgr::ListParser> object will not be ab
 This can be accomplish using something like this in the C<do> method:
 
     sub do {
-
-		my $self = shift;
-		my $buffer = shift;
-
+        my ($self, $buffer) = @_;
 		$self->get_parser()->parse($buffer);
-
 		my $tree = $self->get_parser()->get_parsed_tree();
 
 		foreach my $obj ( @{$tree} ) {
 
 			if ( $obj->isa('Siebel::Srvrmgr::ListParser::Output::MyOutputSubclassName') ) {
-
 				my $data =  $obj->get_data_parsed();
-
                 # do something
-
 				return 1;
-
 			}
 
-		}    # end of foreach block
+		}
 
 		return 0;
-		
 	}
 
 Where MyOutputSubclassName is a subclass of L<Siebel::Srvrmgr::ListParser::Output>.

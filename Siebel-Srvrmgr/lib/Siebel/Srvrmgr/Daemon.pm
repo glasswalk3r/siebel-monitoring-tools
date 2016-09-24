@@ -756,24 +756,19 @@ Returns an instance of a L<Siebel::Srvrmgr::ListParser> class.
 =cut
 
 sub create_parser {
-
     my $self = shift;
 
     if ( $self->get_field_del() ) {
-
         return Siebel::Srvrmgr::ListParser->new(
             {
                 clear_raw       => $self->clear_raw(),
                 field_delimiter => $self->get_field_del()
             }
         );
-
     }
     else {
-
         return Siebel::Srvrmgr::ListParser->new(
             { clear_raw => $self->clear_raw() } );
-
     }
 
 }

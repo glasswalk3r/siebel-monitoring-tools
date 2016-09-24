@@ -135,14 +135,10 @@ to execute L<Siebel::Srvrmgr::Daemon::Command> instances in parallel.
 =cut
 
 override 'run' => sub {
-
     my $self = shift;
-
     super();
-
     my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
     $logger->info('Starting run method');
-
     my $parser = $self->create_parser();
 
     if ( $logger->is_debug() ) {
@@ -155,17 +151,13 @@ override 'run' => sub {
     }
 
     my $ret_code = system( @{ $self->_define_params() } );
-
     $self->_check_system( ${^CHILD_ERROR_NATIVE}, $ret_code, $? );
-
     my $in;
     eval { open_bom( $in, $self->get_output_file(), ':utf8' ) };
 
     if ($@) {
-
         $logger->logdie(
             'Cannot read ' . $self->get_output_file() . ': ' . $@ );
-
     }
 
 # :TODO:22-09-2014 01:32:45:: this might be dangerous if the output is too large
@@ -178,13 +170,11 @@ override 'run' => sub {
 # so we will "turn off" warning checking
         $self->_check_error( \@input_buffer, 0 );
         $self->normalize_eol( \@input_buffer );
-        chomp(@input_buffer);
 
 # since we should have all output, we parse everything first to call each action after
         $parser->parse( \@input_buffer );
 
         if ( $parser->has_tree() ) {
-
             my $total = $self->cmds_vs_tree( $parser->count_parsed() );
 
             if ( $logger->is_debug() ) {
@@ -212,7 +202,6 @@ override 'run' => sub {
                     {
                         parser => $parser,
                         params => $cmd->get_params()
-
                     }
                 );
 

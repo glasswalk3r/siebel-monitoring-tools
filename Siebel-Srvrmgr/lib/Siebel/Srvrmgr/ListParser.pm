@@ -22,6 +22,7 @@ use namespace::autoclean 0.13;
 use Carp;
 use Siebel::Srvrmgr::Types;
 use String::BOM 0.3 qw(string_has_bom strip_bom_from_string);
+
 # VERSION
 
 =pod
@@ -269,7 +270,7 @@ Automatically defines the state machine object based on L<Siebel::Srvrmgr::ListP
 =cut
 
 sub BUILD {
-    my $self = shift;
+    my $self     = shift;
     my $copy_ref = Siebel::Srvrmgr::ListParser::OutputFactory->get_mapping();
 
     foreach my $cmd_alias ( keys( %{$copy_ref} ) ) {
@@ -291,38 +292,28 @@ Expects an instance of a L<FSA::State> class as parameter (obligatory parameter)
 =cut
 
 sub set_buffer {
-
-    my $self = shift;
-    my $type = shift;
-    my $line = shift;
-
+    my ( $self, $type, $line ) = @_;
     my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
 
     if ( defined($line) ) {
-
         my $buffer_ref = $self->get_buffer();
 
         # already has something, get the last one
         if ( scalar( @{$buffer_ref} ) >= 1 ) {
-
             $logger->debug('I already have data buffered');
-
             my $last_buffer = $buffer_ref->[ $#{$buffer_ref} ];
-
             $logger->debug(
                 'Command is the same, appending data to last buffer');
 
             if ( $last_buffer->get_type() eq $type ) {
 
                 if ( $line ne '' ) {
-
                     $last_buffer->set_content($line);
                 }
                 else {
                     $logger->debug(
 'Ignoring first blank line right after command submission'
                     );
-
                 }
 
             }
@@ -343,56 +334,42 @@ sub set_buffer {
 
         }
         else {
-
             $logger->fatal(
 'buffer is still uninitialized even though _create_buffer should already taken care of it'
             );
-
         }
 
     }
     else {
-
         $logger->warn('Undefined content from state received');
-
     }
 
 }
 
 # adds a new buffer to the buffer attribute
 sub _create_buffer {
-
-    my $self = shift;
-    my $type = shift;
-
+    my ( $self, $type ) = @_;
     my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
 
     if ( Siebel::Srvrmgr::ListParser::OutputFactory->can_create($type) ) {
-
         my $buffer = Siebel::Srvrmgr::ListParser::Buffer->new(
             {
                 type     => $type,
                 cmd_line => $self->get_last_command()
             }
         );
-
         push( @{ $self->get_buffer() }, $buffer );
 
         if ( $logger->is_debug ) {
-
             $logger->debug("Created buffer for $type output");
-
         }
 
     }
     else {
-
         $logger->fatal(
 "Siebel::Srvrmgr::ListParser::OutputFactory cannot create instances of $type type"
         );
-
     }
-
 }
 
 =pod
@@ -404,11 +381,8 @@ Removes the array reference from the buffer attribute and associates a new one w
 =cut
 
 sub clear_buffer {
-
     my $self = shift;
-
     $self->_set_buffer( [] );
-
 }
 
 =pod
@@ -420,11 +394,8 @@ Returns an integer with the total number of objects available in the parsed_tree
 =cut
 
 sub count_parsed {
-
     my $self = shift;
-
     return scalar( @{ $self->get_parsed_tree() } );
-
 }
 
 =pod
@@ -436,13 +407,9 @@ Removes the reference on parsed_tree attribute. Also, sets has_tree attribute to
 =cut
 
 sub clear_parsed_tree {
-
     my $self = shift;
-
     $self->_set_has_tree(0);
-
     $self->_set_parsed_tree( [] );
-
 }
 
 =pod
@@ -456,25 +423,18 @@ This method should not be called directly unless you know what you're doing. See
 =cut
 
 sub set_parsed_tree {
-
-    my $self   = shift;
-    my $output = shift;
+    my ( $self, $output ) = @_;
 
     if ( $self->has_tree() ) {
-
         my $old_parsed_tree = $self->get_parsed_tree();
         push( @{$old_parsed_tree}, $output );
         $self->_set_parsed_tree($old_parsed_tree);
-
     }
     else {
-
         $self->_set_parsed_tree( [$output] );
-
     }
 
     $self->_set_has_tree(1);
-
 }
 
 =pod
@@ -494,12 +454,9 @@ attribute instead of being added to the C<parsed_tree> attribute.
 =cut
 
 sub append_output {
-
-    my $self   = shift;
-    my $buffer = shift;
+    my ( $self, $buffer ) = @_;
 
     if ( defined($buffer) ) {
-
         my $output = Siebel::Srvrmgr::ListParser::OutputFactory->build(
             $buffer->get_type(),
             {
@@ -511,14 +468,10 @@ sub append_output {
         );
 
         if ( $output->isa('Siebel::Srvrmgr::ListParser::Output::Enterprise') ) {
-
             $self->_set_enterprise($output);
-
         }
         else {
-
             $self->set_parsed_tree($output);
-
         }
 
     }
@@ -528,12 +481,11 @@ sub append_output {
         my $buffer_ref = $self->get_buffer();
 
         foreach my $buffer ( @{$buffer_ref} ) {
-
             my $output = Siebel::Srvrmgr::ListParser::OutputFactory->build(
                 $buffer->get_type(),
                 {
                     data_type => $buffer->get_type(),
-                    raw_data  => $buffer->get_content(),
+                    raw_data  => $buffer->get_content,
                     cmd_line  => $buffer->get_cmd_line()
                 },
                 $self->get_field_del()
@@ -543,14 +495,10 @@ sub append_output {
                 $output->isa('Siebel::Srvrmgr::ListParser::Output::Enterprise')
               )
             {
-
                 $self->_set_enterprise($output);
-
             }
             else {
-
                 $self->set_parsed_tree($output);
-
             }
 
         }
@@ -578,27 +526,20 @@ This method will raise an exception if a given output cannot be identified by th
 =cut
 
 sub parse {
-
-    my $self     = shift;
-    my $data_ref = shift;
-
+    my ( $self, $data_ref ) = @_;
     my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
-
     $logger->logdie('Received an invalid buffer as parameter')
       unless ( ( defined($data_ref) )
         and ( ref($data_ref) eq 'ARRAY' )
         and ( scalar( @{$data_ref} ) > 0 ) );
 
     if ( string_has_bom( $data_ref->[0] ) ) {
-
         $data_ref->[0] = strip_bom_from_string( $data_ref->[0] );
-
     }
 
     $self->get_fsa->set_data($data_ref);
     $self->get_fsa->start() unless ( $self->get_fsa()->curr_state() );
     $data_ref = undef;
-
     my $found_prompt = 0;
     my $prev_state_name;
 
@@ -607,7 +548,6 @@ sub parse {
         my $state = $self->get_fsa->try_switch();
 
         if ( defined($state) ) {
-
             $prev_state_name = $state->name;
             my $curr_msg = $self->get_fsa()->get_curr_line();
             $found_prompt = $state->notes('found_prompt');

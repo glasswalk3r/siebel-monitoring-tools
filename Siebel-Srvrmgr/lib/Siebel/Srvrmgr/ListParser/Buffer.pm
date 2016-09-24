@@ -10,6 +10,7 @@ Siebel::Srvrmgr::ListParser::Buffer - class to store output of commands
 
 use Moose 2.0401;
 use namespace::autoclean 0.13;
+
 # VERSION
 
 =pod
@@ -62,7 +63,7 @@ An array reference with the output being stored. Each index is one line read sto
 has 'content' => (
     is      => 'rw',
     isa     => 'ArrayRef',
-    reader  => 'get_content',
+    reader  => '_get_content',
     writer  => '_set_content',
     default => sub { return [] }
 );
@@ -81,21 +82,43 @@ Returns the string stored in the attribute C<type>.
 
 =head2 get_content
 
+Returns the buffer content B<without> new lines. This is the expected behavior since parsers will not know what to
+do with new lines characters.
+
+=cut
+
+sub get_content {
+    my $self    = shift;
+    my @content = @{ $self->_get_content };
+    chomp( @content );
+    return \@content;
+}
+
+=head2 get_raw_content
+
+Returns the buffer content B<with> new lines characters.
+
+=cut
+
+sub get_raw_content {
+    my $self = shift;
+    return $self->_get_content;
+}
+
 =head2 set_content
+
+Setter for the C<content> attribute. Expects a string as parameter.
+
+If C<content> already has data, it will be appended as expected.
 
 =cut
 
 sub set_content {
-
-    my $self  = shift;
-    my $value = shift;
+    my ( $self, $value ) = @_;
 
     if ( defined($value) ) {
-
-        my $buffer_ref = $self->get_content();
-
+        my $buffer_ref = $self->_get_content();
         push( @{$buffer_ref}, $value );
-
     }
 
 }
