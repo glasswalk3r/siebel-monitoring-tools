@@ -247,7 +247,7 @@ Siebel Enterprise Applications Siebel Server Manager, Version 8.0.0.7 [20426] LA
 Ahn... well, not exactly.
 This is Server Manager Simulator, Version $version [1234] RAMO_NES
 Copyright (c) 2012 Siebel Monitoring Tools. Released under GNU GPL version 3.
-See http://code.google.com/p/siebel-gnu-tools/ for more details.
+See https://github.com/glasswalk3r/siebel-monitoring-tools for more details.
 
 Type "help" for list of commands, "help <topic>" for detailed help
 
