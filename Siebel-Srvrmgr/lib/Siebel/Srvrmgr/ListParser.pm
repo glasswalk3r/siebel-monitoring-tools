@@ -637,12 +637,10 @@ data.
 =cut
 
 sub DEMOLISH {
-
     my $self = shift;
     $self->{fsa} = undef;
     $self->clear_buffer();
     $self->clear_parsed_tree();
-
 }
 
 =pod

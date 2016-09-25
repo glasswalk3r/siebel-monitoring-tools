@@ -27,6 +27,7 @@ use Moose 2.0401;
 
 extends 'Siebel::Srvrmgr::Daemon::Action';
 with 'Siebel::Srvrmgr::Daemon::Action::Serializable';
+
 # VERSION
 
 =pod
@@ -51,21 +52,14 @@ filesystem with C<nstore> and the function returns 1 in this case. If none is fo
 =cut
 
 override 'do_parsed' => sub {
-
-    my $self = shift;
-    my $obj  = shift;
+    my ( $self, $obj ) = @_;
 
     if ( $obj->isa( $self->get_exp_output() ) ) {
-
         $self->store( $obj->get_data_parsed );
-
         return 1;
-
     }
     else {
-
         return 0;
-
     }
 
 };

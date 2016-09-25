@@ -34,6 +34,7 @@ use Siebel::Srvrmgr::Daemon::ActionStash;
 use Siebel::Srvrmgr;
 
 extends 'Siebel::Srvrmgr::Daemon::Action';
+
 # VERSION
 
 =pod
@@ -66,24 +67,18 @@ applied.
 =cut
 
 sub BUILD {
-
     my $self = shift;
-
     my $role = 'Siebel::Srvrmgr::Daemon::Action::Check::Server';
 
     foreach my $object ( @{ $self->get_params() } ) {
-
         confess "all params items must be classes with $role role applied"
           unless ( does_role( $object, $role ) );
-
     }
 
 }
 
 override '_build_exp_output' => sub {
-
     return 'Siebel::Srvrmgr::ListParser::Output::Tabular::ListTasks';
-
 };
 
 =head2 do_parsed
@@ -123,29 +118,21 @@ C<list tasks>, dealing with all server tasks that are part of the Siebel Enterpr
 =cut
 
 override 'do_parsed' => sub {
-
-    my $self = shift;
-    my $obj  = shift;
-
+    my ( $self, $obj ) = @_;
     my $logger = Siebel::Srvrmgr->gimme_logger('Siebel::Srvrmgr::Daemon');
     $logger->info('Starting run method');
-
     my $servers = $self->get_params();   # array reference
     my %servers;                         # to locate the expected servers easier
 
     foreach my $server ( @{$servers} ) {
-
         $servers{ $server->get_name() } = $server;
-
     }
 
     my %checked_tasks;
 
     if ( $obj->isa( $self->get_exp_output ) ) {
-
         my @output_servers =
           $obj->get_servers();    # servers retrieved from output of srvrmgr
-
         $logger->die( 'Could not fetch servers from the '
               . $self->get_exp_output
               . 'object returned by the parser' )
@@ -154,23 +141,18 @@ override 'do_parsed' => sub {
         foreach my $output_server (@output_servers) {
 
             if ( exists( $servers{$output_server} ) ) {
-
                 my $exp_srv =
                   $servers{$output_server};    # the expected server reference
-
                 my %exp_status;
 
                 foreach my $exp_comp ( @{ $exp_srv->get_components() } ) {
-
                     $exp_status{ $exp_comp->get_alias } =
                       [ ( split( /\|/, $exp_comp->get_taskOKStatus ) ) ];
-
                 }
 
                 my $iterator = $obj->get_tasks($output_server);
 
                 while ( my $task = $iterator->() ) {
-
                     my $comp_alias = $task->get_comp_alias;
 
                     if ( exists( $exp_status{$comp_alias} ) ) {

@@ -29,6 +29,7 @@ use Siebel::Srvrmgr::Daemon::ActionStash;
 use Siebel::Srvrmgr;
 
 extends 'Siebel::Srvrmgr::Daemon::Action';
+
 # VERSION
 
 =pod
@@ -115,36 +116,27 @@ are part of the Siebel Enterprise.
 =cut
 
 override 'do_parsed' => sub {
-
-    my $self = shift;
-    my $obj  = shift;
-
+    my ( $self, $obj ) = @_;
     my $logger = Siebel::Srvrmgr->gimme_logger('Siebel::Srvrmgr::Daemon');
     $logger->info('Starting run method');
-
     my $servers = $self->get_params();   # array reference
     my %servers;                         # to locate the expected servers easier
 
     foreach my $server ( @{$servers} ) {
-
         $servers{ $server->get_name() } = $server;
-
     }
 
     my %checked_comps;
 
     if ( $obj->isa( $self->get_exp_output ) ) {
-
         my $out_servers_ref =
           $obj->get_servers();    # servers retrieve from output of srvrmgr
-
         $logger->die( 'Could not fetch servers from the '
               . $self->get_exp_output
               . 'object returned by the parser' )
           unless ( scalar( @{$out_servers_ref} ) > 0 );
 
         foreach my $out_name ( @{$out_servers_ref} ) {
-
             my $server = $obj->get_server($out_name);
 
             if (
@@ -156,19 +148,15 @@ override 'do_parsed' => sub {
                 my $exp_name = $server->get_name();   # the expected server name
 
                 if ( exists( $servers{$exp_name} ) ) {
-
                     my $exp_srv =
                       $servers{$exp_name};    # the expected server reference
 
                     foreach my $exp_comp ( @{ $exp_srv->get_components() } ) {
-
                         my $comp = $server->get_comp( $exp_comp->get_alias() );
 
                         if ( defined($comp) ) {
-
                             my @valid_status =
                               split( /\|/, $exp_comp->get_OKStatus() );
-
                             my $is_ok = 0;
 
                             foreach my $valid_status (@valid_status) {
@@ -176,19 +164,15 @@ override 'do_parsed' => sub {
                                 if ( $valid_status eq
                                     $comp->get_disp_run_state() )
                                 {
-
                                     $is_ok = 1;
                                     last;
-
                                 }
 
                             }
 
                             if ($is_ok) {
-
                                 $checked_comps{ $exp_srv->get_name() }
                                   ->{ $exp_comp->get_alias() } = 1;
-
                             }
                             else {
 
