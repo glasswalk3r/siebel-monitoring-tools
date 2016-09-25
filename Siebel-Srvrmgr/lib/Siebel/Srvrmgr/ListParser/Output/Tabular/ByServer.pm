@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Moose::Role 2.1604;
 use Siebel::Srvrmgr::Regexes qw(SIEBEL_SERVER);
+
 # VERSION
 
 =head1 NAME
@@ -45,11 +46,20 @@ Returns a list of the Siebel Server names from the parsed output, sorted alphabe
 =cut
 
 sub get_servers {
-
-    my $self = shift;
+    my $self    = shift;
     my @servers = sort( keys( %{ $self->get_data_parsed() } ) );
     return @servers;
+}
 
+=head2 count_servers
+
+Returns the number of servers associated with the object.
+
+=cut
+
+sub count_servers {
+    my $self = shift;
+    return scalar( keys( %{ $self->get_data_parsed() } ) );
 }
 
 =head2 val_items_server
@@ -63,20 +73,13 @@ If correct, the data under the server will be returned as a reference. Otherwise
 =cut
 
 sub val_items_server {
-
-    my $self   = shift;
-    my $server = shift;
-
+    my ( $self, $server ) = @_;
     confess 'Siebel Server name parameter is required and must be valid'
       unless ( ( defined($server) ) and ( $server =~ SIEBEL_SERVER ) );
-
     my $data_ref = $self->get_data_parsed();
-
     confess "servername '$server' is not available in the output parsed"
       unless ( exists( $data_ref->{$server} ) );
-
     return $data_ref->{$server};
-
 }
 
 =head2 CAVEATS

@@ -1,6 +1,8 @@
 package Test::Siebel::Srvrmgr::ListParser::Output::Tabular::ListServers;
 
-use Test::Most;
+use Test::Most 0.25;
+use Test::Moose 2.1605;
+use Scalar::Util qw(blessed looks_like_number);
 use parent 'Test::Siebel::Srvrmgr::ListParser::Output::Tabular';
 
 sub get_data_type {
@@ -11,8 +13,29 @@ sub get_cmd_line {
     return 'list servers';
 }
 
-sub class_methods : Tests(+1) {
+sub class_methods : Tests(+6) {
     my $test = shift;
+    local $ENV{SIEBEL_TZ} = 'America/Sao_Paulo';
+    my $list_servers = $test->get_output;
+    does_ok(
+        $list_servers,
+        'Siebel::Srvrmgr::ListParser::Output::Tabular::ByServer',
+        'uses the ByServer role'
+    );
+    cmp_deeply( $list_servers->get_servers(),
+        ('sieb_serv057'), 'get_servers returns the expected servers' );
+    my $iterator = $list_servers->get_servers_iter;
+    isa_ok( $iterator, 'CODE' );
+    my $server = $iterator->();
+    isa_ok(
+        $server,
+        'Siebel::Srvrmgr::ListParser::Output::ListServers::Server',
+        'iterator returned data'
+    );
+    ok(
+        looks_like_number( $list_servers->count_servers ),
+        'count_servers method returns a number'
+    );
 
     # got from Data::Dumper
     my $parsed_data = {
@@ -29,7 +52,6 @@ sub class_methods : Tests(+1) {
             'SV_SRVRID'          => '1'
         }
     };
-
     cmp_deeply(
         $parsed_data,
         $test->get_output()->get_data_parsed(),

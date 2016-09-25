@@ -60,7 +60,7 @@ sub _constructor : Tests(2) {
         );
     }
 
-    my $iterator = $list->get_servers;
+    my $iterator = $list->get_servers_iter;
     $test->{server} = $iterator->();
     isa_ok( $test->{server}, $test->class(),
         'the object is a instance of the correct class' );

@@ -3,7 +3,6 @@ package Siebel::Srvrmgr::ListParser::Output::Tabular::ListServers;
 use Moose 2.0401;
 use namespace::autoclean 0.13;
 use Siebel::Srvrmgr::ListParser::Output::ListServers::Server;
-
 # VERSION
 
 =pod
@@ -15,6 +14,7 @@ Siebel::Srvrmgr::ListParser::Output::Tabular::ListServers - subclass to parse li
 =cut
 
 extends 'Siebel::Srvrmgr::ListParser::Output::Tabular';
+with 'Siebel::Srvrmgr::ListParser::Output::Tabular::ByServer';
 
 =pod
 
@@ -100,7 +100,7 @@ sub _build_expected {
     );
 }
 
-=head2 get_servers
+=head2 get_servers_iter
 
 Returns a iterator in a form of a sub reference.
 
@@ -109,18 +109,18 @@ until the list of servers is exausted. In this case the sub reference will retur
 
 =cut
 
-sub get_servers {
+sub get_servers_iter {
     my $self        = shift;
     my $counter     = 0;
     my $servers_ref = $self->get_data_parsed;
-    my @servers     = sort( keys( %{$servers_ref} ) );
+    my @servers     = $self->get_servers;
     my $total       = scalar(@servers) - 1;
 
     return sub {
 
         if ( $counter <= $total ) {
-            my $name = $servers[$counter];
-            my $server_ref = $servers_ref->{ $name };
+            my $name       = $servers[$counter];
+            my $server_ref = $servers_ref->{$name};
             $counter++;
             my %attribs = (
                 name           => $name,
