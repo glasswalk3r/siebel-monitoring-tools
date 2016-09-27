@@ -153,6 +153,7 @@ Here is an example of the required parameters with a description:
     srvrmgr= /foobar/bin/srvrmgr
     load_prefs = 1
     type = light
+    time_zone = America/Sao_Paulo
 
 Beware that the commands executed by C<lbconfig> requires that the output has a specific configuration set: setting
 C<load_prefs> is not optional here, but a requirement!

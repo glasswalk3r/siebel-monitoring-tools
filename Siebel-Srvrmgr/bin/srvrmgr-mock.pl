@@ -9,12 +9,13 @@ use Getopt::Std;
 
 my $CRLF = "\015\012";
 
+# replacing "/<OPTION>" with "-<OPTION> as is understood by getopts
 for ( my $i = 0 ; $i <= scalar(@ARGV) ; $i++ ) {
-    $ARGV[$i] =~ s#^/([bgeupslio])$#-$1# if ( defined( $ARGV[$i] ) );
+    $ARGV[$i] =~ s#^/([bgeupsliok])$#-$1# if ( defined( $ARGV[$i] ) );
 }
 
 my %opts;
-getopts( 'bg:e:u:p:s:l:i:o:', \%opts );
+getopts( 'bg:e:u:p:s:l:i:o:k:', \%opts );
 $SIG{INT} = sub { die "\nDisconnecting...\n" };
 
 # detects batch mode
@@ -240,6 +241,7 @@ sub put_text {
 }
 
 sub hello {
+
 # :WORKAROUND:14-12-2015 10:00:47:: fix the "egg and chicken" problem because Dist::Zilla did not yet installed srvrmgr-mock to generate a version for it
     my $version = $main::VERSION || 'unknown (run dzil!)';
     return <<"BLOCK";

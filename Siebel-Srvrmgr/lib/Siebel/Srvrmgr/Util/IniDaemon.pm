@@ -8,6 +8,7 @@ use Siebel::Srvrmgr::Daemon::Command;
 use Config::IniFiles 2.88;
 use Exporter qw(import);
 use Carp;
+
 # VERSION
 
 =pod
@@ -56,7 +57,8 @@ sub create_daemon {
     my $cfg = Config::IniFiles->new( -file => $cfg_file );
 
     my @required =
-      (qw(type gateway enterprise user password srvrmgr time_zone read_timeout));
+      ( qw(type gateway enterprise user password srvrmgr time_zone read_timeout)
+      );
 
     foreach my $param (@required) {
         confess "$param is missing in the $cfg_file"
@@ -77,17 +79,24 @@ sub create_daemon {
     }
 
     my $params = {
-        gateway         => $cfg->val( 'GENERAL', 'gateway' ),
-        enterprise      => $cfg->val( 'GENERAL', 'enterprise' ),
-        user            => $cfg->val( 'GENERAL', 'user' ),
-        password        => $cfg->val( 'GENERAL', 'password' ),
-        field_delimiter => $cfg->val( 'GENERAL', 'field_delimiter' ),
-        bin             => $cfg->val( 'GENERAL', 'srvrmgr' ),
-        time_zone       => $cfg->val( 'GENERAL', 'time_zone' ),
-        read_timeout    => $cfg->val( 'GENERAL', 'read_timeout' ),
+        gateway    => $cfg->val( 'GENERAL', 'gateway' ),
+        enterprise => $cfg->val( 'GENERAL', 'enterprise' ),
+        user       => $cfg->val( 'GENERAL', 'user' ),
+        password   => $cfg->val( 'GENERAL', 'password' ),
+        bin        => $cfg->val( 'GENERAL', 'srvrmgr' ),
+        time_zone  => $cfg->val( 'GENERAL', 'time_zone' ),
     };
 
-    if ( $cfg->val( 'GENERAL', 'load_prefs' ) ) {
+    # optional
+    foreach my $attr (qw(field_delimiter read_timeout)) {
+        if ( $cfg->exists( 'GENERAL', $attr ) ) {
+            $params->{$attr} = $cfg->val( 'GENERAL', $attr );
+        }
+    }
+
+    if (    ( $cfg->exists( 'GENERAL', 'load_prefs' ) )
+        and ( $cfg->val( 'GENERAL', 'load_prefs' ) ) )
+    {
         $params->{commands} = [
             Siebel::Srvrmgr::Daemon::Command->new(
                 {
@@ -128,6 +137,8 @@ Here is an example of the required parameters with a description:
     type = heavy
 
 Whatever other parameters or sections available on the same INI will be ignored.
+
+Please refer to the Pod of L<Siebel::Srvrmgr::Daemon> and corresponding subclasses to understand what parameters are optional or not.
 
 =head1 SEE ALSO
 
