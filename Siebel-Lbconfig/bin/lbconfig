@@ -26,6 +26,7 @@ This program will connect to a Siebel server, verify all AOM components eligible
 The parameters available are:
 
     -h: prints this help message and exits
+    -e <PATH TO EAPPS*.CFG>: required parameter with the pathname to a directory with the eapps*.cfg files to be edited.
     -p <PORT>: the Siebel Connection Broker port. This parameter is optional, the default value for it is 2321.
     -c: optional parameter to the complete path to the configuration file (defaults to .lbconfig.cfg in the user home directory).
         See the Pod of Siebel::Lbconfig for details on the configuration file.
@@ -42,9 +43,9 @@ our %opts;
 getopts( 'p:c:h', \%opts );
 HELP_MESSAGE() if ( exists( $opts{h} ) );
 
-#foreach my $option (qw(n o)) {
-#    HELP_MESSAGE($option) unless ( defined( $opts{$option} ) );
-#}
+foreach my $option (qw(e)) {
+    HELP_MESSAGE($option) unless ( defined( $opts{$option} ) );
+}
 
 my $cfg_file;
 my $default = File::Spec->catfile( File::HomeDir->my_home(), '.lbconfig.cfg' );
