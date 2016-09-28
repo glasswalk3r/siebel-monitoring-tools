@@ -22,9 +22,9 @@ create_files( File::Spec->catdir( 't', 'eapps' ), exp_lbdata() );
 my ( $exp_digest1, $exp_digest2, $exp_digest3 );
 
 if ( $Config{osname} eq 'MSWin32' ) {
-    $exp_digest1 = '';
-    $exp_digest2 = '';
-    $exp_digest3 = '';
+    $exp_digest1 = '4wlJvgFCLdGld96RChK3+w';
+    $exp_digest2 = 'B09RsSkcELHV0dDlLbCTNA';
+    $exp_digest3 = '5+1RVlLC3BYs78hMJCPpoA';
 }
 else {
     $exp_digest1 = '4wlJvgFCLdGld96RChK3+w';
