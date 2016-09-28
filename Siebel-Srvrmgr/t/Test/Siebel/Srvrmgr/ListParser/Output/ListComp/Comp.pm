@@ -4,7 +4,8 @@ use Test::Most;
 use Test::Moose;
 use parent 'Test::Siebel::Srvrmgr';
 use Siebel::Srvrmgr::ListParser::Output::Tabular::ListComp;
-use Regexp::Common 0.07 qw(time);
+use Regexp::Common::time 0.07;
+use Regexp::Common 2016060801 qw(time);
 
 sub get_struct {
     my $test = shift;
