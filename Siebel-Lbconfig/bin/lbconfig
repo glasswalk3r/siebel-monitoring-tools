@@ -2,11 +2,13 @@
 use warnings;
 use strict;
 use Getopt::Std;
-use Siebel::Lbconfig qw(recover_info get_daemon);
+use Siebel::Lbconfig qw(recover_info get_daemon create_files);
 use File::HomeDir 1.00;
 use File::Spec;
 
 # VERSION
+
+$| = 1;
 
 $Getopt::Std::STANDARD_HELP_VERSION = 2;
 
@@ -40,7 +42,7 @@ BLOCK
 }
 
 our %opts;
-getopts( 'p:c:h', \%opts );
+getopts( 'e:p:c:h', \%opts );
 HELP_MESSAGE() if ( exists( $opts{h} ) );
 
 foreach my $option (qw(e)) {
@@ -54,6 +56,7 @@ if ( exists( $opts{c} ) ) {
 
     if ( -r $opts{c} ) {
         $cfg_file = $opts{c};
+        print "Using configuration file at $cfg_file\n";
     }
     else {
         die "file $opts{c} does not exist or is not readable";
@@ -62,6 +65,7 @@ if ( exists( $opts{c} ) ) {
 }
 elsif ( -e $default ) {
     $cfg_file = $default;
+    print "Using default configuration file\n";
 }
 else {
     die
@@ -76,9 +80,11 @@ else {
     $port = 2321;
 }
 
+print "Connecting to the Siebel Enterprise and collecting data...\n";
 my ( $daemon, $stash ) = get_daemon($cfg_file);
 $daemon->run;
+print "Data acquired, checking components and servers...\n";
 my $data_ref = recover_info( $stash, $port );
-
-use Data::Dumper;
-print Dumper($data_ref);
+print "Creating files...\n";
+create_files( $opts{e}, $data_ref );
+print "Done\n";
