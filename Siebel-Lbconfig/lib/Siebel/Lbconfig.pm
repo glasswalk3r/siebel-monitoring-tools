@@ -64,6 +64,12 @@ A L<Siebel::Srvrmgr::Daemon::ActionStash> instance.
 
 =back
 
+=head2 get_daemon
+
+Expects the path to a INI file as parameter.
+
+Returns an instance of L<Siebel::Srvrmgr::Daemon> subclass configured in the INI file.
+
 =cut
 
 sub get_daemon {
@@ -152,6 +158,19 @@ sub recover_info {
 
     return \@data;
 }
+
+=head2 create_files
+
+Creates the lbconfig.txt and eapps*.cfg files.
+
+Expects as parameters the directory where the eapps*.cfg file will be located. Those files will be used as templates, they will be copied to a new version of them,
+with the ConnectionString modified and all other content as is. The copied will have the C<.new> file "extension" attached to them.
+
+Also, espects a data reference passed as the second parameter. The expected format is the same returned by the C<recover_info> sub.
+
+Returns nothing. The lbconfig.txt file will be located at the current directory.
+
+=cut
 
 sub create_files {
     my ( $dir, $data_ref ) = @_;
