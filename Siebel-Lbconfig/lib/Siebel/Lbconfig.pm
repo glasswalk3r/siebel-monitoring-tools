@@ -1,10 +1,10 @@
 package Siebel::Lbconfig;
 use strict;
 use warnings;
-use Siebel::Srvrmgr::Daemon::Light 0.26;
-use Siebel::Srvrmgr::Daemon::Command 0.26;
+use Siebel::Srvrmgr::Daemon::Light 0.27;
+use Siebel::Srvrmgr::Daemon::Command 0.27;
 use Set::Tiny 0.03;
-use Siebel::Srvrmgr::Util::IniDaemon 0.26 qw(create_daemon);
+use Siebel::Srvrmgr::Util::IniDaemon 0.27 qw(create_daemon);
 use Config::IniFiles 2.88;
 use Carp;
 use Exporter 'import';

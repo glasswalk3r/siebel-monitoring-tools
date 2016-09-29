@@ -2,7 +2,7 @@ use warnings;
 use strict;
 use Test::More;
 use Siebel::Lbconfig qw(get_daemon recover_info create_files);
-use Siebel::Srvrmgr::Daemon::ActionStash 0.26;
+use Siebel::Srvrmgr::Daemon::ActionStash 0.27;
 use Digest::MD5 qw(md5_base64);
 use File::Spec;
 use Config;

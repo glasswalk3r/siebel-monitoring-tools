@@ -2,7 +2,7 @@ package Siebel::Lbconfig::Daemon::Action::AOM;
 # VERSION
 use Moose 2.0401;
 use namespace::autoclean 0.13;
-use Siebel::Srvrmgr::Daemon::ActionStash;
+use Siebel::Srvrmgr::Daemon::ActionStash 0.27;
 use Carp;
 use Scalar::Util qw(blessed);
 
