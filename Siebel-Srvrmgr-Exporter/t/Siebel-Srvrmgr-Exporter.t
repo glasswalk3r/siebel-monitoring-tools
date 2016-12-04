@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More;
+use Test::More tests => 14;
 use Digest::MD5;
 use Config;
 use File::Spec;
@@ -54,7 +54,7 @@ unless ( -e $mock ) {
 }
 ok( -e $mock, 'srvrmgr-mock.pl is available' );
 note('Fetching values, this can take some seconds');
-my $exports = File::Spec->catfile( getcwd(), 'bin', 'export_comps.pl' );
+my $exports = File::Spec->catfile( 'blib', 'script', 'export_comps.pl' );
 ok( -e $exports, 'export_comps.pl exists' );
 ok( -r $exports, 'export_comps.pl is readable' );
 my $path_to_perl = $Config{perlpath};
@@ -86,4 +86,3 @@ for ( 1 .. $repeat ) {
     unlink($filename) or diag("Cannot remove $filename: $!");
 }
 
-done_testing;
