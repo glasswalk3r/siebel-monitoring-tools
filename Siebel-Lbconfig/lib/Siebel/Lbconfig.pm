@@ -1,13 +1,15 @@
 package Siebel::Lbconfig;
 use strict;
 use warnings;
-use Siebel::Srvrmgr::Daemon::Light 0.26;
-use Siebel::Srvrmgr::Daemon::Command 0.26;
+use Siebel::Srvrmgr::Daemon::Light 0.27;
+use Siebel::Srvrmgr::Daemon::Command 0.27;
 use Set::Tiny 0.03;
-use Siebel::Srvrmgr::Util::IniDaemon 0.26 qw(create_daemon);
+use Siebel::Srvrmgr::Util::IniDaemon 0.27 qw(create_daemon);
 use Config::IniFiles 2.88;
 use Carp;
 use Exporter 'import';
+use File::Spec;
+use Cwd;
 use Siebel::Lbconfig::Daemon::Action::ListServers;
 use Siebel::Lbconfig::Daemon::Action::AOM;
 
@@ -28,7 +30,7 @@ lbconfig.txt file by search all active AOMs that take can take advantage of the 
 
 =cut
 
-our @EXPORT_OK = qw(recover_info get_daemon);
+our @EXPORT_OK = qw(recover_info get_daemon create_files);
 
 =head1 FUNCTIONS
 
@@ -62,6 +64,12 @@ A L<Siebel::Srvrmgr::Daemon::ActionStash> instance.
 
 =back
 
+=head2 get_daemon
+
+Expects the path to a INI file as parameter.
+
+Returns an instance of L<Siebel::Srvrmgr::Daemon> subclass configured in the INI file.
+
 =cut
 
 sub get_daemon {
@@ -77,7 +85,6 @@ sub get_daemon {
             }
         )
     );
-
     $daemon->push_command(
         Siebel::Srvrmgr::Daemon::Command->new(
             {
@@ -95,7 +102,7 @@ sub get_daemon {
 Expects as parameter the L<Siebel::Srvrmgr::Daemon::ActionStash> instance returned by C<create_daemon> and
 the Siebel Connection Broker TCP port.
 
-Returns an array reference with all the rows data of the lbconfig.txt.
+Returns a hash array reference with all the rows data of the lbconfig.txt.
 
 =cut
 
@@ -105,9 +112,9 @@ sub recover_info {
     my $comps_ref   = $stash->shift_stash();
     my $servers_ref = $stash->shift_stash();
     my $underscore  = qr/_/;
-    my @sorted = sort(keys( %{$comps_ref} ));
+    my @sorted      = sort( keys( %{$comps_ref} ) );
 
-    foreach my $comp_alias ( @sorted ) {
+    foreach my $comp_alias (@sorted) {
         my $virtual;
 
         if ( $comp_alias =~ $underscore ) {
@@ -123,19 +130,102 @@ sub recover_info {
 
         foreach my $server ( @{ $comps_ref->{$comp_alias} } ) {
 
-            if (exists($servers_ref->{$server})) {
-            push( @row,
-                ( $servers_ref->{$server} . ':' . $server . ':' . $scb_port ) );
-            } else {
-                confess "'$server' is not part of the retrieved Sievel Server names!";
+            if ( exists( $servers_ref->{$server} ) ) {
+                push(
+                    @row,
+                    (
+                            $servers_ref->{$server} . ':'
+                          . $server . ':'
+                          . $scb_port
+                    )
+                );
+            }
+            else {
+                confess
+                  "'$server' is not part of the retrieved Sievel Server names!";
             }
         }
 
-        push( @data, "$virtual=" . join( ';', @row ) . ';' );
+        push(
+            @data,
+            {
+                comp_alias => $comp_alias,
+                vs         => $virtual,
+                servers    => ( join( ';', @row ) . ';' )
+            }
+        );
     }
 
     return \@data;
+}
 
+=head2 create_files
+
+Creates the lbconfig.txt and eapps*.cfg files.
+
+Expects as parameters the directory where the eapps*.cfg file will be located. Those files will be used as templates, they will be copied to a new version of them,
+with the ConnectionString modified and all other content as is. The copied will have the C<.new> file "extension" attached to them.
+
+Also, espects a data reference passed as the second parameter. The expected format is the same returned by the C<recover_info> sub.
+
+Returns nothing. The lbconfig.txt file will be located at the current directory.
+
+=cut
+
+sub create_files {
+    my ( $dir, $data_ref ) = @_;
+    my $lbconfig = File::Spec->catfile( getcwd(), 'lbconfig.txt' );
+    open( my $out, '>', $lbconfig ) or confess "Cannot create $lbconfig: $!";
+    my %aliases;
+
+    foreach my $row ( @{$data_ref} ) {
+        print $out $row->{vs}, '=', $row->{servers}, "\n";
+        $aliases{ $row->{comp_alias} } = $row->{vs};
+    }
+
+    close($out);
+
+    my $pattern    = File::Spec->catfile( $dir, 'eapps*.cfg' );
+    my @eapps      = glob($pattern);
+    my $conn_regex = qr#^ConnectString#;
+    my $replace_regex =
+      qr#^(ConnectString\s?\=\s?siebel\.TCPIP\.\w+\.\w+\://)\w+(/\w+/)(\w+)#;
+    foreach my $file (@eapps) {
+        my $new = "$file.new";
+        open( my $old, '<', $file ) or confess "Cannot read $file: $!";
+        open( my $out, '>', $new )  or confess "Cannot create $new: $!";
+
+        while (<$old>) {
+
+    #ConnectString = siebel.TCPIP.None.None://VirtualServer/foobar/ERMObjMgr_chs
+            if ( $_ =~ $conn_regex ) {
+                chomp();
+
+                if ( $_ =~ $replace_regex ) {
+
+                    if ( exists( $aliases{$3} ) ) {
+                        print $out $1, $aliases{$3}, $2, $3, "\n";
+                    }
+                    else {
+                        print $out $_, "\n";
+                    }
+
+                }
+                else {
+                    print $out $_, "\n";
+                }
+
+            }
+            else {
+                print $out $_;
+            }
+
+        }
+
+        close($old);
+        close($out);
+
+    }
 }
 
 =head1 CONFIGURATION FILE
@@ -149,13 +239,16 @@ Here is an example of the required parameters with a description:
     enterprise=MyEnterprise
     user=sadmin
     password=123456
-    field_delimiter=|
     srvrmgr= /foobar/bin/srvrmgr
     load_prefs = 1
     type = light
+    time_zone = America/Sao_Paulo
 
 Beware that the commands executed by C<lbconfig> requires that the output has a specific configuration set: setting
 C<load_prefs> is not optional here, but a requirement!
+
+Also make sure to use C<type = light> because this distribution really doesn't need L<Siebel::Srvrmgr::Daemon::Heavy> and is
+intended to work on MS Windows.
 
 =head1 SEE ALSO
 

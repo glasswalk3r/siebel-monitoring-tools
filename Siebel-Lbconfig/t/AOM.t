@@ -1,9 +1,9 @@
 use warnings;
 use strict;
 use Test::More;
-use Siebel::Srvrmgr::ListParser;
-use Siebel::Srvrmgr::Daemon::ActionFactory;
-use Siebel::Srvrmgr::Daemon::ActionStash;
+use Siebel::Srvrmgr::ListParser 0.27;
+use Siebel::Srvrmgr::Daemon::ActionFactory 0.27;
+use Siebel::Srvrmgr::Daemon::ActionStash 0.27;
 
 my $class  = 'Siebel::Lbconfig::Daemon::Action::AOM';
 my $parser = Siebel::Srvrmgr::ListParser->new(
