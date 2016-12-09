@@ -45,6 +45,7 @@ use Config;
 use Carp;
 use File::Spec;
 use Data::Dumper;
+
 # VERSION
 
 my $SIG_INT   = 0;
@@ -254,35 +255,6 @@ has child_runs => (
     default => 0
 );
 
-=head2 maximum_retries
-
-The maximum times this class wil retry to launch a new process of srvrmgr if the previous one failed for any reason. This is intented to implement
-robustness to the process.
-
-=cut
-
-has maximum_retries => (
-    isa     => 'Int',
-    is      => 'ro',
-    reader  => 'get_max_retries',
-    writer  => '_set_max_retries',
-    default => 5
-);
-
-=head2 retries
-
-The number of retries of launching a new srvrmgr process. If this value reaches the value defined for C<maximum_retries>, the instance of Siebel::Srvrmgr::Daemon
-will quit execution returning an error code.
-
-=cut
-
-has retries => (
-    isa     => 'Int',
-    is      => 'ro',
-    reader  => 'get_retries',
-    writer  => '_set_retries',
-    default => 0
-);
 
 =head2 clear_raw
 
@@ -517,9 +489,7 @@ If the logging is set to C<DEBUG> level all attribute values will be logged.
 =cut
 
 sub BUILD {
-
     my $self = shift;
-
     $SIG{INT}  = sub { $SIG_INT   = 1 };
     $SIG{PIPE} = sub { $SIG_PIPE  = 1 };
     $SIG{ALRM} = sub { $SIG_ALARM = 1 };
@@ -528,47 +498,25 @@ sub BUILD {
     my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
 
     if ( $logger->is_debug() ) {
-
         $logger->debug('This instance attributes values:');
 
         foreach my $attrib ( $self->meta->get_all_attributes() ) {
-
             my $getter = $attrib->get_read_method();
             my $value  = $self->$getter;
             $value = 'UNDEFINED' unless ( defined($value) );
 
             if ( ref($value) ne '' ) {
-
                 $logger->debug(
                     'attribute ' . $attrib->name() . ' = ' . Dumper($value) );
-
             }
             else {
-
                 $logger->debug(
                     'attribute ' . $attrib->name() . ' = ' . $value );
-
             }
 
         }
 
     }
-
-}
-
-=head2 reset_retries
-
-Reset the retries of creating a new process of srvrmgr program, setting the attribute C<retries> to zero.
-
-=cut
-
-sub reset_retries {
-
-    my $self = shift;
-
-    $self->_set_retries(0);
-
-    return 1;
 
 }
 
@@ -605,22 +553,16 @@ This method is also used internally through the C<_setup_commands> method.
 =cut
 
 sub check_cmd {
-
-    my $self = shift;
-    my $cmd  = shift;
-
+    my ( $self, $cmd ) = @_;
     confess( 'Invalid command received for execution: '
           . Dumper( $self->get_cmd_stack() ) )
       unless ( defined($cmd) );
-
     confess("Insecure command from command stack [$cmd]. Execution aborted")
       unless ( ( $cmd =~ /^load/ )
         or ( $cmd =~ /^list/ )
         or ( $cmd =~ /^set\sdelimiter\s[[:graph:]]/ )
         or ( $cmd =~ /^exit/ ) );
-
     return 1;
-
 }
 
 =pod
@@ -638,23 +580,17 @@ again.
 =cut
 
 sub shift_command {
-
-    my $self = shift;
-
+    my $self     = shift;
     my $cmds_ref = $self->get_commands();
 
     if ( scalar( @{$cmds_ref} ) > 1 ) {
-
         my $shifted = shift( @{$cmds_ref} );
         $self->set_commands($cmds_ref);    # must trigger the attribute
         return $shifted;
-
     }
     else {
-
         $self->set_commands( [] );         # must trigger the attribute
         return;
-
     }
 
 }
@@ -670,14 +606,12 @@ Expects as parameter a L<Siebel::Srvrmgr::Daemon::Command> instance.
 =cut
 
 sub push_command {
-
     my ( $self, $command ) = @_;
     confess 'must received a Siebel::Srvrmgr::Daemon::Command as parameter'
       unless ( blessed($command) eq 'Siebel::Srvrmgr::Daemon::Command' );
     my $cmds_ref = $self->get_commands();
     push( @{$cmds_ref}, $command );
     $self->set_commands($cmds_ref);    # must trigger the attribute
-
 }
 
 =pod
@@ -690,7 +624,6 @@ Subclasses should invoke L<Moose> C<super> to when doing override because this i
 =cut
 
 sub run {
-
     my $self  = shift;
     my $class = blessed($self);
     confess
@@ -698,9 +631,7 @@ sub run {
       unless ( defined($class) and ( $self->isa('Siebel::Srvrmgr::Daemon') ) );
 
     if ( $self->has_lock ) {
-
         $self->_create_lock;
-
     }
 
 }
@@ -718,31 +649,22 @@ See perlport -> Issues -> Newlines for details on this.
 =cut
 
 sub normalize_eol {
-
-    my $self     = shift;
-    my $data_ref = shift;
-
+my ($self, $data_ref)= @_;
     my $ref_type = ref($data_ref);
-
     confess 'data parameter must be an array or scalar reference'
       unless ( ( $ref_type eq 'ARRAY' ) or ( $ref_type eq 'SCALAR' ) );
     my $c_regex = qr/\o{15}?\o{12}/;
 
     if ( $ref_type eq 'ARRAY' ) {
-
         local $/ = "\o{12}";
 
         foreach ( @{$data_ref} ) {
-
             s/$c_regex/\n/g;
-
         }
 
     }
     else {
-
         $$data_ref =~ s/$c_regex/\n/g;
-
     }
 
 }

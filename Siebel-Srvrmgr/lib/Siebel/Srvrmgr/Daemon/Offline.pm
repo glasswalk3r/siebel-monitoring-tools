@@ -1,63 +1,25 @@
-package Siebel::Srvrmgr::Daemon::Light;
+package Siebel::Srvrmgr::Daemon::Offline;
 
 =pod
 
 =head1 NAME
 
-Siebel::Srvrmgr::Daemon::Light - subclass for running commmands with srvrmgr in batch mode
+Siebel::Srvrmgr::Daemon::Offline - subclass that reads srvrmgr output from a file
 
 =head1 SYNOPSIS
 
-    use Siebel::Srvrmgr::Daemon::Light;
-
-    my $daemon = Siebel::Srvrmgr::Daemon::Light->new(
+    use Siebel::Srvrmgr::Daemon::Offline;
+    my $daemon = Siebel::Srvrmgr::Daemon::Offline->new(
         {
-            server      => 'servername',
-            gateway     => 'gateway',
-            enterprise  => 'enterprise',
-            user        => 'user',
-            password    => 'password',
-            bin         => 'c:\\siebel\\client\\bin\\srvrmgr.exe',
-			commands    => [
-			        Siebel::Srvrmgr::Daemon::Command->new(
-                        command => 'load preferences',
-                        action  => 'LoadPreferences'
-                    ),
-                    Siebel::Srvrmgr::Daemon::Command->new(
-                        command => 'list comp type',
-                        action  => 'ListCompTypes',
-                        params  => [$comp_types_file]
-                    ),
-                    Siebel::Srvrmgr::Daemon::Command->new(
-                        command => 'list comp',
-                        action  => 'ListComps',
-                        params  => [$comps_file]
-                    ),
-                    Siebel::Srvrmgr::Daemon::Command->new(
-                        command => 'list comp def',
-                        action  => 'ListCompDef',
-                        params  => [$comps_defs_file]
-                    )
-                ]
+            output_file => File::Spec->catfile('some', 'location', 'to', 'srvrmgr', 'output', 'file')
         }
     );
+    $daemon->run();
 
 
 =head1 DESCRIPTION
 
-This is a subclass of L<Siebel::Srvrmgr::Daemon> used to execute the C<srvrmgr> program in batch mode. For a better understanding of what batch mode means, 
-check out srvrmgr documentation.
-
-This class is recomended for cases where it is not necessary to run several commmands through srvrmgr in a short period of time because in batch mode it will
-connect to the Siebel Gateway, execute the commands configured and exit, avoiding keeping a connection opened for a long time. For UNIX-like OS, this class
-would be a good choice for using with Inetd and Xinetd daemons.
-
-This class is also highly recommended for OS plataforms like Microsoft Windows where IPC is not reliable enough, since this class uses C<system> instead of
-L<IPC::Open3>.
-
-Since version 0.21, this class does not overrides anymore the parent class method C<shift_command>. Some attention is required is this matter, since a instance of
-Siebel::Srvrmgr::Daemon::Light will not maintain configuration previously loaded with C<load preferences> command. Be sure to maintain this command everytime you invoke
-C<run> available in the C<commands> attribute.
+This is a subclass of L<Siebel::Srvrmgr::Daemon> used to execute the C<srvrmgr> program in batch mode.
 
 =cut
 
@@ -72,7 +34,7 @@ use File::Temp 0.2304 qw(:POSIX);
 use Data::Dumper;
 use Siebel::Srvrmgr;
 use File::BOM 0.14 qw(:all);
-use Siebel::Srvrmgr::IPC qw(check_system);
+use Try::Tiny 0.27;
 # VERSION
 
 extends 'Siebel::Srvrmgr::Daemon';
@@ -83,7 +45,7 @@ extends 'Siebel::Srvrmgr::Daemon';
 
 =head2 output_file
 
-A string that represents the "/o" command line parameter of srvrmgr. It is defined internally, so it is read-only.
+A string representing the full pathname to the file that contains all output from srvrmgr program to be parsed.
 
 =cut
 
@@ -93,33 +55,6 @@ has output_file => (
     reader => 'get_output_file',
     writer => '_set_output_file'
 );
-
-=pod
-
-=head2 input_file
-
-A string that represents the "/i" command line parameter of srvrmgr. It is defined internally, so it is read-only.
-
-=cut
-
-has input_file => (
-    isa    => 'Str',
-    is     => 'ro',
-    reader => 'get_input_file',
-    writer => '_set_input_file'
-);
-
-=pod
-
-=head1 METHODS
-
-=head2 get_output_file
-
-Returns the content of the C<output_file> attribute.
-
-=head2 get_input_file
-
-Returns the content of the C<input_file> attribute.
 
 =head2 run
 
@@ -140,24 +75,13 @@ override 'run' => sub {
     my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
     $logger->info('Starting run method');
     my $parser = $self->create_parser();
-
-    if ( $logger->is_debug() ) {
-
-        $logger->debug( 'Calling system with the following parameters: '
-              . Dumper( $self->_define_params() ) );
-        $logger->debug(
-            'Commands to be execute are: ' . Dumper( $self->get_commands() ) );
-
-    }
-
-    my $ret_code = system( @{ $self->_define_params() } );
-    $self->_check_system( ${^CHILD_ERROR_NATIVE}, $ret_code, $? );
     my $in;
-    eval { open_bom( $in, $self->get_output_file(), ':utf8' ) };
 
-    if ($@) {
+    try { 
+        open_bom( $in, $self->get_output_file(), ':utf8' );
+    } catch  {
         $logger->logdie(
-            'Cannot read ' . $self->get_output_file() . ': ' . $@ );
+            'Cannot read ' . $self->get_output_file() . ': ' . $_ );
     }
 
 # :TODO:22-09-2014 01:32:45:: this might be dangerous if the output is too large
@@ -175,15 +99,9 @@ override 'run' => sub {
         $parser->parse( \@input_buffer );
 
         if ( $parser->has_tree() ) {
-            my $total = $self->cmds_vs_tree( $parser->count_parsed() );
-
             if ( $logger->is_debug() ) {
-
                 $logger->debug( 'Total number of parsed items = '
                       . $parser->count_parsed() );
-                $logger->debug( 'Total number of submitted commands = '
-                      . scalar( @{ $self->get_commands() } ) );
-
             }
 
             $logger->logdie(
@@ -232,43 +150,9 @@ override 'run' => sub {
 
 };
 
-=pod
-
-=head2 cmds_vs_tree
-
-This method compares the number of C<commands> defined in a instance of this class with the number of nodes passed as parameter.
-
-If their are equal, the number is returned. If their are different (and there is a problem with the parsed output of srvrmgr) this method
-returns C<undef>.
-
-=cut
-
-sub cmds_vs_tree {
-
-    my $self      = shift;
-    my $nodes_num = shift;
-
-    my $cmds_num = scalar( @{ $self->get_commands() } );
-
-    if ( $cmds_num == $nodes_num ) {
-
-        return $nodes_num;
-
-    }
-    else {
-
-        return;
-
-    }
-
-}
-
 override _my_cleanup => sub {
-
     my $self = shift;
-
     return $self->_del_input_file() && $self->_del_output_file();
-
 };
 
 sub _del_file {
@@ -361,77 +245,7 @@ override _define_params => sub {
 
 };
 
-# :TODO:18-10-2013:arfreitas: this should be done by IPC.pm module?
-sub _manual_check {
-
-    my $self       = shift;
-    my $ret_code   = shift;
-    my $error_code = shift;
-    my $logger     = Siebel::Srvrmgr->gimme_logger( blessed($self) );
-
-    if ( $ret_code == 0 ) {
-
-        $logger->info(
-            'Child process terminate successfully with return code = 0');
-
-    }
-    else {
-
-        $logger->logdie( 'system failed to execute srvrmgr: ' . $error_code );
-
-    }
-
-}
-
-sub _check_system {
-
-    my $self        = shift;
-    my $child_error = shift;
-    my $ret_code    = shift;
-    my $error_code  = shift;
-
-    my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
-
-    my ( $message, $is_error ) = check_system($child_error);
-
-    unless ( ( defined($message) ) and ( defined($is_error) ) ) {
-
-        $self->_manual_check( $ret_code, $error_code );
-
-    }
-    else {
-
-        if ( defined($is_error) ) {
-
-            if ($is_error) {
-
-                $logger->logdie($message);
-
-            }
-            else {
-
-                $logger->info($message);
-
-            }
-
-        }
-        else {
-
-            $logger->info( $message . "Error code is $error_code" );
-
-        }
-
-    }
-
-}
-
 =pod
-
-=head1 CAVEATS
-
-This class is still considered experimental and should be used with care.
-
-The C<srvrmgr> program uses buffering, which makes difficult to read the generated output as expected.
 
 =head1 SEE ALSO
 

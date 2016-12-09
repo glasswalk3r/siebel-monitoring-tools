@@ -4,7 +4,7 @@ package Siebel::Srvrmgr::Daemon::Heavy;
 
 =head1 NAME
 
-Siebel::Srvrmgr::Daemon::Heavy - "heavier" implementation of Siebel::Srvrmgr::Daemon
+Siebel::Srvrmgr::Daemon::Heavy - subclass that reuses srvrmgr program instance for long periods
 
 =head1 SYNOPSIS
 
@@ -93,6 +93,36 @@ our $SIG_ALARM = 0;
 =head1 ATTRIBUTES
 
 This class has additional attributes besides those from parent class.
+
+=head2 maximum_retries
+
+The maximum times this class wil retry to launch a new process of srvrmgr if the previous one failed for any reason. This is intented to implement
+robustness to the process.
+
+=cut
+
+has maximum_retries => (
+    isa     => 'Int',
+    is      => 'ro',
+    reader  => 'get_max_retries',
+    writer  => '_set_max_retries',
+    default => 5
+);
+
+=head2 retries
+
+The number of retries of launching a new srvrmgr process. If this value reaches the value defined for C<maximum_retries>, the instance of Siebel::Srvrmgr::Daemon
+will quit execution returning an error code.
+
+=cut
+
+has retries => (
+    isa     => 'Int',
+    is      => 'ro',
+    reader  => 'get_retries',
+    writer  => '_set_retries',
+    default => 0
+);
 
 =head2 write_fh
 
@@ -256,27 +286,20 @@ has srvrmgr_prompt =>
 =cut
 
 sub _add_retry {
-
     my ( $self, $new, $old ) = @_;
 
     # if $old is undefined, this is the first call to run method
     unless ( defined($old) ) {
-
         return 0;
-
     }
     else {
 
         unless ( $new == $old ) {
-
             $self->_set_retries( $self->get_retries() + 1 );
             return 1;
-
         }
         else {
-
             return 0;
-
         }
 
     }
@@ -292,14 +315,19 @@ This methods calls C<clear_pid> just to have a sane setting on C<child_pid> attr
 =cut
 
 sub BUILD {
-
     my $self = shift;
     $self->clear_pid();
-
 }
 
 =pod
 
+=head2 get_retries
+
+Getter for the C<retries> attribute.
+
+=head2 get_max_retries 
+
+Getter for the C<max_retries> attribute.
 
 =head2 clear_pid
 
@@ -352,31 +380,23 @@ Returns the content of the attribute C<params_stack>.
 =cut
 
 override '_setup_commands' => sub {
-
     my $self = shift;
-
     super();
-
     my $cmds_ref = $self->get_commands();
-
     my @cmd;
     my @actions;
     my @params;
 
     foreach my $cmd ( @{$cmds_ref} ) {
-
         push( @cmd,     $cmd->get_command() );
         push( @actions, $cmd->get_action() );
         push( @params,  $cmd->get_params() );
-
     }
 
     $self->_set_cmd_stack( \@cmd );
     $self->_set_action_stack( \@actions );
     $self->_set_params_stack( \@params );
-
     return 1;
-
 };
 
 =pod
@@ -808,101 +828,73 @@ sub _manage_handlers {
 }
 
 sub _create_child {
-
     my $self = shift;
-
     my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
 
     if ( $self->get_retries() >= $self->get_max_retries() ) {
-
         $logger->fatal( 'Maximum retries to spawn srvrmgr reached: '
               . $self->get_max_retries() );
         $logger->warn(
 'Application will exit with an error return code. Please review log for errors'
         );
         exit(1);
-
     }
 
     $logger->logdie( 'Cannot find program ' . $self->get_bin() . ' to execute' )
       unless ( -e $self->get_bin() );
-
     my $params_ref = $self->_define_params();
-
     my ( $pid, $write_h, $read_h, $error_h ) = safe_open3($params_ref);
-
   # submit the password, avoiding exposing it in the command line as a parameter
     syswrite $write_h, ( $self->get_password . "\n" );
-
     $self->_set_pid($pid);
     $self->_set_write($write_h);
     $self->_set_read($read_h);
     $self->_set_error($error_h);
 
     if ( $logger->is_debug() ) {
-
         $logger->debug( 'Forked srvrmgr with the following parameters: '
               . join( ' ', @{$params_ref} ) );
         $logger->debug( 'child PID is ' . $pid );
         $logger->debug( 'IPC buffer size is ' . $self->get_buffer_size() );
-
     }
 
     $logger->info('Started srvrmgr');
 
     unless ( $self->_check_child() ) {
-
         return 0;
-
     }
     else {
-
         $self->_set_child_runs(0);
         return 1;
-
     }
 
 }
 
 sub _process_stderr {
-
     exit if ($SIG_INT);
-    my $self     = shift;
-    my $data_ref = shift;
+    my ($self, $data_ref) = @_;
 
     my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
 
     if ( defined($$data_ref) ) {
 
         foreach my $line ( split( "\n", $$data_ref ) ) {
-
             exit if ($SIG_INT);
-
             $self->_check_error( $line, 1 );
-
         }
 
     }
     else {
-
         $logger->warn('Received empty buffer to read');
-
     }
 
 }
 
 sub _process_stdout {
-
 # :TODO      :07/08/2013 15:12:17:: should this be controlled in instances? or should it be global to the class?
     exit if ( $SIG_INT or $SIG_PIPE );
-
-    my $self       = shift;
-    my $data_ref   = shift;
-    my $buffer_ref = shift;
-    my $condition  = shift;
-
+    my ($self, $data_ref, $buffer_ref, $condition) = @_;
     my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
-
 # :TODO      :09/08/2013 19:35:30:: review and remove assigning the compiled regexes to scalar (probably unecessary)
     my $prompt_regex    = SRVRMGR_PROMPT;
     my $load_pref_regex = LOAD_PREF_RESP;
@@ -910,20 +902,15 @@ sub _process_stdout {
     $logger->debug("Raw content is [$$data_ref]") if $logger->is_debug();
 
     foreach my $line ( split( "\n", $$data_ref ) ) {
-
         exit if ( $SIG_INT or $SIG_PIPE );
 
         if ( $logger->is_debug() ) {
 
             if ( defined($line) ) {
-
                 $logger->debug("Recovered line [$line]");
-
             }
             else {
-
                 $logger->debug("Recovered line with undefined content");
-
             }
 
         }
@@ -958,21 +945,16 @@ sub _process_stdout {
                     if ( @{$buffer_ref} ) {
 
                         if ( $buffer_ref->[0] eq '' ) {
-
                             $logger->debug("Ignoring output [$line]");
-
                             $condition->set_cmd_sent(0);
                             @{$buffer_ref} = ();
-
                         }
 
                     }
 
                 }
                 elsif ( scalar( @{$buffer_ref} ) < 1 ) {  # no command submitted
-
                     $condition->set_cmd_sent(0);
-
                 }
                 else {
 
@@ -980,15 +962,12 @@ sub _process_stdout {
                         and ( $buffer_ref->[0] eq $self->get_last_cmd() )
                         and $condition->is_cmd_sent() )
                     {
-
                         $condition->set_cmd_sent(0);
-
                     }
 
                 }
 
                 push( @{$buffer_ref}, $line );
-
                 last SWITCH;
 
             }
@@ -1003,9 +982,7 @@ sub _process_stdout {
 }
 
 sub _check_child {
-
     my $self = shift;
-
     my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
 
     if ( $self->has_pid() ) {
@@ -1015,59 +992,43 @@ sub _check_child {
         kill 0, $self->get_pid();
 
         unless ( kill 0, $self->get_pid() ) {
-
             $logger->fatal( $self->get_bin()
                   . " process returned a fatal error: ${^CHILD_ERROR_NATIVE}" );
-
             $logger->fatal( $? . ' child exit status = ' . ( $? >> 8 ) );
-
             $self->close_child($logger);
-
             return 0;
-
         }
         else {
-
             return 1;
-
         }
 
         # try to read immediatly from stderr if possible
         if ( openhandle( $self->get_error() ) ) {
-
             my $error;
-
             my $select = IO::Select->new();
             $select->add( $self->get_error() );
 
             while ( my $fh = $select->can_read( $self->get_read_timeout() ) ) {
-
                 my $buffer;
                 my $read = sysread( $fh, $buffer, $self->get_buffer_size() );
 
                 if ( defined($read) ) {
 
                     if ( $read > 0 ) {
-
                         $error .= $buffer;
                         next;
-
                     }
                     else {
-
                         $logger->debug(
                             'Reached EOF while trying to get error messages');
-
                     }
 
                 }
                 else {
-
                     $logger->warn(
                         'Could not sysread the STDERR from srvrmgr process: '
                           . $! );
                     last;
-
                 }
 
             }    # end of while block
@@ -1076,9 +1037,7 @@ sub _check_child {
 
         }
         else {
-
             $logger->fatal('Error pipe from child is closed');
-
         }
 
         $logger->fatal('Read pipe from child is closed')
@@ -1088,30 +1047,22 @@ sub _check_child {
 
     }    # end of if has_pid
     else {
-
         return 0;
-
     }
 
 }
 
 sub _my_cleanup {
-
     my $self = shift;
-
     my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
 
     if ( $self->has_pid() and ( $self->get_pid() =~ /\d+/ ) ) {
-
         $self->close_child();
-
     }
     else {
 
         if ( $logger->is_info() ) {
-
             $logger->info('No child process to terminate');
-
         }
 
     }
@@ -1121,7 +1072,6 @@ sub _my_cleanup {
 }
 
 sub _submit_cmd {
-
     my ( $self, $cmd ) = @_;
     my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
     my $bytes = syswrite $self->get_write(), "$cmd\n";
@@ -1129,17 +1079,13 @@ sub _submit_cmd {
     if ( defined($bytes) ) {
 
         if ( $logger->is_debug() ) {
-
             $logger->debug("Submitted $cmd, wrote $bytes bytes");
-
         }
 
     }
     else {
-
         $logger->logdie(
             'A failure occurred when trying to submit ' . $cmd . ': ' . $! );
-
     }
 
     return 1;

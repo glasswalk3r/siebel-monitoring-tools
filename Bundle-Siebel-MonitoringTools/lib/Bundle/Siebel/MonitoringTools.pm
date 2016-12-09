@@ -36,7 +36,7 @@ None by default.
     MooseX::Singleton [0.27]
     MooseX::FollowPBP [0.05]
     Log::Log4perl [1.41]
-    YAML::Syck [1.27]
+    YAML::XS [0.62]
     Config::Tiny [2.14]
     Monitoring::Plugin [0.36]
     DBD::ODBC [1.43]

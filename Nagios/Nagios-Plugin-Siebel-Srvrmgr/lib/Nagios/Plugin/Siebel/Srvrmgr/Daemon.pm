@@ -3,7 +3,7 @@ package Nagios::Plugin::Siebel::Srvrmgr::Daemon;
 use Moose;
 use Siebel::Srvrmgr::Daemon::Light;
 use Siebel::Srvrmgr::Daemon::ActionStash;
-use YAML::Syck;
+use YAML::XS qw(LoadFile);
 use File::Spec;
 use Nagios::Plugin::Siebel::Srvrmgr::Action::Check::Component;
 use Nagios::Plugin::Siebel::Srvrmgr::Action::Check::Server;
