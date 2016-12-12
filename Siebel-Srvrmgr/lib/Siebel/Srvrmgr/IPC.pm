@@ -24,14 +24,14 @@ This module is based on L<IPC::Open3::Callback> from Lucas Theisen (see SEE ALSO
 use warnings;
 use strict;
 use IPC::Open3;
+use Carp;
 use Symbol 'gensym';
 use IO::Socket;
 use Config;
 use POSIX qw(WIFEXITED WEXITSTATUS WIFSIGNALED WTERMSIG WIFSTOPPED);
+use Exporter 'import';
+our @EXPORT_OK = qw(safe_open3 check_system);
 
-require Exporter;
-our @ISA    = qw(Exporter);
-our @EXPORT = qw(safe_open3 check_system);
 # VERSION
 
 =pod
@@ -70,68 +70,49 @@ The error handle for the child process.
 =cut
 
 sub safe_open3 {
-
     return ( $Config{osname} eq 'MSWin32' )
       ? Siebel::Srvrmgr::IPC::_mswin_open3( $_[0] )
       : Siebel::Srvrmgr::IPC::_default_open3( $_[0] );
-
 }
 
 sub _mswin_open3 {
-
     my $cmd_ref = shift;
-
     my ( $inRead,  $inWrite )  = Siebel::Srvrmgr::IPC::_mswin_pipe();
     my ( $outRead, $outWrite ) = Siebel::Srvrmgr::IPC::_mswin_pipe();
     my ( $errRead, $errWrite ) = Siebel::Srvrmgr::IPC::_mswin_pipe();
-
     my $pid = open3(
         '>&' . fileno($inRead),
         '<&' . fileno($outWrite),
         '<&' . fileno($errWrite),
         @{$cmd_ref}
     );
-
     return ( $pid, $inWrite, $outRead, $errRead );
 }
 
 sub _mswin_pipe {
-
     my ( $read, $write ) =
       IO::Socket->socketpair( AF_UNIX, SOCK_STREAM, PF_UNSPEC );
-
     Siebel::Srvrmgr::IPC::_check_shutdown( 'read', $read->shutdown(SHUT_WR) )
       ;    # No more writing for reader
     Siebel::Srvrmgr::IPC::_check_shutdown( 'write', $write->shutdown(SHUT_RD) )
       ;    # No more reading for writer
-
     return ( $read, $write );
-
 }
 
 sub _check_shutdown {
-
-    my $which = shift;    # which handle name will be partly shutdown
-    my $ret   = shift;
+    my ( $which, $ret ) = @_;    # which handle name will be partly shutdown
 
     unless ( defined($ret) ) {
-
-        die "first argument of shutdown($which) is not a valid filehandle";
-
+        confess "first argument of shutdown($which) is not a valid filehandle";
     }
     else {
-
-        die "An error ocurred when trying shutdown($which): $!"
+        confess "An error ocurred when trying shutdown($which): $!"
           if ( $ret == 0 );
-
     }
-
 }
 
 sub _default_open3 {
-
     my $cmd_ref = shift;
-
     my ( $inFh, $outFh, $errFh ) = ( gensym(), gensym(), gensym() );
     return ( open3( $inFh, $outFh, $errFh, @{$cmd_ref} ), $inFh, $outFh,
         $errFh );
@@ -148,43 +129,40 @@ Expects as parameter the environment variable C<${^CHILD_ERROR_NATIVE}> value, a
 
 # :TODO:22-09-2014 13:26:35:: should implement exceptions to this
 sub check_system {
-
     my $child_error = shift;
 
     unless ( $Config{osname} eq 'MSWin32' ) {
 
         if ( WIFEXITED($child_error) ) {
 
-            return
-              'Child process terminate with call to exit() with return code = '
-              . WEXITSTATUS($child_error), 0;
-
+            if ( WEXITSTATUS($child_error) == 0 ) {
+                return
+'Child process terminate with call to exit() with return code = '
+                  . WEXITSTATUS($child_error), 0;
+            }
+            else {
+                return
+'Child process terminate with call to exit() with return code = '
+                  . WEXITSTATUS($child_error), 1;
+            }
         }
 
         if ( WIFSIGNALED($child_error) ) {
-
             return 'Child process terminated due signal: '
               . WTERMSIG($child_error), 1;
-
         }
 
         if ( WIFSTOPPED($child_error) ) {
-
             return 'Child process was stopped with ' . WSTOPSIG($child_error),
               1;
-
         }
         else {
-
             return 'Not able to check child process information', undef;
-
         }
 
     }
     else {
-
         return;
-
     }
 
 }

@@ -70,10 +70,9 @@ use Siebel::Srvrmgr::Regexes
   qw(SRVRMGR_PROMPT LOAD_PREF_RESP SIEBEL_ERROR ROWS_RETURNED);
 use Siebel::Srvrmgr::Daemon::Command;
 use POSIX;
-use Data::Dumper;
 use Scalar::Util qw(openhandle);
 use Config;
-use Siebel::Srvrmgr::IPC;
+use Siebel::Srvrmgr::IPC qw(safe_open3);
 use IO::Select;
 use Encode;
 use Carp qw(longmess);
@@ -415,19 +414,14 @@ Those operations will be executed in a loop as long the C<check> method from the
 # srvrmgr but the program will hang if there is no output left to be read from srvrmgr.
 
 override 'run' => sub {
-
-    my $self = shift;
-
+    my ($self, $conn) = @_;
     super();
-
     my $logger;
     my $temp;
     my $ignore_output = 0;
-
     my ( $read_h, $write_h, $error_h );
 
     unless ( $self->has_pid() ) {
-
         confess( $self->get_bin()
               . ' returned un unrecoverable error, aborting execution' )
           unless ( $self->_create_child() );
@@ -437,16 +431,13 @@ override 'run' => sub {
 
     }
     else {
-
         $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
         $logger->info( 'Reusing PID ', $self->get_pid() )
           if ( $logger->is_debug() );
         $ignore_output = 1;
-
     }
 
     $logger->info('Starting run method');
-
     my @input_buffer;
     my $timeout = $self->get_read_timeout;   # avoid multiple method invocations
 
@@ -475,13 +466,10 @@ override 'run' => sub {
     my $buffer_size = $self->get_buffer_size();
 
     if ( $logger->is_debug() ) {
-
         $logger->debug( 'Setting '
               . $timeout
               . ' seconds for read srvrmgr output time out' );
-
         $logger->debug("sysread buffer size is $buffer_size");
-
         my $assert = 'Input record separator is ';
 
       SWITCH: {
@@ -521,11 +509,9 @@ override 'run' => sub {
                 unless (( defined( $data_ref->{$fh_name}->{bytes} ) )
                     and ( $data_ref->{$fh_name}->{bytes} > 0 ) )
                 {
-
                     $data_ref->{$fh_name}->{bytes} =
                       sysread( $fh, $data_ref->{$fh_name}->{data},
                         $buffer_size );
-
                 }
                 else {
                     $logger->info(
@@ -540,43 +526,34 @@ override 'run' => sub {
                     my $offset =
                       length(
                         Encode::encode_utf8( $data_ref->{$fh_name}->{data} ) );
-
                     $logger->debug("Offset is $offset")
                       if ( $logger->is_debug() );
-
                     $data_ref->{$fh_name}->{bytes} =
                       sysread( $fh, $data_ref->{$fh_name}->{data},
                         $buffer_size, $offset );
-
                 }
 
                 unless ( defined( $data_ref->{$fh_name}->{bytes} ) ) {
-
                     $logger->fatal( 'sysread returned an error: ' . $! );
                     $self->_check_child();
                     $logger->logdie( 'sysreading from '
                           . $data_ref->{$fh_name}->{type}
                           . " returned an unrecoverable error: $!" );
-
                 }
                 else {
 
                     if ( $logger->is_debug() ) {
-
                         $logger->debug( 'Read '
                               . $data_ref->{$fh_name}->{bytes}
                               . ' bytes from '
                               . $data_ref->{$fh_name}->{type} );
-
                     }
 
                     if ( $data_ref->{$fh_name}->{bytes} == 0 ) {
-
                         $logger->warn(
                             'got EOF from ' . $data_ref->{$fh_name}->{type} );
                         $select->remove($fh);
                         next;
-
                     }
 
                     unless ( ( $data_ref->{$fh_name}->{data} =~ $eol_regex )
@@ -828,7 +805,7 @@ sub _manage_handlers {
 }
 
 sub _create_child {
-    my $self = shift;
+    my ($self, $conn) = @_;
     my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
 
     if ( $self->get_retries() >= $self->get_max_retries() ) {
@@ -841,11 +818,11 @@ sub _create_child {
     }
 
     $logger->logdie( 'Cannot find program ' . $self->get_bin() . ' to execute' )
-      unless ( -e $self->get_bin() );
+      unless ( -e $conn->get_bin() );
     my $params_ref = $self->_define_params();
     my ( $pid, $write_h, $read_h, $error_h ) = safe_open3($params_ref);
   # submit the password, avoiding exposing it in the command line as a parameter
-    syswrite $write_h, ( $self->get_password . "\n" );
+    syswrite $write_h, ( $conn->get_password . "\n" );
     $self->_set_pid($pid);
     $self->_set_write($write_h);
     $self->_set_read($read_h);

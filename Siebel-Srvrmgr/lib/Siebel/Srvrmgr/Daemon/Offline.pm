@@ -26,9 +26,6 @@ This is a subclass of L<Siebel::Srvrmgr::Daemon> used to execute the C<srvrmgr> 
 use Moose 2.0401;
 use namespace::autoclean 0.13;
 use Siebel::Srvrmgr::Daemon::ActionFactory;
-use Siebel::Srvrmgr::ListParser;
-use Siebel::Srvrmgr::Daemon::Command;
-use Config;
 use Carp qw(longmess);
 use File::Temp 0.2304 qw(:POSIX);
 use Data::Dumper;
@@ -82,7 +79,7 @@ override 'run' => sub {
     } catch  {
         $logger->logdie(
             'Cannot read ' . $self->get_output_file() . ': ' . $_ );
-    }
+    };
 
 # :TODO:22-09-2014 01:32:45:: this might be dangerous if the output is too large
     my @input_buffer = <$in>;

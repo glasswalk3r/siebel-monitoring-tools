@@ -58,85 +58,6 @@ my $SIG_ALARM = 0;
 
 =head1 ATTRIBUTES
 
-=head2 server
-
-This is a string representing the servername where the instance should connect. This is a optional attribute during
-object creation with the C<new> method.
-
-Beware that the C<run> method will verify if the C<server> attribute has a defined value or not: if it has, the C<run>
-method will try to connect to the Siebel Enterprise specifying the given Siebel Server. If not, the method will try to connect
-to the Enterprise only, not specifying which Siebel Server to connect.
-
-=cut
-
-has server => (
-    isa      => 'NotNullStr',
-    is       => 'rw',
-    required => 0,
-    reader   => 'get_server',
-    writer   => 'set_server'
-);
-
-=head2 gateway
-
-This is a string representing the gateway where the instance should connect. This is a required attribute during
-object creation with the C<new> method.
-
-=cut
-
-has gateway => (
-    isa      => 'NotNullStr',
-    is       => 'rw',
-    required => 1,
-    reader   => 'get_gateway',
-    writer   => 'set_gateway'
-);
-
-=head2 enterprise
-
-This is a string representing the enterprise where the instance should connect. This is a required attribute during
-object creation with the C<new> method.
-
-=cut
-
-has enterprise => (
-    isa      => 'NotNullStr',
-    is       => 'rw',
-    required => 1,
-    reader   => 'get_enterprise',
-    writer   => 'set_enterprise'
-);
-
-=head2 user
-
-This is a string representing the login for authentication. This is a required attribute during
-object creation with the C<new> method.
-
-=cut
-
-has user => (
-    isa      => 'NotNullStr',
-    is       => 'rw',
-    required => 1,
-    reader   => 'get_user',
-    writer   => 'set_user'
-);
-
-=head2 password
-
-This is a string representing the password for authentication. This is a required attribute during
-object creation with the C<new> method.
-
-=cut
-
-has password => (
-    isa      => 'NotNullStr',
-    is       => 'rw',
-    required => 1,
-    reader   => 'get_password',
-    writer   => 'set_password'
-);
-
 =head2 commands
 
 An array reference containing one or more references of L<Siebel::Srvrmgr::Daemon::Commands> class.
@@ -154,24 +75,6 @@ has commands => (
     reader   => 'get_commands',
     writer   => 'set_commands',
     trigger  => sub { my $self = shift; $self->_setup_commands() }
-);
-
-=pod
-
-=head2 bin
-
-An string representing the full path to the C<srvrmgr> program in the filesystem.
-
-This is a required attribute during object creation with the C<new> method.
-
-=cut
-
-has bin => (
-    isa      => 'NotNullStr',
-    is       => 'rw',
-    required => 1,
-    reader   => 'get_bin',
-    writer   => 'set_bin'
 );
 
 =pod
@@ -227,20 +130,6 @@ It defaults to false.
 has use_perl =>
   ( isa => 'Bool', is => 'ro', reader => 'use_perl', default => 0 );
 
-=head2 lang_id
-
-A string representing the LANG_ID parameter to connect to srvrmgr. If defaults to "ENU";
-
-=cut
-
-has lang_id => (
-    isa     => 'Str',
-    is      => 'rw',
-    reader  => 'get_lang_id',
-    writer  => 'set_lang_id',
-    default => 'ENU'
-);
-
 =head2 child_runs
 
 An integer representing the number of times the child object was used in C<run> invocations. This is reset to zero if a new child process is created.
@@ -254,7 +143,6 @@ has child_runs => (
     writer  => '_set_child_runs',
     default => 0
 );
-
 
 =head2 clear_raw
 
@@ -271,18 +159,6 @@ has clear_raw => (
     writer  => 'set_clear_raw',
     default => 1
 );
-
-=head2 field_delimiter
-
-This is a single character attribute. It tells the Daemon class to consider a field delimiter, if such options was
-set in the C<srvrmgr> program. If this option is used but this attribute is not set accordinly, parsing will probably
-fail.
-
-Since this attribute should be defined during Daemon object instance, it is read-only.
-
-=cut
-
-has field_delimiter => ( is => 'ro', isa => 'Chr', reader => 'get_field_del' );
 
 =head2 has_lock
 
@@ -358,10 +234,6 @@ Returns the content of the attribute C<time_zone>.
 
 Returns the content of the attribute C<cmd_stack>.
 
-=head2 get_field_del
-
-Getter for the C<field_delimiter> attribute.
-
 =head2 clear_raw
 
 Getter for the C<clear_raw> attribute.
@@ -394,54 +266,6 @@ Returns the value of the attribute C<ipc_buffer_size>.
 
 Sets the attribute C<ipc_buffer_size>. Expects an integer as parameter, multiple of 1024.
 
-=head2 get_lang_id
-
-Returns the value of the attribute C<lang_id>.
-
-=head2 set_lang_id
-
-Sets the attribute C<lang_id>. Expects a string as parameter.
-
-=head2 get_server
-
-Returns the content of C<server> attribute as a string.
-
-=head2 set_server
-
-Sets the attribute C<server>. Expects an string as parameter.
-
-=head2 get_gateway
-
-Returns the content of C<gateway> attribute as a string.
-
-=head2 set_gateway
-
-Sets the attribute C<gateway>. Expects a string as parameter.
-
-=head2 get_enterprise
-
-Returns the content of C<enterprise> attribute as a string.
-
-=head2 set_enterprise
-
-Sets the C<enterprise> attribute. Expects a string as parameter.
-
-=head2 get_user
-
-Returns the content of C<user> attribute as a string.
-
-=head2 set_user
-
-Sets the C<user> attribute. Expects a string as parameter.
-
-=head2 get_password
-
-Returns the content of C<password> attribute as a string.
-
-=head2 set_password
-
-Sets the C<password> attribute. Expects a string as parameter.
-
 =head2 get_commands
 
 Returns the content of the attribute C<commands>.
@@ -449,14 +273,6 @@ Returns the content of the attribute C<commands>.
 =head2 set_commands
 
 Set the content of the attribute C<commands>. Expects an array reference as parameter.
-
-=head2 get_bin
-
-Returns the content of the C<bin> attribute.
-
-=head2 set_bin
-
-Sets the content of the C<bin> attribute. Expects a string as parameter.
 
 =head2 get_pid
 
@@ -620,15 +436,30 @@ sub push_command {
 
 This is the method used to execute commands in srvrmgr program and must be overrided by subclasses of Siebel::Srvrmgr::Daemon.
 Subclasses should invoke L<Moose> C<super> to when doing override because this implementation will apply lock control when appropriate.
+Expects as parameters a L<Siebel::Srvrmgr::Connection>, or it will C<confess> with an exception.
 
 =cut
 
 sub run {
-    my $self  = shift;
-    my $class = blessed($self);
+    my ( $self, $connection ) = @_;
+    # :TODO:11-12-2016 20:43:19:: wtf is this?
+#    my $class = blessed($self);
+#
+#    if ( defined($class) ) {
+#        confess
+#"Only subclasses of Siebel::Srvrmgr::Daemon can executed this method (received '$class')"
+#          unless ( $self->isa('Siebel::Srvrmgr::Daemon') );
+#    }
+#    else {
+#        confess
+#"Only subclasses of Siebel::Srvrmgr::Daemon can executed this method (received unblessed '$self')";
+#    }
+
+    my $conn_class = blessed($connection);
     confess
-      'Only subclasses of Siebel::Srvrmgr::Daemon can executed this method'
-      unless ( defined($class) and ( $self->isa('Siebel::Srvrmgr::Daemon') ) );
+      'Must receive an instance of Siebel::Srvrmgr::Connection as parameter'
+      unless ( defined($conn_class)
+        and ( $conn_class->isa('Siebel::Srvrmgr::Connection') ) );
 
     if ( $self->has_lock ) {
         $self->_create_lock;
@@ -649,7 +480,7 @@ See perlport -> Issues -> Newlines for details on this.
 =cut
 
 sub normalize_eol {
-my ($self, $data_ref)= @_;
+    my ( $self, $data_ref ) = @_;
     my $ref_type = ref($data_ref);
     confess 'data parameter must be an array or scalar reference'
       unless ( ( $ref_type eq 'ARRAY' ) or ( $ref_type eq 'SCALAR' ) );
@@ -675,16 +506,19 @@ my ($self, $data_ref)= @_;
 
 Returns an instance of a L<Siebel::Srvrmgr::ListParser> class.
 
+Optionally, it can receive as parameter a string representing the field delimiter that is expected. If received, 
+the parameter will be used to create the instance.
+
 =cut
 
 sub create_parser {
-    my $self = shift;
+    my ( $self, $delimiter ) = @_;
 
-    if ( $self->get_field_del() ) {
+    if ( defined($delimiter) ) {
         return Siebel::Srvrmgr::ListParser->new(
             {
                 clear_raw       => $self->clear_raw(),
-                field_delimiter => $self->get_field_del()
+                field_delimiter => $delimiter
             }
         );
     }
@@ -695,31 +529,12 @@ sub create_parser {
 
 }
 
-sub _define_params {
-
-    my $self = shift;
-
-    my @params = (
-        $self->get_bin(),        '/e',
-        $self->get_enterprise(), '/g',
-        $self->get_gateway(),    '/u',
-        $self->get_user(),       '/l',
-        $self->get_lang_id()
-
-    );
-
-    push( @params, '/s', $self->get_server() )
-      if ( defined( $self->get_server() ) );
-
-    push( @params, '/k', $self->get_field_del() )
-      if ( defined( $self->get_field_del() ) );
-
 # :WORKAROUND:06/08/2013 21:05:32:: if a perl script will be executed (like for automated testing of this distribution)
 # then the perl interpreter must be part of the command path to avoid calling cmd.exe in Microsoft Windows
-    unshift( @params, $Config{perlpath} ) if ( $self->use_perl() );
-
-    return \@params;
-
+sub _define_params {
+    my ( $self, $params_ref ) = @_;
+    unshift( @{$params_ref}, $Config{perlpath} ) if ( $self->use_perl() );
+    return $params_ref;
 }
 
 =head2 get_lock_file
@@ -729,14 +544,10 @@ Returns the complete path to the lock file as a string.
 =cut
 
 sub get_lock_file {
-
-    my $self = shift;
-
+    my $self     = shift;
     my $filename = blessed($self);
     $filename =~ s/\:{2}/_/g;
-
     return File::Spec->catfile( $self->get_lock_dir, ( $filename . '.lock' ) );
-
 }
 
 our $adm_60070    = qr/^SBL-ADM-60070.*/;

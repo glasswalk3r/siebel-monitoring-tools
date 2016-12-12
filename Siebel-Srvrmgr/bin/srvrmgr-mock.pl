@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!perl
 use warnings;
 use strict;
 use Hash::Util qw(lock_keys);

@@ -64,15 +64,15 @@ C<run> available in the C<commands> attribute.
 use Moose 2.0401;
 use namespace::autoclean 0.13;
 use Siebel::Srvrmgr::Daemon::ActionFactory;
-use Siebel::Srvrmgr::ListParser;
 use Siebel::Srvrmgr::Daemon::Command;
-use Config;
 use Carp qw(longmess);
 use File::Temp 0.2304 qw(:POSIX);
 use Data::Dumper;
 use Siebel::Srvrmgr;
 use File::BOM 0.14 qw(:all);
 use Siebel::Srvrmgr::IPC qw(check_system);
+use Try::Tiny 0.27;
+
 # VERSION
 
 extends 'Siebel::Srvrmgr::Daemon';
@@ -135,30 +135,32 @@ to execute L<Siebel::Srvrmgr::Daemon::Command> instances in parallel.
 =cut
 
 override 'run' => sub {
-    my $self = shift;
+    my ( $self, $conn ) = @_;
     super();
     my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
     $logger->info('Starting run method');
-    my $parser = $self->create_parser();
+    my $parser     = $self->create_parser( $conn->get_field_del );
+    my $params_ref = $conn->get_params_pass;
+    $self->_define_params($params_ref);
 
     if ( $logger->is_debug() ) {
-
         $logger->debug( 'Calling system with the following parameters: '
-              . Dumper( $self->_define_params() ) );
+              . Dumper($params_ref) );
         $logger->debug(
             'Commands to be execute are: ' . Dumper( $self->get_commands() ) );
-
     }
 
-    my $ret_code = system( @{ $self->_define_params() } );
+    my $ret_code = system( @{$params_ref} );
     $self->_check_system( ${^CHILD_ERROR_NATIVE}, $ret_code, $? );
     my $in;
-    eval { open_bom( $in, $self->get_output_file(), ':utf8' ) };
 
-    if ($@) {
-        $logger->logdie(
-            'Cannot read ' . $self->get_output_file() . ': ' . $@ );
+    try {
+        open_bom( $in, $self->get_output_file(), ':utf8' );
     }
+    catch {
+        $logger->logdie(
+            'Cannot read ' . $self->get_output_file() . ': ' . $_ );
+    };
 
 # :TODO:22-09-2014 01:32:45:: this might be dangerous if the output is too large
     my @input_buffer = <$in>;
@@ -178,12 +180,10 @@ override 'run' => sub {
             my $total = $self->cmds_vs_tree( $parser->count_parsed() );
 
             if ( $logger->is_debug() ) {
-
                 $logger->debug( 'Total number of parsed items = '
                       . $parser->count_parsed() );
                 $logger->debug( 'Total number of submitted commands = '
                       . scalar( @{ $self->get_commands() } ) );
-
             }
 
             $logger->logdie(
@@ -194,9 +194,7 @@ override 'run' => sub {
             $parser->clear_parsed_tree();
 
             for ( my $i = 0 ; $i < $total ; $i++ ) {
-
-                my $cmd = ( @{ $self->get_commands() } )[$i];
-
+                my $cmd    = ( @{ $self->get_commands() } )[$i];
                 my $action = Siebel::Srvrmgr::Daemon::ActionFactory->create(
                     $cmd->get_action(),
                     {
@@ -204,32 +202,24 @@ override 'run' => sub {
                         params => $cmd->get_params()
                     }
                 );
-
                 $action->do_parsed( $parsed_ref->[$i] );
-
             }
 
         }
         else {
-
             $logger->logdie('Parser did not have a parsed tree after parsing');
-
         }
 
     }
     else {
-
         $logger->debug('buffer is empty');
-
     }
 
     $self->_set_child_runs( $self->get_child_runs() + 1 );
     $logger->debug( 'child_runs = ' . $self->get_child_runs() )
       if ( $logger->is_debug() );
     $logger->info('Exiting run sub');
-
     return 1;
-
 };
 
 =pod
@@ -321,44 +311,28 @@ sub _del_output_file {
 }
 
 override _setup_commands => sub {
-
     my $self = shift;
-
     super();
-
     my ( $fh, $input_file ) = tmpnam();
 
     foreach my $cmd ( @{ $self->get_commands() } ) {
-
         print $fh $cmd->get_command(), "\n";
-
     }
 
     close($fh);
-
     $self->_set_input_file($input_file);
-
 };
 
 override _define_params => sub {
-
-    my $self = shift;
-
-    my $params_ref = super();
-
+    my ( $self, $params_ref ) = @_;
+    super();
     $self->_set_output_file( scalar( tmpnam() ) );
-
     push(
         @{$params_ref},
         '/b', '/i', $self->get_input_file(),
         '/o', $self->get_output_file()
     );
-
-# :TODO:10/06/2015 07:09:25 PM:: this will expose the parameter when list the running processes
-    push( @{$params_ref}, '/p', $self->get_password() );
-
     return $params_ref;
-
 };
 
 # :TODO:18-10-2013:arfreitas: this should be done by IPC.pm module?
@@ -384,41 +358,28 @@ sub _manual_check {
 }
 
 sub _check_system {
-
-    my $self        = shift;
-    my $child_error = shift;
-    my $ret_code    = shift;
-    my $error_code  = shift;
+    my ($self, $child_error, $ret_code, $error_code) = @_;
 
     my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
-
     my ( $message, $is_error ) = check_system($child_error);
 
     unless ( ( defined($message) ) and ( defined($is_error) ) ) {
-
         $self->_manual_check( $ret_code, $error_code );
-
     }
     else {
 
         if ( defined($is_error) ) {
 
             if ($is_error) {
-
                 $logger->logdie($message);
-
             }
             else {
-
                 $logger->info($message);
-
             }
 
         }
         else {
-
             $logger->info( $message . "Error code is $error_code" );
-
         }
 
     }
