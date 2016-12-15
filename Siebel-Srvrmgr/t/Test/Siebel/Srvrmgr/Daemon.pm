@@ -45,13 +45,14 @@ BLOCK
 
 }
 
-sub _constructor : Test(11) {
+# 11
+sub _constructor : Test(2) {
     my $test = shift;
     $test->_set_log();
 
   SKIP: {
 
-        skip 'superclass does not have a implementation of _setup_commands', 2
+        skip 'superclass only validates commands with _setup_commands', 2
           if ( $test->class() eq 'Siebel::Srvrmgr::Daemon' );
         ok(
             $test->{daemon} = $test->class()->new(
@@ -60,8 +61,7 @@ sub _constructor : Test(11) {
                     has_lock  => 1,
                     use_perl  => 1,
                     time_zone => 'America/Sao_Paulo',
-                    , # important to avoid calling another interpreter besides perl when invoked by IPC::Open3
-                    commands => [
+                    commands  => [
                         Siebel::Srvrmgr::Daemon::Command->new(
                             command => 'load preferences',
                             action  => 'LoadPreferences'
@@ -88,36 +88,31 @@ sub _constructor : Test(11) {
         );
 
         isa_ok( $test->{daemon}, $test->class() );
+        $test->{conn} = Siebel::Srvrmgr::Connection->new(
+            {
+                bin =>
+                  File::Spec->catfile( 'blib', 'script', 'srvrmgr-mock.pl' ),
+                user       => 'foo',
+                password   => 'bar',
+                gateway    => 'foobar',
+                enterprise => 'foobar',
+            }
+        );
 
     }    # end of SKIP
 
-    $test->{daemon} = $test->class()
-      unless ( ( defined( $test->{daemon} ) )
-        and ( $test->{daemon}->isa( $test->class() ) ) );
+    unless (( defined( $test->{daemon} ) )
+        and ( $test->{daemon}->isa( $test->class() ) ) )
+    {
+        note(
+'Explicit disabling some tests for superclass Siebel::Srvrmgr::Daemon'
+        );
+        $test->{daemon} = $test->class();
+    }
 
 }
 
-# TODO: remove,  unused
-sub bad_instance {
-    my ( $test, $attrib_name ) = @_;
-    my %attribs = (
-        use_perl  => 1,
-        time_zone => 'America/Sao_Paulo',
-        , # important to avoid calling another interpreter besides perl when invoked by IPC::Open3
-        commands => [
-            Siebel::Srvrmgr::Daemon::Command->new(
-                command => 'load preferences',
-                action  => 'LoadPreferences'
-            ),
-        ]
-    );
-
-    $attribs{$attrib_name} = '';
-    return \%attribs;
-}
-
-# 24
-sub class_methods : Test(7) {
+sub class_methods : Test {
     my $test = shift;
     can_ok(
         $test->{daemon},
@@ -130,9 +125,14 @@ sub class_methods : Test(7) {
             'clear_raw',       'set_clear_raw',
             'use_perl',        'set_alarm',
             'get_alarm',       'get_time_zone',
-            'push_command',
+            'push_command',    'cmds_vs_tree'
         )
     );
+}
+
+sub class_methods2 : Test(6) {
+    my $test = shift;
+
     dies_ok { $test->{daemon}->check_cmd('shutdown comp foobar') }
     'check_cmd raises an exception with shutdown command';
     dies_ok { $test->{daemon}->check_cmd('change parameter foobar') }
@@ -234,24 +234,13 @@ sub the_last_run : Test(1) {
           or confess( 'Cannot change ' . $test->{lock_file} . $! );
         print $out $fake_pid;
         close($out);
-        my $conn = Siebel::Srvrmgr::Connection->new(
-            {
-                bin =>
-                  File::Spec->catfile( 'blib', 'script', 'srvrmgr-mock.pl' ),
-                user       => 'foo',
-                password   => 'bar',
-                gateway    => 'foobar',
-                enterprise => 'foobar',
-            }
-        );
-        dies_ok { $daemon2->run($conn) }
+        dies_ok { $daemon2->run( $test->{conn} ) }
         'a second instance cannot run while there is a lock available';
 
     }
 
 }
 
-# 18
 sub runs : Test(18) {
     my $test  = shift;
     my $class = blessed( $test->{daemon} );
@@ -262,19 +251,10 @@ sub runs : Test(18) {
           18
           unless ( defined($class)
             and ( $class ne 'Siebel::Srvrmgr::Daemon' ) );
-
-        my $conn = Siebel::Srvrmgr::Connection->new(
-            {
-                bin =>
-                  File::Spec->catfile( 'blib', 'script', 'srvrmgr-mock.pl' ),
-                user       => 'foo',
-                password   => 'bar',
-                gateway    => 'foobar',
-                enterprise => 'foobar',
-            }
+        ok(
+            $test->{daemon}->run( $test->{conn} ),
+            'run method executes successfuly'
         );
-
-        ok( $test->{daemon}->run($conn), 'run method executes successfuly' );
         my $lock_file = $test->{daemon}->get_lock_file;
         $test->{lock_file} = $lock_file;
         is( $test->{daemon}->get_child_runs(),
@@ -331,10 +311,16 @@ sub runs : Test(18) {
         );
         eq_or_diff_data( $test->{daemon}->get_commands,
             \@originals, 'get_commands returns the original set of commands' );
-        ok( $test->{daemon}->run($conn), 'run method executes successfuly (2)' );
+        ok(
+            $test->{daemon}->run( $test->{conn} ),
+            'run method executes successfuly (2)'
+        );
         is( $test->{daemon}->get_child_runs(),
             2, 'get_child_runs returns the expected number' );
-        ok( $test->{daemon}->run($conn), 'run method executes successfuly (3)' );
+        ok(
+            $test->{daemon}->run( $test->{conn} ),
+            'run method executes successfuly (3)'
+        );
         is( $test->{daemon}->get_child_runs(),
             3, 'get_child_runs returns the expected number' );
 
@@ -343,14 +329,11 @@ sub runs : Test(18) {
 }
 
 sub clean_up : Test(shutdown) {
-
     my $test = shift;
 
     # attempt to force log4perl to close the log file on Win32
     if ( exists( $test->{daemon} ) ) {
-
         delete( $test->{daemon} );
-
     }
 
     sleep 5;
@@ -358,15 +341,12 @@ sub clean_up : Test(shutdown) {
     # removes the dump files
     my $dir = getcwd();
     my @files;
-
     opendir( DIR, $dir ) or die "Cannot read $dir: $!\n";
 
     while ( readdir(DIR) ) {
 
         if ( defined($_) ) {
-
             push( @files, $_ ) if (/^dump\w/);
-
         }
 
     }
@@ -376,18 +356,13 @@ sub clean_up : Test(shutdown) {
     foreach my $file (@files) {
 
         if ( -e $file ) {
-
             my $exit = unlink $file;
 
             if ($exit) {
-
                 note("$file removed successfully");
-
             }
             else {
-
                 note("Cannot remove $file: $!");
-
             }
 
         }

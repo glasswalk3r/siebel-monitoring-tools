@@ -7,24 +7,29 @@ use Siebel::Srvrmgr::Daemon::ActionStash;
 use Cwd;
 use File::Spec;
 use Test::TempDir::Tiny;
+use Siebel::Srvrmgr::Connection;
 use lib 't';
 use Test::Siebel::Srvrmgr::Daemon::Action::Check::Component;
 use Test::Siebel::Srvrmgr::Daemon::Action::Check::Server;
 use lib 'xt';
 
 my $server = build_server('siebfoobar');
+my $conn   = Siebel::Srvrmgr::Connection->new(
+    {
+        bin      => File::Spec->catfile( 'blib', 'script', 'srvrmgr-mock.pl' ),
+        user     => 'foo',
+        password => 'bar',
+        gateway  => 'foobar',
+        enterprise => 'foobar',
+    }
+);
+
 my $daemon = Siebel::Srvrmgr::Daemon::Heavy->new(
     {
-        gateway    => 'whatever',
-        enterprise => 'whatever',
-        user       => 'whatever',
-        password   => 'whatever',
-        server     => 'whatever',
-        bin        => File::Spec->catfile( getcwd(), 'bin', 'srvrmgr-mock.pl' ),
-        use_perl   => 1,
-        time_zone  => 'America/Sao_Paulo',
-        timeout    => 0,
-        commands   => [
+        use_perl  => 1,
+        time_zone => 'America/Sao_Paulo',
+        timeout   => 0,
+        commands  => [
             Siebel::Srvrmgr::Daemon::Command->new(
                 command => 'list comp',
                 action  => 'CheckComps',
@@ -42,7 +47,7 @@ my ( $tmp_dir, $log_file, $log_cfg ) = set_log();
 my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
 
 for ( 1 .. $repeat ) {
-    $daemon->run();
+    $daemon->run($conn);
     my $data = $stash->shift_stash();
     is( scalar( keys( %{$data} ) ), 1, 'only one server is returned' );
     my ($servername) = keys( %{$data} );

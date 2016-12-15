@@ -12,14 +12,7 @@ Siebel::Srvrmgr::Daemon::Heavy - subclass that reuses srvrmgr program instance f
 
     my $daemon = Siebel::Srvrmgr::Daemon::Heavy->new(
         {
-            server      => 'servername',
-            gateway     => 'gateway',
-            enterprise  => 'enterprise',
-            user        => 'user',
-            password    => 'password',
-            bin         => 'c:\\siebel\\client\\bin\\srvrmgr.exe',
             time_zone   => 'America/Sao_Paulo',
-            has_lock    => 1, 
             commands    => [
                     Siebel::Srvrmgr::Daemon::Command->new(
                         command => 'load preferences',
@@ -43,12 +36,13 @@ Siebel::Srvrmgr::Daemon::Heavy - subclass that reuses srvrmgr program instance f
                 ]
         }
     );
+    $daemon->run($connection);
 
 
 =head1 DESCRIPTION
 
 This class extends L<Siebel::Srvmrgr::Daemon>. By "Heavy" you should understand as more complex code to be able to deal with a large number of commands
-of C<srvrmgr>.
+of C<srvrmgr> that will be submitted to a Siebel Enterprise with a short time between them.
 
 This class is indicated to be used in scenarios where several commands need to be executed in a short time interval: it will connect to srvrmgr by using 
 IPC for communication between the processes and once connected, the srvrmgr session will be reused as many times as desired instead of following the
@@ -77,6 +71,7 @@ use IO::Select;
 use Encode;
 use Carp qw(longmess);
 use Siebel::Srvrmgr;
+
 # VERSION
 
 extends 'Siebel::Srvrmgr::Daemon';
@@ -414,7 +409,7 @@ Those operations will be executed in a loop as long the C<check> method from the
 # srvrmgr but the program will hang if there is no output left to be read from srvrmgr.
 
 override 'run' => sub {
-    my ($self, $conn) = @_;
+    my ( $self, $conn ) = @_;
     super();
     my $logger;
     my $temp;
@@ -422,9 +417,9 @@ override 'run' => sub {
     my ( $read_h, $write_h, $error_h );
 
     unless ( $self->has_pid() ) {
-        confess( $self->get_bin()
+        confess( $conn->get_bin()
               . ' returned un unrecoverable error, aborting execution' )
-          unless ( $self->_create_child() );
+          unless ( $self->_create_child($conn) );
 
 # :WORKAROUND:31/07/2013 14:42:33:: must initialize the Log::Log4perl after forking the srvrmgr to avoid sharing filehandles
         $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
@@ -460,8 +455,8 @@ override 'run' => sub {
 # :WARNING:22-03-2016 23:21:53:: configuration of EOL is obscure but possible in Siebel. The hardcode values might
 # be a problem
 # :TODO:22-03-2016 23:22:29:: add more attributes to take care of it, with default values
-    my $CR = "\o{15}";
-    my $LF = "\o{12}";
+    my $CR          = "\o{15}";
+    my $LF          = "\o{12}";
     my $eol_regex   = qr/$CR$LF$/;
     my $buffer_size = $self->get_buffer_size();
 
@@ -753,45 +748,34 @@ override 'run' => sub {
 };
 
 sub _manage_handlers {
-
-    my $self   = shift;
-    my $select = shift;    # IO::Select object
-
+    my ( $self, $select ) = @_;
     my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
 
     # to keep data from both handles while looping over them
     my %data;
-
     my @handlers_order = (qw(STDOUT STDERR));
     my $counter        = 0;
 
     foreach my $fh ( $self->get_read(), $self->get_error() ) {
-
         my $fh_name = fileno($fh);
-
         $data{$fh_name} = {
             type  => $handlers_order[$counter],
             bytes => 0,
             data  => undef
         };
-
         $select->add($fh);
 
         if ( $logger->is_debug() ) {
 
             if ( openhandle($fh) ) {
-
                 $logger->debug(
 "file handler for $counter is available, with fileno = $fh_name "
                 );
-
             }
             else {
-
                 $logger->debug(
 "file handler for $counter is NOT available, with fileno = $fh_name "
                 );
-
             }
 
         }
@@ -805,7 +789,7 @@ sub _manage_handlers {
 }
 
 sub _create_child {
-    my ($self, $conn) = @_;
+    my ( $self, $conn ) = @_;
     my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
 
     if ( $self->get_retries() >= $self->get_max_retries() ) {
@@ -817,10 +801,12 @@ sub _create_child {
         exit(1);
     }
 
-    $logger->logdie( 'Cannot find program ' . $self->get_bin() . ' to execute' )
-      unless ( -e $conn->get_bin() );
-    my $params_ref = $self->_define_params();
+    $logger->logdie( 'Cannot find program ' . $conn->get_bin() . ' to execute' )
+      unless ( -e $conn->get_bin() && -x _ );
+    my $params_ref = $conn->get_params;
+    $self->_define_params($params_ref);
     my ( $pid, $write_h, $read_h, $error_h ) = safe_open3($params_ref);
+
   # submit the password, avoiding exposing it in the command line as a parameter
     syswrite $write_h, ( $conn->get_password . "\n" );
     $self->_set_pid($pid);
@@ -849,7 +835,7 @@ sub _create_child {
 
 sub _process_stderr {
     exit if ($SIG_INT);
-    my ($self, $data_ref) = @_;
+    my ( $self, $data_ref ) = @_;
 
     my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
 
@@ -868,10 +854,12 @@ sub _process_stderr {
 }
 
 sub _process_stdout {
+
 # :TODO      :07/08/2013 15:12:17:: should this be controlled in instances? or should it be global to the class?
     exit if ( $SIG_INT or $SIG_PIPE );
-    my ($self, $data_ref, $buffer_ref, $condition) = @_;
+    my ( $self, $data_ref, $buffer_ref, $condition ) = @_;
     my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
+
 # :TODO      :09/08/2013 19:35:30:: review and remove assigning the compiled regexes to scalar (probably unecessary)
     my $prompt_regex    = SRVRMGR_PROMPT;
     my $load_pref_regex = LOAD_PREF_RESP;
@@ -959,7 +947,7 @@ sub _process_stdout {
 }
 
 sub _check_child {
-    my $self = shift;
+    my $self   = shift;
     my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
 
     if ( $self->has_pid() ) {
@@ -1030,7 +1018,7 @@ sub _check_child {
 }
 
 sub _my_cleanup {
-    my $self = shift;
+    my $self   = shift;
     my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
 
     if ( $self->has_pid() and ( $self->get_pid() =~ /\d+/ ) ) {

@@ -16,7 +16,6 @@ sub class_methods : Test(+1) {
         $test->{daemon},
         (
             'get_commands',     'set_commands',
-            'get_bin',          'set_bin',
             'get_write',        'get_read',
             'get_last_cmd',     'get_cmd_stack',
             'get_params_stack', 'get_buffer_size',
@@ -26,8 +25,8 @@ sub class_methods : Test(+1) {
             '_check_error',     '_check_child',
             '_submit_cmd',      'close_child',
             'has_pid',          'clear_pid',
-            '_manage_handlers', 'retries',
-            'maximum_retries'
+            '_manage_handlers', 'get_retries',
+            'get_max_retries'
         )
     );
 }
@@ -40,7 +39,8 @@ sub class_attributes : Tests {
         'cmd_stack',      'params_stack',
         'action_stack',   'ipc_buffer_size',
         'srvrmgr_prompt', 'read_timeout',
-        'child_pid'
+        'child_pid',      'retries',
+        'maximum_retries'
     );
     $test->SUPER::class_attributes( \@attribs );
 }
@@ -61,7 +61,7 @@ sub runs_with_stderr : Test(4) {
             ),
         ]
     );
-    ok( $test->{daemon}->run(), 'run executes OK' );
+    ok( $test->{daemon}->run( $test->{conn} ), 'run executes OK' );
     ok(
         $test->_search_log_msg(qr/oh\sgod\,\snot\stoday/),
         'can find warn message in the log file'
@@ -74,7 +74,8 @@ sub runs_with_stderr : Test(4) {
             ),
         ]
     );
-    dies_ok { $test->{daemon}->run() } 'run dies due fatal error';
+    dies_ok { $test->{daemon}->run( $test->{conn} ) }
+    'run dies due fatal error';
     ok(
         $test->_search_log_msg(
             qr/FATAL.*Could\snot\sfind\sthe\sSiebel\sServer/),
@@ -118,26 +119,21 @@ sub the_termination : Tests(4) {
 sub _search_log_msg {
     my ( $test, $msg_regex ) = @_;
     my $found = 0;
-
     open( my $in, '<', $test->{log_file} )
       or die 'Cannot read ' . $test->{log_file} . ': ' . $! . "\n";
 
     while (<$in>) {
-
         chomp();
-        if (/$msg_regex/) {
 
+        if (/$msg_regex/) {
             $found = 1;
             last;
-
         }
 
     }
 
     close($in) or die 'Cannot close ' . $test->{log_file} . ': ' . $! . "\n";
-
     return $found;
-
 }
 
 1;

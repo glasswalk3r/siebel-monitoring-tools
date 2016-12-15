@@ -12,12 +12,7 @@ Siebel::Srvrmgr::Daemon::Light - subclass for running commmands with srvrmgr in 
 
     my $daemon = Siebel::Srvrmgr::Daemon::Light->new(
         {
-            server      => 'servername',
-            gateway     => 'gateway',
-            enterprise  => 'enterprise',
-            user        => 'user',
-            password    => 'password',
-            bin         => 'c:\\siebel\\client\\bin\\srvrmgr.exe',
+            time_zone   => 'America/Sao_Paulo',
 			commands    => [
 			        Siebel::Srvrmgr::Daemon::Command->new(
                         command => 'load preferences',
@@ -41,6 +36,7 @@ Siebel::Srvrmgr::Daemon::Light - subclass for running commmands with srvrmgr in 
                 ]
         }
     );
+    $daemon->run($connection);
 
 
 =head1 DESCRIPTION
@@ -76,6 +72,8 @@ use Try::Tiny 0.27;
 # VERSION
 
 extends 'Siebel::Srvrmgr::Daemon';
+
+with 'Siebel::Srvrmgr::Daemon::Cleanup';
 
 =pod
 
@@ -222,93 +220,10 @@ override 'run' => sub {
     return 1;
 };
 
-=pod
-
-=head2 cmds_vs_tree
-
-This method compares the number of C<commands> defined in a instance of this class with the number of nodes passed as parameter.
-
-If their are equal, the number is returned. If their are different (and there is a problem with the parsed output of srvrmgr) this method
-returns C<undef>.
-
-=cut
-
-sub cmds_vs_tree {
-
-    my $self      = shift;
-    my $nodes_num = shift;
-
-    my $cmds_num = scalar( @{ $self->get_commands() } );
-
-    if ( $cmds_num == $nodes_num ) {
-
-        return $nodes_num;
-
-    }
-    else {
-
-        return;
-
-    }
-
-}
-
 override _my_cleanup => sub {
-
     my $self = shift;
-
     return $self->_del_input_file() && $self->_del_output_file();
-
 };
-
-sub _del_file {
-
-    my $self     = shift;
-    my $filename = shift;
-
-    if ( defined($filename) ) {
-        if ( -e $filename ) {
-
-            my $ret = unlink $filename;
-
-            if ($ret) {
-
-                return 1;
-
-            }
-            else {
-
-                warn "Could not remove $filename: $!";
-                return 0;
-
-            }
-
-        }
-        else {
-
-            warn "File $filename does not exists";
-            return 0;
-
-        }
-    }
-
-}
-
-sub _del_input_file {
-
-    my $self = shift;
-
-    return $self->_del_file( $self->get_input_file() );
-
-}
-
-sub _del_output_file {
-
-    my $self = shift;
-
-    return $self->_del_file( $self->get_output_file() );
-
-}
 
 override _setup_commands => sub {
     my $self = shift;
@@ -337,28 +252,21 @@ override _define_params => sub {
 
 # :TODO:18-10-2013:arfreitas: this should be done by IPC.pm module?
 sub _manual_check {
-
-    my $self       = shift;
-    my $ret_code   = shift;
-    my $error_code = shift;
-    my $logger     = Siebel::Srvrmgr->gimme_logger( blessed($self) );
+    my ( $self, $ret_code, $error_code ) = @_;
+    my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
 
     if ( $ret_code == 0 ) {
-
         $logger->info(
             'Child process terminate successfully with return code = 0');
-
     }
     else {
-
         $logger->logdie( 'system failed to execute srvrmgr: ' . $error_code );
-
     }
 
 }
 
 sub _check_system {
-    my ($self, $child_error, $ret_code, $error_code) = @_;
+    my ( $self, $child_error, $ret_code, $error_code ) = @_;
 
     my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
     my ( $message, $is_error ) = check_system($child_error);
@@ -387,12 +295,6 @@ sub _check_system {
 }
 
 =pod
-
-=head1 CAVEATS
-
-This class is still considered experimental and should be used with care.
-
-The C<srvrmgr> program uses buffering, which makes difficult to read the generated output as expected.
 
 =head1 SEE ALSO
 

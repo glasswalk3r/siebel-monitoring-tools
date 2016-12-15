@@ -336,6 +336,28 @@ sub BUILD {
 
 }
 
+=head2 cmds_vs_tree
+
+This method compares the number of C<commands> defined in a instance of this class with the number of nodes passed as parameter.
+
+If their are equal, the number is returned. If their are different (and there is a problem with the parsed output of srvrmgr) this method
+returns C<undef>.
+
+=cut
+
+sub cmds_vs_tree {
+    my ( $self, $nodes_num ) = @_;
+    my $cmds_num = scalar( @{ $self->get_commands() } );
+
+    if ( $cmds_num == $nodes_num ) {
+        return $nodes_num;
+    }
+    else {
+        return;
+    }
+
+}
+
 =head2 check_cmd
 
 This methods expects as parameter a string representing a C<srvrmgr> command.
@@ -838,13 +860,10 @@ sub _define_lock_dir {
 }
 
 sub _setup_commands {
-
     my $self = shift;
 
     foreach my $cmd ( @{ $self->get_commands } ) {
-
         $self->check_cmd( $cmd->get_command() );
-
     }
 
 }

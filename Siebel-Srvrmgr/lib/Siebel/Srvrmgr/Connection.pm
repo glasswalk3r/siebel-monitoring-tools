@@ -9,6 +9,22 @@ use Carp;
 
 Siebel::Srvrmgr::Connection - class responsible to provide connection details with a Siebel Enterprise
 
+=head1 SYNOPSIS
+
+    use Siebel::Srvrmgr::Connection;
+
+    my $conn = Siebel::Srvrmgr::Connection->new({ 
+        server      => 'servername',
+        gateway     => 'gateway',
+        enterprise  => 'enterprise',
+        user        => 'user',
+        password    => 'password',
+        bin         => 'c:\\siebel\\client\\bin\\srvrmgr.exe',
+        lang_id     => 'PTB', 
+        field_delimiter => '|'
+    });
+
+
 =head1 DESCRIPTION
 
 This class holds all the details regarding necessary parameters to connect to a Siebel Enterprise by using srvrmgr.

@@ -31,33 +31,25 @@ Executing C<load preferences> is particullary useful for setting the correct col
 
 =head2 do_parsed
 
-It checks if the given object as parameter is a L<Siebel::Srvrmgr::ListParser::Output::LoadPreferences> object. If true it returns true, otherwise
+It checks if the given object as parameter is a L<Siebel::Srvrmgr::ListParser::Output::LoadPreferences> object and then returning true, otherwise
 returns false.
 
 =cut
 
 override 'do_parsed' => sub {
-
-    my $self = shift;
-    my $item = shift;
+    my ($self, $item) = @_;
 
     if ( blessed($item) eq $self->get_exp_output() ) {
-
         return 1;
-
     }
     else {
-
         return 0;
-
     }
 
 };
 
 override _build_exp_output => sub {
-
     return 'Siebel::Srvrmgr::ListParser::Output::LoadPreferences';
-
 };
 
 =pod
