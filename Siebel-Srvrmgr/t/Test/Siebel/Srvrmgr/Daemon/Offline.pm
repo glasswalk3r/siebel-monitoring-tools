@@ -74,26 +74,25 @@ sub class_methods : Test(+2) {
     does_ok( $test->{daemon}, 'Siebel::Srvrmgr::Daemon::Cleanup' );
 }
 
-sub class_methods2 : Test(6) {
+sub class_methods2 : Test(+6) {
   SKIP: {
         skip 'This class does not implement such test', 6 if (1);
     }
 
 }
 
-sub runs : Test {
+sub runs : Test(+1) {
     my $test = shift;
     ok( $test->{daemon}->run(), 'run method executes successfuly' );
-
 }
 
-sub class_attributes : Test {
+sub class_attributes : Test(+2) {
     my $test    = shift;
     my @attribs = (qw(output_file field_delimiter));
     $test->SUPER::class_attributes( \@attribs );
 }
 
-sub last_run : Test {
+sub last_run : Test(+1) {
 
   SKIP: {
         skip 'This class does not implement such test', 1 if (1);

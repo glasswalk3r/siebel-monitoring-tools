@@ -7,14 +7,14 @@ use Siebel::Srvrmgr::Daemon::ActionStash;
 use Cwd;
 use File::Spec;
 use Test::TempDir::Tiny;
+use Siebel::Srvrmgr::Connection;
 use lib 't';
 use Test::Siebel::Srvrmgr::Daemon::Action::Check::Component;
 use Test::Siebel::Srvrmgr::Daemon::Action::Check::Server;
 use lib 'xt';
-use Test::Fixtures qw(build_server);
+use Test::Fixtures qw(build_server build_conn);
 
-my $daemon;
-my $server;
+my ( $daemon, $server, $conn );
 
 # setting a INI file with configuration to connect to a real Siebel Enterprise will
 # enable the tests below
@@ -33,17 +33,9 @@ if (    ( exists( $ENV{SIEBEL_SRVRMGR_DEVEL} ) )
         $cfg->val( 'GENERAL', 'server' ),
         $cfg->val( 'GENERAL', 'comp_list' )
     );
+    $conn   = build_conn($cfg);
     $daemon = Siebel::Srvrmgr::Daemon::Light->new(
         {
-            gateway    => $cfg->val( 'GENERAL', 'gateway' ),
-            enterprise => $cfg->val( 'GENERAL', 'enterprise' ),
-            user       => $cfg->val( 'GENERAL', 'user' ),
-            password   => $cfg->val( 'GENERAL', 'password' ),
-            server     => $cfg->val( 'GENERAL', 'server' ),
-            bin        => File::Spec->catfile(
-                $cfg->val( 'GENERAL', 'srvrmgr_path' ),
-                $cfg->val( 'GENERAL', 'srvrmgr_bin' )
-            ),
             use_perl     => 0,
             time_zone    => 'America/Sao_Paulo',
             read_timeout => 15,
@@ -63,19 +55,23 @@ if (    ( exists( $ENV{SIEBEL_SRVRMGR_DEVEL} ) )
 }
 else {
     note('Running with hardcoded values');
-    $server = build_server('siebfoobar');
-    $daemon = Siebel::Srvrmgr::Daemon::Light->new(
+    $conn = Siebel::Srvrmgr::Connection->new(
         {
             gateway    => 'whatever',
             enterprise => 'whatever',
             user       => 'whatever',
             password   => 'whatever',
             server     => 'whatever',
-            bin        => File::Spec->catfile( getcwd(), 'bin', 'srvrmgr-mock.pl' ),
-            use_perl   => 1,
-            time_zone  => 'America/Sao_Paulo',
-            timeout    => 0,
-            commands   => [
+            bin => File::Spec->catfile( getcwd(), 'bin', 'srvrmgr-mock.pl' ),
+        }
+    );
+    $server = build_server('siebfoobar');
+    $daemon = Siebel::Srvrmgr::Daemon::Light->new(
+        {
+            use_perl  => 1,
+            time_zone => 'America/Sao_Paulo',
+            timeout   => 0,
+            commands  => [
                 Siebel::Srvrmgr::Daemon::Command->new(
                     command => 'list comp',
                     action  => 'CheckComps',
@@ -86,12 +82,12 @@ else {
     );
 }
 
-my $repeat      = 120;
+my $repeat = 120;
 my ( $tmp_dir, $log_file, $log_cfg ) = set_log();
 my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
 
 for ( 1 .. $repeat ) {
-    $daemon->run();
+    $daemon->run($conn);
     my $data = $stash->shift_stash();
     is( scalar( keys( %{$data} ) ), 1, 'only one server is returned' );
     my ($servername) = keys( %{$data} );
@@ -113,7 +109,7 @@ sub set_log {
     my $tmp_dir  = tempdir();
     my $log_file = File::Spec->catfile( $tmp_dir, 'daemon.log' );
     my $log_cfg  = File::Spec->catfile( $tmp_dir, 'log4perl.cfg' );
-    my $config = <<BLOCK;
+    my $config   = <<BLOCK;
 log4perl.logger.Siebel.Srvrmgr.Daemon = WARN, LOG1
 log4perl.appender.LOG1 = Log::Log4perl::Appender::File
 log4perl.appender.LOG1.filename  = $log_file

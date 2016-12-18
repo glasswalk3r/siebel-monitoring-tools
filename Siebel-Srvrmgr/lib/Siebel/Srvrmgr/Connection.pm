@@ -7,7 +7,7 @@ use Carp;
 
 =head1 NAME
 
-Siebel::Srvrmgr::Connection - class responsible to provide connection details with a Siebel Enterprise
+Siebel::Srvrmgr::Connection - class responsible to provide connection details of a Siebel Enterprise
 
 =head1 SYNOPSIS
 
@@ -30,6 +30,9 @@ Siebel::Srvrmgr::Connection - class responsible to provide connection details wi
 This class holds all the details regarding necessary parameters to connect to a Siebel Enterprise by using srvrmgr.
 
 It should be used by any class that need to do that.
+
+Beware that this class B<does not> hold a connection by itself, only the necessary data to request one. You can share those details, but
+not the connection itself.
 
 =head1 ATTRIBUTES
 
