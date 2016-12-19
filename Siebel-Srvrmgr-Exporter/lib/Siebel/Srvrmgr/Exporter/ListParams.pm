@@ -13,6 +13,7 @@ use namespace::autoclean 0.13;
 use Siebel::Srvrmgr::Daemon::ActionStash 0.21;
 
 extends 'Siebel::Srvrmgr::Daemon::Action';
+
 # VERSION
 
 =pod
@@ -34,17 +35,14 @@ Returns true if everything went ok, false otherwise.
 =cut
 
 override 'do_parsed' => sub {
-
     my ( $self, $obj ) = @_;
     confess
 "invalid Siebel::Srvrmgr::ListParser::Output::Tabular subclass instance received as parameter"
       unless (
         $obj->isa('Siebel::Srvrmgr::ListParser::Output::Tabular::ListParams') );
     my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
-    $stash->set_stash( [$obj] );
-
+    $stash->push_stash($obj);
     return 1;
-
 };
 
 =pod

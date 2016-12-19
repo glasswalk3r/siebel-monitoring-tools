@@ -36,21 +36,15 @@ Otherwise it will return 0.
 # :TODO:11-10-2013:arfreitas: all those subclasses of Action does the same thing in do_parsed, refactor
 # the sub to a generic one that uses a new attribute of type for checking
 override 'do_parsed' => sub {
-
-    my $self = shift;
-    my $obj  = shift;
+    my ($self, $obj) = @_;
 
     if ( $obj->isa('Siebel::Srvrmgr::ListParser::Output::Tabular::ListCompTypes') ) {
-
         my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
-        $stash->set_stash( [ $obj->get_data_parsed() ] );
-
+        $stash->push_stash($obj->get_data_parsed());
         return 1;
-
     }
 
     return 0;
-
 };
 
 =pod

@@ -39,21 +39,15 @@ and the function returns 1 in this case. Otherwise it will return 0.
 =cut
 
 override 'do_parsed' => sub {
-
-    my $self = shift;
-    my $obj  = shift;
+    my ($self, $obj) = @_;
 
     if ( $obj->isa('Siebel::Srvrmgr::ListParser::Output::Tabular::ListCompDef') ) {
-
         my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
-        $stash->set_stash( [ $obj->get_data_parsed() ] );
-
+        $stash->push_stash($obj->get_data_parsed());
         return 1;
-
     }
 
     return 0;
-
 };
 
 =pod

@@ -11,15 +11,18 @@ Siebel::Srvrmgr::Daemon::Offline - subclass that reads srvrmgr output from a fil
     use Siebel::Srvrmgr::Daemon::Offline;
     my $daemon = Siebel::Srvrmgr::Daemon::Offline->new(
         {
-            output_file => File::Spec->catfile('some', 'location', 'to', 'srvrmgr', 'output', 'file')
+            output_file => File::Spec->catfile('some', 'location', 'to', 'srvrmgr', 'output', 'file'), 
+            field_delimiter => $field_delimiter;
         }
     );
-    $daemon->run($field_delimiter);
+    $daemon->run();
 
 
 =head1 DESCRIPTION
 
 This is a subclass of L<Siebel::Srvrmgr::Daemon> used to execute the C<srvrmgr> program in batch mode.
+
+This class also uses the L<Siebel::Srvrmgr::Daemon::Cleanup> role.
 
 =cut
 
@@ -62,7 +65,7 @@ has output_file => (
 
 An optional, read-write parameter during object creation.
 
-If the file defined by C<output_file> has fields separated by a delimiter, you should set this attribute.
+If the file defined by C<output_file> has fields separated by a delimiter, you must set this attribute or output parsing will fail.
 
 If setup, expects a single character.
 
@@ -98,7 +101,6 @@ override 'run' => sub {
     close($in);
 
     if ( scalar(@input_buffer) >= 1 ) {
-
         $self->_check_error( \@input_buffer, 0 );
         $self->normalize_eol( \@input_buffer );
 

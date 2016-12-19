@@ -20,8 +20,8 @@ Siebel::Srvrmgr::Daemon::ActionStash - singleton to stash data returned by Siebe
     package main;
 
     my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
-
-    # do something with the get_stash method
+    my $something = $stash->shift_stash()
+    # do something with $something
 
 =head1 DESCRIPTION
 
@@ -42,6 +42,7 @@ Considering this situation, the interface of this class should be considered exp
 use warnings;
 use strict;
 use MooseX::Singleton 0.29;
+
 # VERSION
 
 =pod
@@ -84,28 +85,22 @@ Beware that such call will complete remove all other data stored in the stash. T
 
 Expects as parameter a reference.
 
-Pushes a new reference into the C<stash> attribute.
+C<push>es a new reference into the C<stash> attribute.
 
 If there is no member in the C<stash> attribute, the method C<set_stash> will be invoked to set the attribute.
 
 =cut
 
 sub push_stash {
-
-    my $self = shift;
-    my $ref  = shift;
-
+    my ( $self, $ref ) = @_;
+    $DB::single = 1;
     my $array_ref = $self->get_stash;
 
     if ( scalar( @{$array_ref} ) > 0 ) {
-
         push( @{$array_ref}, $ref );
-
     }
     else {
-
         $self->set_stash( [$ref] );
-
     }
 
     return 1;
@@ -114,18 +109,15 @@ sub push_stash {
 
 =head2 shift_stash
 
-Shifts the C<stash> attribute, removing the first item in the attribute and returning it.
+C<shift>s the C<stash> attribute, removing the first item in the attribute and returning it.
 
 If there is not other member to be shift, it will return undef.
 
 =cut
 
 sub shift_stash {
-
     my $self = shift;
-
     return shift( @{ $self->get_stash() } );
-
 }
 
 =head2 shift_all
@@ -137,12 +129,21 @@ It is basically calling C<get_stash> and C<set_stash> with an empty array refere
 =cut
 
 sub shift_all {
-
     my $self = shift;
     my $ref  = $self->get_stash();
     $self->set_stash( [] );
     return $ref;
+}
 
+=head2 pop_stash 
+
+C<pop>s the C<stash> attribute, returning the last element.
+
+=cut
+
+sub pop_stash {
+    my $self = shift;
+    return pop( @{ $self->get_stash } );
 }
 
 =head1 SEE ALSO

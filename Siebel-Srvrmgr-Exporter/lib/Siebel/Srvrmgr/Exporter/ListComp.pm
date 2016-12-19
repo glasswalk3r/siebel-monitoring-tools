@@ -35,21 +35,15 @@ This method will return 1 if this operation was executed sucessfuly, 0 otherwise
 =cut
 
 override 'do_parsed' => sub {
-
-    my $self = shift;
-    my $obj  = shift;
-
+    my ($self, $obj) = @_;
     my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
 
     if ( $obj->isa('Siebel::Srvrmgr::ListParser::Output::Tabular::ListComp') ) {
-
         my $servers_ref = $obj->get_servers();
-
         warn "Could not fetch servers\n"
           unless ( scalar( @{$servers_ref} ) > 0 );
 
         foreach my $servername ( @{$servers_ref} ) {
-
             my $server = $obj->get_server($servername);
 
             if (
@@ -57,16 +51,11 @@ override 'do_parsed' => sub {
                     'Siebel::Srvrmgr::ListParser::Output::ListComp::Server')
               )
             {
-
-                $stash->set_stash( [$server] );
-
+                $stash->push_stash($server);
                 return 1;
-
             }
             else {
-
                 warn "could not fetch $servername data\n";
-
             }
 
         }
@@ -74,7 +63,6 @@ override 'do_parsed' => sub {
     }
 
     return 0;
-
 };
 
 =pod

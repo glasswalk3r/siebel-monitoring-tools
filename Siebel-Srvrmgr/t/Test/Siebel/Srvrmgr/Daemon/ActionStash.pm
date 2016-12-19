@@ -6,15 +6,11 @@ use Test::Moose 'has_attribute_ok';
 use base 'Test::Siebel::Srvrmgr';
 
 sub all_my_tests : Tests(12) {
-
     my $test  = shift;
     my $class = $test->class;
-
-    can_ok( $class, qw(new get_stash set_stash shift_stash push_stash) );
-
+    can_ok( $class, qw(new get_stash set_stash shift_stash push_stash pop_stash) );
     my $stash;
     my $stash_param;
-
     ok( $stash = $class->new(), 'the constructor should succeed' );
     has_attribute_ok( $stash, 'stash' );
     dies_ok(
@@ -42,7 +38,6 @@ sub all_my_tests : Tests(12) {
         'shift_stash() returns a array ref' );
     is( scalar( @{ $stash->get_stash() } ),
         0, 'now the get_stash() returns zero elements' );
-
 }
 
 1;

@@ -22,48 +22,44 @@
 use warnings;
 use strict;
 use Config;
-use Siebel::Srvrmgr::ListParser::Output::ListComp::Server 0.24;
-use Siebel::Srvrmgr::ListParser::Output::Tabular::ListParams 0.24;
-use Siebel::Srvrmgr::Daemon::Command 0.24;
+use Siebel::Srvrmgr::ListParser::Output::ListComp::Server 0.28;
+use Siebel::Srvrmgr::ListParser::Output::Tabular::ListParams 0.28;
+use Siebel::Srvrmgr::Daemon::Command 0.28;
+use Siebel::Srvrmgr::Daemon::Offline 0.28;
+use Siebel::Srvrmgr::Daemon::Heavy 0.28;
+use Siebel::Srvrmgr::Daemon::Light 0.28;
+use Siebel::Srvrmgr::Connection 0.28;
 use Siebel::Srvrmgr::Exporter::ListCompDef;
 use Siebel::Srvrmgr::Exporter::ListComp;
 use Siebel::Srvrmgr::Exporter::ListCompTypes;
+use Siebel::Srvrmgr::Exporter::ListParams;
 use File::Spec;
 use Getopt::Long;
-use Pod::Usage;
+use Pod::Usage 1.69;
 use Siebel::Srvrmgr::Exporter;
 
 # VERSION
-
-my $VERSION = 1;
-
-my $yap;
+my $class;
+my %params = (
+    name      => 'Starting... ',
+    rotatable => 1,
+    time      => 1
+);
 
 BEGIN {
 
-    my %params = (
-        name      => 'Connecting to Siebel and getting initial data... ',
-        rotatable => 1,
-        time      => 1
-    );
-
     if ( $Config{useithreads} ) {
         require Term::YAP::iThread;
-        $yap = Term::YAP::iThread->new( \%params );
+        $class = 'Term::YAP::iThread';
     }
     else {
         require Term::YAP::Process;
-        $yap = Term::YAP::Process->new( \%params );
-    }
-
-    if ( $Config{osname} eq 'MSWin32' ) {
-        require Siebel::Srvrmgr::Daemon::Light;
-    }
-    else {
-        require Siebel::Srvrmgr::Daemon::Heavy;
+        $class = 'Term::YAP::Process';
     }
 
 }
+
+my $yap = $class->new( \%params );
 
 my (
     $server, $gateway, $enterprise, $user,     $pass, $bin,
@@ -90,21 +86,25 @@ GetOptions(
 ) or pod2usage(1);
 
 pod2usage( -exitval => 0, -verbose => 2 ) if $help;
-pod2usage( -exitval => 1, -verbose => 2 )
-  unless (
-    defined($offline)
-    or (    defined($server)
-        and defined($gateway)
-        and defined($enterprise)
-        and defined($user)
-        and defined($pass)
-        and defined($bin) )
-  );
 
 if ($version) {
-    print "export_comps - version $VERSION\n";
+    print "export_comps.pl - version $VERSION\n";
     exit(0);
 }
+
+pod2usage( -exitval => 1, -verbose => 2 )
+  unless (
+    defined($regex)
+    and (
+        defined($offline)
+        or (    defined($server)
+            and defined($gateway)
+            and defined($enterprise)
+            and defined($user)
+            and defined($pass)
+            and defined($bin) )
+    )
+  );
 
 if (    ( $Config{osname} eq 'MSWin32' )
     and ( not( $Config{useithreads} ) ) )
@@ -113,46 +113,77 @@ if (    ( $Config{osname} eq 'MSWin32' )
 'Sorry, your perl does not support ithreads: this program will not work correctly unless you select the "--quiet" option';
 }
 
-my $daemon;
+my ( $daemon, $conn );
+my %options = (
+    time_zone => ( defined($timezone) ) ? $timezone : 'UTC',
+    read_timeout => 5,
+    commands     => [
+        Siebel::Srvrmgr::Daemon::Command->new(
+            {
+                command => 'load preferences',
+                action  => 'LoadPreferences',
+            }
+        ),
+        Siebel::Srvrmgr::Daemon::Command->new(
+            {
+                command => 'list comp',
+                action  => 'Siebel::Srvrmgr::Exporter::ListComp'
+            }
+          )
+
+    ]
+);
 
 if ( defined($offline) ) {
+    print "Running in offline mode\n";
+    $options{output_file} = $offline;
 
-    #$daemon = Siebel::Srvrmgr::Daemon::Offline->new($offline);
+    if ($delimiter) {
+        $options{field_delimiter} = $delimiter;
+    }
+
+    $daemon = Siebel::Srvrmgr::Daemon::Offline->new( \%options );
+    my $cmds_ref = $daemon->get_commands;
+    push(
+        @{$cmds_ref},
+        Siebel::Srvrmgr::Daemon::Command->new(
+            {
+                command => 'list params for server foo component bar',
+                action  => 'Siebel::Srvrmgr::Exporter::ListParams'
+            }
+        )
+    );
+    $daemon->set_commands($cmds_ref);
 
 }
 else {
 
-    my %options = (
-        server       => $server,
-        gateway      => $gateway,
-        enterprise   => $enterprise,
-        user         => $user,
-        password     => $pass,
-        bin          => $bin,
-        time_zone    => ( defined($timezone) ) ? $timezone : 'UTC',
-        read_timeout => 5,
-        commands     => [
-            Siebel::Srvrmgr::Daemon::Command->new(
-                {
-                    command => 'load preferences',
-                    action  => 'LoadPreferences',
-                }
-            ),
-
-# LoadPreferences does not add anything into ActionStash, so it's ok use a second action here
-            Siebel::Srvrmgr::Daemon::Command->new(
-                {
-                    command => 'list comp',
-                    action  => 'Siebel::Srvrmgr::Exporter::ListComp'
-                }
-              )
-
-        ]
-    );
-
     if ( defined($delimiter) ) {
         $options{field_delimiter} = $delimiter;
         print "Using field delimiter '$delimiter'" unless ($quiet);
+        $conn = Siebel::Srvrmgr::Connection->new(
+            {
+                server          => $server,
+                gateway         => $gateway,
+                enterprise      => $enterprise,
+                user            => $user,
+                password        => $pass,
+                bin             => $bin,
+                field_delimiter => $delimiter
+            }
+        );
+    }
+    else {
+        $conn = Siebel::Srvrmgr::Connection->new(
+            {
+                server     => $server,
+                gateway    => $gateway,
+                enterprise => $enterprise,
+                user       => $user,
+                password   => $pass,
+                bin        => $bin
+            }
+        );
     }
 
     if ( $Config{osname} eq 'MSWin32' ) {
@@ -169,7 +200,9 @@ $yap->start() unless ($quiet);
 # these variables are global caches for component definitions and component types respectively
 my ( $DEFS_REF, $TYPES_REF );
 my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
-$daemon->run();
+
+# Offline should ignore the parameter
+$daemon->run($conn);
 my $sieb_srv     = $stash->shift_stash();
 my $server_comps = $sieb_srv->get_comps();
 my $comp_regex   = qr/$regex/;
@@ -187,36 +220,57 @@ foreach my $comp_alias ( @{$server_comps} ) {
     next unless ( $comp_alias =~ $comp_regex );
     $no_match = 0;
     print "found definitions for component $comp_alias\n" unless ($quiet);
-    my $command =
-        'list params for server '
-      . $sieb_srv->get_name()
-      . ' component '
-      . $comp_alias;
-    $daemon->set_commands(
-        [
-            Siebel::Srvrmgr::Daemon::Command->new(
-                {
-                    command => $command,
-                    action  => 'Siebel::Srvrmgr::Exporter::ListParams'
-                }
-            )
-        ]
-    );
-    $daemon->run();
-    my $params = $stash->shift_stash();
-    my $comp = $sieb_srv->get_comp($comp_alias);
+    my ( $params, $comp );
+
+    # no sense asking to execute dinamically defined commands
+    unless ( defined($offline) ) {
+        $daemon->set_commands(
+            [
+                Siebel::Srvrmgr::Daemon::Command->new(
+                    {
+                        command => (
+                                'list params for server '
+                              . $sieb_srv->get_name()
+                              . ' component '
+                              . $comp_alias
+                        ),
+                        action => 'Siebel::Srvrmgr::Exporter::ListParams'
+                    }
+                )
+            ]
+        );
+        $daemon->run($conn);
+        $params = $stash->shift_stash();
+        $comp   = $sieb_srv->get_comp($comp_alias);
 
 # check if the attribute is not already set since the behavior below was from Siebel 7.5.3 only
-    unless ( $comp->get_ct_alias ) {
-        my $type_name = find_comp_type_name( $comp->get_name, $daemon, $stash );
+        unless ( $comp->get_ct_alias ) {
 
-        if ($type_name) {
-            my $type_alias =
-              find_comp_type_alias( $type_name, $daemon, $stash );
-            $comp->set_ct_alias() if ( defined($type_alias) );
+            if ( $daemon->isa('Siebel::Srvrmgr::Daemon::Offline') ) {
+                die
+"offline data must contain CT_ALIAS information for components, cannot continue";
+            }
+            else {
+                my $type_name =
+                  find_comp_type_name( $comp->get_name, $daemon, $stash,
+                    $conn );
+
+                if ($type_name) {
+                    my $type_alias =
+                      find_comp_type_alias( $type_name, $daemon, $stash,
+                        $conn );
+                    $comp->set_ct_alias() if ( defined($type_alias) );
+
+                }
+
+            }
 
         }
 
+    }
+    else {
+        $params = $stash->shift_stash();
+        $comp   = $sieb_srv->get_comp($comp_alias);
     }
 
     my @params;
@@ -272,7 +326,7 @@ if ($no_match) {
 # the functions below are a "hack" when the component type alias is not available in the "list comp" output
 
 sub find_comp_type_alias {
-    my ($comp_type_name, $daemon, $stash) = @_;
+    my ( $comp_type_name, $daemon, $stash, $conn ) = @_;
 
     unless ( defined($TYPES_REF) ) {
         $daemon->set_commands(
@@ -285,16 +339,15 @@ sub find_comp_type_alias {
                 )
             ]
         );
-        $daemon->run();
+        $daemon->run($conn);
         $TYPES_REF = $stash->shift_stash();
-
     }
 
     return $TYPES_REF->{$comp_type_name}->{CT_ALIAS};
 }
 
 sub find_comp_type_name {
-    my ($comp_name, $daemon, $stash) = @_;
+    my ( $comp_name, $daemon, $stash, $conn ) = @_;
 
     unless ( defined($DEFS_REF) ) {
         $daemon->set_commands(
@@ -307,7 +360,7 @@ sub find_comp_type_name {
                 )
             ]
         );
-        $daemon->run();
+        $daemon->run($conn);
         $DEFS_REF = $stash->shift_stash();
     }
 
@@ -322,30 +375,50 @@ sub find_comp_type_name {
 
 }
 
-__END__
+=pod
 
+=head1 NAME
 
-export_comps
+export_comps.pl - program to export components from a Siebel Enterprise
+
+=head1 SYNOPSIS
+
+    export_comps.pl --regex '^Foobar' --server myserver --gateway mygateway --enterprise myenterprise --user user --password password --bin /foobar/srvrmgr
+    export_comps.pl --regex '^Foobar' --offline /foobar/subdir/spool.txt
+
+=head1 DESCRIPTION
 
 This program will connect to a Siebel server and exports all components configuration in the form of "create component" commands.
 Those commands can be used with srvrmgr program to recreate those components in another Siebel server. Think of it something like a "Siebel component dumper".
 The program will print the "create component" to standard output.
 
-The parameters below are obligatory:
+The parameter below is obligatory for any case:
 
-	-s: expects as parameter the Siebel Server name as parameter
-	-g: expects as parameter the Siebel Gateway hostname as parameter
-	-e: expects as parameter the Siebel Enterprise name as parameter
-	-u: expects as parameter the user for authentication as parameter
-	-p: expects as parameter the password for authentication as parameter
-	-b: expects as parameter the complete path to the srvrmgr binary file as parameter
-	-r: expects as parameter the regular expression to match component alias to export as parameter (case sensitive)
+	--regex<regular expression>: expects as parameter the regular expression to match component alias to export as parameter (case sensitive)
+
+The parameters below are obligatory if you want to connect to a live Siebel Enterprise:
+
+	--server <SIEBEL SERVER NAME>: expects as parameter the Siebel Server name as parameter
+	--gateway <SIEBEL GATEWAY NAME>: expects as parameter the Siebel Gateway hostname as parameter
+	--enterprise <SIEBEL ENTERPRISE NAME>: expects as parameter the Siebel Enterprise name as parameter
+	--user <LOGIN>: expects as parameter the user for authentication as parameter
+	--pass <PASSWORD>: expects as parameter the password for authentication as parameter
+	--bin <PATH TO SRVRMGR>: expects as parameter the complete path to the srvrmgr binary file as parameter
+
+If you want to work with a offline, output file generated with srvrmgr spool command, then the parameter below will be obligatory:
+
+    --offline <PATH TO OUTPUT FILE>: expects as parameter the full path to a output file generated with srvrmgr spool command. This output file must contain
+      the exact sequence of commands and respective output as this program would execute in a live system ("load preferences", "list comp", "list params for server <SERVER> component <COMPONENT ALIAS>).
+      Of course, the output must contain the component alias identified by the --regex parameter or no output will be generated. Setting this parameter will make the program to ignore the connection related
+      parameters.
 
 The parameters below are optional:
 
-	-h: prints this help message and exits
-	-x: exclude mode. If present, the program will exclude component parameters with empty values from the generated 'created component' command
-	-q: quiet mode. If present, the program will not put print anything to STDOUT but the "create component" output (see also -o)
-	-o <filename>: Print the output to <filename> instead of STDOUT
-	-d: delimiter. A single character that will used as delimiter to parse srvrmgr output. Be sure to include "set delimiter <character>" in the srvrmgr preferences file.
-	-t: time zone. A string of time zone as listed by DateTime::Timezone all_names() method. If not informed, 'UTC' will be used by default, which should a safe choice for most situations.
+	--help: prints this help message and exits
+	--exclude: exclude mode. If present, the program will exclude component parameters with empty values from the generated 'created component' command
+	--quiet: quiet mode. If present, the program will not put print anything to STDOUT but the "create component" output (see also -o)
+	--output <PATH TO OUTPUT FILE>: Print the output to <filename> instead of STDOUT
+	--delimiter <CHARACTER>: delimiter. A single character that will used as delimiter to parse srvrmgr output. Be sure to include "set delimiter <character>" in the srvrmgr preferences file.
+	--timezone <TIMEZONE>: time zone. A string of time zone as listed by DateTime::Timezone all_names() method. If not informed, 'UTC' will be used by default, which should a safe choice for most situations.
+
+=cut

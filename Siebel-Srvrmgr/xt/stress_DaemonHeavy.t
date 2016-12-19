@@ -6,7 +6,7 @@ use Siebel::Srvrmgr::Daemon::Action::CheckComps;
 use Siebel::Srvrmgr::Daemon::ActionStash;
 use Cwd;
 use File::Spec;
-use Test::TempDir::Tiny;
+use Test::TempDir::Tiny 0.016;
 use Siebel::Srvrmgr::Connection;
 use lib 't';
 use Test::Siebel::Srvrmgr::Daemon::Action::Check::Component;

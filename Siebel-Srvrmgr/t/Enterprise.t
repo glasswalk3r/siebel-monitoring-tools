@@ -2,7 +2,7 @@ use warnings;
 use strict;
 use Test::More;
 use Test::Moose qw(has_attribute_ok);
-use Test::TempDir::Tiny;
+use Test::TempDir::Tiny 0.016;
 use File::Spec;
 use lib 't';
 use Test::Siebel::Srvrmgr::Fixtures qw(create_ent_log);
