@@ -34,16 +34,19 @@ my $exports = File::Spec->catfile( 'blib', 'script', 'export_comps.pl' );
 ok( -e $exports, 'export_comps.pl exists' );
 ok( -r $exports, 'export_comps.pl is readable' );
 ok( -x $exports, 'export_comps.pl is readable' );
-my $path_to_perl = $Config{perlpath};
-
+my @cmd = (
+    $^X,       '-Ilib',       $exports,    '--output',
+    $filename, '--quiet',     '--exclude', '--offline',
+    $offline,  '--delimiter', '|',         '--regex',
+    'SRProc'
+);
+diag('Executing the following command for testing:');
+diag( join(' ', @cmd) );
 my ( $stdout, $stderr, $exit ) = capture {
-    system( $path_to_perl, '-Ilib', $exports, '--output',
-        $filename, '--quiet',     '--exclude', '--offline',
-        $offline,  '--delimiter', '|', '--regex', 'SRProc'
-    );
+    system(@cmd);
 };
-note('STDOUT: '. $stdout);
-note('STDERR: '. $stderr);
+note( 'STDOUT: ' . $stdout );
+note( 'STDERR: ' . $stderr );
 is( $exit, 0, "successfully executed $exports" )
   or diag("Failed to execute $exports: $stderr");
 open( my $fh, '<', $filename ) or diag("Can't open '$filename': $!");
