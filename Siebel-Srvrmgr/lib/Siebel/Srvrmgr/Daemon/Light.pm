@@ -13,6 +13,7 @@ Siebel::Srvrmgr::Daemon::Light - subclass for running commmands with srvrmgr in 
     my $daemon = Siebel::Srvrmgr::Daemon::Light->new(
         {
             time_zone   => 'America/Sao_Paulo',
+            connection => $my_connection, 
 			commands    => [
 			        Siebel::Srvrmgr::Daemon::Command->new(
                         command => 'load preferences',
@@ -36,7 +37,7 @@ Siebel::Srvrmgr::Daemon::Light - subclass for running commmands with srvrmgr in 
                 ]
         }
     );
-    $daemon->run($connection);
+    $daemon->run;
 
 
 =head1 DESCRIPTION
@@ -68,12 +69,11 @@ use Siebel::Srvrmgr;
 use File::BOM 0.14 qw(:all);
 use Siebel::Srvrmgr::IPC qw(check_system);
 use Try::Tiny 0.27;
-
 # VERSION
 
 extends 'Siebel::Srvrmgr::Daemon';
-
 with 'Siebel::Srvrmgr::Daemon::Cleanup';
+with 'Siebel::Srvrmgr::Daemon::Connection';
 
 =pod
 
@@ -121,11 +121,9 @@ Returns the content of the C<input_file> attribute.
 
 =head2 run
 
-This method will try to connect to a Siebel Enterprise through C<srvrmgr> program (if it is the first time the method is invoke) or reuse an already open
-connection to submit the commands and respective actions defined during object creation. The path to the program is check and if it does not exists the 
-method will issue an warning message and immediatly returns false.
+This method will try to connect to a Siebel Enterprise through C<srvrmgr> connection to submit the commands and respective actions defined during object creation.
 
-Those operations will be executed in a loop as long the C<check> method from the class L<Siebel::Srvrmgr::Daemon::Condition> returns true.
+Those operations will be executed in the sequence define until all were executed once.
 
 Beware that Siebel::Srvrmgr::Daemon uses a B<single instance> of a L<Siebel::Srvrmgr::ListParser> class to process the parsing requests, so it is not possible
 to execute L<Siebel::Srvrmgr::Daemon::Command> instances in parallel.
@@ -133,12 +131,12 @@ to execute L<Siebel::Srvrmgr::Daemon::Command> instances in parallel.
 =cut
 
 override 'run' => sub {
-    my ( $self, $conn ) = @_;
+    my ( $self ) = @_;
     super();
     my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
     $logger->info('Starting run method');
-    my $parser     = $self->create_parser( $conn->get_field_del );
-    my $params_ref = $conn->get_params_pass;
+    my $parser     = $self->create_parser( $self->get_conn->get_field_del );
+    my $params_ref = $self->get_conn->get_params_pass;
     $self->_define_params($params_ref);
 
     if ( $logger->is_debug() ) {

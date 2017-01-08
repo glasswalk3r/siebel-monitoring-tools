@@ -3,7 +3,7 @@ package Test::Siebel::Srvrmgr::Daemon::Heavy;
 use Cwd;
 use Test::Most;
 use File::Spec;
-use Test::Moose 'has_attribute_ok';
+use Test::Moose 2.1806 qw(has_attribute_ok does_ok);
 use Siebel::Srvrmgr::Daemon::Heavy;
 use Config;
 use parent 'Test::Siebel::Srvrmgr::Daemon';
@@ -29,6 +29,12 @@ sub class_methods : Test(+1) {
             'get_max_retries'
         )
     );
+}
+
+sub _constructor : Test(+1) {
+    my $test = shift;
+    $test->SUPER::_constructor;
+    does_ok( $test->{daemon}, 'Siebel::Srvrmgr::Daemon::Connection' );
 }
 
 sub class_attributes : Tests {

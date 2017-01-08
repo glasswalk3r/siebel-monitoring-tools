@@ -26,10 +26,11 @@ my $conn   = Siebel::Srvrmgr::Connection->new(
 
 my $daemon = Siebel::Srvrmgr::Daemon::Heavy->new(
     {
-        use_perl  => 1,
-        time_zone => 'America/Sao_Paulo',
-        timeout   => 0,
-        commands  => [
+        use_perl   => 1,
+        time_zone  => 'America/Sao_Paulo',
+        timeout    => 0,
+        connection => $conn,
+        commands   => [
             Siebel::Srvrmgr::Daemon::Command->new(
                 command => 'list comp',
                 action  => 'CheckComps',

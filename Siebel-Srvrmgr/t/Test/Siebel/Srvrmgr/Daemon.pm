@@ -19,16 +19,12 @@ use parent 'Test::Siebel::Srvrmgr';
 $SIG{INT} = \&clean_up;
 
 sub _set_log {
-
     my $test = shift;
-
     $test->{tmp_dir} = tempdir();
     my $log_file = File::Spec->catfile( $test->{tmp_dir}, 'daemon.log' );
     $test->{log_cfg} = File::Spec->catfile( $test->{tmp_dir}, 'log4perl.cfg' );
-
     open( my $out, '>', $test->{log_cfg} )
       or die 'Cannot create ' . $test->{log_cfg} . ": $!\n";
-
     print $out <<BLOCK;
 log4perl.logger.Siebel.Srvrmgr.Daemon = WARN, LOG1
 log4perl.appender.LOG1 = Log::Log4perl::Appender::File
@@ -37,31 +33,39 @@ log4perl.appender.LOG1.mode = clobber
 log4perl.appender.LOG1.layout = Log::Log4perl::Layout::PatternLayout
 log4perl.appender.LOG1.layout.ConversionPattern = %d %p> %F{1}:%L %M - %m%n
 BLOCK
-
     close($out) or die 'Could not close ' . $test->{log_cfg} . ": $!\n";
-
     $ENV{SIEBEL_SRVRMGR_DEBUG} = $test->{log_cfg};
     $test->{log_file} = $log_file;
-
 }
 
-# 11
 sub _constructor : Test(2) {
     my $test = shift;
     $test->_set_log();
 
   SKIP: {
-
         skip 'superclass only validates commands with _setup_commands', 2
           if ( $test->class() eq 'Siebel::Srvrmgr::Daemon' );
+
+        $test->{conn} = Siebel::Srvrmgr::Connection->new(
+            {
+                bin =>
+                  File::Spec->catfile( 'blib', 'script', 'srvrmgr-mock.pl' ),
+                user       => 'foo',
+                password   => 'bar',
+                gateway    => 'foobar',
+                enterprise => 'foobar',
+            }
+        );
+
         ok(
             $test->{daemon} = $test->class()->new(
                 {
-                    lock_dir  => $test->{tmp_dir},
-                    has_lock  => 1,
-                    use_perl  => 1,
-                    time_zone => 'America/Sao_Paulo',
-                    commands  => [
+                    lock_dir   => $test->{tmp_dir},
+                    has_lock   => 1,
+                    use_perl   => 1,
+                    time_zone  => 'America/Sao_Paulo',
+                    connection => $test->{conn},
+                    commands   => [
                         Siebel::Srvrmgr::Daemon::Command->new(
                             command => 'load preferences',
                             action  => 'LoadPreferences'
@@ -88,16 +92,6 @@ sub _constructor : Test(2) {
         );
 
         isa_ok( $test->{daemon}, $test->class() );
-        $test->{conn} = Siebel::Srvrmgr::Connection->new(
-            {
-                bin =>
-                  File::Spec->catfile( 'blib', 'script', 'srvrmgr-mock.pl' ),
-                user       => 'foo',
-                password   => 'bar',
-                gateway    => 'foobar',
-                enterprise => 'foobar',
-            }
-        );
 
     }    # end of SKIP
 
@@ -130,20 +124,12 @@ sub class_methods : Test {
     );
 }
 
-sub class_methods2 : Test(6) {
+sub class_methods2 : Test(4) {
     my $test = shift;
-
     dies_ok { $test->{daemon}->check_cmd('shutdown comp foobar') }
     'check_cmd raises an exception with shutdown command';
     dies_ok { $test->{daemon}->check_cmd('change parameter foobar') }
     'check_cmd raises an exception with change command';
-    dies_ok { $test->{daemon}->run }
-    'run dies if no connection object is given as parameter';
-    like(
-        $@,
-        qr/Siebel::Srvrmgr::Connection/,
-        'exception message for run is the expected'
-    );
 
   SKIP: {
         skip 'Siebel::Srvrmgr::Daemon cannot run these methods', 2
@@ -199,10 +185,11 @@ sub the_last_run : Test(1) {
 
         my $daemon2 = $test->class()->new(
             {
-                has_lock  => 1,
-                lock_dir  => $test->{tmp_dir},
-                use_perl  => 1,
-                time_zone => 'America/Sao_Paulo',
+                has_lock   => 1,
+                lock_dir   => $test->{tmp_dir},
+                use_perl   => 1,
+                time_zone  => 'America/Sao_Paulo',
+                connection => $test->{conn},
                 , # important to avoid calling another interpreter besides perl when invoked by IPC::Open3
                 commands => [
                     Siebel::Srvrmgr::Daemon::Command->new(

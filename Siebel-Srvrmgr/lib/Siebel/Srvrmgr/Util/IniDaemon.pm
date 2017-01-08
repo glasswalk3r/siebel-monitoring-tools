@@ -5,6 +5,7 @@ use warnings;
 use Siebel::Srvrmgr::Daemon::Heavy;
 use Siebel::Srvrmgr::Daemon::Light;
 use Siebel::Srvrmgr::Daemon::Command;
+use Siebel::Srvrmgr::Connection;
 use Config::IniFiles 2.88;
 use Exporter qw(import);
 use Carp;
@@ -79,12 +80,16 @@ sub create_daemon {
     }
 
     my $params = {
-        gateway    => $cfg->val( 'GENERAL', 'gateway' ),
-        enterprise => $cfg->val( 'GENERAL', 'enterprise' ),
-        user       => $cfg->val( 'GENERAL', 'user' ),
-        password   => $cfg->val( 'GENERAL', 'password' ),
-        bin        => $cfg->val( 'GENERAL', 'srvrmgr' ),
-        time_zone  => $cfg->val( 'GENERAL', 'time_zone' ),
+        connection => Siebel::Srvrmgr::Connection->new(
+            {
+                gateway    => $cfg->val( 'GENERAL', 'gateway' ),
+                enterprise => $cfg->val( 'GENERAL', 'enterprise' ),
+                user       => $cfg->val( 'GENERAL', 'user' ),
+                password   => $cfg->val( 'GENERAL', 'password' ),
+                bin        => $cfg->val( 'GENERAL', 'srvrmgr' )
+            }
+        ),
+        time_zone => $cfg->val( 'GENERAL', 'time_zone' ),
     };
 
     # optional
@@ -136,7 +141,8 @@ Here is an example of the required parameters with a description:
     # for Siebel::Srvrmgr::Daemon::Heavy and "light" for Siebel::Srvrmgr::Daemon::Light
     type = heavy
 
-Whatever other parameters or sections available on the same INI will be ignored.
+Whatever other parameters or sections available on the same INI will be ignored by this class, but you can subclass it and use
+any other parameters/section you may want to.
 
 Please refer to the Pod of L<Siebel::Srvrmgr::Daemon> and corresponding subclasses to understand what parameters are optional or not.
 

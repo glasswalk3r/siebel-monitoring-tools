@@ -71,10 +71,10 @@ use IO::Select;
 use Encode;
 use Carp qw(longmess);
 use Siebel::Srvrmgr;
-
 # VERSION
 
 extends 'Siebel::Srvrmgr::Daemon';
+with 'Siebel::Srvrmgr::Daemon::Connection';
 
 our $SIG_INT   = 0;
 our $SIG_PIPE  = 0;
@@ -409,7 +409,7 @@ Those operations will be executed in a loop as long the C<check> method from the
 # srvrmgr but the program will hang if there is no output left to be read from srvrmgr.
 
 override 'run' => sub {
-    my ( $self, $conn ) = @_;
+    my ( $self ) = @_;
     super();
     my $logger;
     my $temp;
@@ -417,9 +417,9 @@ override 'run' => sub {
     my ( $read_h, $write_h, $error_h );
 
     unless ( $self->has_pid() ) {
-        confess( $conn->get_bin()
+        confess( $self->get_conn->get_bin()
               . ' returned un unrecoverable error, aborting execution' )
-          unless ( $self->_create_child($conn) );
+          unless ( $self->_create_child );
 
 # :WORKAROUND:31/07/2013 14:42:33:: must initialize the Log::Log4perl after forking the srvrmgr to avoid sharing filehandles
         $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
@@ -789,7 +789,7 @@ sub _manage_handlers {
 }
 
 sub _create_child {
-    my ( $self, $conn ) = @_;
+    my ( $self ) = @_;
     my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
 
     if ( $self->get_retries() >= $self->get_max_retries() ) {
@@ -800,6 +800,7 @@ sub _create_child {
         );
         exit(1);
     }
+    my $conn = $self->get_conn;
 
     $logger->logdie( 'Cannot find program ' . $conn->get_bin() . ' to execute' )
       unless ( -e $conn->get_bin() && -x _ );

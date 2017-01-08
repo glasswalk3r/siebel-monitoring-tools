@@ -463,7 +463,7 @@ Expects as parameters a L<Siebel::Srvrmgr::Connection>, or it will C<confess> wi
 =cut
 
 sub run {
-    my ( $self, $connection ) = @_;
+    my ( $self ) = @_;
     # :TODO:11-12-2016 20:43:19:: wtf is this?
 #    my $class = blessed($self);
 #
@@ -476,12 +476,6 @@ sub run {
 #        confess
 #"Only subclasses of Siebel::Srvrmgr::Daemon can executed this method (received unblessed '$self')";
 #    }
-
-    my $conn_class = blessed($connection);
-    confess
-      'Must receive an instance of Siebel::Srvrmgr::Connection as parameter'
-      unless ( defined($conn_class)
-        and ( $conn_class->isa('Siebel::Srvrmgr::Connection') ) );
 
     if ( $self->has_lock ) {
         $self->_create_lock;
@@ -680,38 +674,28 @@ is just to C<return> true. C<_my_cleanup> is called with a reference of a L<Log:
 =cut
 
 sub DEMOLISH {
-
     my $self = shift;
-
     my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
-
     $logger->info('Terminating daemon: preparing cleanup');
-
     $self->_my_cleanup();
 
     if ( $self->has_lock() ) {
-
         $self->_del_lock();
-
     }
 
     $logger->info('Cleanup is finished');
 
     if ( $logger->is_warn() ) {
-
         $logger->warn('Program termination was forced by ALRM signal')
           if ($SIG_ALARM);
         $logger->warn('Program termination was forced by INT signal')
           if ($SIG_INT);
         $logger->warn('Program termination was forced by PIPE signal')
           if ($SIG_PIPE);
-
     }
 
     $logger->info( ref($self) . ' says bye-bye' ) if ( $logger->is_info() );
-
     Log::Log4perl->remove_logger($logger);
-
 }
 
 =head1 CONSTANTS
@@ -731,15 +715,11 @@ All of them from the L<Fcntl> module.
 =cut
 
 sub _create_lock {
-
     my $self = shift;
-
     my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
-
     my $lock_file = $self->get_lock_file;
 
     if ( -e $lock_file ) {
-
         open( my $in, '<', $lock_file )
           or $logger->logdie("Cannot read $lock_file: $!");
         flock( $in, LOCK_EX | LOCK_NB )
@@ -754,36 +734,28 @@ sub _create_lock {
 
     }
     else {
-
         open( my $out, '>', $lock_file )
           or $logger->logdie("Cannot create $lock_file: $!");
         flock( $out, LOCK_EX | LOCK_NB )
           or $logger->logdie("Could not get exclusive lock on $lock_file: $!");
         print $out $$;
         close($out);
-
     }
 
 }
 
 sub _del_lock {
-
     my $self      = shift;
     my $lock_file = $self->get_lock_file;
-
     my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
 
     if ( -e $lock_file ) {
-
         unlink($lock_file)
           or $logger->logdie("Could not remove $lock_file: $!");
-
     }
     else {
-
         $logger->warn(
             'Could not find lock file to remove before program termination');
-
     }
 
 }

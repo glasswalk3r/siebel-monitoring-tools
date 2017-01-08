@@ -1,6 +1,6 @@
 package Siebel::Srvrmgr::Connection;
 
-use Moose;
+use Moose 2.0401;
 use Siebel::Srvrmgr::Types;
 use Carp;
 # VERSION
