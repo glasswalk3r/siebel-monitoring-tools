@@ -44,7 +44,7 @@ None by default.
     Devel::CheckOS [1.71]
     Class::Data::Inheritable [0.08]
     Test::Class [0.36]
-    Test::Most [0.25]
+    Test::Most [0.35]
     Test::Pod [1.22]
     Test::Pod::Coverage [1.08]
 	Test::Moose [2.0801]
