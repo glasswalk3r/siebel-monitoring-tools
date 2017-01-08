@@ -3,8 +3,7 @@ package Bundle::Siebel::MonitoringTools;
 use 5.008009;
 use strict;
 use warnings;
-
-our $VERSION = 0.06;
+# VERSION
 
 1;
 __END__
@@ -64,6 +63,7 @@ None by default.
     CHI [0.58]
     TryCatch [1.003002]
     Dist::Zilla::Plugin::CheckExtraTests [0.029]
+    Try::Tiny [0.27]
 
 =head1 SEE ALSO
 
