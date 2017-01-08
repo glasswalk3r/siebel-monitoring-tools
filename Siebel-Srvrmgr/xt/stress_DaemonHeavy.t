@@ -32,12 +32,13 @@ if (    ( exists( $ENV{SIEBEL_SRVRMGR_DEVEL} ) )
         $cfg->val( 'GENERAL', 'server' ),
         $cfg->val( 'GENERAL', 'comp_list' )
     );
-    $conn = build_conn($cfg);
+    $conn   = build_conn($cfg);
     $daemon = Siebel::Srvrmgr::Daemon::Heavy->new(
         {
             use_perl     => 0,
             time_zone    => 'America/Sao_Paulo',
             read_timeout => 15,
+            connection   => $conn,
             commands     => [
                 Siebel::Srvrmgr::Daemon::Command->new(
                     command => 'load preferences',
@@ -68,10 +69,11 @@ else {
     );
     $daemon = Siebel::Srvrmgr::Daemon::Heavy->new(
         {
-            use_perl  => 1,
-            time_zone => 'America/Sao_Paulo',
-            timeout   => 0,
-            commands  => [
+            use_perl   => 1,
+            time_zone  => 'America/Sao_Paulo',
+            connection => $conn,
+            timeout    => 0,
+            commands   => [
                 Siebel::Srvrmgr::Daemon::Command->new(
                     command => 'list comp',
                     action  => 'CheckComps',
@@ -87,7 +89,7 @@ my ( $tmp_dir, $log_file, $log_cfg ) = set_log();
 my $stash = Siebel::Srvrmgr::Daemon::ActionStash->instance();
 
 for ( 1 .. $repeat ) {
-    $daemon->run($conn);
+    $daemon->run();
     my $data = $stash->shift_stash();
     is( scalar( keys( %{$data} ) ), 1, 'only one server is returned' );
     my ($servername) = keys( %{$data} );

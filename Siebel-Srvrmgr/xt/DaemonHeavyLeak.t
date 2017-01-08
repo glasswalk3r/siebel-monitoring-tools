@@ -68,53 +68,42 @@ use Cwd;
 use File::Spec;
 use Scalar::Util qw(weaken);
 use Siebel::Srvrmgr::Connection;
+use Devel::Gladiator 0.07 qw(arena_ref_counts);
 
 my $repeat = 3;
 plan tests => $repeat;
 
-SKIP: {
-
-    skip( 'Devel::Gladiator not installed on this system', $repeat )
-      unless do {
-        eval "use Devel::Gladiator qw(arena_ref_counts)";
-        $@ ? 0 : 1;
-      };
-
-    skip 'Not a developer machine', $repeat
-      unless ( $ENV{SIEBEL_SRVRMGR_DEVEL} );
-
-    my $conn = Siebel::Srvrmgr::Connection->new(
-        {
-            bin  => File::Spec->catfile( 'blib', 'script', 'srvrmgr-mock.pl' ),
-            user => 'foo',
-            password   => 'bar',
-            gateway    => 'foobar',
-            enterprise => 'foobar',
-        }
-    );
-
-    my $daemon = Siebel::Srvrmgr::Daemon::Heavy->new(
-        {
-            connection => $conn,
-            time_zone  => 'America/Sao_Paulo',
-            use_perl   => 1,
-            timeout    => 0,
-            commands   => [
-                Siebel::Srvrmgr::Daemon::Command->new(
-                    command => 'list comp',
-                    action  => 'Dummy'
-                )
-            ]
-        }
-    );
-
-    my $gladiator = My::Devel::Gladiator->new();
-
-    for ( 1 .. $repeat ) {
-        $daemon->run();
-        $gladiator->increment_count( arena_ref_counts() );
-        is( $gladiator->count_leaks(), 0, 'gladiator has zero leaks' )
-          or explain( $gladiator->show );
+my $conn = Siebel::Srvrmgr::Connection->new(
+    {
+        bin      => File::Spec->catfile( 'blib', 'script', 'srvrmgr-mock.pl' ),
+        user     => 'foo',
+        password => 'bar',
+        gateway  => 'foobar',
+        enterprise => 'foobar',
     }
+);
 
+my $daemon = Siebel::Srvrmgr::Daemon::Heavy->new(
+    {
+        connection => $conn,
+        time_zone  => 'America/Sao_Paulo',
+        use_perl   => 1,
+        timeout    => 0,
+        commands   => [
+            Siebel::Srvrmgr::Daemon::Command->new(
+                command => 'list comp',
+                action  => 'Dummy'
+            )
+        ]
+    }
+);
+
+my $gladiator = My::Devel::Gladiator->new();
+
+for ( 1 .. $repeat ) {
+    $daemon->run();
+    $gladiator->increment_count( arena_ref_counts() );
+    is( $gladiator->count_leaks(), 0, 'gladiator has zero leaks' )
+      or explain( $gladiator->show );
 }
+

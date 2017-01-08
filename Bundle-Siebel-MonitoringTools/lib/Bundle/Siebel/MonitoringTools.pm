@@ -63,6 +63,7 @@ None by default.
     RPC::XML [0.78]
     CHI [0.58]
     TryCatch [1.003002]
+    Dist::Zilla::Plugin::CheckExtraTests [0.029]
 
 =head1 SEE ALSO
 
