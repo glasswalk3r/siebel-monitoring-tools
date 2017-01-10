@@ -71,6 +71,7 @@ use IO::Select;
 use Encode;
 use Carp qw(longmess);
 use Siebel::Srvrmgr;
+
 # VERSION
 
 extends 'Siebel::Srvrmgr::Daemon';
@@ -409,7 +410,7 @@ Those operations will be executed in a loop as long the C<check> method from the
 # srvrmgr but the program will hang if there is no output left to be read from srvrmgr.
 
 override 'run' => sub {
-    my ( $self ) = @_;
+    my ($self) = @_;
     super();
     my $logger;
     my $temp;
@@ -789,7 +790,7 @@ sub _manage_handlers {
 }
 
 sub _create_child {
-    my ( $self ) = @_;
+    my ($self) = @_;
     my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
 
     if ( $self->get_retries() >= $self->get_max_retries() ) {
@@ -802,8 +803,18 @@ sub _create_child {
     }
     my $conn = $self->get_conn;
 
-    $logger->logdie( 'Cannot find program ' . $conn->get_bin() . ' to execute' )
-      unless ( -e $conn->get_bin() && -x _ );
+# :WORKAROUND:09/01/2017 22:52:54:: on Windows is not configured as executable by default
+    if ( $Config{osname} eq 'MSWin32' ) {
+        $logger->logdie(
+            'Cannot find program ' . $conn->get_bin() . ' to execute' )
+          unless ( -e $conn->get_bin() );
+    }
+    else {
+        $logger->logdie(
+            'Cannot find program ' . $conn->get_bin() . ' to execute' )
+          unless ( -e $conn->get_bin() && -x _ );
+    }
+
     my $params_ref = $conn->get_params;
     $self->_define_params($params_ref);
     my ( $pid, $write_h, $read_h, $error_h ) = safe_open3($params_ref);
