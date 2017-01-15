@@ -71,6 +71,8 @@ use IO::Select;
 use Encode;
 use Carp qw(longmess);
 use Siebel::Srvrmgr;
+use Data::Dumper;
+use Try::Tiny 0.27;
 
 # VERSION
 
@@ -595,7 +597,6 @@ override 'run' => sub {
 
                         $data_ref->{$fh_name}->{bytes} = 0;
                         $data_ref->{$fh_name}->{data}  = undef;
-
                     }
 
                 }
@@ -606,24 +607,19 @@ override 'run' => sub {
 
         # below is the place for a Action object
         if ( scalar(@input_buffer) >= 1 ) {
-
             $self->_check_error( \@input_buffer, 0 );
 
 # :TRICKY:5/1/2012 17:43:58:: copy params to avoid operations that erases the parameters due passing an array reference and messing with it
             my @params;
-
             map { push( @params, $_ ) }
               @{ $self->get_params_stack()->[ $condition->get_cmd_counter() ] };
-
             my $class =
               $self->get_action_stack()->[ $condition->get_cmd_counter() ];
 
             if ( $logger->is_debug() ) {
-
                 $logger->debug(
 "Creating Siebel::Srvrmgr::Daemon::Action subclass $class instance"
                 );
-
             }
 
             my $action = Siebel::Srvrmgr::Daemon::ActionFactory->create(
@@ -631,34 +627,28 @@ override 'run' => sub {
                 {
                     parser => $parser,
                     params => \@params
-
                 }
             );
 
 # :TODO      :16/08/2013 19:03:30:: move this log statement to Siebel::Srvrmgr::Daemon::Action
             if ( $logger->is_debug() ) {
-
                 $logger->debug('Lines from buffer sent for parsing');
 
                 foreach my $line (@input_buffer) {
-
                     $logger->debug($line);
-
                 }
 
                 $logger->debug('End of lines from buffer sent for parsing');
-
             }
 
 # :WORKAROUND:16/08/2013 18:54:51:: exceptions from validating output are not being seen
 # :TODO      :16/08/2013 18:55:18:: start using Try::Tiny to use exceptions for known problems
-            eval {
-
+            try {
                 $condition->set_output_used( $action->do( \@input_buffer ) );
-
+            }
+            catch {
+                $logger->logdie($_);
             };
-
-            $logger->logdie($@) if ($@);
 
             $logger->debug( 'Is output used? ' . $condition->is_output_used() )
               if ( $logger->is_debug() );
@@ -666,64 +656,47 @@ override 'run' => sub {
 
         }
         else {
-
             $logger->warn(
 'The internal buffer is empty: check out if the read_timeout is not too low'
             );
-
         }
 
-        $logger->debug('Finished processing buffer')
-          if ( $logger->is_debug() );
-
-# :TODO:27/2/2012 17:43:42:: must deal with command stack when the loop is infinite (invoke reset method)
+        $logger->debug('Finished processing buffer') if ( $logger->is_debug() );
 
         # begin of session, sending command to the prompt
         unless ( $condition->is_cmd_sent() or $condition->is_last_cmd() ) {
-
             $logger->debug('Preparing to execute command')
               if ( $logger->is_debug() );
-
             $condition->add_cmd_counter()
               if ( $condition->can_increment() );
-
             my $cmd = $self->get_cmd_stack()->[ $condition->get_cmd_counter() ];
-
             $self->_submit_cmd( $cmd, $logger );
-
             $ignore_output = 0;
 
 # srvrmgr.exe of Siebel 7.5.3.17 does not echo command printed to the input file handle
 # this is necessary to give a hint to the parser about the command submitted
 
             if ( defined( $self->get_prompt() ) ) {
-
                 push( @input_buffer, $self->get_prompt() . $cmd );
                 $self->_set_last_cmd( $self->get_prompt() . $cmd );
-
             }
             else {
-
                 $logger->logdie(
 "prompt was not defined from read output, cannot continue. Input buffer was: \n"
                       . Dumper(@input_buffer) );
-
             }
 
             $condition->set_output_used(0);
             $condition->set_cmd_sent(1);
-
         }
         else {
 
             if ( $logger->is_debug() ) {
-
                 $logger->debug('Not yet read to execute a command');
                 $logger->debug(
                     'Condition max_cmd_idx = ' . $condition->max_cmd_idx() );
                 $logger->debug(
                     'Condition is_cmd_sent = ' . $condition->is_cmd_sent() );
-
             }
 
         }
@@ -743,9 +716,7 @@ override 'run' => sub {
     $logger->debug( 'child_runs = ' . $self->get_child_runs() )
       if ( $logger->is_debug() );
     $logger->info('Exiting run sub');
-
     return 1;
-
 };
 
 sub _manage_handlers {
@@ -782,11 +753,9 @@ sub _manage_handlers {
         }
 
         $counter++;
-
     }
 
     return \%data;
-
 }
 
 sub _create_child {
@@ -842,7 +811,6 @@ sub _create_child {
         $self->_set_child_runs(0);
         return 1;
     }
-
 }
 
 sub _process_stderr {
@@ -875,7 +843,6 @@ sub _process_stdout {
 # :TODO      :09/08/2013 19:35:30:: review and remove assigning the compiled regexes to scalar (probably unecessary)
     my $prompt_regex    = SRVRMGR_PROMPT;
     my $load_pref_regex = LOAD_PREF_RESP;
-
     $logger->debug("Raw content is [$$data_ref]") if $logger->is_debug();
 
     foreach my $line ( split( "\n", $$data_ref ) ) {
@@ -903,7 +870,6 @@ sub _process_stdout {
                 # parsers will consider the lines below
                 push( @{$buffer_ref}, $line );
                 last SWITCH;
-
             }
 
             # prompt was returned, end of output
@@ -911,9 +877,7 @@ sub _process_stdout {
             if ( $line =~ /$prompt_regex/ ) {
 
                 unless ( defined( $self->get_prompt() ) ) {
-
                     $self->_set_prompt($line);
-
                     $logger->info("defined prompt with [$line]")
                       if ( $logger->is_info() );
 
@@ -945,8 +909,6 @@ sub _process_stdout {
                 }
 
                 push( @{$buffer_ref}, $line );
-                last SWITCH;
-
             }
 
             # no prompt detection, keep reading output from srvrmgr
@@ -1045,7 +1007,6 @@ sub _my_cleanup {
     }
 
     return 1;
-
 }
 
 sub _submit_cmd {
@@ -1066,7 +1027,6 @@ sub _submit_cmd {
     }
 
     return 1;
-
 }
 
 =pod
@@ -1086,16 +1046,13 @@ If the child process is terminated successfully, this method returns true. If th
 =cut
 
 sub close_child {
-
     my $self   = shift;
     my $logger = Siebel::Srvrmgr->gimme_logger( blessed($self) );
 
     if ( $self->has_pid() ) {
 
         if ( $logger->is_warn() ) {
-
             $logger->warn( 'Trying to close child PID ' . $self->get_pid() );
-
         }
 
         if (    ( openhandle( $self->get_write() ) )
@@ -1106,16 +1063,12 @@ sub close_child {
             $self->_submit_cmd('exit');
 
             if ( $logger->is_debug() ) {
-
                 $logger->debug('Submitted exit command to srvrmgr');
-
             }
 
         }
         else {
-
             $logger->warn('write_fh is already closed');
-
         }
 
         for ( 1 .. 4 ) {
@@ -1123,13 +1076,10 @@ sub close_child {
             sleep 1;
 
             if ( kill( 0, $self->get_pid() ) ) {
-
                 $logger->debug('child process is still there');
             }
             else {
-
                 last;
-
             }
 
         }
@@ -1137,10 +1087,8 @@ sub close_child {
         if ( kill 0, $self->get_pid() ) {
 
             if ( $logger->is_debug() ) {
-
                 $logger->debug(
                     'srvrmgr is still running, trying waitpid on it');
-
             }
 
             my $ret = waitpid( $self->get_pid(), 0 );
@@ -1154,26 +1102,20 @@ sub close_child {
                     if ( $Config{osname} eq 'MSWin32' ) {
 
                         if ( kill 0, $self->get_pid() ) {
-
                             $logger->warn(
 'child is still running even after waitpid: last attempt with "kill 9"'
                             );
-
                             kill 9, $self->get_pid();
-
                         }
 
                     }
 
                     $logger->info('Child process finished successfully')
                       if ( $logger->is_info() );
-
                     last SWITCH;
-
                 }
 
                 if ( $ret == -1 ) {
-
                     $logger->info(
                         'No such PID ' . $self->get_pid() . ' to kill' )
                       if ( $logger->is_info() );
@@ -1183,11 +1125,9 @@ sub close_child {
                 else {
 
                     if ( $logger->is_warn() ) {
-
                         $logger->warn(
 "Could not kill the child process, child status = $?, child error = "
                               . ${^CHILD_ERROR_NATIVE} );
-
                     }
 
                 }
@@ -1196,9 +1136,7 @@ sub close_child {
 
         }
         else {
-
             $logger->warn('Child process is already gone');
-
         }
 
         $self->clear_pid();
@@ -1206,11 +1144,9 @@ sub close_child {
 
     }
     else {
-
         $logger->info('Has no child PID available to terminate')
           if ( $logger->is_info() );
         return 0;
-
     }
 
 }
