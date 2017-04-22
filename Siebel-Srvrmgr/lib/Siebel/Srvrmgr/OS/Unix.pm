@@ -6,6 +6,7 @@ use namespace::autoclean 0.13;
 use Set::Tiny 0.02;
 use Carp qw(cluck confess);
 use Siebel::Srvrmgr::OS::Process;
+
 # VERSION
 
 =pod
@@ -183,29 +184,42 @@ Those instances will be created by merging information from C</proc> and the C<c
 =cut
 
 sub get_procs {
-
     my $self = shift;
     my $cmd_regex;
 
     {
-
         my $regex = $self->get_cmd;
         $cmd_regex = qr/$regex/;
-
     }
 
     my $t = Proc::ProcessTable->new( enable_ttys => 0 );
-
     my %procs;
 
     for my $process ( @{ $t->table } ) {
-
         next unless ( $process->cmndline =~ $cmd_regex );
 
-        # :WORKAROUND:22-03-2015 20:54:51:: forcing conversion to number
-        my $pctcpu = $process->pctcpu;
-        $pctcpu =~ s/\s//;
-        $pctcpu += 0;
+# :WORKAROUND:22/04/2017 13:12:51:ARFREITAS:
+# http://www.cpantesters.org/cpan/report/2af1073a-201c-11e7-9544-95c1a53da82d
+# Attribute (pctcpu) does not pass the type constraint because: Validation failed for 'Num' with value NaN at constructor Siebel::Srvrmgr::OS::Process::new (defined at /tmp/loop_over_bdir-19045-Y9d90e/Siebel-Srvrmgr-0.29-0/blib/lib/Siebel/Srvrmgr/OS/Process.pm line 207) line 66
+#	Siebel::Srvrmgr::OS::Process::new('Siebel::Srvrmgr::OS::Process', 'HASH(0x55573815f298)') called at /tmp/loop_over_bdir-19045-Y9d90e/Siebel-Srvrmgr-0.29-0/blib/lib/Siebel/Srvrmgr/OS/Unix.pm line 210
+#	Siebel::Srvrmgr::OS::Unix::get_procs('Siebel::Srvrmgr::OS::Unix=HASH(0x555736ffe9b8)') called at t/OSUnix.t line 162
+#	main::test_operations('Siebel::Srvrmgr::OS::Unix=HASH(0x555736ffe9b8)') called at t/OSUnix.t line 66
+## Looks like your test exited with 255 just after 6.
+        #t/OSUnix.t ......................
+        #Dubious, test returned 255 (wstat 65280, 0xff00)
+        #Failed 10/16 subtests
+        my $pctcpu;
+
+        if ( ( $process->pctcpu eq 'NaN' ) or ( $process->pctcpu eq 'nan' ) ) {
+            require Data::Dumper;
+            warn "Caught a process with an invalid pctcpu";
+            warn Dumper($process);
+            $pctcpu = 0;
+        }
+        else {
+            # :WORKAROUND:22-03-2015 20:54:51:: forcing conversion to number
+            $pctcpu = $process->pctcpu + 0;
+        }
 
         $procs{ $process->pid } = Siebel::Srvrmgr::OS::Process->new(
             {
@@ -262,17 +276,12 @@ sub get_procs {
     }
 
     $self->find_comps( \%procs );
-
     return \%procs;
-
 }
 
 sub find_comps {
-
-    my $self      = shift;
-    my $procs_ref = shift;
+    my ( $self, $procs_ref ) = @_;
     $self->get_comps_source()->find_comps($procs_ref);
-
 }
 
 =head1 SEE ALSO

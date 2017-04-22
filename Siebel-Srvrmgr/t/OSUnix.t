@@ -13,7 +13,8 @@ plan skip_all =>
   "Siebel::Srvrmgr::OS::Unix is required for running these tests: $@"
   if $@;
 
-use constant TMP_DIR => tempdir();
+use constant SLEEP_TIME => 8;
+use constant TMP_DIR    => tempdir();
 use constant ENTERPRISE_LOG =>
   File::Spec->catfile( TMP_DIR, 'foobar.foobar666.log' );
 
@@ -26,23 +27,17 @@ plan tests               => TOTAL_TESTS;
 if ( $] >= 5.012_005 ) {
 
   SKIP: {
-
         eval
 q{use Proc::Daemon;  die "This test is not supported at this version of perl ($])" unless $] > 5.012_005};
-
         skip "Cannot run this test because of \"$@\"", TOTAL_TESTS, if $@;
-
         my $daemon = Proc::Daemon->new();
-
-        my $kid = $daemon->init();
+        my $kid    = $daemon->init();
 
         unless ($kid) {
-
             local $0 = PROC_NAME;
 
             #let's put child to do something
             while (1) {
-
                 my $a = 0;
                 my $b = 1;
                 my $n = 2000;
@@ -53,19 +48,17 @@ q{use Proc::Daemon;  die "This test is not supported at this version of perl ($]
                     $b = $sum;
                 }
 
-                sleep 1;
+                sleep SLEEP_TIME;
 
             }
 
         }
         else {
-
             my $procs = fixtures($kid);
             test_attributes($procs);
             test_methods($procs);
             test_operations($procs);
             $daemon->Kill_Daemon($kid);
-
         }
 
     }
@@ -74,17 +67,12 @@ q{use Proc::Daemon;  die "This test is not supported at this version of perl ($]
 else {
 
   SKIP: {
-
 # :REMARK:23-03-2015 02:23:56:: perl 5.8.9 does not allow the change of fname in /proc by changing $0
         eval q{use Proc::Background};
-
         skip "Cannot run this test because of \"$@\"", TOTAL_TESTS, if $@;
-
         my $proc_path = File::Spec->catfile( TMP_DIR, PROC_NAME );
-
         open( my $script, '>', $proc_path )
           or die "Cannot create $$proc_path: $!";
-
         my $code = q(#!/usr/bin/perl
 #let's put child to do something
 while (1) {
@@ -112,7 +100,6 @@ while (1) {
         test_methods($procs);
         test_operations($procs);
         $siebel_proc->die;
-
     }
 
 }
@@ -122,14 +109,11 @@ while (1) {
 #
 
 sub fixtures {
-
     my $pid = shift;
-
     note("Running tests against perl $], child PID is $pid");
 
     # giving some time to get data into /proc
     sleep 3;
-
     create_ent_log( $pid, ENTERPRISE_LOG );
     return Siebel::Srvrmgr::OS::Unix->new(
         {
@@ -157,10 +141,11 @@ END {
 }
 
 sub test_operations {
+    my $procs = shift;
 
-    my $procs     = shift;
+# :WORKAROUND:22/04/2017 13:28:08:ARFREITAS: waiting half of the time the process should sleep after calculating Fibonacci sequence
+    sleep( SLEEP_TIME / 2 );
     my $procs_ref = $procs->get_procs();
-
     is( ref($procs_ref), 'HASH', 'get_procs returns a hash reference' );
 
 # :WORKAROUND:21-06-2015 12:53:45:: avoid getting other undesired process beside the one we are forcing as "Siebel process"
@@ -170,9 +155,7 @@ sub test_operations {
         if (   ( $procs_ref->{$pid}->{comp_alias} eq 'N/A' )
             or ( $procs_ref->{$pid}->{comp_alias} eq 'unknown' ) )
         {
-
             delete $procs_ref->{$pid};
-
         }
 
     }
@@ -191,10 +174,8 @@ sub test_operations {
     is( $procs_ref->{$pid}->get_fname,
         'siebmtshmw', 'process has the correct process name' );
     ok( $procs_ref->{$pid}->is_comp, 'is_comp returns true' );
-
     my $float   = qr/\d+(\.\d+)?/;
     my $integer = qr/\d+/;
-
     like( $procs_ref->{$pid}->get_pctcpu, $float, 'process %CPU is a float' );
     like( $procs_ref->{$pid}->get_pctmem, $float,
         'process %memory is a float' );
@@ -204,7 +185,6 @@ sub test_operations {
 }
 
 sub test_methods {
-
     my $procs   = shift;
     my @methods = (
         'get_cmd',       'set_cmd',
@@ -214,19 +194,15 @@ sub test_methods {
         'get_comps_source'
     );
     can_ok( $procs, @methods );
-
 }
 
 sub test_attributes {
-
     my $procs = shift;
     my @attribs =
       (qw(comps_source cmd_regex mem_limit cpu_limit limits_callback));
 
     foreach my $attrib (@attribs) {
-
         has_attribute_ok( $procs, $attrib );
-
     }
 
 }
