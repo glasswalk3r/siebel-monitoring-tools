@@ -24,8 +24,6 @@ Currently, this projects provides:
 
 The SNMP MIB is still a goal for the project, but it was not started yet.
 
-The [Siebel::Srvrmgr](http://search.cpan.org/perldoc?Siebel::Srvrmgr) API enable several things to monitor, but until now the monitoring of tasks is not ready yet since there is a known bug to parse the "list tasks" output. This bug is also a issue to get computer resource consumption by components.
-
 # Contributing for the project #
 
 Project contribution is not just code! There is need for testing, reporting bugs, asking for features and even documentation. Feel free to contact the project owner for details if you would like to join the project.
