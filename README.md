@@ -1,3 +1,11 @@
+# This project is no longer being maintained
+
+I'm not actively maintaining this project, but I'll keep it here in the hope it will still be useful for somebody else.
+
+No bugs or requests will be attended!
+
+# Project goal
+
 The goal of this project is to make possible to monitor Siebel servers. The objects that are being considered to be monitored are:
 
   * components status;
